@@ -57,11 +57,14 @@ last. A nested accordion keeps its own triggers to itself.
 Each trigger sits in an element with `role="heading"`; set its level with
 `headingLevel` (1 to 6, default 3) to fit the page's outline.
 
-## `forceMount`
+## Rendering closed content
 
-On `AccordionContent`, the same as `CollapsibleContent`: closed content stays
-in the page by default, and `forceMount={false}` unmounts it once the collapse is
-over.
+On `AccordionContent`, `forceMount` defaults to `true`, as on
+`CollapsibleContent` and unlike `TabsContent`: a closed item stays in the DOM,
+`inert` and hidden, and is rendered on the server. The reasons are stable
+`aria-controls` targets (each trigger always points at an existing region),
+SSR, and no height measurement. Pass `forceMount={false}` to unmount the
+children once the collapse is over and mount them again on open.
 
 ## Native attributes
 

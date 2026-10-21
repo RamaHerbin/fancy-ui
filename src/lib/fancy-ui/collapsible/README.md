@@ -50,14 +50,22 @@ collapse with the rest.
   panel settles immediately.
 - Set the speed with `--ft-collapsible-duration` (default `240ms`).
 
-## `forceMount`
+## Rendering closed content
 
-On by default: a closed panel keeps its children in the page, `inert` and
-hidden, so server-rendered markup, find-in-page and any form state survive.
+`forceMount` defaults to `true`, the inverse of `TabsContent`: a closed panel
+stays in the DOM, `inert` and `visibility: hidden`, and is rendered on the
+server. Three reasons:
+
+- **Stable `aria-controls` targets.** The trigger always points at an element
+  that exists, so the reference never dangles while the panel is closed.
+- **SSR.** The closed markup is in the first response, so find-in-page, links
+  into the content and form state work without a client round trip.
+- **No measurement.** The panel animates `grid-template-rows` and never reads
+  a height, which a mount-on-open panel would need to do.
+
 Pass `forceMount={false}` to unmount the children once the collapse has
 finished and mount them again on open, for content that should not run while
-closed (an iframe, a video). The region itself always stays, so the next open
-has something to grow from.
+closed (an iframe, a video). The region itself always stays.
 
 ## Without a root
 

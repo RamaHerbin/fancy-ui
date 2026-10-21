@@ -25,6 +25,8 @@ import { getUsageSnippet } from "$lib/docs/framework-snippets.js";
 import { INSTALL_SNIPPETS } from "$lib/docs/install-snippets.js";
 import type { Framework } from "$lib/inspiration/types.js";
 import { SITE_URL, GITHUB_URL } from "$lib/site.js";
+import { recipesRegistry, recipeMarkdownUrl, type Recipe } from "$lib/docs/recipes/registry.js";
+import { recipeMarkdown } from "$lib/docs/recipes/markdown.js";
 import type { ComponentMeta } from "$lib/types.js";
 import {
 	portFolderOf,
@@ -359,11 +361,33 @@ Docs: ${SITE_URL}/docs — Source: ${GITHUB_URL}`;
 /**
  * The "Recipes" section of llms.txt, between the component index and the full
  * reference: one link per composed recipe, each line as Markdown, ending with
- * a blank line. Empty until the recipes registry exists; the section is not
- * printed at all while it is.
+ * a blank line. The section is not printed at all when there are no recipes.
  */
-export function recipesSection(): string[] {
-	return [];
+export function recipesSection(recipes: readonly Recipe[] = recipesRegistry): string[] {
+	if (!recipes.length) return [];
+	return [
+		"## Recipes",
+		"",
+		"End-to-end patterns that combine several components around one interaction. Each link is the recipe's Markdown page with the steps, the pitfalls and the code in all three frameworks.",
+		"",
+		...recipes.map((r) => `- [${r.title}](${recipeMarkdownUrl(r.slug)}): ${r.summary}`),
+		"",
+	];
+}
+
+/**
+ * A recipe's Markdown nested under "## Recipes": every heading moves down two
+ * levels (outside code fences) so the recipe title becomes an h3.
+ */
+function nestedRecipeMarkdown(recipe: Recipe): string[] {
+	let fenced = false;
+	return recipeMarkdown(recipe)
+		.trimEnd()
+		.split("\n")
+		.map((line) => {
+			if (line.startsWith("```")) fenced = !fenced;
+			return !fenced && /^#{1,4} /.test(line) ? `##${line}` : line;
+		});
 }
 
 /**
@@ -488,6 +512,11 @@ export function generateLlmsFullTxt(): string {
 			}
 			lines.push("", `Docs: ${docsUrl(c)} — Markdown: ${markdownUrl(c)}`, "");
 		}
+	}
+
+	if (recipesRegistry.length) {
+		lines.push("## Recipes", "");
+		for (const r of recipesRegistry) lines.push(...nestedRecipeMarkdown(r), "");
 	}
 
 	return lines.join("\n");
@@ -757,6 +786,8 @@ export interface RegistryJson {
 	packages: PerFramework<RegistryPackage>;
 	count: number;
 	components: RegistryEntry[];
+	/** Composed patterns, each with its Markdown page. */
+	recipes: { slug: string; title: string; url: string }[];
 }
 
 const PACKAGE_NAMES: PerFramework<string> = {
@@ -817,5 +848,10 @@ export function generateRegistryJson(): RegistryJson {
 		})),
 		count: components.length,
 		components,
+		recipes: recipesRegistry.map((r) => ({
+			slug: r.slug,
+			title: r.title,
+			url: recipeMarkdownUrl(r.slug),
+		})),
 	};
 }

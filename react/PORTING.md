@@ -46,6 +46,13 @@ Every component folder gets a matching export block in `react/src/index.ts`.
   `useState` initializer. Where the Svelte source randomises, take a seed
   prop and use a deterministic PRNG, and record it as a divergence in the
   README.
+- **`forceMount` on `CollapsibleContent` / `AccordionContent` defaults to
+  `true`** (closed content stays in the DOM, `inert` and hidden, rendered on the
+  server; `forceMount={false}` unmounts it once the collapse has finished). It
+  is the inverse of `TabsContent` and of common expectations: stable
+  `aria-controls` targets, SSR, no height measurement. State the default and
+  the reason in the prop's JSDoc, and keep the same default in all three
+  packages.
 
 ## Native attributes
 
@@ -135,13 +142,13 @@ who adds a file, a stylesheet or a module-scope statement knows which promise
 it touches. `pnpm check:dist-env` (after the builds), `pnpm check:tailwind` and
 publint enforce the mechanical half.
 
-| Specifier | Svelte | React | Vue |
-| --- | --- | --- | --- |
-| `<pkg>` | every component, hook, `sound`, `toast` | same | same |
-| `<pkg>/cameleon` | `FancyProvider`, primitives, skins; plus `cameleon/retro-kit` and a `cameleon/*` wildcard | barrel only | barrel only |
-| `<pkg>/tailwind.css` | `@source` + dark variant + 18 tokens | same body | same body |
-| `<pkg>/styles.css` | none: each component's styles compile with it | required, once | required, once |
-| `<pkg>/package.json` | yes | yes | yes |
+| Specifier            | Svelte                                                                                    | React          | Vue            |
+| -------------------- | ----------------------------------------------------------------------------------------- | -------------- | -------------- |
+| `<pkg>`              | every component, hook, `sound`, `toast`                                                   | same           | same           |
+| `<pkg>/cameleon`     | `FancyProvider`, primitives, skins; plus `cameleon/retro-kit` and a `cameleon/*` wildcard | barrel only    | barrel only    |
+| `<pkg>/tailwind.css` | `@source` + dark variant + 18 tokens                                                      | same body      | same body      |
+| `<pkg>/styles.css`   | none: each component's styles compile with it                                             | required, once | required, once |
+| `<pkg>/package.json` | yes                                                                                       | yes            | yes            |
 
 - **CSS entry.** `tailwind.css` is the only file a consumer's Tailwind reads.
   Below their `@source` lines the three entries are one body, byte for byte

@@ -65,6 +65,8 @@ not at all while the toggle is disabled.
 
 When `name` is set the hidden input is rendered inside the `<button>` (the component keeps a single root element) and submits `value` while pressed. `form`, `name` and `value` are Toggle's own props, not forwarded to the button.
 
+A disabled toggle submits nothing, even while pressed. Inside a `ToggleGroup` the rule is different: a selected item that is disabled still submits, and only a disabled group submits nothing.
+
 ## Theming
 
 The pressed ring color has no semantic token in the app's theme layer, so it

@@ -8,7 +8,8 @@ interface AccordionContentOwnProps {
 	/**
 	 * Keeps the children mounted while the item is closed. On by default; pass
 	 * `false` to unmount them once the collapse has finished and mount them
-	 * again on open. See `CollapsibleContent`.
+	 * again on open. Defaults to `true`, as on `CollapsibleContent`: the trigger's `aria-controls` always points at an element that exists, the closed markup is server-rendered, and nothing has to be measured.
+	 * See `CollapsibleContent`.
 	 */
 	forceMount?: boolean;
 	/** The item's content. */

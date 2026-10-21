@@ -13,6 +13,7 @@ interface CollapsibleContentOwnProps {
 	 * markup, find-in-page and form state survive. Pass `false` to unmount the
 	 * children once the collapse has finished and mount them again on open, for
 	 * content that should not run while closed (an iframe, a video).
+	 * Defaults to `true`, unlike `TabsContent`: the trigger's `aria-controls` always points at an element that exists, the closed markup is server-rendered, and nothing has to be measured.
 	 */
 	forceMount?: boolean;
 	/** The content. */
