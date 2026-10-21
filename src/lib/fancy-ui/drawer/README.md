@@ -75,6 +75,7 @@ Pin actions to the bottom of the panel with `footer`:
 | `swipeToClose` | `boolean`                 | `true`  | Whether dragging the handle down past the threshold closes the drawer                                    |
 | `children`     | `Snippet`                 | —       | Panel body content                                                                                       |
 | `footer`       | `Snippet`                 | —       | Content pinned below the body, e.g. actions                                                              |
+| `id`           | `string`                  | —       | The panel's id, for the `aria-controls` of a trigger rendered outside the component                      |
 | `class`        | `string`                  | —       | Additional CSS classes merged onto the panel                                                             |
 | `ref`          | `HTMLDivElement \| null`  | `null`  | Bindable element reference to the panel                                                                  |
 | `sound`        | `boolean`                 | `false` | Plays `close` when the drawer is dismissed, including a committed swipe, once the user has enabled sound |

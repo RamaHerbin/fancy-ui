@@ -25,6 +25,8 @@ import type { Snippet } from "svelte";
 export interface DialogSurfaceProps {
 	/** Whether the surface is mounted and interactive. */
 	open: boolean;
+	/** The panel's `id` — what the trigger's `aria-controls` points at while the surface is open. */
+	id?: string;
 	/** Forwarded verbatim to the panel's `role`. */
 	role: "dialog" | "alertdialog";
 	/** Id of the element that labels the surface, or undefined when there is none to point at. */

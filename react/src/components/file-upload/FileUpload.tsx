@@ -1,5 +1,12 @@
 import { forwardRef, useRef, useState } from "react";
-import type { ChangeEvent, CSSProperties, DragEvent, MouseEvent, RefCallback } from "react";
+import type {
+	ChangeEvent,
+	ComponentPropsWithoutRef,
+	CSSProperties,
+	DragEvent,
+	MouseEvent,
+	RefCallback,
+} from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -27,7 +34,7 @@ export interface UploadFile {
 	error?: string;
 }
 
-export interface FileUploadProps {
+interface FileUploadOwnProps {
 	/**
 	 * Selected files. Controlled when supplied: pair it with `onFilesChange`,
 	 * the React counterpart of the Svelte source's `bind:files`.
@@ -67,6 +74,14 @@ export interface FileUploadProps {
 	 */
 	sound?: boolean;
 }
+
+export interface FileUploadProps
+	extends
+		Omit<
+			ComponentPropsWithoutRef<"input">,
+			keyof FileUploadOwnProps | "type" | "value" | "defaultValue" | "role"
+		>,
+		FileUploadOwnProps {}
 
 // A split enter/exit pair rather than one bidirectional transition, which is
 // the house rule everywhere else. The list is keyed, and an id this component
@@ -156,6 +171,14 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 			hint,
 			className,
 			sound = false,
+			onChange,
+			onClick,
+			"aria-label": ariaLabel,
+			"aria-describedby": ariaDescribedby,
+			"aria-invalid": ariaInvalid,
+			// An `<input>` is a void element: a stray `children` must not reach it.
+			children: _children,
+			...rest
 		},
 		ref
 	) => {
@@ -187,7 +210,8 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 
 		const hintId = `${effectiveId}-hint`;
 		const describedBy =
-			[field?.describedBy, hint ? hintId : undefined].filter(Boolean).join(" ") || undefined;
+			[field?.describedBy, ariaDescribedby, hint ? hintId : undefined].filter(Boolean).join(" ") ||
+			undefined;
 
 		// Counts enter/leave pairs instead of toggling a boolean on either one.
 		// dragenter/dragleave bubble from every child the pointer crosses — the
@@ -513,6 +537,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 		function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
 			if (effectiveDisabled) return;
 			addFiles(Array.from(event.currentTarget.files ?? []));
+			onChange?.(event);
 		}
 
 		/**
@@ -542,6 +567,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 		 */
 		function handleInputClick(event: MouseEvent<HTMLInputElement>) {
 			event.currentTarget.value = "";
+			onClick?.(event);
 		}
 
 		function handleDragEnter(event: DragEvent<HTMLDivElement>) {
@@ -642,6 +668,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 					onDrop={handleDrop}
 				>
 					<input
+						{...rest}
 						ref={composedInputRef}
 						type="file"
 						id={effectiveId}
@@ -650,9 +677,9 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 						multiple={multiple}
 						disabled={effectiveDisabled}
 						required={effectiveRequired}
-						aria-invalid={effectiveInvalid ? "true" : undefined}
+						aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
 						aria-describedby={describedBy}
-						aria-label={label}
+						aria-label={label ?? ariaLabel}
 						className="ft-file-upload-input sr-only"
 						onClick={handleInputClick}
 						onChange={handleInputChange}

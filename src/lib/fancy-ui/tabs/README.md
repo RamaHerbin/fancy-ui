@@ -146,6 +146,15 @@ asserts the reference always resolves, add `forceMount` to every
 `TabsContent` so all panels stay in the DOM, just `hidden`, regardless of
 which one is active.
 
+## Native attributes
+
+`TabsTrigger` forwards native `<button>` attributes and listeners (`data-*`,
+`aria-describedby`, `title`, `onblur`, ...) to the tab. `role`, `aria-selected`,
+`aria-controls`, `id`, `tabindex` and the `data-*` state attributes stay the
+component's inside a `Tabs` root; outside one a consumer `id`, `tabindex` and
+`aria-controls` are used. `onclick`, `onfocus` and `onkeydown` run once after
+the component's own handling, and not at all while the trigger is disabled.
+
 ## Props
 
 ### Tabs

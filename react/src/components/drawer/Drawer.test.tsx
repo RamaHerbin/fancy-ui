@@ -729,6 +729,11 @@ describe("Drawer", () => {
 		unmount();
 	});
 
+	it("puts the id prop on the panel, for a trigger's aria-controls", () => {
+		render(<Drawer open id="settings-panel" />);
+		expect(dialog()!.id).toBe("settings-panel");
+	});
+
 	// R9: a modal dialog with no `title` had no way to carry an accessible
 	// name at all — `aria-labelledby` can only point at a rendered heading.
 	it("puts ariaLabel on the panel so a title-less drawer still has an accessible name", () => {

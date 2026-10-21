@@ -23,6 +23,13 @@ function pointerDownOn(target: HTMLElement) {
 	target.dispatchEvent(event);
 }
 
+/** A pointer event of `type` carrying `pointerType`, whatever this jsdom implements. */
+function pointerLike(type: string, pointerType: string): Event {
+	const event = new MouseEvent(type, { bubbles: true, cancelable: true });
+	Object.defineProperty(event, "pointerType", { value: pointerType });
+	return event;
+}
+
 describe("attachDismissable", () => {
 	let node: HTMLElement;
 
@@ -343,6 +350,183 @@ function Surface({ label = "surface", excludeTrigger, ...options }: SurfaceProps
 		</>
 	);
 }
+
+describe("attachDismissable — an outside press keeps the returned focus", () => {
+	afterEach(() => {
+		document.body.innerHTML = "";
+	});
+
+	/** pointerdown → mousedown → click, as a real press dispatches them. Returns the mousedown. */
+	function press(target: HTMLElement) {
+		pointerDownOn(target);
+		const mousedown = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		target.dispatchEvent(mousedown);
+		target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		return mousedown;
+	}
+
+	function setup() {
+		const node = document.createElement("div");
+		node.innerHTML = `<button>Inside</button>`;
+		const text = document.createElement("p");
+		text.textContent = "Plain text";
+		const field = document.createElement("input");
+		document.body.append(node, text, field);
+		return { node, text, field };
+	}
+
+	// The dismiss lands on pointerdown and the overlay hands focus back right
+	// then; the same press's mousedown on non-focusable content would blur
+	// that returned focus straight to <body>.
+	it("cancels the blur of a dismissing press on non-focusable content", () => {
+		const { node, text } = setup();
+		const onDismiss = vi.fn();
+		const handle = attachDismissable(node, { onDismiss, keepFocus: true });
+
+		const mousedown = press(text);
+
+		expect(onDismiss).toHaveBeenCalledTimes(1);
+		expect(mousedown.defaultPrevented).toBe(true);
+		handle.destroy();
+	});
+
+	it("leaves a dismissing press on a focusable element alone", () => {
+		const { node, field } = setup();
+		const onDismiss = vi.fn();
+		const handle = attachDismissable(node, { onDismiss, keepFocus: true });
+
+		const mousedown = press(field);
+
+		expect(onDismiss).toHaveBeenCalledTimes(1);
+		expect(mousedown.defaultPrevented).toBe(false);
+		handle.destroy();
+	});
+
+	it("disarms after one press, so a later unrelated press is untouched", () => {
+		const { node, text } = setup();
+		const handle = attachDismissable(node, { onDismiss: vi.fn(), keepFocus: true });
+		press(text);
+		handle.destroy();
+
+		const later = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		text.dispatchEvent(later);
+
+		expect(later.defaultPrevented).toBe(false);
+	});
+
+	it("does not arm on a non-dismissing press while focus is outside the layer", () => {
+		const { node, text } = setup();
+		const handle = attachDismissable(node, {
+			onDismiss: vi.fn(),
+			outsideClick: false,
+			keepFocus: true,
+		});
+
+		const mousedown = press(text);
+
+		expect(mousedown.defaultPrevented).toBe(false);
+		handle.destroy();
+	});
+
+	// A modal that ignores outside presses (an alert dialog) still owns focus:
+	// the press must not blur it out of the panel to <body>.
+	it("keeps focus inside a layer that ignores outside presses", () => {
+		const { node, text } = setup();
+		node.querySelector("button")!.focus();
+		const onDismiss = vi.fn();
+		const handle = attachDismissable(node, { onDismiss, outsideClick: false, keepFocus: true });
+
+		const mousedown = press(text);
+
+		expect(onDismiss).not.toHaveBeenCalled();
+		expect(mousedown.defaultPrevented).toBe(true);
+		handle.destroy();
+	});
+
+	it("leaves a non-dismissing press alone when keepFocus is off", () => {
+		const { node, text } = setup();
+		node.querySelector("button")!.focus();
+		const handle = attachDismissable(node, { onDismiss: vi.fn(), outsideClick: false });
+
+		const mousedown = press(text);
+
+		expect(mousedown.defaultPrevented).toBe(false);
+		handle.destroy();
+	});
+
+	// Combobox and Autocomplete anchor their panel to an input that keeps
+	// focus; nothing is handed back on dismiss. Cancelling the press's
+	// mousedown there would keep the input focused (and a touch keyboard up)
+	// after the user tapped away from it.
+	it("does not arm for a layer that hands no focus back (an input-anchored panel)", () => {
+		const { node, text, field } = setup();
+		field.focus();
+		const onDismiss = vi.fn();
+		const handle = attachDismissable(node, { onDismiss, exclude: () => [field] });
+
+		const mousedown = press(text);
+
+		expect(onDismiss).toHaveBeenCalledTimes(1);
+		expect(mousedown.defaultPrevented).toBe(false);
+		handle.destroy();
+	});
+
+	// A touch long-press can open the context menu without a click or a
+	// pointercancel ever arriving.
+	it("disarms on contextmenu, so a long-press cannot leave it armed", () => {
+		const { node, text } = setup();
+		const handle = attachDismissable(node, { onDismiss: vi.fn(), keepFocus: true });
+		pointerDownOn(text);
+		text.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+		handle.destroy();
+
+		const later = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		text.dispatchEvent(later);
+
+		expect(later.defaultPrevented).toBe(false);
+	});
+
+	// A mouse press dispatches its mousedown before pointerup, so one that has
+	// reached pointerup without a mousedown will never produce one.
+	it("disarms after a mouse pointerup that brought no mousedown", async () => {
+		const { node, text } = setup();
+		const handle = attachDismissable(node, { onDismiss: vi.fn(), keepFocus: true });
+		pointerDownOn(text);
+		text.dispatchEvent(pointerLike("pointerup", "mouse"));
+		await Promise.resolve();
+		handle.destroy();
+
+		const later = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		text.dispatchEvent(later);
+
+		expect(later.defaultPrevented).toBe(false);
+	});
+
+	// A touch tap dispatches its compatibility mousedown AFTER pointerup, so the
+	// guard has to outlive pointerup for a while, then let go on its own.
+	it("survives a touch pointerup for the tap's mousedown, then times out", () => {
+		vi.useFakeTimers();
+		try {
+			const { node, text } = setup();
+			const handle = attachDismissable(node, { onDismiss: vi.fn(), keepFocus: true });
+			pointerDownOn(text);
+			text.dispatchEvent(pointerLike("pointerup", "touch"));
+			const compat = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+			text.dispatchEvent(compat);
+			expect(compat.defaultPrevented).toBe(true);
+
+			pointerDownOn(text);
+			text.dispatchEvent(pointerLike("pointerup", "touch"));
+			vi.advanceTimersByTime(2000);
+			handle.destroy();
+			const later = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+			text.dispatchEvent(later);
+			expect(later.defaultPrevented).toBe(false);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+});
 
 describe("useDismissable", () => {
 	afterEach(() => {

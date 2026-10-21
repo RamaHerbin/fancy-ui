@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { ComponentPropsWithoutRef, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 
 import { cn } from "../../utils.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
@@ -17,7 +17,7 @@ import "./composer-model-picker.css";
 /**
  * Props for ComposerModelPicker
  */
-export interface ComposerModelPickerProps {
+interface ComposerModelPickerOwnProps {
 	/** The models on offer. An empty list leaves the picker inert. */
 	models: ModelOptionData[];
 	/**
@@ -37,6 +37,15 @@ export interface ComposerModelPickerProps {
 }
 
 /**
+ * Native `<button>` attributes and listeners are forwarded to the trigger button; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface ComposerModelPickerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof ComposerModelPickerOwnProps>,
+		ComposerModelPickerOwnProps {}
+
+/**
  * The model switcher that lives on the composer's bottom rail.
  *
  * Focus lives on the listbox while the menu is open — the element carrying
@@ -52,6 +61,9 @@ export function ComposerModelPicker({
 	onChange,
 	label = "Model",
 	className,
+	onClick,
+	onKeyDown,
+	...rest
 }: ComposerModelPickerProps) {
 	// Undefined when the picker is used outside a Composer: it then behaves as a
 	// standalone select rather than throwing, and nothing switches it off.
@@ -147,7 +159,20 @@ export function ComposerModelPicker({
 		if (changed) onChange?.(model.id);
 	});
 
+	function handleTriggerClick(event: ReactMouseEvent<HTMLButtonElement>) {
+		if (isDisabled) return;
+		if (open) closeMenu(true);
+		else openMenu();
+		onClick?.(event);
+	}
+
 	function handleTriggerKeydown(event: KeyboardEvent<HTMLButtonElement>) {
+		if (isDisabled) return;
+		handleTriggerKey(event);
+		onKeyDown?.(event);
+	}
+
+	function handleTriggerKey(event: KeyboardEvent<HTMLButtonElement>) {
 		if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 		// Both arrows open. The menu sits above the composer, which is where "up"
 		// expects to find it, and "down" is the habit every native select taught.
@@ -234,6 +259,7 @@ export function ComposerModelPicker({
 	return (
 		<>
 			<button
+				{...rest}
 				ref={triggerRef}
 				type="button"
 				className={cn(
@@ -246,7 +272,7 @@ export function ComposerModelPicker({
 				aria-expanded={open}
 				aria-controls={open ? menuId : undefined}
 				aria-label={selected ? `${label}: ${selected.label}` : label}
-				onClick={() => (open ? closeMenu(true) : openMenu())}
+				onClick={handleTriggerClick}
 				onKeyDown={handleTriggerKeydown}
 			>
 				<span className="truncate">{selected?.label ?? label}</span>

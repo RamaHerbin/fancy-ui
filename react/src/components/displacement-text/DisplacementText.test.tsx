@@ -1,9 +1,10 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import { DisplacementText } from "./DisplacementText.js";
 
 // Holds the last renderer instance created by the mock
-const lastMock = { renderer: null as any };
+const lastMock = { renderer: null as any, failMaterial: false };
 
 // Three.js uses WebGL which is not available in jsdom — mock the module
 vi.mock("three", () => {
@@ -17,6 +18,7 @@ vi.mock("three", () => {
 		return { needsUpdate: false, dispose: vi.fn() };
 	}
 	function ShaderMaterial() {
+		if (lastMock.failMaterial) throw new Error("Material construction failed.");
 		return {
 			uniforms: { uTexture: { value: null }, uDisplacement: { value: { copy: vi.fn() } } },
 			dispose: vi.fn(),
@@ -56,6 +58,7 @@ vi.mock("three", () => {
 			setSize: vi.fn(),
 			render: vi.fn(),
 			dispose: vi.fn(),
+			forceContextLoss: vi.fn(),
 			domElement: Object.assign(document.createElement("canvas"), {
 				style: { width: "", height: "" },
 			}),
@@ -80,8 +83,74 @@ vi.mock("three", () => {
 	};
 });
 
+const REDUCE = "(prefers-reduced-motion: reduce)";
+
+/**
+ * Replaces the ambient `getContext -> null` stub (WebGL "unavailable") with a
+ * WebGL2 stand-in good enough for the component's preflight probe.
+ */
+function stubWebGL() {
+	const gl = {
+		getExtension: (name: string) =>
+			name === "WEBGL_lose_context" ? { loseContext: vi.fn() } : null,
+	};
+	const original = HTMLCanvasElement.prototype.getContext;
+	HTMLCanvasElement.prototype.getContext = ((id: string) =>
+		id === "webgl2" ? gl : null) as typeof HTMLCanvasElement.prototype.getContext;
+	return () => {
+		HTMLCanvasElement.prototype.getContext = original;
+	};
+}
+
+/** A `prefers-reduced-motion` query the test can flip, firing `change` like a browser. */
+function stubReducedMotion(initial: boolean) {
+	const original = window.matchMedia;
+	const listeners = new Set<(event: MediaQueryListEvent) => void>();
+	const mql = {
+		matches: initial,
+		media: REDUCE,
+		onchange: null,
+		addEventListener: (_: string, l: (event: MediaQueryListEvent) => void) => listeners.add(l),
+		removeEventListener: (_: string, l: (event: MediaQueryListEvent) => void) =>
+			listeners.delete(l),
+		addListener: () => {},
+		removeListener: () => {},
+		dispatchEvent: () => false,
+	};
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		configurable: true,
+		value: (query: string) => (query === REDUCE ? mql : { ...mql, matches: false, media: query }),
+	});
+	return {
+		listeners,
+		set(matches: boolean) {
+			mql.matches = matches;
+			for (const l of [...listeners]) l({ matches, media: REDUCE } as MediaQueryListEvent);
+		},
+		restore() {
+			Object.defineProperty(window, "matchMedia", {
+				writable: true,
+				configurable: true,
+				value: original,
+			});
+		},
+	};
+}
+
 describe("DisplacementText", () => {
-	afterEach(cleanup);
+	let restoreWebGL: () => void;
+
+	beforeEach(() => {
+		lastMock.renderer = null;
+		lastMock.failMaterial = false;
+		restoreWebGL = stubWebGL();
+	});
+
+	afterEach(() => {
+		cleanup();
+		restoreWebGL();
+	});
 
 	it("renders a div container", () => {
 		const { container } = render(<DisplacementText />);
@@ -136,6 +205,16 @@ describe("DisplacementText", () => {
 			unmount();
 			expect(renderer.dispose).toHaveBeenCalled();
 		});
+
+		it("drops the WebGL context before disposing the renderer", () => {
+			const { unmount } = render(<DisplacementText />);
+			const renderer = lastMock.renderer;
+			unmount();
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
+		});
 	});
 
 	describe("theme observer", () => {
@@ -170,6 +249,139 @@ describe("DisplacementText", () => {
 				document.documentElement,
 				expect.objectContaining({ attributes: true, attributeFilter: ["class"] })
 			);
+		});
+	});
+	describe("prefers-reduced-motion", () => {
+		let motion: ReturnType<typeof stubReducedMotion> | undefined;
+
+		afterEach(() => {
+			motion?.restore();
+			motion = undefined;
+			vi.restoreAllMocks();
+		});
+
+		it("starts no render loop and shows the real text, styled, when reduce is on at mount", () => {
+			motion = stubReducedMotion(true);
+			const rafSpy = vi.spyOn(window, "requestAnimationFrame");
+
+			const { container } = render(
+				<DisplacementText text="Calm" font="Georgia, serif" color="#123456" />
+			);
+
+			expect(rafSpy).not.toHaveBeenCalled();
+			expect(lastMock.renderer).toBeNull();
+			expect(container.querySelector("canvas")).toBeNull();
+			const textNode = screen.getByText("Calm");
+			expect(textNode.style.fontFamily).toBe("Georgia, serif");
+			expect(textNode.style.fontWeight).toBe("bold");
+			expect(textNode.style.color).toBe("rgb(18, 52, 86)");
+		});
+
+		it("stops on a change to reduce and starts again on a change back, without remounting", async () => {
+			motion = stubReducedMotion(false);
+			const { container } = render(<DisplacementText text="Flip" />);
+			const root = container.firstElementChild;
+			const first = lastMock.renderer;
+
+			expect(first).not.toBeNull();
+			expect(container.querySelector("canvas")).toBe(first.domElement);
+			expect(screen.queryByText("Flip")).toBeNull();
+
+			const cafSpy = vi.spyOn(window, "cancelAnimationFrame");
+			act(() => {
+				motion?.set(true);
+			});
+
+			expect(cafSpy).toHaveBeenCalled();
+			expect(first.dispose).toHaveBeenCalledTimes(1);
+			expect(first.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(container.querySelector("canvas")).toBeNull();
+			expect(screen.getByText("Flip")).toBeInTheDocument();
+
+			act(() => {
+				motion?.set(false);
+			});
+
+			expect(lastMock.renderer).not.toBe(first);
+			expect(container.querySelector("canvas")).toBe(lastMock.renderer.domElement);
+			expect(screen.queryByText("Flip")).toBeNull();
+			expect(container.firstElementChild).toBe(root);
+		});
+
+		it("drops its media-query listener on unmount", () => {
+			motion = stubReducedMotion(false);
+			const { unmount } = render(<DisplacementText />);
+			expect(motion.listeners.size).toBe(1);
+			unmount();
+			expect(motion.listeners.size).toBe(0);
+		});
+
+		it("shows the static text when WebGL is unavailable", () => {
+			restoreWebGL();
+			const rafSpy = vi.spyOn(window, "requestAnimationFrame");
+			render(<DisplacementText text="No GPU" />);
+			expect(rafSpy).not.toHaveBeenCalled();
+			expect(screen.getByText("No GPU")).toBeInTheDocument();
+			restoreWebGL = stubWebGL();
+		});
+	});
+
+	// The React engine is inline rather than the shared core, so the core's
+	// option-diffing, pixel-ratio and context-loss checks are pinned here too.
+	describe("engine", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("caps the pixel ratio at 2 by default and re-applies a new maxDpr without rebuilding", () => {
+			vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(3);
+			const { rerender } = render(<DisplacementText />);
+			const renderer = lastMock.renderer;
+			expect(renderer.setPixelRatio).toHaveBeenLastCalledWith(2);
+
+			rerender(<DisplacementText maxDpr={1} />);
+			expect(lastMock.renderer).toBe(renderer);
+			expect(renderer.setPixelRatio).toHaveBeenLastCalledWith(1);
+		});
+
+		it("keeps the same scene when the text changes", () => {
+			const { rerender } = render(<DisplacementText text="One" />);
+			const renderer = lastMock.renderer;
+			rerender(<DisplacementText text="Two" />);
+			expect(lastMock.renderer).toBe(renderer);
+			expect(renderer.dispose).not.toHaveBeenCalled();
+		});
+
+		it("shows the static text and leaves nothing behind when the scene build throws", () => {
+			const motion = stubReducedMotion(false);
+			lastMock.failMaterial = true;
+			const { container, unmount } = render(<DisplacementText text="Broken" />);
+			const renderer = lastMock.renderer;
+
+			expect(renderer).not.toBeNull();
+			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
+			expect(container.querySelector("canvas")).toBeNull();
+			expect(screen.getByText("Broken")).toBeInTheDocument();
+
+			unmount();
+			expect(motion.listeners.size).toBe(0);
+			motion.restore();
+		});
+
+		it("falls back to the static text when the GPU context is lost", () => {
+			const { container } = render(<DisplacementText text="Lost" />);
+			const renderer = lastMock.renderer;
+			act(() => {
+				renderer.domElement.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
+			});
+			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss).not.toHaveBeenCalled();
+			expect(container.querySelector("canvas")).toBeNull();
+			expect(screen.getByText("Lost")).toBeInTheDocument();
 		});
 	});
 });

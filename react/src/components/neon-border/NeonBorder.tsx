@@ -10,10 +10,7 @@ import "./neon-border.css";
  * and a coloured glow that spills both inside and outside the edge. The
  * glow hums (a slow breathing), and the tube flickers once as it ignites.
  */
-export interface NeonBorderProps extends Omit<
-	HTMLAttributes<HTMLDivElement>,
-	"className" | "style"
-> {
+export interface NeonBorderProps extends Omit<HTMLAttributes<HTMLDivElement>, "className"> {
 	/** First neon color */
 	color1?: string;
 	/** Second neon color */
@@ -84,6 +81,7 @@ export function NeonBorder({
 	duration = 6,
 	className,
 	children,
+	style,
 	...rest
 }: NeonBorderProps) {
 	const arc = beamArc(animationType);
@@ -102,13 +100,13 @@ export function NeonBorder({
 
 	return (
 		<div
+			{...rest}
 			className={cn(
 				"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px",
 				animated && "neon-animated",
 				className
 			)}
-			style={styleVars}
-			{...rest}
+			style={{ ...style, ...styleVars }}
 		>
 			{children}
 

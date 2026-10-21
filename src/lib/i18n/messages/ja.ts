@@ -39,8 +39,9 @@ export default {
 	"install.framework": "フレームワーク",
 	"install.sourceOnly": "まだ npm にはありません — この移植版はリポジトリにあります。",
 	"install.unavailable": "このフレームワーク向けのコンポーネントはまだありません。",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "ソースをコピー",
+	"install.copySourceNote":
+		"コンポーネントのソースコードをプロジェクトにコピーします。コードはあなたのものです。",
 	"comp.usage": "使い方",
 	"comp.props": "プロパティ",
 	"comp.slots": "スロット",
@@ -61,6 +62,8 @@ export default {
 	"table.slot": "スロット",
 	"table.event": "イベント",
 	"table.payload": "ペイロード",
+	"table.portName": "{framework} での名前",
+	"table.portNameUnknown": "命名規則からは導けません。Svelte API との違いを参照してください。",
 	"comp.events": "イベント",
 	"comp.copyMarkdown": "Markdown としてコピー",
 

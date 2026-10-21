@@ -1,5 +1,7 @@
 <script lang="ts" module>
-	export interface TypingIndicatorProps {
+	import type { HTMLAttributes } from "svelte/elements";
+
+	export interface TypingIndicatorOwn {
 		/** Dot diameter in pixels */
 		size?: number;
 		/** Dot color; any CSS color or custom property expression */
@@ -13,6 +15,9 @@
 		/** Element reference */
 		ref?: HTMLDivElement | null;
 	}
+
+	export type TypingIndicatorProps = TypingIndicatorOwn &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof TypingIndicatorOwn>;
 </script>
 
 <script lang="ts">
@@ -24,7 +29,9 @@
 		speed = 1.2,
 		label = "Typing",
 		class: className,
+		style,
 		ref = $bindable(null),
+		...restProps
 	}: TypingIndicatorProps = $props();
 
 	// A zero or negative animation-duration invalidates the whole declaration.
@@ -34,6 +41,7 @@
 	// outcome under a separate name — a custom property may not reference itself.
 	const rootStyle = $derived(
 		[
+			...(style ? [String(style)] : []),
 			`--ft-typing-size:${size}px`,
 			`--ft-typing-color-resolved:${color}`,
 			`--ft-typing-speed:${cycle}s`,
@@ -49,6 +57,7 @@
 </script>
 
 <div
+	{...restProps}
 	bind:this={ref}
 	class={cn("inline-flex items-center", className)}
 	style={rootStyle}

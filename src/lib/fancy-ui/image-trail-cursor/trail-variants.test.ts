@@ -170,4 +170,21 @@ describe("trail-variants RAF loop", () => {
 		expect(raf).toHaveBeenCalledTimes(1);
 		instance.destroy();
 	});
+
+	it("never cancels a touch gesture, so the page keeps scrolling", () => {
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+		const container = mountContainer(2);
+		const instance = new variantMap.type1(container);
+		for (const type of ["touchstart", "touchmove", "touchmove"]) {
+			const ev = new Event(type, { bubbles: true, cancelable: true });
+			// Real touch events carry coordinates; without them a handler that
+			// bails on missing touches would pass this test for the wrong reason.
+			const point = { clientX: 10, clientY: 10 };
+			Object.defineProperty(ev, "touches", { value: [point] });
+			Object.defineProperty(ev, "changedTouches", { value: [point] });
+			container.dispatchEvent(ev);
+			expect(ev.defaultPrevented).toBe(false);
+		}
+		instance.destroy();
+	});
 });

@@ -7,7 +7,13 @@
  * items, files and arrays sorted.
  */
 
-import { closure, npmDependencies, relativeSpecifiers, resolveSpecifier } from "./graph.js";
+import {
+	closure,
+	npmDependencies,
+	referencedTypePackages,
+	relativeSpecifiers,
+	resolveSpecifier,
+} from "./graph.js";
 import { docsFor } from "./stack.js";
 import type { TransformContext } from "./stack.js";
 import { reactStack } from "./stacks/react.js";
@@ -169,7 +175,14 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 					.flatMap((p) => npmDependencies(input.files[p], stack.isFrameworkPackage))
 			),
 		].sort();
-		const devDependencies = dependencies.flatMap((dep) => stack.typePackages[dep] ?? []).sort();
+		const devDependencies = [
+			...new Set([
+				...dependencies.flatMap((dep) => stack.typePackages[dep] ?? []),
+				...files.filter(stack.isCode).flatMap((p) => referencedTypePackages(input.files[p])),
+			]),
+		].sort();
+		const pin = (name: string) =>
+			input.versions?.[name] ? `${name}@${input.versions[name]}` : name;
 
 		const registryFiles: RegistryFile[] = files.map((p) =>
 			fileEntry(
@@ -192,8 +205,8 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 			title: meta ? meta.name : shared.title,
 			description: meta ? meta.description : shared.description,
 			...(meta ? { categories: [meta.category] } : {}),
-			...(dependencies.length > 0 ? { dependencies } : {}),
-			...(devDependencies.length > 0 ? { devDependencies } : {}),
+			...(dependencies.length > 0 ? { dependencies: dependencies.map(pin) } : {}),
+			...(devDependencies.length > 0 ? { devDependencies: devDependencies.map(pin) } : {}),
 			...(registryDependencies.length > 0 ? { registryDependencies } : {}),
 			...(isComponent && dependencies.length > 0 ? { docs: docsFor(dependencies) } : {}),
 			files: registryFiles,

@@ -92,16 +92,22 @@ export function BentoGrid({
 
 	return (
 		<div
+			{...rest}
 			ref={nodeRef}
 			className={cn(
 				"fancy-bento mx-auto grid max-w-7xl grid-cols-1 gap-4 md:auto-rows-[18rem] md:grid-cols-3",
 				revealing && "bento-reveal",
 				className
 			)}
-			data-state={revealing ? (shown ? "shown" : "armed") : undefined}
+			data-state={
+				revealing
+					? shown
+						? "shown"
+						: "armed"
+					: (rest as Record<string, string | undefined>)["data-state"]
+			}
 			style={mergedStyle}
 			onFocus={handleFocus}
-			{...rest}
 		>
 			{children}
 		</div>

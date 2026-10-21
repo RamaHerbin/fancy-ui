@@ -2,6 +2,8 @@
 
 Sliding box reveal animation. Content fades up while a colored box slides from left to right, revealing the content underneath. Triggers on viewport entry.
 
+Native attributes and listeners go to the root `<div>`. `class` keeps its current target.
+
 ## Props
 
 | Prop       | Type     | Default    | Description                         |

@@ -326,6 +326,43 @@ describe("Popover", () => {
 		outside.remove();
 	});
 
+	it("leaves an outside mousedown alone while a non-dismissible popover holds focus", async () => {
+		const outside = document.createElement("p");
+		outside.textContent = "plain page text";
+		document.body.appendChild(outside);
+		render(Popover, { props: { dismissible: false }, slots: SLOTS });
+
+		await fireEvent.click(triggerButton());
+		await waitFor(() => {
+			expect(document.activeElement).toBe(document.querySelector('[data-testid="panel-input"]'));
+		});
+		// A popover is never modal: the press must keep its default (text
+		// selection, blur) even though focus sits inside the panel.
+		pointerDownOn(outside);
+		const mousedown = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		outside.dispatchEvent(mousedown);
+		expect(mousedown.defaultPrevented).toBe(false);
+		outside.remove();
+	});
+
+	it("keeps the returned focus through the outside press that dismisses it", async () => {
+		const outside = document.createElement("p");
+		outside.textContent = "plain page text";
+		document.body.appendChild(outside);
+		render(Popover, { props: {}, slots: SLOTS });
+
+		await fireEvent.click(triggerButton());
+		await waitFor(() => {
+			expect(document.activeElement).toBe(document.querySelector('[data-testid="panel-input"]'));
+		});
+
+		pointerDownOn(outside);
+		const mousedown = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		outside.dispatchEvent(mousedown);
+		expect(mousedown.defaultPrevented).toBe(true);
+		outside.remove();
+	});
+
 	it("clicking the trigger again to close does not get treated as an outside click that fires twice", async () => {
 		const onOpenChange = vi.fn();
 		render(Popover, { props: { onOpenChange }, slots: SLOTS });

@@ -123,6 +123,10 @@ useDismissable(panel, () => ({
 	outsideClick: ctx.dismissible,
 	exclude: () => [ctx.triggerRef],
 	active: () => ctx.open,
+	// Never modal: keep focus only through the press that dismisses (focus is
+	// back on the trigger). A non-dismissible popover leaves outside presses
+	// alone, so the page keeps text selection and blur while it holds focus.
+	keepFocus: ctx.dismissible,
 }));
 
 // Built ONCE in `setup`: the identity must not change between patches, or Vue
@@ -152,7 +156,7 @@ const panelRef = composeRefs<HTMLDivElement>(
 				:id="ctx.contentId"
 				:class="
 					cn(
-						'ft-popover-content flex w-max flex-col gap-[6px] rounded-[10px] border border-border bg-popover px-[14px] py-[12px] text-[12px] text-popover-foreground shadow-lg outline-none',
+						'ft-popover-content border-border bg-popover text-popover-foreground flex w-max flex-col gap-[6px] rounded-[10px] border px-[14px] py-[12px] text-[12px] shadow-lg outline-none',
 						className
 					)
 				"

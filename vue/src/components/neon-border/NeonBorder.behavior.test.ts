@@ -1,0 +1,16 @@
+import { render, cleanup } from "@testing-library/vue";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import NeonBorder from "./NeonBorder.vue";
+
+describe("NeonBorder style merge", () => {
+	afterEach(cleanup);
+
+	it("merges a consumer style and keeps the component's --neon-* vars winning", () => {
+		const { getByTestId } = render(NeonBorder, {
+			attrs: { "data-testid": "n", style: "--neon-duration: 99s; opacity: 0.5" },
+		});
+		const el = getByTestId("n");
+		expect(el.style.getPropertyValue("--neon-duration")).toBe("6s");
+		expect(el.style.opacity).toBe("0.5");
+	});
+});

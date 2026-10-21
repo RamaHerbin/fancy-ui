@@ -1,5 +1,15 @@
 <script lang="ts" module>
-	export interface TimePickerProps {
+	import type { HTMLButtonAttributes } from "svelte/elements";
+	/**
+	 * Every other native `<button>` attribute and listener (`aria-*`, `data-*`,
+	 * `onfocus`, `onblur`, `onkeydown`, `form`, ...) is forwarded to the trigger
+	 * button. The managed ARIA (`role`, `aria-expanded`, `aria-controls`,
+	 * `aria-haspopup`, `aria-invalid`, `aria-required`, `aria-activedescendant`) stays the component's own.
+	 */
+	export interface TimePickerProps extends Omit<
+		HTMLButtonAttributes,
+		"class" | "id" | "name" | "value" | "disabled" | "type" | "role" | "children"
+	> {
 		/** The selected time, or `null` for none; bindable. Always "HH:mm", 24-hour — see the README. */
 		value?: string | null;
 		/** Called with the new value whenever a slot is picked. */
@@ -68,6 +78,9 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onclick,
+		onkeydown,
+		...restProps
 	}: TimePickerProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -223,6 +236,27 @@
 		}
 	}
 
+	// Internal handling first, the consumer's listener once after it. A disabled
+	// control runs neither (a disabled <button> would not fire them anyway).
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (effectiveDisabled) return;
+		handleTriggerClick();
+		onclick?.(event);
+	}
+
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		if (effectiveDisabled) return;
+		handleTriggerKeydown(event);
+		onkeydown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy = $derived(
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined
+	);
+
 	const context: TimePickerContext = {
 		get open() {
 			return open;
@@ -289,6 +323,7 @@
 </script>
 
 <button
+	{...restProps}
 	bind:this={ref}
 	id={effectiveId}
 	type="button"
@@ -299,14 +334,14 @@
 	aria-activedescendant={open && listbox.activeIndex !== -1
 		? optionId(listbox.activeIndex)
 		: undefined}
-	aria-invalid={effectiveInvalid ? "true" : undefined}
-	aria-required={effectiveRequired ? "true" : undefined}
-	aria-describedby={field?.describedBy}
-	aria-label={label}
+	aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+	aria-required={effectiveRequired ? "true" : restProps["aria-required"]}
+	aria-describedby={describedBy}
+	aria-label={label ?? restProps["aria-label"]}
 	disabled={effectiveDisabled}
 	class={classes}
-	onclick={handleTriggerClick}
-	onkeydown={handleTriggerKeydown}
+	onclick={handleClick}
+	onkeydown={handleKeydown}
 >
 	<span class={triggerLabel ? undefined : "text-muted-foreground"}>
 		{triggerLabel ?? placeholder}
@@ -315,7 +350,13 @@
 </button>
 
 {#if name}
-	<input type="hidden" {name} value={value ?? ""} disabled={effectiveDisabled} />
+	<input
+		type="hidden"
+		{name}
+		value={value ?? ""}
+		form={restProps.form}
+		disabled={effectiveDisabled}
+	/>
 {/if}
 
 {#if open}

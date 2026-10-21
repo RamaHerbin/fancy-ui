@@ -72,3 +72,53 @@ export const svelteExportsBySlug: ReadonlyMap<string, string[]> = new Map(
 export const reactExportsBySlug: ReadonlyMap<string, string[]> = fromSources(reactBarrels);
 
 export const vueExportsBySlug: ReadonlyMap<string, string[]> = fromSources(vueBarrels);
+
+const svelteBarrelSources = import.meta.glob("../fancy-ui/*/index.ts", {
+	query: "?raw",
+	import: "default",
+	eager: true,
+}) as Record<string, string>;
+
+/**
+ * Type exports of a barrel source: every name in `export type { … }`, the
+ * `type X` specifiers of a mixed `export { … }`, and `export type X =` /
+ * `export interface X` declarations. PascalCase names only, in source order.
+ */
+export function parseBarrelTypeExports(src: string): string[] {
+	const found: { at: number; name: string }[] = [];
+	for (const m of src.matchAll(/^export\s+(type\s+)?\{([^}]+)\}/gm)) {
+		const typeOnly = Boolean(m[1]);
+		for (const part of m[2].split(",")) {
+			const spec = part.trim();
+			if (!spec || (!typeOnly && !spec.startsWith("type "))) continue;
+			const name = spec
+				.replace(/^type\s+/, "")
+				.split(/\s+as\s+/)
+				.at(-1)
+				?.trim();
+			if (name && /^[A-Z]/.test(name)) found.push({ at: m.index ?? 0, name });
+		}
+	}
+	for (const m of src.matchAll(/^export\s+(?:type|interface)\s+([A-Za-z_$][\w$]*)/gm)) {
+		if (/^[A-Z]/.test(m[1])) found.push({ at: m.index ?? 0, name: m[1] });
+	}
+	return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.name))];
+}
+
+function typesFromSources(barrels: Record<string, string>): Map<string, string[]> {
+	const map = new Map<string, string[]>();
+	for (const [path, src] of Object.entries(barrels)) {
+		const slug = slugOf(path);
+		if (!slug) continue;
+		const names = parseBarrelTypeExports(src);
+		if (names.length) map.set(slug, names);
+	}
+	return map;
+}
+
+export const svelteTypesBySlug: ReadonlyMap<string, string[]> =
+	typesFromSources(svelteBarrelSources);
+
+export const reactTypesBySlug: ReadonlyMap<string, string[]> = typesFromSources(reactBarrels);
+
+export const vueTypesBySlug: ReadonlyMap<string, string[]> = typesFromSources(vueBarrels);

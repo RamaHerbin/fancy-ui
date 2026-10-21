@@ -133,8 +133,52 @@ function isVisible(el: HTMLElement): boolean {
 	return true;
 }
 
+function radioGroupKey(el: Element): string | null {
+	if (!(el instanceof HTMLInputElement) || el.type !== "radio" || !el.name) return null;
+	return el.name;
+}
+
+// Two elements are the same Tab stop when they are the same element or radios
+// of one named group: the browser treats a whole group as ONE stop, so Tab
+// from any of its radios leaves the group in a single step.
+function sameTabStop(a: Element | null, b: Element): boolean {
+	if (a === b) return true;
+	if (!a) return false;
+	const key = radioGroupKey(a);
+	return (
+		key !== null &&
+		key === radioGroupKey(b) &&
+		(a as HTMLInputElement).form === (b as HTMLInputElement).form
+	);
+}
+
 function getFocusableElements(node: HTMLElement): HTMLElement[] {
-	return Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(isVisible);
+	const visible = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+		isVisible
+	);
+	// Collapse every named radio group to the one radio Tab really lands on:
+	// the checked one, or the first when none is checked. Counting every
+	// radio made an unchecked radio the trap's "last" element while the
+	// browser's own Tab, sitting on the checked radio, walked straight out of
+	// the panel without the trap ever seeing its boundary.
+	return visible.filter((el) => {
+		if (radioGroupKey(el) === null) return true;
+		const group = visible.filter((other) => sameTabStop(other, el));
+		const stop = group.find((radio) => (radio as HTMLInputElement).checked) ?? group[0];
+		return stop === el;
+	});
+}
+
+// Where Shift+Tab really lands when it enters `stop`'s Tab stop backwards. A
+// radio group with nothing checked is entered at its LAST radio going
+// backwards (its first going forwards), so a backwards wrap onto such a group
+// has to land there too. Anything else is entered at `stop` itself.
+function backwardEntry(node: HTMLElement, stop: HTMLElement): HTMLElement {
+	if (radioGroupKey(stop) === null || (stop as HTMLInputElement).checked) return stop;
+	const group = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+		(el) => isVisible(el) && sameTabStop(el, stop)
+	);
+	return group[group.length - 1] ?? stop;
 }
 
 /**
@@ -285,11 +329,11 @@ export function attachFocusTrap(
 		const active = document.activeElement;
 
 		if (event.shiftKey) {
-			if (active === first || !node.contains(active)) {
+			if (sameTabStop(active, first) || !node.contains(active)) {
 				event.preventDefault();
-				last.focus();
+				backwardEntry(node, last).focus();
 			}
-		} else if (active === last || !node.contains(active)) {
+		} else if (sameTabStop(active, last) || !node.contains(active)) {
 			event.preventDefault();
 			first.focus();
 		}

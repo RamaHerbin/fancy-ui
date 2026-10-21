@@ -243,9 +243,9 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 		).toEqual(["internals", "internals-motion", "sound"]);
 	});
 
-	// Observed on 2026-10-21: 459 shipped files. The gate pins the exact number.
-	it("ships 459 files, every one registry:ui under fancy/<rel>", () => {
-		expect(all).toHaveLength(459);
+	// Observed on 2026-10-21: 461 shipped files. The gate pins the exact number.
+	it("ships 461 files, every one registry:ui under fancy/<rel>", () => {
+		expect(all).toHaveLength(461);
 		for (const f of all) {
 			expect(f.type).toBe("registry:ui");
 			expect(f.path.startsWith("src/lib/fancy-ui/"), f.path).toBe(true);
@@ -361,4 +361,71 @@ describe("stack knobs a placement-by-path package needs", () => {
 		expect(out.items.alpha.dependencies).toBeUndefined();
 		expect(out.items.alpha.registryDependencies).toEqual([`${BASE}/internals-motion.json`]);
 	});
+});
+
+describe("what a clean consumer app needs from the CLI flow", () => {
+	const files = {
+		"alpha/Alpha.svelte": [
+			'<script lang="ts">',
+			'\timport { layoutNextLine } from "@chenglou/pretext";',
+			"</script>",
+			"",
+		].join("\n"),
+		"beta/engine.ts": [
+			'/// <reference types="@webgpu/types" />',
+			'import confetti from "canvas-confetti";',
+			"export const run = confetti;",
+			"",
+		].join("\n"),
+		"beta/Beta.svelte": '<script lang="ts">\n\timport { run } from "./engine.js";\n</script>\n',
+	};
+	const versions = {
+		"@chenglou/pretext": "^0.0.5",
+		"canvas-confetti": "^1.9.4",
+		"@types/canvas-confetti": "^1.9.0",
+		"@webgpu/types": "^0.1.71",
+	};
+
+	it("asks for the type package a triple-slash reference names", () => {
+		const out = build(files);
+		expect(out.items.beta.devDependencies).toEqual(["@types/canvas-confetti", "@webgpu/types"]);
+		expect(out.items.beta.dependencies).toEqual(["canvas-confetti"]);
+	});
+
+	it("pins every package to the range the package itself is built against", () => {
+		const out = buildRegistry({
+			stack: svelteStack,
+			files,
+			meta: meta(["alpha", "beta"]),
+			siteUrl: SITE,
+			versions,
+		});
+		expect(out.items.alpha.dependencies).toEqual(["@chenglou/pretext@^0.0.5"]);
+		expect(out.items.beta.dependencies).toEqual(["canvas-confetti@^1.9.4"]);
+		expect(out.items.beta.devDependencies).toEqual([
+			"@types/canvas-confetti@^1.9.0",
+			"@webgpu/types@^0.1.71",
+		]);
+		// The sentence names packages, not ranges.
+		expect(out.items.beta.docs).toBe("Installs canvas-confetti as a dependency.");
+	});
+
+	it("leaves a package with no known range bare", () => {
+		const out = buildRegistry({
+			stack: svelteStack,
+			files,
+			meta: meta(["alpha", "beta"]),
+			siteUrl: SITE,
+			versions: {},
+		});
+		expect(out.items.alpha.dependencies).toEqual(["@chenglou/pretext"]);
+	});
+
+	it("ships the site registry pinned: a newer major of a package must not be fetched", async () => {
+		const { svelteRegistryOutput } = await import("./sources.js");
+		const real = svelteRegistryOutput();
+		expect(real.items["line-reveal"].dependencies).toEqual(["@chenglou/pretext@^0.0.5"]);
+		expect(real.items["fluid-cursor"].devDependencies).toContain("@webgpu/types@^0.1.71");
+		expect(real.items["fireworks-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+	}, 60_000);
 });

@@ -92,6 +92,7 @@ useDismissable(panel, () => ({
 	onDismiss: () => root.close(),
 	exclude: () => [root.triggerRef],
 	active: () => root.open,
+	keepFocus: true,
 }));
 
 // The source's getter object, ported verbatim in shape and built once in

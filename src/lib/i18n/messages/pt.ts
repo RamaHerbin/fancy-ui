@@ -39,8 +39,9 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Ainda não está no npm — esta versão está no repositório.",
 	"install.unavailable": "Ainda não há versão deste componente para este framework.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "Copiar código-fonte",
+	"install.copySourceNote":
+		"Copia o código-fonte do componente para seu projeto; você é dono do código.",
 	"comp.usage": "Uso",
 	"comp.props": "Propriedades",
 	"comp.slots": "Slots",
@@ -61,6 +62,9 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Evento",
 	"table.payload": "Dados",
+	"table.portName": "Nome em {framework}",
+	"table.portNameUnknown":
+		"Não dá para deduzir pelas regras de nomes; veja as diferenças em relação à API do Svelte.",
 	"comp.events": "Eventos",
 	"comp.copyMarkdown": "Copiar como Markdown",
 
@@ -78,7 +82,7 @@ export default {
 	// Components gallery
 	"gallery.title": "Componentes",
 	"gallery.subtitle":
-		"{count} componentes lindamente animados para o Svelte 5, React, Vue. Navegue, pesquise e encontre o que precisa.",
+		"{count} componentes lindamente animados para o Svelte 5, React e Vue. Navegue, pesquise e encontre o que precisa.",
 	"gallery.intro":
 		"Os componentes estão disponíveis para Svelte 5, React e Vue, estilizados com Tailwind CSS v4 e tipados com TypeScript. Cada página tem pré-visualização ao vivo e exemplos Svelte para copiar e colar, com o uso em React e Vue quando disponível. Instale o pacote uma vez e o código é seu.",
 	"gallery.filterPlaceholder": "Filtrar componentes...",

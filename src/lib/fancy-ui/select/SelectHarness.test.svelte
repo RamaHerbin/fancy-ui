@@ -27,6 +27,7 @@
 		label?: string;
 		/** Omit to render with no FormField provider above it at all. */
 		field?: FieldContext;
+		[key: string]: unknown;
 	}
 
 	let {
@@ -41,11 +42,14 @@
 		name,
 		label = "Framework",
 		field,
+		...rest
 	}: Props = $props();
 
 	// Must run synchronously during this component's own initialization,
 	// never inside an effect. Publishing `undefined` explicitly is the same
 	// as publishing nothing — getField() reads back `undefined` either way.
+	// Test rig: the field context is published once and tests never swap it.
+	// svelte-ignore state_referenced_locally
 	setContext(FIELD_KEY, field);
 </script>
 
@@ -60,4 +64,5 @@
 	{id}
 	{name}
 	{label}
+	{...rest}
 />

@@ -6,6 +6,8 @@ export type SwitchSize = "sm" | "md" | "lg";
 export interface SwitchProps {
 	/** Called with the new value whenever the switch is activated. */
 	onCheckedChange?: (checked: boolean) => void;
+	/** A consumer `@change`, run once after the internal toggle. */
+	onChange?: (event: Event) => void;
 	/** Blocks interaction; excluded from form submission. Overridden by a surrounding FormField. */
 	disabled?: boolean;
 	/** Native `required`. Overridden by a surrounding FormField. */
@@ -40,7 +42,7 @@ export interface SwitchProps {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef } from "vue";
+import { computed, nextTick, useAttrs, useTemplateRef } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -48,8 +50,11 @@ import { sound as soundFx } from "../../sound/sound.js";
 
 defineOptions({ name: "Switch", inheritAttrs: false });
 
+const attrs = useAttrs() as Record<string, string | undefined>;
+
 const {
 	onCheckedChange,
+	onChange,
 	disabled = false,
 	required = false,
 	id,
@@ -88,6 +93,19 @@ const effectiveInvalid = computed(() => field?.invalid ?? false);
 // The native `disabled` attribute already blocks real interaction, but a
 // synthetic event dispatched straight at the element — as a test does —
 // walks past that guard, so the handler repeats it.
+/**
+ * A consumer listener rides a declared camelCase prop (not the fall-through
+ * attrs) so a guarded activation can skip it; Vue hands several `@event`
+ * bindings over as an array.
+ */
+function callListener(listener: unknown, ...args: unknown[]) {
+	if (Array.isArray(listener)) {
+		for (const fn of listener) if (typeof fn === "function") fn(...args);
+	} else if (typeof listener === "function") {
+		listener(...args);
+	}
+}
+
 function handleChange(event: Event) {
 	const input = event.currentTarget as HTMLInputElement;
 	if (effectiveDisabled.value) {
@@ -104,6 +122,7 @@ function handleChange(event: Event) {
 	checked.value = next;
 	if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 	onCheckedChange?.(next);
+	callListener(onChange, event);
 	// A parent that binds `checked` AND listens to `update:checked` owns the
 	// value: the write above only emits, and a parent that declines it leaves
 	// the prop — so the vnode, so Vue's patch — unchanged, while the browser
@@ -129,6 +148,7 @@ const wrapperClasses = computed(() =>
 <template>
 	<label :class="wrapperClasses">
 		<input
+			v-bind="attrs"
 			ref="ref"
 			type="checkbox"
 			role="switch"
@@ -141,9 +161,13 @@ const wrapperClasses = computed(() =>
 			:disabled="effectiveDisabled"
 			:required="effectiveRequired"
 			:aria-checked="checked"
-			:aria-invalid="effectiveInvalid ? 'true' : undefined"
-			:aria-describedby="field?.describedBy"
-			:aria-label="label"
+			:aria-invalid="
+				effectiveInvalid ? 'true' : (attrs['aria-invalid'] as 'true' | 'false' | undefined)
+			"
+			:aria-describedby="
+				[field?.describedBy, attrs['aria-describedby']].filter(Boolean).join(' ') || undefined
+			"
+			:aria-label="label ?? attrs['aria-label']"
 			@change="handleChange"
 		/>
 		<slot />

@@ -37,6 +37,11 @@ export interface SheetProps {
 	children?: ReactNode;
 	/** Content pinned below the body, e.g. actions. */
 	footer?: ReactNode;
+	/**
+	 * The panel's `id`. A trigger the caller renders outside the component
+	 * points its `aria-controls` at it while the panel is open.
+	 */
+	id?: string;
 	/** Additional CSS classes merged onto the panel. */
 	className?: string;
 	/**
@@ -121,6 +126,7 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 		size = "md",
 		children,
 		footer,
+		id,
 		className,
 		ariaLabel,
 		sound = false,
@@ -206,6 +212,7 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 		escape: dismissible,
 		outsideClick: dismissible,
 		active: open,
+		keepFocus: true,
 	});
 
 	// Convention C-2: composed ABOVE the conditional below. `side` rides in
@@ -262,6 +269,7 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 					/>
 					<div
 						ref={panelRef}
+						id={id}
 						className={panelClasses}
 						role="dialog"
 						aria-modal="true"
@@ -291,19 +299,14 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 							</div>
 						) : null}
 						{description ? (
-							<p
-								id={descriptionId}
-								className="text-muted-foreground text-[12.5px] leading-relaxed"
-							>
+							<p id={descriptionId} className="text-muted-foreground text-[12.5px] leading-relaxed">
 								{description}
 							</p>
 						) : null}
 						<div className="ft-sheet-body flex flex-1 flex-col gap-3 overflow-y-auto">
 							{children}
 						</div>
-						{footer ? (
-							<div className="ft-sheet-footer flex justify-end gap-2">{footer}</div>
-						) : null}
+						{footer ? <div className="ft-sheet-footer flex justify-end gap-2">{footer}</div> : null}
 					</div>
 				</>
 			) : null}

@@ -29,6 +29,8 @@
 	}
 
 	// Generate stars once on component creation
+	// Stars are generated once on creation by design; later count changes do not reshuffle the field.
+	// svelte-ignore state_referenced_locally
 	const stars: Star[] = Array.from(
 		{ length: starsCount },
 		(_, i): Star => ({

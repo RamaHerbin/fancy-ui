@@ -1,20 +1,39 @@
 import { forwardRef, useEffect, useRef } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type {
+	ComponentPropsWithoutRef,
+	KeyboardEvent,
+	MouseEvent,
+	PointerEvent,
+	ReactNode,
+} from "react";
 
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useNavigationMenuContext, useNavigationMenuItemContext } from "./types.js";
 import "./navigation-menu-trigger.css";
 
-export interface NavigationMenuTriggerProps {
+interface NavigationMenuTriggerOwnProps {
 	/** The trigger's label. */
 	children?: ReactNode;
 	/** Additional CSS classes. */
 	className?: string;
 }
 
+/**
+ * Native `<button>` attributes and listeners are forwarded to the trigger; the managed
+ * ARIA, state and structural attributes stay the component's. A forwarded `disabled`
+ * leaves the roving order and makes the trigger inert.
+ */
+export interface NavigationMenuTriggerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof NavigationMenuTriggerOwnProps>,
+		NavigationMenuTriggerOwnProps {}
+
 export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMenuTriggerProps>(
-	function NavigationMenuTrigger({ children, className }, forwardedRef) {
+	function NavigationMenuTrigger(
+		{ children, className, onClick, onPointerEnter, onPointerLeave, onKeyDown, ...rest },
+		forwardedRef
+	) {
 		const item = useNavigationMenuItemContext();
 		const root = useNavigationMenuContext();
 
@@ -30,14 +49,24 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		const isOpen = root.value === item.value;
 		const tabIndexAttr = root.focusedValue === item.value ? 0 : -1;
 
+		// A forwarded native `disabled` keeps the trigger out of the roving
+		// order (a disabled button cannot take focus, so it must never hold the
+		// tab stop) and makes it inert: none of its handlers open, move or call
+		// the consumer's listener.
+		const disabled = Boolean(rest.disabled);
+
 		const { registerTrigger } = root;
-		useEffect(() => registerTrigger(item.value), [registerTrigger, item.value]);
+		useEffect(() => {
+			if (disabled) return;
+			return registerTrigger(item.value);
+		}, [registerTrigger, item.value, disabled]);
 
 		// Click is immediate, no hover-intent delay — an explicit click is
 		// already the user's decision, there is no "did they mean it" travel to
 		// protect against the way there is for a pointer merely passing over
 		// the row.
-		function handleClick() {
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
+			if (disabled) return;
 			root.toggle(item.value);
 			root.focus(item.value);
 			// Deliberate, not incidental, the same reasoning as ToggleGroupItem:
@@ -46,14 +75,21 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 			// Without this, clicking a trigger would open its panel but leave
 			// the roving tab stop — and DOM focus — wherever it last was.
 			buttonRef.current?.focus();
+			onClick?.(event);
 		}
 
-		function handlePointerEnter() {
+		function handlePointerEnter(event: PointerEvent<HTMLButtonElement>) {
+			if (disabled) return;
 			root.scheduleOpen(item.value);
+			onPointerEnter?.(event);
 		}
 
-		function handlePointerLeave() {
+		function handlePointerLeave(event: PointerEvent<HTMLButtonElement>) {
 			root.scheduleClose();
+			// Leaving still schedules the close (the trigger can turn disabled
+			// while its panel is open); only the consumer listener is guarded.
+			if (disabled) return;
+			onPointerLeave?.(event);
 		}
 
 		// There is deliberately no focus handler opening the panel here. A
@@ -65,6 +101,12 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		// immediately — the pointer-and-keyboard fight the panel's own test
 		// file pins down.
 		function handleKeydown(event: KeyboardEvent<HTMLButtonElement>) {
+			if (disabled) return;
+			handleNavigationKey(event);
+			onKeyDown?.(event);
+		}
+
+		function handleNavigationKey(event: KeyboardEvent<HTMLButtonElement>) {
 			switch (event.key) {
 				case "Enter":
 				case " ":
@@ -102,6 +144,7 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 
 		return (
 			<button
+				{...rest}
 				ref={setButtonRef}
 				type="button"
 				id={item.triggerId}

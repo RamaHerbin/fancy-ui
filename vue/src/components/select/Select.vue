@@ -42,7 +42,7 @@ export interface SelectProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, ref, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -53,6 +53,10 @@ import SelectPanel from "./SelectPanel.vue";
 import { SELECT_CONTEXT, type SelectContext } from "./types.js";
 
 defineOptions({ name: "Select", inheritAttrs: false });
+
+// Every other native `<button>` attribute and listener lands on the trigger
+// through `v-bind="triggerAttrs()"` below.
+const attrs = useAttrs();
 
 const props = withDefaults(defineProps<SelectProps>(), {
 	disabled: false,
@@ -374,28 +378,41 @@ const classes = computed(() =>
 		props.class
 	)
 );
+
+// The consumer's attributes first, the component's invariants after, so a
+// consumer can add but never break (`role`, the managed `aria-*`, `type`). A
+// function, not a `computed`: `attrs` is not reactive, so it is re-read on every
+// render. `@click`/`@keydown` sit BEFORE `v-bind` in the template, so Vue runs
+// the internal handler first and the consumer's listener (in `attrs`) after it.
+function triggerAttrs(): Record<string, unknown> {
+	const describedBy =
+		[field?.describedBy, attrs["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+	return {
+		...attrs,
+		type: "button",
+		role: "combobox",
+		"aria-haspopup": "listbox",
+		"aria-expanded": open.value,
+		"aria-controls": open.value ? panelId : undefined,
+		"aria-activedescendant":
+			open.value && listbox.activeIndex !== -1 ? optionId(listbox.activeIndex) : undefined,
+		"aria-invalid": effectiveInvalid.value ? "true" : attrs["aria-invalid"],
+		"aria-required": effectiveRequired.value ? "true" : attrs["aria-required"],
+		"aria-describedby": describedBy,
+		"aria-label": props.label ?? attrs["aria-label"],
+	};
+}
 </script>
 
 <template>
 	<button
 		ref="trigger"
 		:id="effectiveId"
-		type="button"
-		role="combobox"
-		aria-haspopup="listbox"
-		:aria-expanded="open"
-		:aria-controls="open ? panelId : undefined"
-		:aria-activedescendant="
-			open && listbox.activeIndex !== -1 ? optionId(listbox.activeIndex) : undefined
-		"
-		:aria-invalid="effectiveInvalid ? 'true' : undefined"
-		:aria-required="effectiveRequired ? 'true' : undefined"
-		:aria-describedby="field?.describedBy"
-		:aria-label="props.label"
 		:disabled="effectiveDisabled"
 		:class="classes"
 		@click="handleTriggerClick"
 		@keydown="handleTriggerKeydown"
+		v-bind="triggerAttrs()"
 	>
 		<span :class="cn('truncate', !selectedOption && 'text-muted-foreground')">{{
 			selectedOption?.label ?? props.placeholder ?? ""
@@ -414,6 +431,7 @@ const classes = computed(() =>
 		v-if="props.name"
 		type="hidden"
 		:name="props.name"
+		:form="attrs.form as string | undefined"
 		:value.attr="value"
 		:disabled="effectiveDisabled"
 	/>

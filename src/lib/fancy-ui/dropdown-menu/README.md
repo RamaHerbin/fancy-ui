@@ -208,6 +208,28 @@ workaround for, the intended behaviour, but not something this test suite's
 jsdom environment can independently verify happened as a _browser default
 action_ rather than only via the explicit `onmouseenter` handler.
 
+## Native attributes
+
+`DropdownMenuTrigger`, `DropdownMenuItem` and `DropdownMenuSubTrigger` forward
+native `<button>` attributes and listeners (`data-*`, `aria-label`,
+`aria-describedby`, `title`, `onfocus`, `onpointerdown`, ...) to the element
+they render. The attributes the menu manages stay the component's: `role`,
+`tabindex`, `type`, `disabled`, `aria-haspopup`, `aria-expanded`,
+`aria-controls`, `data-variant`, and the trigger's and sub-trigger's `id`.
+
+Listeners, per part:
+
+- `DropdownMenuTrigger`: `onclick` and `onkeydown` run once after the
+  component's own handling, and not at all while disabled.
+- `DropdownMenuItem`: `onclick` and `onmouseenter` run once after the
+  component's own handling, and not at all while disabled. `onkeydown` is
+  forwarded as is and runs BEFORE the menu's arrow-key and typeahead handling
+  (which sits on the panel), so stopping its propagation disables those keys.
+- `DropdownMenuSubTrigger`: `onclick`, `onmouseenter`, `onmouseleave` and
+  `onkeydown` run once after the component's own handling, and not at all
+  while disabled (leaving a disabled row still cancels its pending open and
+  schedules the submenu's close).
+
 ## Props
 
 ### DropdownMenu

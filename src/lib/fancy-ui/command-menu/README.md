@@ -85,23 +85,24 @@ Replaces the default entirely — `keywords` is then only meaningful if your own
 
 ## Props
 
-| Prop            | Type                                            | Default          | Description                                                                       |
-| --------------- | ----------------------------------------------- | ---------------- | --------------------------------------------------------------------------------- |
-| `open`          | `boolean`                                       | `false`          | Whether the menu is open. Bindable.                                               |
-| `onOpenChange`  | `(open: boolean) => void`                       | —                | Fires whenever `open` changes — Escape, an outside click, or committing an item.  |
-| `items`         | `CommandItem[]`                                 | —                | The full, unfiltered vocabulary. Required.                                        |
-| `query`         | `string`                                        | `""`             | The current search text. Bindable. Reset every time the menu reopens — see below. |
-| `onQueryChange` | `(query: string) => void`                       | —                | Fires whenever `query` changes.                                                   |
-| `onSelect`      | `(item: CommandItem) => void`                   | —                | Called with the committed item, after that item's own `onSelect`.                 |
-| `placeholder`   | `string`                                        | `"Search..."`    | Placeholder for the search field.                                                 |
-| `emptyMessage`  | `string`                                        | `"No results"`   | Shown in place of the list when nothing matches.                                  |
-| `label`         | `string`                                        | `"Command menu"` | Accessible name — for the dialog and for the search field. See Accessibility.     |
-| `filter`        | `(item: CommandItem, query: string) => boolean` | see below        | Overrides the default filter entirely.                                            |
-| `class`         | `string`                                        | —                | Additional CSS classes for the panel.                                             |
-| `ref`           | `HTMLDivElement \| null`                        | `null`           | Bindable reference to the panel element.                                          |
-| `icon`          | `Snippet<[CommandItem]>`                        | —                | Rendered before each row's label, given that row's item. Treated as decorative.   |
-| `empty`         | `Snippet`                                       | —                | Rendered in place of the list when nothing matches, instead of `emptyMessage`.    |
-| `sound`         | `boolean`                                       | `false`          | Plays `select`/`close` cues — see [Sound](#sound) below.                          |
+| Prop            | Type                                            | Default          | Description                                                                          |
+| --------------- | ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ |
+| `open`          | `boolean`                                       | `false`          | Whether the menu is open. Bindable.                                                  |
+| `onOpenChange`  | `(open: boolean) => void`                       | —                | Fires whenever `open` changes — Escape, an outside click, or committing an item.     |
+| `items`         | `CommandItem[]`                                 | —                | The full, unfiltered vocabulary. Required.                                           |
+| `query`         | `string`                                        | `""`             | The current search text. Bindable. Reset every time the menu reopens — see below.    |
+| `onQueryChange` | `(query: string) => void`                       | —                | Fires whenever `query` changes.                                                      |
+| `onSelect`      | `(item: CommandItem) => void`                   | —                | Called with the committed item, after that item's own `onSelect`.                    |
+| `placeholder`   | `string`                                        | `"Search..."`    | Placeholder for the search field.                                                    |
+| `emptyMessage`  | `string`                                        | `"No results"`   | Shown in place of the list when nothing matches.                                     |
+| `label`         | `string`                                        | `"Command menu"` | Accessible name — for the dialog and for the search field. See Accessibility.        |
+| `filter`        | `(item: CommandItem, query: string) => boolean` | see below        | Overrides the default filter entirely.                                               |
+| `id`            | `string`                                        | —                | The panel's id, for the `aria-controls` of a trigger rendered outside the component. |
+| `class`         | `string`                                        | —                | Additional CSS classes for the panel.                                                |
+| `ref`           | `HTMLDivElement \| null`                        | `null`           | Bindable reference to the panel element.                                             |
+| `icon`          | `Snippet<[CommandItem]>`                        | —                | Rendered before each row's label, given that row's item. Treated as decorative.      |
+| `empty`         | `Snippet`                                       | —                | Rendered in place of the list when nothing matches, instead of `emptyMessage`.       |
+| `sound`         | `boolean`                                       | `false`          | Plays `select`/`close` cues — see [Sound](#sound) below.                             |
 
 `CommandItem` is:
 

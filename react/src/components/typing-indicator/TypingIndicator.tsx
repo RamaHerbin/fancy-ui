@@ -52,12 +52,12 @@ export const TypingIndicator = forwardRef<HTMLDivElement, TypingIndicatorProps>(
 
 		return (
 			<div
+				{...rest}
 				ref={ref}
 				className={cn("ft-typing inline-flex items-center", className)}
 				style={rootStyle}
 				role="status"
 				aria-live="polite"
-				{...rest}
 			>
 				{dotStyles.map((dotStyle, i) => (
 					<span key={i} className="ft-dot" style={dotStyle} aria-hidden="true" />

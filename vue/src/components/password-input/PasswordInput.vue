@@ -49,9 +49,10 @@ export interface PasswordInputProps {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef } from "vue";
+import { computed, nextTick, ref, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import { preset } from "../../internals/motion/transitions.js";
@@ -125,6 +126,21 @@ const effectiveDisabled = computed(() => field?.disabled ?? disabled);
 const effectiveRequired = computed(() => field?.required ?? required);
 const effectiveInvalid = computed(() => field?.invalid ?? invalid);
 
+// Native attributes and listeners a consumer passes ride in `attrs` and land on
+// the inner element: `v-bind="attrs"` sits after the component's own listeners
+// (so internal handlers run first) and before its invariants (so a consumer
+// can add attributes but never break them).
+const attrs = useAttrs();
+const ariaLabelResolved = () => {
+	const own = label;
+	return own ?? (attrs["aria-label"] as string | undefined);
+};
+const ariaInvalidResolved = () =>
+	effectiveInvalid.value
+		? "true"
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined);
+const consumerDescribedBy = () => attrs["aria-describedby"] as string | undefined;
+
 const revealed = ref(false);
 const type = computed(() => (revealed.value ? "text" : "password"));
 
@@ -189,11 +205,8 @@ const result = computed(() =>
 // polite live region would while the user is still typing. The visible
 // label span below *is* the description target, so there is no separate
 // hidden node to keep in sync with it.
-const describedBy = computed(
-	() =>
-		[field?.describedBy, result.value ? strengthId : undefined].filter(Boolean).join(" ") ||
-		undefined
-);
+const describedBy = () =>
+	mergeIds(field?.describedBy, consumerDescribedBy(), result.value ? strengthId : undefined);
 
 const tierClass = computed(() => {
 	if (!result.value) return "";
@@ -262,6 +275,8 @@ function preventFocusSteal(event: MouseEvent) {
 		<div :class="wrapperClasses">
 			<input
 				ref="inputRef"
+				@input="handleInput"
+				v-bind="attrs"
 				:type="type"
 				:placeholder="placeholder"
 				:name="name"
@@ -271,11 +286,10 @@ function preventFocusSteal(event: MouseEvent) {
 				:disabled="effectiveDisabled"
 				:readonly="readonly"
 				:required="effectiveRequired"
-				:aria-invalid="effectiveInvalid ? 'true' : undefined"
-				:aria-describedby="describedBy"
-				:aria-label="label"
+				:aria-invalid="ariaInvalidResolved()"
+				:aria-describedby="describedBy()"
+				:aria-label="ariaLabelResolved()"
 				class="ft-password-input-field text-foreground placeholder:text-muted-foreground min-w-0 flex-1 border-0 bg-transparent p-0 outline-none disabled:cursor-not-allowed"
-				@input="handleInput"
 			/>
 			<button
 				v-if="showToggle"
@@ -310,11 +324,7 @@ function preventFocusSteal(event: MouseEvent) {
 							<line x1="1" y1="1" x2="23" y2="23" />
 						</svg>
 					</span>
-					<span
-						v-if="hiddenIcon.mounted"
-						class="ft-password-input-eye-layer"
-						:ref="hiddenIconRef"
-					>
+					<span v-if="hiddenIcon.mounted" class="ft-password-input-eye-layer" :ref="hiddenIconRef">
 						<svg
 							class="size-4"
 							viewBox="0 0 24 24"
@@ -422,8 +432,7 @@ function preventFocusSteal(event: MouseEvent) {
  * down as easily as up.
  */
 .ft-password-strength-bar {
-	transition: background-color
-		var(--ft-password-strength-duration, var(--ft-duration-fast, 150ms))
+	transition: background-color var(--ft-password-strength-duration, var(--ft-duration-fast, 150ms))
 		var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 }
 

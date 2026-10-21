@@ -1,5 +1,6 @@
 <script lang="ts" module>
-	export interface SliderProps {
+	import type { HTMLInputAttributes } from "svelte/elements";
+	interface BaseProps {
 		/** Current value; bindable. */
 		value?: number;
 		/** Called with the new value on every input event. */
@@ -32,6 +33,9 @@
 		 */
 		sound?: boolean;
 	}
+
+	export type SliderProps = BaseProps &
+		Omit<HTMLInputAttributes, keyof BaseProps | "type" | "role">;
 </script>
 
 <script lang="ts">
@@ -55,6 +59,12 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		oninput,
+		onchange,
+		"aria-label": ariaLabel,
+		"aria-describedby": ariaDescribedby,
+		"aria-invalid": ariaInvalid,
+		...rest
 	}: SliderProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -116,6 +126,7 @@
 		const next = Number(event.currentTarget.value);
 		value = next;
 		onValueChange?.(next);
+		oninput?.(event);
 	}
 
 	// `input` fires continuously while dragging (and once per key press), so
@@ -124,9 +135,10 @@
 	// drag release, or once per committed keyboard step. This handler plays
 	// only; it never writes `value` or calls `onValueChange` — `handleInput`
 	// above stays the single place the value itself changes.
-	function handleChange() {
+	function handleChange(event: Event & { currentTarget: HTMLInputElement }) {
 		if (effectiveDisabled) return;
 		if (sound) soundFx.play("tick");
+		onchange?.(event);
 	}
 </script>
 
@@ -146,6 +158,7 @@
 			</span>
 		{/if}
 		<input
+			{...rest}
 			bind:this={ref}
 			type="range"
 			class="ft-slider h-1 w-full cursor-pointer appearance-none bg-transparent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -156,12 +169,13 @@
 			{step}
 			value={clampedValue}
 			disabled={effectiveDisabled}
-			aria-describedby={field?.describedBy}
-			aria-invalid={effectiveInvalid ? "true" : undefined}
+			aria-describedby={[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") ||
+				undefined}
+			aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
 			aria-valuemin={min}
 			aria-valuemax={max}
 			aria-valuenow={clampedValue}
-			aria-label={label}
+			aria-label={label ?? ariaLabel}
 			style:--ft-slider-fill="{fraction * 100}%"
 			oninput={handleInput}
 			onchange={handleChange}

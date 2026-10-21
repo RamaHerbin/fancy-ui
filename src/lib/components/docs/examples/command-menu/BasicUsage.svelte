@@ -3,6 +3,8 @@
 	import { Button } from "$lib/fancy-ui/button";
 
 	let open = $state(false);
+	const uid = $props.id();
+	const panelId = `${uid}-panel`;
 	let picked = $state("");
 
 	const items: CommandItem[] = [
@@ -18,10 +20,17 @@
 </script>
 
 <div class="flex flex-col items-start gap-3">
-	<Button onclick={() => (open = true)}>Open command menu</Button>
+	<Button
+		onclick={() => (open = true)}
+		aria-haspopup="dialog"
+		aria-expanded={open}
+		aria-controls={open ? panelId : undefined}
+	>
+		Open command menu
+	</Button>
 	{#if picked}
 		<p class="text-muted-foreground text-[12px]">Last picked: {picked}</p>
 	{/if}
 </div>
 
-<CommandMenu sound bind:open {items} onSelect={handleSelect} />
+<CommandMenu sound bind:open id={panelId} {items} onSelect={handleSelect} />

@@ -298,6 +298,7 @@
 		mask:
 			linear-gradient(#000 0 0) content-box exclude,
 			linear-gradient(#000 0 0);
+		mask-composite: exclude;
 		opacity: 0;
 	}
 	.dock-rim-light {

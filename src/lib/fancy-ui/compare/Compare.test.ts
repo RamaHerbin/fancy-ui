@@ -157,3 +157,14 @@ describe("keyStep", () => {
 		expect(keyStep("Enter", false, 50)).toBeNull();
 	});
 });
+
+describe("Compare touch", () => {
+	afterEach(cleanup);
+
+	it("keeps vertical page scroll while a horizontal drag stays ours", () => {
+		const { container } = render(Compare);
+		const slider = container.querySelector('[role="slider"]') as HTMLElement;
+		expect(slider.className).toContain("touch-pan-y");
+		expect(slider.className).toContain("touch-pinch-zoom");
+	});
+});

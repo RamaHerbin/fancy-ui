@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface DropdownMenuTriggerProps {
+	export interface DropdownMenuTriggerOwnProps {
 		/** Disables the trigger — the menu cannot be opened. */
 		disabled?: boolean;
 		/** The trigger's content. */
@@ -11,6 +12,10 @@
 		/** Bindable reference to the trigger button. */
 		ref?: HTMLButtonElement | null;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the trigger; the managed ARIA, `id` and `type` stay the component's. */
+	export type DropdownMenuTriggerProps = DropdownMenuTriggerOwnProps &
+		Omit<HTMLButtonAttributes, keyof DropdownMenuTriggerOwnProps>;
 </script>
 
 <script lang="ts">
@@ -23,6 +28,9 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		onclick,
+		onkeydown,
+		...rest
 	}: DropdownMenuTriggerProps = $props();
 
 	// `DropdownMenu` only ever mounts this alongside `DropdownMenuContent`
@@ -36,7 +44,9 @@
 		return () => ctx.setTriggerRef(null);
 	});
 
-	function handleClick(): void {
+	function handleClick(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled) return;
 		if (ctx.open) {
 			// Focus is already here — it's the element that was just clicked —
@@ -45,9 +55,12 @@
 		} else {
 			ctx.openWithFocus("first");
 		}
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
-	function handleKeydown(event: KeyboardEvent): void {
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled) return;
 		switch (event.key) {
 			case "Enter":
@@ -55,12 +68,13 @@
 			case "ArrowDown":
 				event.preventDefault();
 				ctx.openWithFocus("first");
-				return;
+				break;
 			case "ArrowUp":
 				event.preventDefault();
 				ctx.openWithFocus("last");
-				return;
+				break;
 		}
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
 	const classes = $derived(
@@ -72,6 +86,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={ref}
 	id={ctx.triggerId}
 	type="button"

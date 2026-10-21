@@ -1,7 +1,8 @@
 <script lang="ts" module>
+	import type { HTMLInputAttributes } from "svelte/elements";
 	import type { Snippet } from "svelte";
 
-	export interface CheckboxProps {
+	interface BaseProps {
 		/**
 		 * Whether the box is checked; bindable. This is the real state
 		 * underneath even while `indeterminate` is true — a click always
@@ -52,6 +53,8 @@
 		/** Element reference to the native `<input>`. */
 		ref?: HTMLInputElement | null;
 	}
+
+	export type CheckboxProps = BaseProps & Omit<HTMLInputAttributes, keyof BaseProps | "type">;
 </script>
 
 <script lang="ts">
@@ -74,6 +77,12 @@
 		class: className,
 		sound = false,
 		ref = $bindable(null),
+		onchange,
+		"aria-label": ariaLabel,
+		"aria-describedby": ariaDescribedby,
+		"aria-invalid": ariaInvalid,
+		"data-invalid": dataInvalid,
+		...rest
 	}: CheckboxProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -119,6 +128,7 @@
 		indeterminate = false;
 		if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 		onCheckedChange?.(next);
+		onchange?.(event);
 	}
 
 	const wrapperClasses = $derived(
@@ -142,6 +152,7 @@
 	-->
 	<span class="ft-checkbox-box">
 		<input
+			{...rest}
 			bind:this={ref}
 			type="checkbox"
 			class="ft-checkbox-control border-input"
@@ -152,10 +163,11 @@
 			disabled={effectiveDisabled}
 			required={effectiveRequired}
 			aria-checked={indeterminate ? "mixed" : checked}
-			aria-invalid={effectiveInvalid ? "true" : undefined}
-			aria-describedby={field?.describedBy}
-			aria-label={label}
-			data-invalid={effectiveInvalid ? "true" : undefined}
+			aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
+			aria-describedby={[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") ||
+				undefined}
+			aria-label={label ?? ariaLabel}
+			data-invalid={effectiveInvalid ? "true" : dataInvalid}
 			onchange={handleChange}
 		/>
 		<!--
