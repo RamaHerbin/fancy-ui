@@ -902,7 +902,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "RainbowButton",
 		slug: "rainbow-button",
 		description:
-			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo",
+			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo. Other native attributes are forwarded to the rendered element",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -927,6 +927,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "disabled",
 				type: "boolean",
 				description: "Disables the button and suppresses the press cue",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Called once per activation, after the optional sound cue; never while disabled.",
 			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],

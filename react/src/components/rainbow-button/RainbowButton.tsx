@@ -3,6 +3,7 @@ import type {
 	AnchorHTMLAttributes,
 	ButtonHTMLAttributes,
 	CSSProperties,
+	MouseEvent,
 	ReactNode,
 	Ref,
 } from "react";
@@ -21,6 +22,8 @@ type BaseProps = {
 	href?: string;
 	/** Button content */
 	children?: ReactNode;
+	/** Click handler, called once per activation and never while `disabled` */
+	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/**
 	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
 	 * click. Off by default; only audible once the user has enabled sound.
@@ -41,14 +44,24 @@ type RainbowButtonElementProps = Omit<
 
 export interface RainbowButtonProps extends BaseProps, RainbowButtonElementProps {}
 
-// Note: unlike most components in this package, RainbowButton does not spread
-// rest props onto the rendered element — this mirrors the Svelte source,
-// which only reads class/speed/href/type/disabled/ref/children off $props()
-// and has no ...restProps spread. Attributes typed as valid via the union
-// (e.g. onClick) are accepted by the props type but not forwarded.
 export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RainbowButtonProps>(
-	({ className, speed = 2, href, type = "button", disabled, children, sound = false }, ref) => {
-		const speedStyle = { "--rainbow-speed": `${speed}s` } as CSSProperties;
+	(
+		{
+			className,
+			speed = 2,
+			href,
+			target,
+			style,
+			type = "button",
+			disabled,
+			children,
+			onClick,
+			sound = false,
+			...restProps
+		},
+		ref
+	) => {
+		const speedStyle = { "--rainbow-speed": `${speed}s`, ...style } as CSSProperties;
 		const playCue = useSoundCue(sound);
 
 		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
@@ -59,13 +72,18 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		});
 		const composedRef = useComposedRefs(ref, soundRef);
 
-		// Bound identically on both render branches below, matching the Svelte
-		// source's single `handleClick` — the anchor branch has no native
-		// `disabled` attribute, so this guard is the only thing keeping a
-		// disabled link silent.
-		function handleClick() {
-			if (disabled) return;
+		// The single guard both branches funnel through. A native `disabled`
+		// button already refuses real input, but a synthetic click (or an anchor,
+		// which has no disabled state at all) walks straight past that, so a
+		// disabled click is cancelled here and never reaches the consumer or the
+		// sound cue.
+		function handleClick(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
+			if (disabled) {
+				event.preventDefault();
+				return;
+			}
 			playCue("press");
+			onClick?.(event);
 		}
 
 		const baseClasses = cn(
@@ -84,12 +102,14 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 			return (
 				<a
 					ref={composedRef as Ref<HTMLAnchorElement>}
+					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
 					className={baseClasses}
 					style={speedStyle}
-					href={href}
-					aria-disabled={disabled}
-					role={disabled ? "link" : undefined}
-					tabIndex={disabled ? -1 : undefined}
+					href={disabled ? undefined : href}
+					target={disabled ? undefined : target}
+					aria-disabled={disabled ? "true" : restProps["aria-disabled"]}
+					role={disabled ? "link" : restProps.role}
+					tabIndex={disabled ? -1 : restProps.tabIndex}
 					onClick={handleClick}
 				>
 					<span className="rainbow-button__glow" aria-hidden="true">
@@ -104,6 +124,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		return (
 			<button
 				ref={composedRef as Ref<HTMLButtonElement>}
+				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 				className={baseClasses}
 				style={speedStyle}
 				type={type}
