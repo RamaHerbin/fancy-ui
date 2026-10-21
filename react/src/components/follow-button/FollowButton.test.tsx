@@ -1,5 +1,5 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FollowButton } from "./FollowButton.js";
 import { sound } from "../../sound/sound.js";
@@ -51,6 +51,12 @@ describe("FollowButton", () => {
 			const { container } = render(<FollowButton labels={{ follow: "Subscribe" }} />);
 			expect(button(container).getAttribute("aria-label")).toBe("Subscribe");
 			expect(text(container)).toBe("Subscribe");
+		});
+
+		it("keeps the default for a label passed as undefined", () => {
+			const { container } = render(<FollowButton labels={{ follow: undefined }} />);
+			expect(button(container).getAttribute("aria-label")).toBe("Follow");
+			expect(text(container)).toBe("Follow");
 		});
 
 		it("keeps the accessible name when the visible label changes", async () => {
@@ -119,8 +125,8 @@ describe("FollowButton", () => {
 			expect(onToggle).toHaveBeenCalledWith(false);
 			expect(onFollowingChange).toHaveBeenCalledWith(false);
 			// A `following` prop the parent leaves alone is the parent's to keep:
-			// the port re-syncs on a prop CHANGE only, like Toggle and Slider.
-			expect(button(container).getAttribute("aria-pressed")).toBe("false");
+			// the prop is the committed value, the callback only reports.
+			expect(button(container).getAttribute("aria-pressed")).toBe("true");
 		});
 
 		it("works with no callbacks at all", async () => {
@@ -292,6 +298,89 @@ describe("FollowButton", () => {
 			expect(button(container).getAttribute("aria-pressed")).toBe("true");
 			rerender(<FollowButton following={false} onToggle={onToggle} onFollowingChange={() => {}} />);
 			expect(button(container).getAttribute("aria-pressed")).toBe("false");
+		});
+
+		it("stays a controlled component when the parent refuses the change", async () => {
+			const d = deferred();
+			const onToggle = vi.fn(() => d.promise);
+			const onFollowingChange = vi.fn();
+			const { container, rerender } = render(
+				<FollowButton following={false} onToggle={onToggle} onFollowingChange={onFollowingChange} />
+			);
+			await click(button(container));
+			// Pending still shows the requested value.
+			expect(button(container).getAttribute("aria-pressed")).toBe("true");
+			d.resolve();
+			await flush();
+			// The callback fired, the prop did not change: the prop is the truth.
+			expect(onFollowingChange).toHaveBeenCalledWith(true);
+			expect(button(container).getAttribute("data-state")).toBe("idle");
+			expect(button(container).getAttribute("aria-pressed")).toBe("false");
+			expect(text(container)).toBe("Follow");
+			// A later re-render with the same refused value never drifts either.
+			rerender(
+				<FollowButton following={false} onToggle={onToggle} onFollowingChange={onFollowingChange} />
+			);
+			await flush();
+			expect(button(container).getAttribute("aria-pressed")).toBe("false");
+			expect(text(container)).toBe("Follow");
+		});
+
+		it("stays controlled on a synchronous commit the parent refuses", async () => {
+			const onFollowingChange = vi.fn();
+			const { container } = render(
+				<FollowButton following onToggle={() => {}} onFollowingChange={onFollowingChange} />
+			);
+			await click(button(container));
+			await flush();
+			expect(onFollowingChange).toHaveBeenCalledWith(false);
+			expect(button(container).getAttribute("aria-pressed")).toBe("true");
+			expect(text(container)).toBe("Following");
+		});
+
+		it("paints the accepted value once the parent writes it back", async () => {
+			function Parent() {
+				const [following, setFollowing] = useState(false);
+				return (
+					<FollowButton
+						following={following}
+						onFollowingChange={setFollowing}
+						onToggle={() => Promise.resolve()}
+					/>
+				);
+			}
+			const { container } = render(<Parent />);
+			await click(button(container));
+			await flush();
+			expect(button(container).getAttribute("aria-pressed")).toBe("true");
+			expect(text(container)).toBe("Following");
+			await click(button(container));
+			await flush();
+			expect(button(container).getAttribute("aria-pressed")).toBe("false");
+			expect(text(container)).toBe("Follow");
+		});
+
+		it("toggles from the controlled value, not from a stale local copy", async () => {
+			const onToggle = vi.fn();
+			const { container, rerender } = render(
+				<FollowButton following={false} onToggle={onToggle} onFollowingChange={() => {}} />
+			);
+			// The parent moves the value on its own; the next press reads it.
+			rerender(<FollowButton following onToggle={onToggle} onFollowingChange={() => {}} />);
+			await click(button(container));
+			await flush();
+			expect(onToggle).toHaveBeenCalledWith(false);
+		});
+
+		it("keeps writing its own value when uncontrolled", async () => {
+			const onFollowingChange = vi.fn();
+			const { container } = render(
+				<FollowButton onToggle={() => {}} onFollowingChange={onFollowingChange} />
+			);
+			await click(button(container));
+			await flush();
+			expect(onFollowingChange).toHaveBeenCalledWith(true);
+			expect(button(container).getAttribute("aria-pressed")).toBe("true");
 		});
 
 		it("makes no callback and no state write once unmounted", async () => {

@@ -109,6 +109,21 @@ describe("follow-core text", () => {
 		expect(resolveLabels(undefined)).toEqual(DEFAULT_FOLLOW_LABELS);
 	});
 
+	it("an explicitly undefined label keeps its default instead of blanking the text", () => {
+		expect(resolveLabels({ follow: undefined })).toEqual(DEFAULT_FOLLOW_LABELS);
+		expect(resolveLabels({ follow: undefined, following: "Subscribed" })).toEqual({
+			follow: "Follow",
+			following: "Subscribed",
+			unfollow: "Unfollow",
+		});
+		const labels = resolveLabels({ unfollow: undefined, following: undefined });
+		expect(Object.values(labels).every((v) => typeof v === "string" && v.length > 0)).toBe(true);
+	});
+
+	it("an empty string is a deliberate label and is kept", () => {
+		expect(resolveLabels({ follow: "" }).follow).toBe("");
+	});
+
 	it("shows the label of the SHOWN value, the error label on error", () => {
 		const labels = resolveLabels();
 		const idle = createFollowState(false);

@@ -45,6 +45,12 @@ describe("FollowButton", () => {
 			expect(text(container)).toBe("Follow");
 		});
 
+		it("keeps the default for a label passed as undefined", () => {
+			const { container } = render(FollowButton, { props: { labels: { follow: undefined } } });
+			expect(button(container).getAttribute("aria-label")).toBe("Follow");
+			expect(text(container)).toBe("Follow");
+		});
+
 		it("falls back to the idle label as the accessible name", () => {
 			const { container } = render(FollowButton, { props: { labels: { follow: "Subscribe" } } });
 			expect(button(container).getAttribute("aria-label")).toBe("Subscribe");

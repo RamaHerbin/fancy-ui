@@ -370,17 +370,16 @@ onBeforeUnmount(() => clearTimeout(leaveTimer));
 }
 
 /* The unfollow preview: a fine pointer over the button, or keyboard focus on
-   it. A touch screen has no hover, so the preview never shows there and the
+   it. Written as a plain descendant: under the scoped compiler `:global()`
+   would swallow the whole selector and the preview would never show. A touch screen has no hover, so the preview never shows there and the
    control never carries an affordance only a mouse can reach. Instant, not
    animated: it is a state read-out, not motion. */
 @media (hover: hover) and (pointer: fine) {
-	:global(.ft-follow:is(:hover, :focus-visible)) .ft-follow__live[data-preview] > .ft-follow__rest {
+	.ft-follow:is(:hover, :focus-visible) .ft-follow__live[data-preview] > .ft-follow__rest {
 		visibility: hidden;
 	}
 
-	:global(.ft-follow:is(:hover, :focus-visible))
-		.ft-follow__live[data-preview]
-		> .ft-follow__preview {
+	.ft-follow:is(:hover, :focus-visible) .ft-follow__live[data-preview] > .ft-follow__preview {
 		visibility: visible;
 	}
 }

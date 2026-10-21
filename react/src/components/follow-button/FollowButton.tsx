@@ -42,9 +42,12 @@ export interface FollowButtonProps extends Omit<
 	"onClick" | "onToggle" | "className" | "type" | "children" | "disabled"
 > {
 	/**
-	 * Whether the viewer follows. Controlled in the same way as the other
-	 * stateful controls: the component keeps its own copy and re-syncs it when
-	 * this prop CHANGES. A change while an attempt is pending wins and drops it.
+	 * Whether the viewer follows. Controlled whenever it is not `undefined`: the
+	 * prop is the committed value, a resolved attempt reports through
+	 * `onFollowingChange` without writing it, and a parent that refuses the change
+	 * keeps the button on the prop. Left out, the component keeps its own copy
+	 * (see `defaultFollowing`). A change while an attempt is pending wins and
+	 * drops it.
 	 */
 	following?: boolean;
 	/** Initial value when `following` is not passed */
@@ -178,16 +181,31 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 			[]
 		);
 
-		const live = useLiveRef({ onToggle, onFollowingChange, onClick, sound });
+		// `following` is controlled whenever it is not `undefined`: the prop is then
+		// the committed value, `core.following` is only a mirror of it, and a
+		// resolved attempt reports through `onFollowingChange` without writing it.
+		const live = useLiveRef({ onToggle, onFollowingChange, onClick, sound, followingProp });
+
+		// The machine's snapshot with the committed value read from the prop when
+		// controlled. Pure; the render and the async callbacks both go through it.
+		const withCommitted = (state: FollowState, committed: boolean | undefined): FollowState =>
+			committed === undefined || state.following === committed
+				? state
+				: {
+						...state,
+						following: committed,
+						target: state.phase === "pending" ? state.target : committed,
+					};
+		const view = withCommitted(core, followingProp);
 
 		const resolvedLabels = resolveLabels(labels);
-		const shown = shownFollowing(core);
-		const currentLabel = visibleLabel(core, resolvedLabels, errorLabel);
+		const shown = shownFollowing(view);
+		const currentLabel = visibleLabel(view, resolvedLabels, errorLabel);
 		// The accessible name never follows the visible text: a name that changes
 		// next to `aria-pressed` would announce the state twice.
 		const name = label ?? restProps["aria-label"] ?? resolvedLabels.follow;
-		const showsPreview = core.phase === "idle" && core.following;
-		const failed = core.phase === "error";
+		const showsPreview = view.phase === "idle" && view.following;
+		const failed = view.phase === "error";
 
 		const classes = cn("ft-follow", failed && "ft-follow--failed border", className);
 
@@ -207,11 +225,19 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 		}, [core.phase, core.ticket, resetMs, commit]);
 
 		function finish(ticket: number, ok: boolean) {
-			const result = settle(coreRef.current, ticket, ok);
+			const handlers = live.current;
+			const base = withCommitted(coreRef.current, handlers.followingProp);
+			const result = settle(base, ticket, ok);
 			// Superseded by the parent, a retry or an unmount: it has nothing to say.
 			if (result.outcome === "stale") return;
-			commit(result.state);
-			const handlers = live.current;
+			// Controlled: the attempt ends, but the committed value stays whatever
+			// the parent holds. It writes the new value back through
+			// `onFollowingChange`, or it refuses and the prop stays the truth.
+			commit(
+				handlers.followingProp === undefined
+					? result.state
+					: { ...result.state, following: base.following, target: base.following }
+			);
 			if (ok) {
 				if (handlers.sound) soundFx.play(result.state.following ? "toggle-on" : "toggle-off");
 				handlers.onFollowingChange?.(result.state.following);
@@ -223,7 +249,7 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 		function handleClick(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
 			// A click while an attempt is in flight is swallowed: neither the toggle
 			// nor the consumer's own handler runs, and nothing is queued.
-			const started = press(coreRef.current);
+			const started = press(withCommitted(coreRef.current, live.current.followingProp));
 			if (!started) return;
 			// The outcome cue may play after an await, when the transient activation
 			// is gone: create/resume the audio context while the gesture is live.
@@ -286,7 +312,7 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 		 */
 		const statusIcon = (
 			<StatusMorph
-				state={morphState(core)}
+				state={morphState(view)}
 				tone="semantic"
 				resetAfter={0}
 				haptic={sound}
@@ -308,8 +334,8 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 				className={classes}
 				iconStart={statusIcon}
 				aria-pressed={shown}
-				aria-busy={core.phase === "pending" ? "true" : undefined}
-				data-state={core.phase}
+				aria-busy={view.phase === "pending" ? "true" : undefined}
+				data-state={view.phase}
 				onClick={handleClick}
 			>
 				{/*

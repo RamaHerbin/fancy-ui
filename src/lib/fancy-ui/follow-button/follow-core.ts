@@ -138,7 +138,14 @@ export function morphState(state: FollowState): FollowMorphState {
 }
 
 export function resolveLabels(labels?: Partial<FollowLabels> | null): FollowLabels {
-	return { ...DEFAULT_FOLLOW_LABELS, ...labels };
+	const resolved: FollowLabels = { ...DEFAULT_FOLLOW_LABELS };
+	if (!labels) return resolved;
+	// `Partial` allows `{ follow: undefined }`; spreading it would blank the default.
+	for (const key of Object.keys(DEFAULT_FOLLOW_LABELS) as (keyof FollowLabels)[]) {
+		const value = labels[key];
+		if (value !== undefined) resolved[key] = value;
+	}
+	return resolved;
 }
 
 /** The visible text for a state. The unfollow preview is a hover/focus overlay, not a state. */
