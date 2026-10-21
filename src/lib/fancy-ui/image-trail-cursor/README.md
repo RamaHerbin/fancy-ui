@@ -35,6 +35,12 @@ Cursor-following image trail effect with 18 animation variants. Images appear at
 
 `fall` and `gravity` measure the container's height: give the container a height and `overflow-hidden` so falling images leave through its bottom edge. The five reveals draw the picture from fragments (`.content__img-frag`) that are removed when the variant changes or the component unmounts.
 
+## Reduced motion
+
+When `prefers-reduced-motion: reduce` is set, the trail is disabled: no variant is constructed, so there are no pointer listeners, no animation loop and no timelines, and no image is ever spawned. The trail images stay in the markup, hidden, so the container renders as an empty transparent layer over whatever sits behind it.
+
+The preference is tracked live. Turning it on mid-session destroys the running variant (cancelling its loop and killing its timelines) and wipes the inline styles it wrote, so no image is left frozen on screen; turning it off starts the trail again. Neither needs a remount.
+
 ## Dependencies
 
 - **GSAP** (`gsap`) — Required for animation timelines. First GSAP dependency in the project.
