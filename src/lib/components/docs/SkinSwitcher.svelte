@@ -85,7 +85,9 @@
 		class="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex h-9 items-center gap-1.5 rounded-md border px-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
 	>
 		{@render swatch(activeName)}
-		<span class="font-mono text-[10px] font-bold tracking-widest uppercase">{activeLabel}</span>
+		<span class="hidden font-mono text-[10px] font-bold tracking-widest uppercase sm:inline"
+			>{activeLabel}</span
+		>
 		<svg
 			width="12"
 			height="12"
