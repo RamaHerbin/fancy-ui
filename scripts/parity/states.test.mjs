@@ -24,8 +24,41 @@ const hintsDir = join(dirname(fileURLToPath(import.meta.url)), "hints");
 const readHint = (slug) => JSON.parse(readFileSync(join(hintsDir, `${slug}.json`), "utf8"));
 const FIVE = ["dialog", "select", "input", "tabs", "tooltip"];
 
-test("the three states are open, focus and long", () => {
-	assert.deepEqual(STATE_NAMES, ["open", "focus", "long"]);
+test("the states are open, focus, long, plus idle, copied, failed and action", () => {
+	assert.deepEqual(STATE_NAMES, ["open", "focus", "long", "idle", "copied", "failed", "action"]);
+});
+
+test("a clipboard step validates with ok or denied only", () => {
+	const ok = (mode) => ({
+		copied: {
+			steps: [{ clipboard: mode }, { click: { role: "button", name: "Copy" } }],
+			expect: [{ role: "button", name: "Copied" }],
+		},
+	});
+	validateStates("x", ok("ok"));
+	validateStates("x", ok("denied"));
+	assert.throws(() => validateStates("x", ok("maybe")), /clipboard/);
+});
+
+test("copy-button defines idle, copied and failed, each asserting its outcome", () => {
+	const hint = readHint("copy-button");
+	assert.deepEqual(Object.keys(hint.states).sort(), ["copied", "failed", "idle"]);
+	validateStates("copy-button", hint.states);
+	const names = Object.fromEntries(
+		Object.entries(hint.states).map(([k, v]) => [k, v.expect[0].name])
+	);
+	assert.deepEqual(names, { idle: "Copy", copied: "Copied", failed: "Copy failed" });
+	assert.deepEqual(hint.states.copied.steps[0], { clipboard: "ok" });
+	assert.deepEqual(hint.states.failed.steps[0], { clipboard: "denied" });
+});
+
+test("toast defines an action state and a long-description state", () => {
+	const hint = readHint("toast");
+	assert.deepEqual(Object.keys(hint.states).sort(), ["action", "long"]);
+	validateStates("toast", hint.states);
+	assert.equal(hint.states.action.variant, "action");
+	assert.equal(hint.states.long.variant, "long");
+	assert.equal(hint.states.action.expect[0].name, "Undo");
 });
 
 test("state shot names round-trip and stay apart from the rest and hover passes", () => {
@@ -43,7 +76,7 @@ for (const slug of FIVE) {
 	test(`${slug} defines open, focus and long states that validate`, () => {
 		const hint = readHint(slug);
 		assert.ok(hint.states, `${slug} hint has no states`);
-		assert.deepEqual(Object.keys(hint.states).sort(), [...STATE_NAMES].sort());
+		assert.deepEqual(Object.keys(hint.states).sort(), ["focus", "long", "open"]);
 		validateStates(slug, hint.states);
 		assert.equal(hint.states.long.variant, "long", `${slug} long state needs the long variant`);
 		for (const [name, spec] of Object.entries(hint.states))

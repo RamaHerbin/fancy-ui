@@ -22,6 +22,8 @@
  *     { "press": "Tab" }    one key press
  *     { "type": "text" }    typed text, into whatever has focus
  *     { "wait": 600 }       fake-clock milliseconds
+ *     { "clipboard": "ok" | "denied" }  the next clipboard write resolves or
+ *                           is rejected (copy-button: idle, copied, failed)
  * - expect: what must hold at every shot, or the item fails. Each entry is a
  *   target plus optional checks: "visible" (default true), "focusVisible"
  *   (it is the focused element and matches :focus-visible), "overflow" (its
@@ -44,13 +46,14 @@
  * <slug>@<state>.
  */
 
-export const STATE_NAMES = ["open", "focus", "long"];
+export const STATE_NAMES = ["open", "focus", "long", "idle", "copied", "failed", "action"];
 export const DEFAULT_STATE_MOMENTS = [0];
 /** Fake-clock budget for a state's animations to run out, and the step. */
 const SETTLE_MAX_MS = 5000;
 const SETTLE_STEP_MS = 50;
 
-const STEP_KINDS = ["click", "hover", "focus", "press", "type", "wait"];
+const STEP_KINDS = ["click", "hover", "focus", "press", "type", "wait", "clipboard"];
+const CLIPBOARD_MODES = ["ok", "denied"];
 const TARGET_STEPS = ["click", "hover", "focus"];
 
 /** `<theme>-<t>@<state>.png`: the `@` keeps state shots apart from `-hover` ones. */
@@ -84,6 +87,8 @@ export function validateStates(slug, states) {
 			if (kinds.length !== 1 || !STEP_KINDS.includes(kinds[0]))
 				throw new Error(`${where}: unknown step #${i} ${JSON.stringify(step)}`);
 			if (TARGET_STEPS.includes(kinds[0])) checkTarget(`${where} step #${i}`, step[kinds[0]]);
+			if (kinds[0] === "clipboard" && !CLIPBOARD_MODES.includes(step.clipboard))
+				throw new Error(`${where}: clipboard step must be one of ${CLIPBOARD_MODES.join(", ")}`);
 		}
 		if (!Array.isArray(spec.expect) || spec.expect.length === 0)
 			throw new Error(
@@ -220,6 +225,19 @@ export async function runSteps(page, stage, slug, state, steps) {
 		} else if (kind === "press") await page.keyboard.press(arg);
 		else if (kind === "type") await page.keyboard.type(arg);
 		else if (kind === "wait") await page.clock.runFor(arg);
+		else if (kind === "clipboard")
+			// Headless pages have no reliable clipboard permission: the write
+			// is replaced so the outcome is the same on every stage.
+			await page.evaluate((mode) => {
+				const writeText = () =>
+					mode === "ok"
+						? Promise.resolve()
+						: Promise.reject(new DOMException("denied", "NotAllowedError"));
+				Object.defineProperty(navigator, "clipboard", {
+					value: { writeText },
+					configurable: true,
+				});
+			}, arg);
 	}
 }
 

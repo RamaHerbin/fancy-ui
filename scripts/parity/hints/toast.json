@@ -1,1 +1,15 @@
-{ "click": [0.5, 0.5] }
+{
+	"click": [0.5, 0.5],
+	"states": {
+		"action": {
+			"variant": "action",
+			"steps": [{ "click": { "role": "button", "name": "Show toast" } }],
+			"expect": [{ "role": "button", "name": "Undo", "in": "page" }]
+		},
+		"long": {
+			"variant": "long",
+			"steps": [{ "click": { "role": "button", "name": "Show toast" } }],
+			"expect": [{ "css": "[data-variant][data-state='open']", "in": "page", "nth": 0 }]
+		}
+	}
+}
