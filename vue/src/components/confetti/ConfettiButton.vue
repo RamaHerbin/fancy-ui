@@ -25,6 +25,7 @@ import { cn } from "../../utils.js";
 import confetti from "canvas-confetti";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
+import { callListener } from "../../internals/call-listener.js";
 import { CONFETTI_CONTEXT } from "./context.js";
 
 defineOptions({ name: "ConfettiButton", inheritAttrs: false });
@@ -53,11 +54,6 @@ useSoundFeedback(el, () => ({
 
 // `onClick` is a declared prop (so `@click` and `attrs: { onClick }` both land
 // here); a function or an array of functions is dispatched once each.
-function callListeners(event: MouseEvent) {
-	const listeners = Array.isArray(onClick) ? onClick : [onClick];
-	for (const listener of listeners) listener?.(event);
-}
-
 function handleClick(event: MouseEvent) {
 	if (disabled) return;
 	if (sound) soundFx.play("press");
@@ -77,7 +73,7 @@ function handleClick(event: MouseEvent) {
 	} else {
 		confetti({ ...options, origin });
 	}
-	callListeners(event);
+	callListener(onClick, event);
 }
 </script>
 

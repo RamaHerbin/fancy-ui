@@ -36,6 +36,8 @@ A plain-text anchor styled for prose and inline copy — a colored text link, no
 | `ref`       | `HTMLAnchorElement \| null`     | `null`      | Bindable element reference                                                                     |
 | `sound`     | `boolean`                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound                           |
 
+Any other native anchor attribute or listener (`id`, `download`, `hreflang`, `aria-*`, `data-*`, `onkeydown`, ...) goes to the inner `<a>`.
+
 ## Implementation Notes
 
 - **Safe `rel` is derived, not just defaulted.** `rel` is guaranteed to contain `noopener noreferrer`
