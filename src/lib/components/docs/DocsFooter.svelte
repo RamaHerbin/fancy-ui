@@ -88,7 +88,7 @@
 		>
 	</div>
 
-	<nav class="mt-4 flex flex-wrap gap-x-5 gap-y-2" aria-label={t("footer.docs")}>
+	<nav class="mt-4 flex flex-wrap gap-x-5 gap-y-2" aria-label={t("footer.contribute")}>
 		{#each links as link (link.href)}
 			<a
 				href={link.href}

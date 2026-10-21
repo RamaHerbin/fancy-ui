@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { examplesRegistry } from "./examples/registry.js";
 	import ComponentPreview from "./ComponentPreview.svelte";
+	import PreviewBoundary from "./PreviewBoundary.svelte";
+	import PreviewError from "./PreviewError.svelte";
 	import { hasSoundProp } from "$lib/fancy-ui/registry.js";
 	import { t } from "$lib/stores";
 
@@ -42,32 +44,44 @@
 		}, [])
 	);
 
-	// Plain map, deliberately outside the reactive graph: reading it must not make the effect
-	// below depend on its own writes.
+	// Plain maps, deliberately outside the reactive graph: reading them must not make the
+	// effect below depend on its own writes.
 	const loaded = new Map<string, unknown>();
+	const failedImports = new Set<string>();
 	let liveComponents = $state<Record<string, unknown>>({});
+	let failed = $state<Record<string, true>>({});
 
+	// Each example loads on its own: one broken chunk must not hold back, or take down, the
+	// others. A failure shows the error state in that example's frame and logs the real error;
+	// the source stays readable in the Code tab.
 	$effect(() => {
 		const wanted = examples.map((e) => e.path);
 		let cancelled = false;
 
-		Promise.all(
-			wanted.map(async (path) => {
-				if (loaded.has(path)) return;
-				const load = liveModules[path];
-				if (!load) return;
-				try {
-					loaded.set(path, ((await load()) as { default: unknown }).default);
-				} catch {
-					// An example that fails to load keeps its placeholder; the source stays readable.
+		liveComponents = Object.fromEntries(
+			wanted.filter((path) => loaded.has(path)).map((path) => [path, loaded.get(path)])
+		);
+		failed = Object.fromEntries(
+			wanted.filter((path) => failedImports.has(path)).map((path) => [path, true as const])
+		);
+
+		for (const path of wanted) {
+			if (loaded.has(path) || failedImports.has(path)) continue;
+			const load = liveModules[path];
+			if (!load) continue;
+			load().then(
+				(mod) => {
+					const component = (mod as { default: unknown }).default;
+					loaded.set(path, component);
+					if (!cancelled) liveComponents = { ...liveComponents, [path]: component };
+				},
+				(e: unknown) => {
+					console.error(`[docs] example "${path}" failed to load`, e);
+					failedImports.add(path);
+					if (!cancelled) failed = { ...failed, [path]: true };
 				}
-			})
-		).then(() => {
-			if (cancelled) return;
-			liveComponents = Object.fromEntries(
-				wanted.filter((path) => loaded.has(path)).map((path) => [path, loaded.get(path)])
 			);
-		});
+		}
 
 		return () => {
 			cancelled = true;
@@ -101,7 +115,11 @@
 						{#snippet preview()}
 							{@const Live = liveComponents[example.path] as any}
 							{#if Live}
-								<Live />
+								<PreviewBoundary source={example.path}>
+									<Live />
+								</PreviewBoundary>
+							{:else if failed[example.path]}
+								<PreviewError kind="import" />
 							{/if}
 						{/snippet}
 					</ComponentPreview>
