@@ -292,7 +292,7 @@ export default {
 	"theming.lead":
 		"Setiap komponen FancyUI membaca warna, radius, dan pewaktuannya dari properti kustom CSS dalam ruang warna OKLCh — timpa satu token dan seluruh pustaka akan mengikutinya.",
 	"theming.pill.oklch": "Ruang Warna OKLCh",
-	"theming.pill.shadcn": "Kompatibel dengan shadcn-svelte",
+	"theming.pill.shadcn": "Nama token standar",
 	"theming.pill.dark": "Mode Gelap",
 	"theming.pill.tokens": "Token Desain",
 	"theming.generator.body":
@@ -305,7 +305,7 @@ export default {
 	"theming.colors.body":
 		"Semua warna menggunakan ruang warna OKLCh untuk gradien yang seragam secara perseptual:",
 	"theming.colors.note":
-		"Nama token mengikuti konvensi shadcn-svelte, sehingga tema shadcn yang sudah ada dapat langsung dipasang tanpa perubahan.",
+		"Nama token mengikuti konvensi semantik yang umum dipakai (background, foreground, primary, …), sehingga tema yang sudah ada dengan nama variabel yang sama dapat langsung dipasang tanpa perubahan.",
 	"theming.dark.heading": "Mode Gelap",
 	"theming.dark.body":
 		"Mode gelap secara bawaan mengikuti preferensi sistem operasi. Letakkan kelas .dark pada <html> atau leluhur mana pun untuk memaksa gelap, atau .light untuk memaksa terang; utilitas dark: dan setiap token mengikutinya. Untuk menyesuaikan nilai gelap, timpa di bawah .dark:",

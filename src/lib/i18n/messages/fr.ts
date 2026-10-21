@@ -297,7 +297,7 @@ export default {
 	"theming.lead":
 		"Chaque composant FancyUI lit ses couleurs, rayons et durées via des propriétés CSS personnalisées dans l'espace colorimétrique OKLCh — redéfinissez un jeton et toute la bibliothèque suit.",
 	"theming.pill.oklch": "Espace colorimétrique OKLCh",
-	"theming.pill.shadcn": "Compatible shadcn-svelte",
+	"theming.pill.shadcn": "Noms de jetons standard",
 	"theming.pill.dark": "Mode sombre",
 	"theming.pill.tokens": "Jetons de design",
 	"theming.generator.body":
@@ -310,7 +310,7 @@ export default {
 	"theming.colors.body":
 		"Toutes les couleurs utilisent l'espace colorimétrique OKLCh pour des dégradés perceptuellement uniformes :",
 	"theming.colors.note":
-		"Les noms de jetons suivent les conventions de shadcn-svelte, si bien qu'un thème shadcn existant s'intègre sans modification.",
+		"Les noms de jetons suivent la convention sémantique courante (background, foreground, primary, …), si bien qu'un thème existant aux mêmes noms de variables s'intègre sans modification.",
 	"theming.dark.heading": "Mode sombre",
 	"theming.dark.body":
 		"Le mode sombre suit par défaut la préférence du système. Placez la classe .dark sur <html> ou sur n'importe quel ancêtre pour forcer le sombre, ou .light pour forcer le clair ; les utilitaires dark: et chaque jeton suivent. Pour personnaliser les valeurs sombres, redéfinissez-les sous .dark :",

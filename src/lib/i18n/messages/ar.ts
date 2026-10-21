@@ -286,7 +286,7 @@ export default {
 	"theming.lead":
 		"كل مكوّن في FancyUI يقرأ ألوانه وزواياه الدائرية وتوقيتاته من خصائص CSS مخصّصة ضمن فضاء الألوان OKLCh — تجاوز رمزاً واحداً فتتبعه المكتبة كاملةً.",
 	"theming.pill.oklch": "فضاء الألوان OKLCh",
-	"theming.pill.shadcn": "متوافق مع shadcn-svelte",
+	"theming.pill.shadcn": "أسماء رموز قياسية",
 	"theming.pill.dark": "الوضع الداكن",
 	"theming.pill.tokens": "رموز التصميم",
 	"theming.generator.body":
@@ -299,7 +299,7 @@ export default {
 	"theming.colors.body":
 		"تستخدم جميع الألوان فضاء الألوان OKLCh للحصول على تدرّجات متجانسة إدراكياً:",
 	"theming.colors.note":
-		"تتّبع أسماء الرموز اتفاقيات shadcn-svelte، لذا يعمل أي سِمة shadcn موجودة مسبقاً دون أي تعديل.",
+		"تتّبع أسماء الرموز الاتفاقية الدلالية الشائعة الاستخدام (background وforeground وprimary وغيرها)، لذا يعمل أي سِمة موجودة مسبقاً تستخدم أسماء المتغيّرات نفسها دون أي تعديل.",
 	"theming.dark.heading": "الوضع الداكن",
 	"theming.dark.body":
 		"يتبع الوضع الداكن تفضيل نظام التشغيل افتراضياً. ضع الفئة .dark على <html> أو على أي عنصر سلف لفرض الداكن، أو .light لفرض الفاتح؛ وتتبعها أدوات dark: وكل رمز. لتخصيص القيم الداكنة، تجاوزها ضمن .dark:",

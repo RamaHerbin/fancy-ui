@@ -293,7 +293,7 @@ export default {
 	"theming.lead":
 		"Jede FancyUI-Komponente liest ihre Farben, Radien und Timings aus CSS-Custom-Properties im OKLCh-Farbraum — überschreibe einen Token, und die ganze Bibliothek zieht mit.",
 	"theming.pill.oklch": "OKLCh-Farbraum",
-	"theming.pill.shadcn": "Kompatibel mit shadcn-svelte",
+	"theming.pill.shadcn": "Standardisierte Token-Namen",
 	"theming.pill.dark": "Dunkler Modus",
 	"theming.pill.tokens": "Design-Tokens",
 	"theming.generator.body":
@@ -306,7 +306,7 @@ export default {
 	"theming.colors.body":
 		"Alle Farben nutzen den OKLCh-Farbraum für wahrnehmungsgleichmäßige Verläufe:",
 	"theming.colors.note":
-		"Die Token-Namen folgen den shadcn-svelte-Konventionen, sodass ein bestehendes shadcn-Theme unverändert übernommen wird.",
+		"Die Token-Namen folgen der gängigen semantischen Konvention (background, foreground, primary, …), sodass ein bestehendes Theme mit denselben Variablennamen unverändert übernommen wird.",
 	"theming.dark.heading": "Dunkler Modus",
 	"theming.dark.body":
 		"Der dunkle Modus folgt standardmäßig der Systemeinstellung. Setze die Klasse .dark auf <html> oder einen beliebigen Vorfahren, um Dunkel zu erzwingen, oder .light, um Hell zu erzwingen; die dark:-Utilities und jeder Token folgen. Um die dunklen Werte anzupassen, überschreibe sie unter .dark:",

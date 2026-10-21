@@ -294,7 +294,7 @@ export default {
 	"theming.lead":
 		"Każdy komponent FancyUI odczytuje swoje kolory, promienie i czasy z niestandardowych właściwości CSS w przestrzeni kolorów OKLCh — nadpisz token, a cała biblioteka się do niego dostosuje.",
 	"theming.pill.oklch": "Przestrzeń kolorów OKLCh",
-	"theming.pill.shadcn": "Kompatybilny z shadcn-svelte",
+	"theming.pill.shadcn": "Standardowe nazwy tokenów",
 	"theming.pill.dark": "Tryb ciemny",
 	"theming.pill.tokens": "Design tokeny",
 	"theming.generator.body":
@@ -307,7 +307,7 @@ export default {
 	"theming.colors.body":
 		"Wszystkie kolory używają przestrzeni kolorów OKLCh dla percepcyjnie jednolitych gradientów:",
 	"theming.colors.note":
-		"Nazwy tokenów są zgodne z konwencjami shadcn-svelte, więc istniejący motyw shadcn działa bez zmian.",
+		"Nazwy tokenów są zgodne z powszechnie stosowaną konwencją semantyczną (background, foreground, primary, …), więc istniejący motyw o tych samych nazwach zmiennych działa bez zmian.",
 	"theming.dark.heading": "Tryb ciemny",
 	"theming.dark.body":
 		"Tryb ciemny domyślnie podąża za ustawieniem systemu operacyjnego. Dodaj klasę .dark do <html> lub dowolnego przodka, aby wymusić ciemny, albo .light, aby wymusić jasny; narzędzia dark: i każdy token za nią podążają. Aby dostosować ciemne wartości, nadpisz je w .dark:",

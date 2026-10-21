@@ -290,7 +290,7 @@ export default {
 	"theming.lead":
 		"Každá komponenta FancyUI čte své barvy, poloměry a časování z vlastních CSS proměnných v barevném prostoru OKLCh — přepište jeden token a celá knihovna se přizpůsobí.",
 	"theming.pill.oklch": "Barevný prostor OKLCh",
-	"theming.pill.shadcn": "Kompatibilní se shadcn-svelte",
+	"theming.pill.shadcn": "Standardní názvy tokenů",
 	"theming.pill.dark": "Tmavý režim",
 	"theming.pill.tokens": "Design tokeny",
 	"theming.generator.body":
@@ -303,7 +303,7 @@ export default {
 	"theming.colors.body":
 		"Všechny barvy používají barevný prostor OKLCh pro percepčně jednotné gradienty:",
 	"theming.colors.note":
-		"Názvy tokenů odpovídají konvencím shadcn-svelte, takže existující shadcn motiv funguje beze změny.",
+		"Názvy tokenů odpovídají běžně používané sémantické konvenci (background, foreground, primary, …), takže existující motiv se stejnými názvy proměnných funguje beze změny.",
 	"theming.dark.heading": "Tmavý režim",
 	"theming.dark.body":
 		"Tmavý režim ve výchozím stavu sleduje nastavení operačního systému. Přidejte třídu .dark na <html> nebo na libovolného předka pro vynucení tmavého režimu, nebo .light pro vynucení světlého; utility dark: i každý token ji následují. Chcete-li upravit tmavé hodnoty, přepište je v .dark:",

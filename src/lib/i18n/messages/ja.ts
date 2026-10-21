@@ -294,7 +294,7 @@ export default {
 	"theming.lead":
 		"すべての FancyUI コンポーネントは、OKLCh カラースペースの CSS カスタムプロパティから色、角丸、タイミングを読み取ります。トークンを上書きすれば、ライブラリ全体がそれに従います。",
 	"theming.pill.oklch": "OKLCh カラースペース",
-	"theming.pill.shadcn": "shadcn-svelte 互換",
+	"theming.pill.shadcn": "標準的なトークン名",
 	"theming.pill.dark": "ダークモード",
 	"theming.pill.tokens": "デザイントークン",
 	"theming.generator.body":
@@ -307,7 +307,7 @@ export default {
 	"theming.colors.body":
 		"すべての色は、知覚的に均一なグラデーションのために OKLCh カラースペースを使用します:",
 	"theming.colors.note":
-		"トークン名は shadcn-svelte の規則に従っているため、既存の shadcn テーマもそのまま使えます。",
+		"トークン名は広く使われているセマンティックな規則（background、foreground、primary など）に従っているため、同じ変数名を持つ既存のテーマもそのまま使えます。",
 	"theming.dark.heading": "ダークモード",
 	"theming.dark.body":
 		"ダークモードは既定でOSの設定に従います。<html> または任意の祖先要素に .dark クラスを付けるとダークに固定され、.light を付けるとライトに固定されます。dark: ユーティリティとすべてのトークンがそれに従います。ダークの値をカスタマイズするには、.dark の下で上書きします：",

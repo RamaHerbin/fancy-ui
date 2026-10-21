@@ -263,7 +263,7 @@ export default {
 	"theming.lead":
 		"每个 FancyUI 组件的颜色、圆角和时长都来自 OKLCh 色彩空间中的 CSS 自定义属性——覆盖一个令牌，整个库都会随之变化。",
 	"theming.pill.oklch": "OKLCh 色彩空间",
-	"theming.pill.shadcn": "兼容 shadcn-svelte",
+	"theming.pill.shadcn": "标准令牌名称",
 	"theming.pill.dark": "深色模式",
 	"theming.pill.tokens": "设计令牌",
 	"theming.generator.body": "更喜欢直观调整？主题生成器通过实时滑块调整这些令牌，并为你生成 CSS。",
@@ -273,7 +273,7 @@ export default {
 	"theming.colors.heading": "配色系统",
 	"theming.colors.body": "所有颜色都使用 OKLCh 色彩空间，以实现感知均匀的渐变：",
 	"theming.colors.note":
-		"令牌名称遵循 shadcn-svelte 的约定，因此现有的 shadcn 主题可以直接使用，无需修改。",
+		"令牌名称遵循广泛使用的语义约定（background、foreground、primary 等），因此使用相同变量名的现有主题可以直接使用，无需修改。",
 	"theming.dark.heading": "深色模式",
 	"theming.dark.body":
 		"深色模式默认跟随操作系统偏好。在 <html> 或任意祖先元素上添加 .dark 类可强制深色，添加 .light 可强制浅色；dark: 工具类和每个令牌都会随之切换。如需自定义深色值，请在 .dark 下覆盖它们：",

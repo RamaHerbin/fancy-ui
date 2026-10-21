@@ -295,7 +295,7 @@ export default {
 	"theming.lead":
 		"Cada componente de FancyUI lee sus colores, radios y tiempos desde propiedades personalizadas de CSS en el espacio de color OKLCh — redefine un token y toda la biblioteca lo sigue.",
 	"theming.pill.oklch": "Espacio de color OKLCh",
-	"theming.pill.shadcn": "Compatible con shadcn-svelte",
+	"theming.pill.shadcn": "Nombres de tokens estándar",
 	"theming.pill.dark": "Modo oscuro",
 	"theming.pill.tokens": "Tokens de diseño",
 	"theming.generator.body":
@@ -308,7 +308,7 @@ export default {
 	"theming.colors.body":
 		"Todos los colores usan el espacio de color OKLCh para obtener degradados perceptualmente uniformes:",
 	"theming.colors.note":
-		"Los nombres de los tokens siguen las convenciones de shadcn-svelte, así que un tema de shadcn ya existente funciona sin cambios.",
+		"Los nombres de los tokens siguen la convención semántica habitual (background, foreground, primary, …), así que un tema ya existente con los mismos nombres de variables funciona sin cambios.",
 	"theming.dark.heading": "Modo oscuro",
 	"theming.dark.body":
 		"El modo oscuro sigue por defecto la preferencia del sistema operativo. Pon la clase .dark en <html> o en cualquier ancestro para forzar el oscuro, o .light para forzar el claro; las utilidades dark: y cada token lo siguen. Para personalizar los valores oscuros, sobrescríbelos bajo .dark:",

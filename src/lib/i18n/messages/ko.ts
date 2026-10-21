@@ -289,7 +289,7 @@ export default {
 	"theming.lead":
 		"모든 FancyUI 컴포넌트는 OKLCh 색 공간의 CSS 사용자 정의 속성에서 색상, 반경, 타이밍을 읽어옵니다. 토큰을 재정의하면 라이브러리 전체가 그에 따라 바뀝니다.",
 	"theming.pill.oklch": "OKLCh 색 공간",
-	"theming.pill.shadcn": "shadcn-svelte 호환",
+	"theming.pill.shadcn": "표준 토큰 이름",
 	"theming.pill.dark": "다크 모드",
 	"theming.pill.tokens": "디자인 토큰",
 	"theming.generator.body":
@@ -301,7 +301,7 @@ export default {
 	"theming.colors.body":
 		"모든 색상은 시각적으로 균일한 그레이디언트를 위해 OKLCh 색 공간을 사용합니다:",
 	"theming.colors.note":
-		"토큰 이름은 shadcn-svelte 규칙을 따르므로, 기존 shadcn 테마를 그대로 적용할 수 있습니다.",
+		"토큰 이름은 널리 쓰이는 시맨틱 규칙(background, foreground, primary 등)을 따르므로, 같은 변수 이름을 쓰는 기존 테마를 그대로 적용할 수 있습니다.",
 	"theming.dark.heading": "다크 모드",
 	"theming.dark.body":
 		"다크 모드는 기본적으로 운영체제 설정을 따릅니다. <html> 또는 임의의 상위 요소에 .dark 클래스를 지정하면 다크로 고정되고, .light를 지정하면 라이트로 고정되며, dark: 유틸리티와 모든 토큰이 이를 따릅니다. 다크 값을 사용자 지정하려면 .dark 아래에서 덮어쓰세요:",

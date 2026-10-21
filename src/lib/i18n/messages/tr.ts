@@ -292,7 +292,7 @@ export default {
 	"theming.lead":
 		"Her FancyUI bileşeni, renklerini, köşe yarıçaplarını ve zamanlamalarını OKLCh renk uzayındaki CSS özel özelliklerinden okur — bir belirteci geçersiz kılın, tüm kitaplık buna uyum sağlar.",
 	"theming.pill.oklch": "OKLCh renk uzayı",
-	"theming.pill.shadcn": "shadcn-svelte uyumlu",
+	"theming.pill.shadcn": "Standart belirteç adları",
 	"theming.pill.dark": "Karanlık mod",
 	"theming.pill.tokens": "Tasarım belirteçleri",
 	"theming.generator.body":
@@ -305,7 +305,7 @@ export default {
 	"theming.colors.body":
 		"Tüm renkler, algısal olarak tutarlı gradyanlar için OKLCh renk uzayını kullanır:",
 	"theming.colors.note":
-		"Belirteç adları shadcn-svelte kurallarını izler, bu nedenle mevcut bir shadcn teması değişiklik yapılmadan kullanılabilir.",
+		"Belirteç adları yaygın olarak kullanılan anlamsal kuralı izler (background, foreground, primary, …), bu nedenle aynı değişken adlarına sahip mevcut bir tema değişiklik yapılmadan kullanılabilir.",
 	"theming.dark.heading": "Karanlık mod",
 	"theming.dark.body":
 		"Karanlık mod varsayılan olarak işletim sistemi tercihini izler. Karanlığı zorlamak için .dark sınıfını <html> üzerine veya herhangi bir üst öğeye, aydınlığı zorlamak için .light sınıfını ekleyin; dark: yardımcıları ve her belirteç buna uyar. Karanlık değerleri özelleştirmek için bunları .dark altında geçersiz kılın:",
