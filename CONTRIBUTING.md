@@ -157,6 +157,11 @@ pnpm changeset
 You'll be prompted to pick a bump type (`patch` / `minor` / `major`) and write a
 short summary. Commit the generated `.changeset/*.md` file alongside your code.
 
+A PR that changes nothing users can see (tests, CI, internal docs) still carries a
+changeset: run `pnpm changeset --empty` to write one with no package in it. `pnpm test`
+audits the pending files (known package names, a real summary for every bump) and accepts
+that empty form.
+
 ### What to write
 
 Be specific about **which component** changed and **what the user impact is**:
