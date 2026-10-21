@@ -59,7 +59,7 @@ Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Ta
 npm install fancy-ui-svelte
 ```
 
-Peer dependencies: `svelte` 5.20 or later, `tailwindcss` 4. It works in SvelteKit and in a plain Svelte + Vite app alike.
+Peer dependencies: `svelte` 5.20 or later, `tailwindcss` 4 (`@sveltejs/kit` is declared as an optional peer only so the packager stays quiet about docs site code that does not ship; nothing in the package imports it). It works in SvelteKit and in a plain Svelte + Vite app alike.
 
 Add the Tailwind integration to your app's CSS (e.g. `src/app.css`):
 

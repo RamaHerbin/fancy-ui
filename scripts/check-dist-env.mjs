@@ -14,7 +14,7 @@
  *     language feature: other toolchains leave it undefined or warn on every
  *     build. Dev-only code reads the literal `process.env.NODE_ENV` inside a
  *     try/catch instead (see `src/lib/fancy-ui/_internals/env.ts`).
- *  2. No `$app/*` or `$env/*` import. Those modules exist only inside a
+ *  2. No `$app/*`, `$env/*` or `@sveltejs/kit` import. Those modules exist only inside a
  *     SvelteKit build; anywhere else (plain Vite + Svelte, Vitest, Storybook)
  *     the import is unresolved and the consumer's build stops.
  *  3. The documented entry points exist (`.`, `./cameleon`, `./tailwind.css`,
@@ -43,6 +43,12 @@ const RULES = [
 		why: "imports a SvelteKit-only module (`$app/*` / `$env/*`), unresolved outside a SvelteKit build",
 	},
 ];
+
+RULES.push({
+	test: (line) =>
+		/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)["'`]@sveltejs\/kit(?:\/|["'`])/.test(line),
+	why: "imports `@sveltejs/kit`, which the package never needs at runtime (it is only an optional peer, kept to quiet the packager about docs-site code that does not ship)",
+});
 
 const args = process.argv.slice(2);
 const requireBuilt = args.includes("--require-built");
