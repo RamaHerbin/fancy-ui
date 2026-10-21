@@ -11,7 +11,6 @@
 
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { browser } from "$app/environment";
 	import { cn } from "$lib/utils.js";
 	import type { Skin } from "./types.js";
 	import { setSkinContext } from "./context.js";
@@ -40,9 +39,11 @@
 			.join(";")
 	);
 
-	// Inject skin webfonts once (deduped by id), client-only so SSR stays clean.
+	// Inject skin webfonts once (deduped by id). Effects never run during SSR, so
+	// the server markup and the hydrated markup stay identical; the window check
+	// only guards non-DOM runtimes and keeps the provider framework-free.
 	$effect(() => {
-		if (!browser || !skin.fonts) return;
+		if (typeof window === "undefined" || !skin.fonts) return;
 		for (const font of skin.fonts) {
 			if (document.getElementById(font.id)) continue;
 			const link = document.createElement("link");

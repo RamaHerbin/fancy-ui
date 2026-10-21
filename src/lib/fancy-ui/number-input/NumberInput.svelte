@@ -1,5 +1,7 @@
 <script lang="ts" module>
-	export interface NumberInputProps {
+	import type { HTMLInputAttributes } from "svelte/elements";
+
+	export interface NumberInputOwnProps {
 		/** Current value; bindable. `null` when the field is empty. */
 		value?: number | null;
 		/** Called with the new value on every change, including a clear to `null`. */
@@ -34,12 +36,20 @@
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * Own props plus every native `<input>` attribute and listener; the rest go
+	 * to the inner `<input>`, not the wrapper.
+	 */
+	export type NumberInputProps = NumberInputOwnProps &
+		Omit<HTMLInputAttributes, keyof NumberInputOwnProps | "type" | "value">;
 </script>
 
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 
@@ -59,6 +69,14 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		oninput,
+		onkeydown,
+		onfocus,
+		onblur,
+		"aria-describedby": consumerDescribedBy,
+		"aria-label": consumerAriaLabel,
+		"aria-invalid": consumerAriaInvalid,
+		...rest
 	}: NumberInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -70,6 +88,8 @@
 	const effectiveDisabled = $derived(field?.disabled ?? disabled);
 	const effectiveRequired = $derived(field?.required ?? required);
 	const effectiveInvalid = $derived(field?.invalid ?? invalid);
+
+	const describedBy = $derived(mergeIds(field?.describedBy, consumerDescribedBy));
 
 	// `type="number"`'s own value-sanitization silently reports "" for ANY
 	// syntactically incomplete number — "9.", "-", "1e" all read back as the
@@ -210,8 +230,12 @@
 	// input has no such native behaviour, so it is reimplemented here,
 	// routed through the same `nextStepValue` the buttons use rather than a
 	// second copy of the rounding/clamping logic.
-	function handleKeydown(event: KeyboardEvent) {
-		if (effectiveDisabled || readonly) return;
+	function handleKeydown(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
+		if (!effectiveDisabled && !readonly) handleOwnKey(event);
+		onkeydown?.(event);
+	}
+
+	function handleOwnKey(event: KeyboardEvent) {
 		if (event.key === "ArrowUp") {
 			event.preventDefault();
 			if (incrementDisabled) return;
@@ -225,7 +249,11 @@
 
 	function handleInput(event: Event & { currentTarget: HTMLInputElement }) {
 		if (effectiveDisabled || readonly) return;
-		const raw = event.currentTarget.value;
+		applyTyped(event.currentTarget.value);
+		oninput?.(event);
+	}
+
+	function applyTyped(raw: string) {
 		rawText = raw;
 
 		if (raw === "") {
@@ -246,15 +274,16 @@
 		onValueChange?.(parsed);
 	}
 
-	function handleFocus() {
+	function handleFocus(event: FocusEvent & { currentTarget: HTMLInputElement }) {
 		isFocused = true;
+		onfocus?.(event);
 	}
 
 	// Clamping happens here, not per keystroke — that would make typing "50"
 	// past a lower max impossible to type through — and this is also where
 	// the display is canonicalised: a trailing "." or a lone "-" that never
 	// resolved into a full number is dropped once typing is done.
-	function handleBlur() {
+	function handleBlur(event: FocusEvent & { currentTarget: HTMLInputElement }) {
 		isFocused = false;
 		if (value !== null) {
 			const clamped = clampValue(value);
@@ -264,6 +293,7 @@
 			}
 		}
 		rawText = value === null ? "" : String(value);
+		onblur?.(event);
 	}
 </script>
 
@@ -292,9 +322,9 @@
 		−
 	</button>
 	<input
+		{...rest}
 		bind:this={ref}
 		type="text"
-		inputmode="decimal"
 		class="ft-number-input-field text-foreground w-full min-w-[3ch] border-0 bg-transparent px-[18px] py-[9px] text-center font-mono text-[13px] focus-visible:outline-none disabled:cursor-not-allowed"
 		id={effectiveId}
 		{name}
@@ -302,9 +332,10 @@
 		disabled={effectiveDisabled}
 		{readonly}
 		required={effectiveRequired}
-		aria-invalid={effectiveInvalid ? "true" : undefined}
-		aria-describedby={field?.describedBy}
-		aria-label={label}
+		inputmode={rest.inputmode ?? "decimal"}
+		aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
+		aria-describedby={describedBy}
+		aria-label={label ?? consumerAriaLabel}
 		oninput={handleInput}
 		onkeydown={handleKeydown}
 		onfocus={handleFocus}

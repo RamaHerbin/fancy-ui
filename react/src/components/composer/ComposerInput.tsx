@@ -1,5 +1,5 @@
 import { forwardRef, useContext, useEffect, useRef } from "react";
-import type { ChangeEvent, KeyboardEvent } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, KeyboardEvent } from "react";
 
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
@@ -10,7 +10,7 @@ import "./composer-input.css";
 /**
  * Props for ComposerInput
  */
-export interface ComposerInputProps {
+interface ComposerInputOwnProps {
 	/** Shown while the draft is empty. */
 	placeholder?: string;
 	/** Height, in lines, before anything has been typed. Also the SSR height. */
@@ -22,6 +22,15 @@ export interface ComposerInputProps {
 	/** Additional CSS classes */
 	className?: string;
 }
+
+/**
+ * Native `<textarea>` attributes and listeners are forwarded to the textarea; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface ComposerInputProps
+	extends
+		Omit<ComponentPropsWithoutRef<"textarea">, keyof ComposerInputOwnProps>,
+		ComposerInputOwnProps {}
 
 /** Used when the platform reports no usable line-height, e.g. under jsdom. */
 const FALLBACK_LINE_HEIGHT = 20;
@@ -53,7 +62,16 @@ function px(input: string): number {
  */
 export const ComposerInput = forwardRef<HTMLTextAreaElement, ComposerInputProps>(
 	function ComposerInput(
-		{ placeholder = "Message…", rows = 1, maxRows = 8, autofocus = false, className },
+		{
+			placeholder = "Message…",
+			rows = 1,
+			maxRows = 8,
+			autofocus = false,
+			className,
+			onChange,
+			onKeyDown,
+			...rest
+		},
 		forwardedRef
 	) {
 		// Undefined when the input is used outside a Composer: it then behaves as a
@@ -126,9 +144,15 @@ export const ComposerInput = forwardRef<HTMLTextAreaElement, ComposerInputProps>
 		function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
 			composer?.setValue(event.currentTarget.value);
 			grow();
+			onChange?.(event);
 		}
 
 		function handleKeydown(event: KeyboardEvent<HTMLTextAreaElement>) {
+			handleEnterKey(event);
+			onKeyDown?.(event);
+		}
+
+		function handleEnterKey(event: KeyboardEvent<HTMLTextAreaElement>) {
 			if (event.key !== "Enter" || event.shiftKey) return;
 			// Mid-composition Enter belongs to the IME, which is picking a candidate,
 			// not to the composer.
@@ -146,9 +170,7 @@ export const ComposerInput = forwardRef<HTMLTextAreaElement, ComposerInputProps>
 			// one member of the context the root does NOT rebuild per render, so
 			// capturing it here for the life of the node is safe.
 			if (!node) return;
-			const slot = composer?.textareaRef as
-				| { current: HTMLTextAreaElement | null }
-				| undefined;
+			const slot = composer?.textareaRef as { current: HTMLTextAreaElement | null } | undefined;
 			if (slot) slot.current = node;
 			if (autofocus) node.focus();
 			grow();
@@ -176,6 +198,7 @@ export const ComposerInput = forwardRef<HTMLTextAreaElement, ComposerInputProps>
 
 		return (
 			<textarea
+				{...rest}
 				ref={ref}
 				className={cn(
 					"ft-composer-input placeholder:text-muted-foreground w-full resize-none bg-transparent px-2 py-1.5 text-sm leading-relaxed outline-none",

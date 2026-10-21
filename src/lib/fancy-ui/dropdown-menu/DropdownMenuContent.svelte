@@ -189,6 +189,7 @@
 			onDismiss: () => root.close(),
 			exclude: () => [root.triggerRef],
 			active: () => root.open,
+			keepFocus: true,
 		}}
 		transition:anchored={{ side: resolvedSide, entering: root.open }}
 		data-state="open"

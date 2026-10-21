@@ -1,12 +1,18 @@
 import { forwardRef, useContext, useEffect, useRef } from "react";
-import type { FocusEvent, KeyboardEvent, ReactNode } from "react";
+import type {
+	ComponentPropsWithoutRef,
+	FocusEvent,
+	KeyboardEvent,
+	MouseEvent,
+	ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { TABS_KEY } from "./types.js";
 import "./tabs-trigger.css";
 
-export interface TabsTriggerProps {
+interface TabsTriggerOwnProps {
 	/** This trigger's value — which `TabsContent` it activates. */
 	value: string;
 	/** Disables just this trigger. A disabled trigger is skipped by the arrows and Home/End. */
@@ -18,14 +24,25 @@ export interface TabsTriggerProps {
 }
 
 /**
+ * Native `<button>` attributes and listeners are forwarded to the tab; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface TabsTriggerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof TabsTriggerOwnProps>,
+		TabsTriggerOwnProps {}
+
+/**
  * One tab in a `TabsList`.
  *
  * The element arrives through the ref channel rather than a `ref` prop, per
- * PORTING.md — the Svelte source declares `ref = $bindable(null)`. Rest props
- * are not spread, for the same reason as on the root.
+ * PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
-	({ value, disabled = false, children, className }, forwardedRef) => {
+	(
+		{ value, disabled = false, children, className, onClick, onFocus, onBlur, onKeyDown, ...rest },
+		forwardedRef
+	) => {
 		// Undefined outside a Tabs root: the trigger then has no selection or
 		// roving order to take part in, and renders as a plain, always-tabbable,
 		// permanently-unselected button rather than throwing — same degradation
@@ -173,7 +190,7 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 		// The native `disabled` attribute below is the real gate, but a synthetic
 		// click fired straight at the element — as a test does — walks straight
 		// past it, so the handler repeats the guard itself.
-		function handleClick() {
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (isDisabled) return;
 			context?.select(value);
 			// A native <button> is only guaranteed to take focus on click in some
@@ -182,15 +199,17 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 			// focus event — the same reasoning as ToggleGroupItem's click handler.
 			context?.focus(value);
 			innerRef.current?.focus();
+			onClick?.(event);
 		}
 
 		// Keeps the roving tabindex following real DOM focus even when focus
 		// arrives some other way than this trigger's own click/keydown handlers
 		// below — Shift+Tab back out of the panel, for instance.
-		function handleFocus() {
+		function handleFocus(event: FocusEvent<HTMLButtonElement>) {
 			hasDomFocusRef.current = true;
 			if (isDisabled) return;
 			context?.focus(value);
+			onFocus?.(event);
 		}
 
 		function handleBlur(event: FocusEvent<HTMLButtonElement>) {
@@ -198,12 +217,18 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 			// attribute is set, and that blur arrives with the attribute already
 			// applied. It is precisely the case the reclaim above exists for, so it
 			// must not clear the flag; every other blur does.
-			if (event.currentTarget.disabled) return;
-			hasDomFocusRef.current = false;
+			if (!event.currentTarget.disabled) hasDomFocusRef.current = false;
+			onBlur?.(event);
 		}
 
 		function handleKeydown(event: KeyboardEvent<HTMLButtonElement>) {
-			if (!context || isDisabled) return;
+			if (isDisabled) return;
+			handleNavigationKey(event);
+			onKeyDown?.(event);
+		}
+
+		function handleNavigationKey(event: KeyboardEvent<HTMLButtonElement>) {
+			if (!context) return;
 			const horizontal = context.orientation === "horizontal";
 			switch (event.key) {
 				case "ArrowRight":
@@ -243,6 +268,7 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 
 		return (
 			<button
+				{...rest}
 				ref={setRef}
 				type="button"
 				role="tab"
@@ -250,12 +276,12 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 				data-value={value}
 				data-orientation={orientation}
 				data-variant={variant}
-				id={context?.triggerId(value)}
+				id={context?.triggerId(value) ?? rest.id}
 				className={classes}
 				disabled={isDisabled}
 				aria-selected={isSelected}
-				aria-controls={context?.panelId(value)}
-				tabIndex={tabIndexAttr}
+				aria-controls={context?.panelId(value) ?? rest["aria-controls"]}
+				tabIndex={tabIndexAttr ?? rest.tabIndex}
 				onClick={handleClick}
 				onFocus={handleFocus}
 				onBlur={handleBlur}

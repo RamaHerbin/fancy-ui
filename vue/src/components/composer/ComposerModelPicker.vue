@@ -35,12 +35,17 @@ export interface ComposerModelPickerProps {
 	label?: string;
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onKeydown?: ((event: KeyboardEvent) => void) | ((event: KeyboardEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, inject, ref, useTemplateRef, watch } from "vue";
+import { computed, inject, ref, useAttrs, useTemplateRef, watch } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { useFloat } from "../../internals/use-float.js";
@@ -49,11 +54,15 @@ import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
 
 defineOptions({ name: "ComposerModelPicker", inheritAttrs: false });
 
+const attrs = useAttrs();
+
 const {
 	models,
 	onChange,
 	label = "Model",
 	class: className,
+	onClick,
+	onKeydown,
 } = defineProps<ComposerModelPickerProps>();
 
 const value = defineModel<string | undefined>("value");
@@ -143,7 +152,20 @@ function select(index: number) {
 	if (changed) onChange?.(model.id);
 }
 
+function handleTriggerClick(event: MouseEvent) {
+	if (isDisabled.value) return;
+	if (open.value) closeMenu(true);
+	else openMenu();
+	callListener(onClick, event);
+}
+
 function handleTriggerKeydown(event: KeyboardEvent) {
+	if (isDisabled.value) return;
+	handleTriggerKey(event);
+	callListener(onKeydown, event);
+}
+
+function handleTriggerKey(event: KeyboardEvent) {
 	if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 	// Both arrows open. The menu sits above the composer, which is where "up"
 	// expects to find it, and "down" is the habit every native select taught.
@@ -228,6 +250,9 @@ watch(
 <template>
 	<button
 		ref="triggerEl"
+		@click="handleTriggerClick"
+		@keydown="handleTriggerKeydown"
+		v-bind="attrs"
 		type="button"
 		:class="
 			cn(
@@ -241,8 +266,6 @@ watch(
 		:aria-expanded="open"
 		:aria-controls="open ? menuId : undefined"
 		:aria-label="selected ? `${label}: ${selected.label}` : label"
-		@click="open ? closeMenu(true) : openMenu()"
-		@keydown="handleTriggerKeydown"
 	>
 		<span class="truncate">{{ selected?.label ?? label }}</span>
 		<span

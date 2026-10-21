@@ -39,8 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Henüz npm'de değil — bu sürüm depoda bulunuyor.",
 	"install.unavailable": "Bu framework için bu bileşenin henüz bir sürümü yok.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "Kaynağı kopyala",
+	"install.copySourceNote": "Bileşen kaynağını projenize kopyalar; kod sizin olur.",
 	"comp.usage": "Kullanım",
 	"comp.props": "Özellikler",
 	"comp.slots": "Slotlar",
@@ -61,6 +61,9 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Olay",
 	"table.payload": "Veri",
+	"table.portName": "{framework} adı",
+	"table.portNameUnknown":
+		"Adlandırma kurallarından çıkarılamıyor; Svelte API’sinden farklara bakın.",
 	"comp.events": "Olaylar",
 	"comp.copyMarkdown": "Markdown olarak kopyala",
 

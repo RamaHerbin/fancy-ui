@@ -2,6 +2,8 @@
 
 A 3D book component with cover, spine, and back face. Opens on hover with a smooth rotation animation.
 
+Native attributes and listeners (`id`, `aria-*`, `data-*`, `onclick`...) go to each part's own element: the 3D wrapper `<div>` for `Book`, the `<div>` of `BookHeader`, the `<h1>` of `BookTitle` and the `<p>` of `BookDescription`. `class` keeps its current target.
+
 ## Components
 
 - `Book` — Main container with 3D perspective

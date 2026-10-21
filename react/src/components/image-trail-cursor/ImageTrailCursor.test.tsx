@@ -1,4 +1,4 @@
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { ImageTrailCursor } from "./ImageTrailCursor.js";
@@ -9,6 +9,49 @@ import {
 	type RevealPattern,
 	type VariantType,
 } from "./trail-variants.js";
+
+/**
+ * A `matchMedia` whose reduced-motion answer the test controls and can flip
+ * mid-session, dispatching `change` to every listener the component attached.
+ */
+function stubReducedMotion(initial: boolean) {
+	let reduce = initial;
+	const listeners = new Set<(event: MediaQueryListEvent) => void>();
+	const original = window.matchMedia;
+	window.matchMedia = ((query: string) => {
+		const isReduce = query.includes("prefers-reduced-motion");
+		return {
+			get matches() {
+				return isReduce ? reduce : false;
+			},
+			media: query,
+			onchange: null,
+			addEventListener: (_type: string, cb: (event: MediaQueryListEvent) => void) => {
+				if (isReduce) listeners.add(cb);
+			},
+			removeEventListener: (_type: string, cb: (event: MediaQueryListEvent) => void) => {
+				listeners.delete(cb);
+			},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		};
+	}) as unknown as typeof window.matchMedia;
+	return {
+		set(next: boolean) {
+			reduce = next;
+			for (const cb of [...listeners]) {
+				cb({ matches: next, media: "(prefers-reduced-motion: reduce)" } as MediaQueryListEvent);
+			}
+		},
+		get listenerCount() {
+			return listeners.size;
+		},
+		restore() {
+			window.matchMedia = original;
+		},
+	};
+}
 
 describe("ImageTrailCursor", () => {
 	afterEach(cleanup);
@@ -74,15 +117,15 @@ describe("ImageTrailCursor", () => {
 	});
 
 	// Same fact as the Svelte assertion — the container declares
-	// `touch-action: none` — read off the rendered markup instead of the live
+	// `touch-action: pan-y` — read off the rendered markup instead of the live
 	// node. Svelte emits the style attribute as a literal string, so jsdom
 	// keeps it verbatim; React writes inline styles through the CSSOM, and
 	// jsdom's `cssstyle` does not implement `touch-action`, so it swallows the
 	// value before it can reach the attribute. Real browsers keep it, and the
 	// server markup below is what they receive.
-	it("sets touch-action: none on the container", () => {
+	it("sets touch-action: pan-y on the container", () => {
 		const html = renderToStaticMarkup(<ImageTrailCursor />);
-		expect(html).toContain('style="touch-action:none"');
+		expect(html).toContain('style="touch-action:pan-y pinch-zoom"');
 	});
 
 	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {
@@ -194,4 +237,72 @@ describe("new variants", () => {
 			expect(container.querySelectorAll(".content__img-frag")).toHaveLength(0);
 		}
 	);
+});
+
+describe("ImageTrailCursor reduced motion", () => {
+	afterEach(cleanup);
+	afterEach(() => vi.restoreAllMocks());
+
+	describe("prefers-reduced-motion", () => {
+		let media: ReturnType<typeof stubReducedMotion> | undefined;
+		afterEach(() => {
+			media?.restore();
+			media = undefined;
+		});
+
+		function move(root: HTMLElement) {
+			fireEvent.mouseMove(root, { clientX: 0, clientY: 0 });
+			fireEvent.mouseMove(root, { clientX: 400, clientY: 400 });
+		}
+
+		it("starts no trail and no animation loop when reduced motion is preferred at mount", () => {
+			media = stubReducedMotion(true);
+			const raf = vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+			const { container } = render(
+				<ImageTrailCursor images={["/a.jpg", "/b.jpg"]} variant="pixelated" />
+			);
+			const root = container.firstElementChild as HTMLElement;
+			const img = container.querySelector(".content__img") as HTMLElement;
+
+			// No variant was constructed: the pixelated border is never applied.
+			expect(img.style.imageRendering).toBe("");
+			move(root);
+			expect(raf).not.toHaveBeenCalled();
+			// The images stay in the markup, hidden.
+			expect(container.querySelectorAll(".content__img").length).toBe(2);
+		});
+
+		it("starts the trail when the preference flips off and stops it when it flips back, without remount", () => {
+			media = stubReducedMotion(true);
+			const raf = vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => 7);
+			const caf = vi.spyOn(window, "cancelAnimationFrame");
+			const { container } = render(
+				<ImageTrailCursor images={["/a.jpg", "/b.jpg"]} variant="pixelated" />
+			);
+			const root = container.firstElementChild as HTMLElement;
+			const img = container.querySelector(".content__img") as HTMLElement;
+
+			act(() => media!.set(false));
+			expect(container.firstElementChild).toBe(root);
+			expect(img.style.imageRendering).toBe("pixelated");
+			move(root);
+			expect(raf).toHaveBeenCalled();
+
+			act(() => media!.set(true));
+			expect(caf).toHaveBeenCalledWith(7);
+			// The variant's inline styling is wiped with it.
+			expect(img.style.imageRendering).toBe("");
+			raf.mockClear();
+			move(root);
+			expect(raf).not.toHaveBeenCalled();
+		});
+
+		it("detaches its media listener on unmount", () => {
+			media = stubReducedMotion(false);
+			const { unmount } = render(<ImageTrailCursor images={["/a.jpg"]} />);
+			expect(media.listenerCount).toBeGreaterThan(0);
+			unmount();
+			expect(media.listenerCount).toBe(0);
+		});
+	});
 });

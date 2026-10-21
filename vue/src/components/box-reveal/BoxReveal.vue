@@ -21,7 +21,7 @@ export interface BoxRevealProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useInView } from "../../internals/motion/use-in-view.js";
 
@@ -33,6 +33,8 @@ const {
 	delay = 0.25,
 	class: className,
 } = defineProps<BoxRevealProps>();
+
+const attrs = useAttrs();
 
 defineSlots<{
 	default(): unknown;
@@ -56,7 +58,11 @@ const overlayStyle = computed(() => ({
 </script>
 
 <template>
-	<div ref="containerRef" :class="cn('box-reveal relative overflow-hidden', className)">
+	<div
+		v-bind="attrs"
+		ref="containerRef"
+		:class="cn('box-reveal relative overflow-hidden', className)"
+	>
 		<!-- Content (fades up) -->
 		<div class="box-reveal-content" :style="contentStyle">
 			<slot />

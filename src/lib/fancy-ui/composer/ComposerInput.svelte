@@ -1,8 +1,10 @@
 <script lang="ts" module>
+	import type { HTMLTextareaAttributes } from "svelte/elements";
+
 	/**
-	 * Props for ComposerInput
+	 * Own props of ComposerInput
 	 */
-	export interface ComposerInputProps {
+	export interface ComposerInputOwnProps {
 		/** Shown while the draft is empty. */
 		placeholder?: string;
 		/** Height, in lines, before anything has been typed. Also the SSR height. */
@@ -16,6 +18,10 @@
 		/** The textarea element, bindable. */
 		ref?: HTMLTextAreaElement | null;
 	}
+
+	/** Native `<textarea>` attributes and listeners (`name`, `aria-describedby`, `maxlength`, `onblur`...) are forwarded to the textarea; `value`, `rows`, `readonly` and `aria-disabled` stay the component's. */
+	export type ComposerInputProps = ComposerInputOwnProps &
+		Omit<HTMLTextareaAttributes, keyof ComposerInputOwnProps>;
 </script>
 
 <script lang="ts">
@@ -30,6 +36,9 @@
 		autofocus = false,
 		class: className,
 		ref = $bindable(null),
+		oninput,
+		onkeydown,
+		...rest
 	}: ComposerInputProps = $props();
 
 	/** Used when the platform reports no usable line-height, e.g. under jsdom. */
@@ -116,9 +125,17 @@
 	function handleInput(event: Event & { currentTarget: HTMLTextAreaElement }) {
 		composer?.setValue(event.currentTarget.value);
 		grow();
+		(oninput as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLTextAreaElement }
+	) {
+		handleKeydownCore(event);
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleKeydownCore(event: KeyboardEvent) {
 		if (event.key !== "Enter" || event.shiftKey) return;
 		// Mid-composition Enter belongs to the IME, which is picking a candidate,
 		// not to the composer.
@@ -154,6 +171,7 @@
 </script>
 
 <textarea
+	{...rest}
 	bind:this={ref}
 	class={cn(
 		"ft-composer-input placeholder:text-muted-foreground w-full resize-none bg-transparent px-2 py-1.5 text-sm leading-relaxed outline-none",

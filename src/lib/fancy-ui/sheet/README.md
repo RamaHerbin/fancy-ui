@@ -62,21 +62,22 @@ Pin actions to the bottom of the panel with `footer`:
 
 ## Props
 
-| Prop           | Type                                     | Default   | Description                                                                |
-| -------------- | ---------------------------------------- | --------- | -------------------------------------------------------------------------- |
-| `open`         | `boolean`                                | `false`   | Whether the sheet is open; bindable                                        |
-| `onOpenChange` | `(open: boolean) => void`                | —         | Called with the new value whenever the sheet opens or closes               |
-| `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                              |
-| `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`              |
-| `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`               |
-| `ariaLabel`    | `string`                                 | —         | Accessible name when no `title` is rendered; ignored once `title` is set   |
-| `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet         |
-| `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)                |
-| `children`     | `Snippet`                                | —         | Panel body content                                                         |
-| `footer`       | `Snippet`                                | —         | Content pinned below the body, e.g. actions                                |
-| `class`        | `string`                                 | —         | Additional CSS classes merged onto the panel                               |
-| `ref`          | `HTMLDivElement \| null`                 | `null`    | Bindable element reference to the panel                                    |
-| `sound`        | `boolean`                                | `false`   | Plays `close` when the sheet is dismissed, once the user has enabled sound |
+| Prop           | Type                                     | Default   | Description                                                                         |
+| -------------- | ---------------------------------------- | --------- | ----------------------------------------------------------------------------------- |
+| `open`         | `boolean`                                | `false`   | Whether the sheet is open; bindable                                                 |
+| `onOpenChange` | `(open: boolean) => void`                | —         | Called with the new value whenever the sheet opens or closes                        |
+| `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                                       |
+| `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`                       |
+| `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`                        |
+| `ariaLabel`    | `string`                                 | —         | Accessible name when no `title` is rendered; ignored once `title` is set            |
+| `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet                  |
+| `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)                         |
+| `children`     | `Snippet`                                | —         | Panel body content                                                                  |
+| `footer`       | `Snippet`                                | —         | Content pinned below the body, e.g. actions                                         |
+| `id`           | `string`                                 | —         | The panel's id, for the `aria-controls` of a trigger rendered outside the component |
+| `class`        | `string`                                 | —         | Additional CSS classes merged onto the panel                                        |
+| `ref`          | `HTMLDivElement \| null`                 | `null`    | Bindable element reference to the panel                                             |
+| `sound`        | `boolean`                                | `false`   | Plays `close` when the sheet is dismissed, once the user has enabled sound          |
 
 ## Theming
 

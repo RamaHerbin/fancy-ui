@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface ToggleGroupItemProps {
+	export interface ToggleGroupItemOwnProps {
 		/** This item's value — what gets added to or removed from the group's selection. */
 		value: string;
 		/** Disables just this item, independent of the group's own `disabled`. */
@@ -15,6 +16,10 @@
 		/** Element reference */
 		ref?: HTMLButtonElement | null;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the item; `aria-pressed`, `disabled`, `tabindex` and `data-*` state stay the component's. */
+	export type ToggleGroupItemProps = ToggleGroupItemOwnProps &
+		Omit<HTMLButtonAttributes, keyof ToggleGroupItemOwnProps>;
 </script>
 
 <script lang="ts">
@@ -29,6 +34,10 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		onclick,
+		onfocus,
+		onkeydown,
+		...rest
 	}: ToggleGroupItemProps = $props();
 
 	// Undefined outside a ToggleGroup: the item then has no selection or
@@ -91,8 +100,13 @@
 	// handlers without going through the browser's own pre-click disabled
 	// check, so each one repeats the guard rather than trusting the
 	// attribute alone.
-	function handleClick() {
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (isDisabled) return;
+		handleClickCore();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleClickCore() {
 		group?.toggle(value);
 		// Deliberate, not incidental: a plain `<button>` is only guaranteed
 		// to take focus on click in some browsers (macOS Safari notably does
@@ -106,13 +120,26 @@
 		ref?.focus();
 	}
 
-	function handleFocus() {
+	function handleFocus(event: FocusEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (isDisabled) return;
+		handleFocusCore();
+		(onfocus as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleFocusCore() {
 		group?.focus(value);
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (!group || isDisabled) return;
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		if (isDisabled) return;
+		handleKeydownCore(event);
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleKeydownCore(event: KeyboardEvent) {
+		if (!group) return;
 		switch (event.key) {
 			case "ArrowRight":
 			case "ArrowDown":
@@ -137,6 +164,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={ref}
 	type="button"
 	data-ft-toggle-item=""
@@ -145,8 +173,8 @@
 	class={classes}
 	disabled={isDisabled}
 	aria-pressed={isSelected}
-	aria-label={label}
-	tabindex={tabIndexAttr}
+	aria-label={label ?? rest["aria-label"]}
+	tabindex={tabIndexAttr ?? rest.tabindex}
 	onclick={handleClick}
 	onfocus={handleFocus}
 	onkeydown={handleKeydown}

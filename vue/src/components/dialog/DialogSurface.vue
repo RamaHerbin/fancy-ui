@@ -75,6 +75,7 @@ useDismissable(panel, () => ({
 	outsideClick: props.outsideClick,
 	exclude: props.exclude,
 	active: () => props.open,
+	keepFocus: true,
 }));
 
 // Built ONCE in `setup`: the identity must not change between patches, or Vue
@@ -135,6 +136,7 @@ const scrimRef = composeRefs<HTMLDivElement>(
 			></div>
 			<div
 				:ref="panelRef"
+				:id="props.id"
 				:role="props.role"
 				aria-modal="true"
 				:aria-labelledby="props.titleId"

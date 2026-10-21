@@ -1,5 +1,5 @@
 import { forwardRef, useEffect } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, KeyboardEvent, MouseEvent, ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
@@ -7,7 +7,7 @@ import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useDropdownMenuRoot } from "./types.js";
 import "./dropdown-menu-trigger.css";
 
-export interface DropdownMenuTriggerProps {
+interface DropdownMenuTriggerOwnProps {
 	/** Disables the trigger — the menu cannot be opened. */
 	disabled?: boolean;
 	/** The trigger's content. */
@@ -17,13 +17,25 @@ export interface DropdownMenuTriggerProps {
 }
 
 /**
+ * Native `<button>` attributes and listeners are forwarded to the button; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface DropdownMenuTriggerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof DropdownMenuTriggerOwnProps>,
+		DropdownMenuTriggerOwnProps {}
+
+/**
  * The button that opens the menu.
  *
  * The source declares `ref = $bindable(null)`, so the button element arrives
  * through the ref channel rather than a prop.
  */
 export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>(
-	function DropdownMenuTrigger({ disabled = false, children, className }, forwardedRef) {
+	function DropdownMenuTrigger(
+		{ disabled = false, children, className, onClick, onKeyDown, ...rest },
+		forwardedRef
+	) {
 		// `DropdownMenu` only ever mounts this alongside `DropdownMenuContent`
 		// under its own context, so there is no standalone-usage fallback to
 		// design for.
@@ -44,7 +56,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 			return () => setTriggerRef(null);
 		}, [setTriggerRef, node]);
 
-		function handleClick(): void {
+		function handleClick(event: MouseEvent<HTMLButtonElement>): void {
 			if (disabled) return;
 			if (ctx.open) {
 				// Focus is already here — it's the element that was just clicked —
@@ -53,6 +65,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 			} else {
 				ctx.openWithFocus("first");
 			}
+			onClick?.(event);
 		}
 
 		function handleKeydown(event: KeyboardEvent<HTMLButtonElement>): void {
@@ -63,12 +76,13 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 				case "ArrowDown":
 					event.preventDefault();
 					ctx.openWithFocus("first");
-					return;
+					break;
 				case "ArrowUp":
 					event.preventDefault();
 					ctx.openWithFocus("last");
-					return;
+					break;
 			}
+			onKeyDown?.(event);
 		}
 
 		const classes = cn(
@@ -78,6 +92,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 
 		return (
 			<button
+				{...rest}
 				ref={ref}
 				id={ctx.triggerId}
 				type="button"

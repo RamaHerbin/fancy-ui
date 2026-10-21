@@ -965,6 +965,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Custom Initial Focus",
 			description: "Sends focus to a specific field instead of the default close button.",
 		},
+		{
+			name: "WithPopover",
+			title: "With Popover",
+			description: "A popover opened inside the dialog — Escape closes one layer at a time.",
+		},
 	],
 	"alert-dialog": [
 		{

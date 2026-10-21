@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
-import { render, cleanup } from "@testing-library/react";
+import { act, render, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { FluidCursor } from "./FluidCursor.js";
 
 describe("FluidCursor", () => {
@@ -297,7 +299,8 @@ function stubWebGlContext() {
 	return contexts;
 }
 
-const countLive = (fake: FakeGl) => GL_KINDS.reduce((total, kind) => total + fake.live[kind].size, 0);
+const countLive = (fake: FakeGl) =>
+	GL_KINDS.reduce((total, kind) => total + fake.live[kind].size, 0);
 
 describe("GL resource disposal", () => {
 	afterEach(() => {
@@ -360,5 +363,183 @@ describe("GL resource disposal", () => {
 		unmount();
 
 		expect(cancel).toHaveBeenCalledWith(splatFrameId);
+	});
+});
+
+const REDUCE = "(prefers-reduced-motion: reduce)";
+
+/** A `matchMedia` whose reduced-motion answer the test controls. */
+function stubReducedMotion(initial: boolean) {
+	let matches = initial;
+	const listeners = new Set<(event: MediaQueryListEvent) => void>();
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		get matches() {
+			return query === REDUCE ? matches : false;
+		},
+		media: query,
+		onchange: null,
+		addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+			if (query === REDUCE) listeners.add(listener);
+		},
+		removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+			listeners.delete(listener);
+		},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+	return {
+		set(next: boolean) {
+			matches = next;
+			act(() => {
+				for (const listener of [...listeners]) {
+					listener({ matches: next, media: REDUCE } as MediaQueryListEvent);
+				}
+			});
+		},
+	};
+}
+
+/** Records every scheduled frame and which of them are still pending. */
+function trackFrames() {
+	const pending = new Set<number>();
+	let nextFrameId = 0;
+	vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => {
+		const id = ++nextFrameId;
+		pending.add(id);
+		return id;
+	});
+	vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id: number) => {
+		pending.delete(id);
+	});
+	return { pending, scheduled: () => nextFrameId };
+}
+
+describe("reduced motion", () => {
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
+
+	it("starts no loop and acquires no GPU context when reduce is on at mount", () => {
+		stubReducedMotion(true);
+		const contexts = stubWebGlContext();
+		const frames = trackFrames();
+		const onReady = vi.fn();
+		const { container } = render(<FluidCursor onReady={onReady} />);
+		expect(frames.scheduled()).toBe(0);
+		expect(contexts.size).toBe(0);
+		expect(onReady).not.toHaveBeenCalled();
+		// Static rendering: the empty, pointer-transparent canvas layer stays.
+		expect(container.querySelector("canvas")).toBeInTheDocument();
+		expect((container.firstElementChild as HTMLElement).className).toContain("pointer-events-none");
+	});
+
+	it("starts the simulation when the preference flips back, without remounting", () => {
+		const media = stubReducedMotion(true);
+		const contexts = stubWebGlContext();
+		const frames = trackFrames();
+		const { container } = render(<FluidCursor />);
+		const root = container.firstElementChild;
+		expect(frames.scheduled()).toBe(0);
+		media.set(false);
+		expect(frames.pending.size).toBeGreaterThan(0);
+		const fake = contexts.get(container.querySelector("canvas")!);
+		expect(fake && countLive(fake)).toBeGreaterThan(0);
+		expect(container.firstElementChild).toBe(root);
+	});
+
+	it("stops the loop and frees the GPU objects when reduce turns on mid-session", () => {
+		const media = stubReducedMotion(false);
+		const contexts = stubWebGlContext();
+		const frames = trackFrames();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const removeSpy = vi.spyOn(window, "removeEventListener");
+		const { container } = render(<FluidCursor />);
+		const liveCanvas = container.querySelector("canvas")!;
+		const fake = contexts.get(liveCanvas)!;
+		expect(countLive(fake)).toBeGreaterThan(0);
+		const mousemove = addSpy.mock.calls.find(([event]) => event === "mousemove");
+		expect(mousemove).toBeDefined();
+
+		media.set(true);
+
+		expect(frames.pending.size).toBe(0);
+		expect(countLive(fake)).toBe(0);
+		// Pointer input is no longer listened to.
+		expect(removeSpy).toHaveBeenCalledWith("mousemove", mousemove![1]);
+		// The drawn canvas is swapped for a blank one, so no frozen frame stays.
+		expect(container.querySelector("canvas")).not.toBe(liveCanvas);
+	});
+
+	it("restarts after a reduce → allow round trip", () => {
+		const media = stubReducedMotion(false);
+		const contexts = stubWebGlContext();
+		const frames = trackFrames();
+		const { container } = render(<FluidCursor />);
+		media.set(true);
+		expect(frames.pending.size).toBe(0);
+		media.set(false);
+		expect(frames.pending.size).toBeGreaterThan(0);
+		const fake = contexts.get(container.querySelector("canvas")!);
+		expect(fake && countLive(fake)).toBeGreaterThan(0);
+	});
+});
+
+describe("reduced motion on a server-rendered, hydrated page", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
+
+	// During hydration the reduced-motion hook answers with its server value
+	// (`false`) and only learns the real one in a passive effect that runs in
+	// the same flush as the mount effect. The engine must not start in that
+	// window when the preference is already set.
+	async function hydrate(element: React.ReactElement) {
+		const html = renderToString(element);
+		stubReducedMotion(true);
+		const contexts = stubWebGlContext();
+		const frames = trackFrames();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const container = document.createElement("div");
+		container.innerHTML = html;
+		document.body.appendChild(container);
+		const root = await act(async () => hydrateRoot(container, element));
+		return {
+			contexts,
+			frames,
+			addSpy,
+			async dispose() {
+				await act(async () => root.unmount());
+				container.remove();
+			},
+		};
+	}
+
+	it("starts no WebGL engine, loop or listeners and never calls onReady", async () => {
+		const onReady = vi.fn();
+		const page = await hydrate(<FluidCursor onReady={onReady} />);
+		expect(page.frames.scheduled()).toBe(0);
+		expect(page.contexts.size).toBe(0);
+		expect(onReady).not.toHaveBeenCalled();
+		expect(page.addSpy.mock.calls.some(([event]) => event === "mousemove")).toBe(false);
+		await page.dispose();
+	});
+
+	it("does not ask for a WebGPU adapter on the hdr path", async () => {
+		const requestAdapter = vi.fn(async () => null);
+		vi.stubGlobal("navigator", { ...navigator, gpu: { requestAdapter } });
+		const onReady = vi.fn();
+		const page = await hydrate(<FluidCursor hdr contained onReady={onReady} />);
+		await act(async () => {
+			await Promise.resolve();
+		});
+		expect(requestAdapter).not.toHaveBeenCalled();
+		expect(page.frames.scheduled()).toBe(0);
+		expect(page.contexts.size).toBe(0);
+		expect(onReady).not.toHaveBeenCalled();
+		await page.dispose();
 	});
 });

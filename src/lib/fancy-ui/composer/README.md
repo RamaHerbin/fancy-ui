@@ -240,6 +240,20 @@ That last row is why completing `@jo|rdan` searches for `jo`: the query is what 
 
 Without `replaceTriggerToken`, `insertText` splices exactly what it was handed at the caret and adds nothing — no space, no token search. Either way the caret lands after the insertion and focus returns to the textarea on the next tick, since the call almost certainly came from a menu that had taken it.
 
+## Native attributes
+
+- `ComposerInput` is a text field: native `<textarea>` attributes and
+  listeners (`id`, `name`, `maxlength`, `aria-describedby`, `onblur`, ...) go to
+  the textarea. `value`, `rows`, `readonly` and `aria-disabled` stay the
+  component's; `oninput` and `onkeydown` run once after the component's own
+  handling.
+- `ComposerSubmit` and `ComposerModelPicker` forward native `<button>`
+  attributes and listeners to their button. `type`, `disabled`, `aria-label` and
+  `title` (submit) and `aria-haspopup`, `aria-expanded`, `aria-controls` and
+  `aria-label` (picker) stay the component's; `onclick` (and the picker's
+  `onkeydown`) run once after the component's own handling, and not at all
+  while disabled.
+
 ## Props
 
 ### Composer

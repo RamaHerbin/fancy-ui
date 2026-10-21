@@ -278,6 +278,23 @@ describe("AlertDialog", () => {
 		await settleLegs();
 	});
 
+	it("puts aria-haspopup, aria-expanded and aria-controls on the rendered trigger", async () => {
+		render(<AlertDialog title="Delete project" trigger={TRIGGER} />);
+
+		expect(trigger().getAttribute("aria-haspopup")).toBe("dialog");
+		expect(trigger().getAttribute("aria-expanded")).toBe("false");
+		expect(trigger().hasAttribute("aria-controls")).toBe(false);
+
+		fireEvent.click(trigger());
+
+		expect(trigger().getAttribute("aria-expanded")).toBe("true");
+		expect(panel()?.id).toBeTruthy();
+		expect(panel()?.id).toBe(trigger().getAttribute("aria-controls"));
+
+		fireEvent.click(cancelButton());
+		await settleLegs();
+	});
+
 	it("opens on trigger activation and returns focus to the trigger on close", async () => {
 		const onOpenChange = vi.fn();
 		// `open` starts false and is never written back by this harness — the

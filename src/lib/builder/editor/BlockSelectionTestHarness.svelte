@@ -9,6 +9,8 @@
 
 	let { page }: Props = $props();
 
+	// Test rig: the editor state is created once from the initial page.
+	// svelte-ignore state_referenced_locally
 	createEditorState(page);
 </script>
 

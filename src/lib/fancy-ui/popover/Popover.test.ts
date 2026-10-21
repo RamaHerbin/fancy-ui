@@ -283,6 +283,53 @@ describe("Popover", () => {
 		outside.remove();
 	});
 
+	it("leaves an outside mousedown alone while a non-dismissible popover holds focus", async () => {
+		const outside = document.createElement("p");
+		outside.textContent = "plain page text";
+		document.body.appendChild(outside);
+		const { container } = render(Popover, {
+			props: {
+				trigger: textSnippet("Options"),
+				children: panelSnippet(),
+				dismissible: false,
+			},
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await waitFor(() => {
+			expect(document.activeElement).toBe(document.querySelector('[data-testid="panel-input"]'));
+		});
+
+		// A popover is never modal: the press must keep its default (text
+		// selection, blur) even though focus sits inside the panel.
+		outside.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
+		const mousedown = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		outside.dispatchEvent(mousedown);
+		expect(mousedown.defaultPrevented).toBe(false);
+		expect(panel(container)).not.toBeNull();
+		outside.remove();
+	});
+
+	it("keeps the returned focus through the outside press that dismisses it", async () => {
+		const outside = document.createElement("p");
+		outside.textContent = "plain page text";
+		document.body.appendChild(outside);
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await waitFor(() => {
+			expect(document.activeElement).toBe(document.querySelector('[data-testid="panel-input"]'));
+		});
+
+		outside.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
+		const mousedown = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		outside.dispatchEvent(mousedown);
+		expect(mousedown.defaultPrevented).toBe(true);
+		outside.remove();
+	});
+
 	it("clicking the trigger again to close does not get treated as an outside click that fires twice", async () => {
 		const onOpenChange = vi.fn();
 		const { container } = render(Popover, {

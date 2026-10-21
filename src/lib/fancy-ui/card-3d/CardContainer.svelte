@@ -35,6 +35,8 @@
 </script>
 
 <div class={cn("flex items-center justify-center p-2", containerClass)} style="perspective: 1000px">
+	<!-- Pointer-only tilt effect; the content stays fully usable without it. -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		bind:this={containerRef}
 		class={cn(

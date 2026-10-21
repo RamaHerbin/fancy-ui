@@ -37,6 +37,14 @@ Or handle the change yourself instead of binding:
 </Toggle>
 ```
 
+## Native attributes
+
+`Toggle` forwards native `<button>` attributes and listeners (`id`, `data-*`,
+`aria-describedby`, `onkeydown`, ...) to its button. `type`, `aria-pressed`
+and `disabled` stay the component's; a consumer `aria-label` is used when no
+`label` prop is given. `onclick` runs once after the pressed state changed, and
+not at all while the toggle is disabled.
+
 ## Props
 
 | Prop              | Type                         | Default   | Description                                                         |

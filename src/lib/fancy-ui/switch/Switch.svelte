@@ -1,9 +1,10 @@
 <script lang="ts" module>
+	import type { HTMLInputAttributes } from "svelte/elements";
 	import type { Snippet } from "svelte";
 
 	export type SwitchSize = "sm" | "md" | "lg";
 
-	export interface SwitchProps {
+	interface BaseProps {
 		/** Whether the switch is on; bindable. */
 		checked?: boolean;
 		/** Called with the new value whenever the switch is activated. */
@@ -43,6 +44,9 @@
 		/** Element reference to the native `<input>`. */
 		ref?: HTMLInputElement | null;
 	}
+
+	export type SwitchProps = BaseProps &
+		Omit<HTMLInputAttributes, keyof BaseProps | "type" | "role">;
 </script>
 
 <script lang="ts">
@@ -64,6 +68,11 @@
 		class: className,
 		sound = false,
 		ref = $bindable(null),
+		onchange,
+		"aria-label": ariaLabel,
+		"aria-describedby": ariaDescribedby,
+		"aria-invalid": ariaInvalid,
+		...rest
 	}: SwitchProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -97,6 +106,7 @@
 		checked = next;
 		if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 		onCheckedChange?.(next);
+		onchange?.(event);
 	}
 
 	const wrapperClasses = $derived(
@@ -110,6 +120,7 @@
 
 <label class={wrapperClasses}>
 	<input
+		{...rest}
 		bind:this={ref}
 		type="checkbox"
 		role="switch"
@@ -122,9 +133,9 @@
 		disabled={effectiveDisabled}
 		required={effectiveRequired}
 		aria-checked={checked}
-		aria-invalid={effectiveInvalid ? "true" : undefined}
-		aria-describedby={field?.describedBy}
-		aria-label={label}
+		aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
+		aria-describedby={[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") || undefined}
+		aria-label={label ?? ariaLabel}
 		onchange={handleChange}
 	/>
 	{#if children}

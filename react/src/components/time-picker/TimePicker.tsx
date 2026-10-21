@@ -1,5 +1,9 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import type {
+	ComponentPropsWithoutRef,
+	KeyboardEvent as ReactKeyboardEvent,
+	MouseEvent as ReactMouseEvent,
+} from "react";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -17,7 +21,16 @@ import { TimePickerReactContext } from "./types.js";
 import type { TimePickerContext } from "./types.js";
 import "./time-picker.css";
 
-export interface TimePickerProps {
+/**
+ * Every other native `<button>` attribute and listener (`aria-*`, `data-*`,
+ * `onFocus`, `onBlur`, `onKeyDown`, `form`, ...) is forwarded to the trigger
+ * button. The managed ARIA (`role`, `aria-expanded`, `aria-controls`,
+ * `aria-haspopup`, `aria-invalid`, `aria-required`, `aria-activedescendant`) stays the component's own.
+ */
+export interface TimePickerProps extends Omit<
+	ComponentPropsWithoutRef<"button">,
+	"className" | "id" | "name" | "value" | "disabled" | "type" | "role" | "children"
+> {
 	/** The selected time, or `null` for none. Always "HH:mm", 24-hour — see the README. */
 	value?: string | null;
 	/** Called with the new value whenever a slot is picked. */
@@ -79,6 +92,9 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 		locale,
 		className,
 		sound = false,
+		onClick,
+		onKeyDown,
+		...restProps
 	},
 	forwardedRef
 ) {
@@ -129,10 +145,7 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 		setValueState(valueProp ?? null);
 	}
 
-	const slots = useMemo(
-		() => filterByBounds(generateSlots(step), min, max),
-		[step, min, max]
-	);
+	const slots = useMemo(() => filterByBounds(generateSlots(step), min, max), [step, min, max]);
 	const selectedIndex = value ? slots.indexOf(value) : -1;
 
 	// One formatted label per slot, computed once for the life of a grid rather
@@ -412,6 +425,24 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 
 	const triggerLabel = value ? labelFor(value) : undefined;
 
+	// Internal handling first, the consumer's listener once after it. A disabled
+	// control runs neither (a disabled <button> would not fire them anyway).
+	function handleClick(event: ReactMouseEvent<HTMLButtonElement>): void {
+		if (effectiveDisabled) return;
+		handleTriggerClick();
+		onClick?.(event);
+	}
+
+	function handleKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>): void {
+		if (effectiveDisabled) return;
+		handleTriggerKeydown(event);
+		onKeyDown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy =
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+
 	const classes = cn(
 		"ft-time-picker-trigger flex w-full items-center justify-between gap-2 rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-left text-[13px] text-foreground transition-colors",
 		"focus-visible:outline-none",
@@ -423,6 +454,7 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 	return (
 		<TimePickerReactContext.Provider value={context}>
 			<button
+				{...restProps}
 				ref={triggerRef}
 				id={effectiveId}
 				type="button"
@@ -431,14 +463,14 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 				aria-expanded={open}
 				aria-controls={open ? panelId : undefined}
 				aria-activedescendant={open && activeIndex !== -1 ? optionId(activeIndex) : undefined}
-				aria-invalid={effectiveInvalid ? "true" : undefined}
-				aria-required={effectiveRequired ? "true" : undefined}
-				aria-describedby={field?.describedBy}
-				aria-label={label}
+				aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+				aria-required={effectiveRequired ? "true" : restProps["aria-required"]}
+				aria-describedby={describedBy}
+				aria-label={label ?? restProps["aria-label"]}
 				disabled={effectiveDisabled}
 				className={classes}
-				onClick={handleTriggerClick}
-				onKeyDown={handleTriggerKeydown}
+				onClick={handleClick}
+				onKeyDown={handleKeyDown}
 			>
 				<span className={triggerLabel ? undefined : "text-muted-foreground"}>
 					{triggerLabel ?? placeholder}
@@ -449,7 +481,13 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 			</button>
 
 			{name ? (
-				<input type="hidden" name={name} value={value ?? ""} disabled={effectiveDisabled} />
+				<input
+					type="hidden"
+					name={name}
+					value={value ?? ""}
+					form={restProps.form}
+					disabled={effectiveDisabled}
+				/>
 			) : null}
 
 			{/*

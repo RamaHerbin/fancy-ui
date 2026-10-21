@@ -6,6 +6,10 @@ export interface SliderProps {
 	value?: number;
 	/** Called with the new value on every input event. */
 	onValueChange?: (value: number) => void;
+	/** A consumer `@input`, run once after the internal value update. */
+	onInput?: (event: Event) => void;
+	/** A consumer `@change`, run once after the internal handling. */
+	onChange?: (event: Event) => void;
 	/** Lower bound. */
 	min?: number;
 	/** Upper bound. */
@@ -35,7 +39,7 @@ export interface SliderProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onMounted, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -43,8 +47,12 @@ import { useSoundCue } from "../../sound/use-sound.js";
 
 defineOptions({ name: "Slider", inheritAttrs: false });
 
+const attrs = useAttrs() as Record<string, string | undefined>;
+
 const {
 	onValueChange,
+	onInput,
+	onChange,
 	min = 0,
 	max = 100,
 	step = 1,
@@ -124,11 +132,25 @@ const fraction = computed(() =>
 // straight past that guard the same way a synthetic click does on a
 // button — so the early return is repeated here rather than trusted to
 // the attribute alone.
+/**
+ * A consumer listener rides a declared camelCase prop (not the fall-through
+ * attrs) so a guarded activation can skip it; Vue hands several `@event`
+ * bindings over as an array.
+ */
+function callListener(listener: unknown, ...args: unknown[]) {
+	if (Array.isArray(listener)) {
+		for (const fn of listener) if (typeof fn === "function") fn(...args);
+	} else if (typeof listener === "function") {
+		listener(...args);
+	}
+}
+
 function handleInput(event: Event) {
 	if (effectiveDisabled.value) return;
 	const next = Number((event.currentTarget as HTMLInputElement).value);
 	value.value = next;
 	onValueChange?.(next);
+	callListener(onInput, event);
 }
 
 const playCue = useSoundCue(() => sound);
@@ -139,9 +161,10 @@ const playCue = useSoundCue(() => sound);
 // drag release, or once per committed keyboard step. This handler plays
 // only; it never writes `value` or calls `onValueChange` — `handleInput`
 // above stays the single place the value itself changes.
-function handleChange() {
+function handleChange(event: Event) {
 	if (effectiveDisabled.value) return;
 	playCue("tick");
+	callListener(onChange, event);
 }
 </script>
 
@@ -160,6 +183,7 @@ function handleChange() {
 				{{ clampedValue }}
 			</span>
 			<input
+				v-bind="attrs"
 				ref="el"
 				type="range"
 				class="ft-slider h-1 w-full cursor-pointer appearance-none bg-transparent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -170,12 +194,16 @@ function handleChange() {
 				:step="step"
 				:value="clampedValue"
 				:disabled="effectiveDisabled"
-				:aria-describedby="field?.describedBy"
-				:aria-invalid="effectiveInvalid ? 'true' : undefined"
+				:aria-describedby="
+					[field?.describedBy, attrs['aria-describedby']].filter(Boolean).join(' ') || undefined
+				"
+				:aria-invalid="
+					effectiveInvalid ? 'true' : (attrs['aria-invalid'] as 'true' | 'false' | undefined)
+				"
 				:aria-valuemin="min"
 				:aria-valuemax="max"
 				:aria-valuenow="clampedValue"
-				:aria-label="label"
+				:aria-label="label ?? attrs['aria-label']"
 				:style="{ '--ft-slider-fill': `${fraction * 100}%` }"
 				@input="handleInput"
 				@change="handleChange"
@@ -236,8 +264,7 @@ function handleChange() {
 		to right,
 		var(--ft-slider-accent),
 		var(--ft-slider-accent-end) var(--ft-slider-fill, 0%),
-		var(--color-input, color-mix(in oklab, currentColor 12%, transparent))
-			var(--ft-slider-fill, 0%)
+		var(--color-input, color-mix(in oklab, currentColor 12%, transparent)) var(--ft-slider-fill, 0%)
 	);
 }
 .ft-slider::-moz-range-track {

@@ -13,12 +13,14 @@ export interface SourcesTriggerProps {
 </script>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, useAttrs } from "vue";
 import { cn } from "../../utils.js";
 import { hostOf, monogram } from "../../internals/host.js";
 import { SOURCES_CONTEXT_KEY, type SourcesContext } from "./types.js";
 
 defineOptions({ name: "SourcesTrigger", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const { label, class: className } = defineProps<SourcesTriggerProps>();
 
@@ -37,6 +39,8 @@ const text = computed(() => label ?? `${count.value} ${count.value === 1 ? "sour
 
 <template>
 	<button
+		@click="sources?.toggle()"
+		v-bind="attrs"
 		type="button"
 		:class="
 			cn(
@@ -46,7 +50,6 @@ const text = computed(() => label ?? `${count.value} ${count.value === 1 ? "sour
 		"
 		:aria-expanded="isOpen"
 		:aria-controls="sources?.listId"
-		@click="sources?.toggle()"
 	>
 		<!-- Decorative: every name in it is spelled out in the list below. -->
 		<span

@@ -78,6 +78,10 @@ invalid state — derived from whether `error` is set — through
 `required` and `disabled`, plus the element's `id`, are overridden by a
 surrounding `FormField`'s own context — see Implementation Notes.
 
+## Native attributes
+
+Any other attribute or listener (`aria-*`, `data-*`, `form`, `onfocus`, `onblur`, `onkeydown`, …) is forwarded to the inner `<input role="switch">`, the element that takes focus and carries the form value. `class` still lands on the wrapping `<label>`. `type`, `role`, `aria-checked`, `checked` and the FormField-managed `id`, `disabled`, `required` and `aria-invalid` stay authoritative, and a consumer `aria-describedby` is merged with the FormField one. A consumer `onchange` runs once, after the internal toggle; a disabled switch calls neither.
+
 ## Theming
 
 The on-state track color and focus ring have no semantic token in the app's
