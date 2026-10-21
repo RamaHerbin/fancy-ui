@@ -9,7 +9,15 @@
 
 	The @font-face rules below are global by nature (Svelte never scopes
 	at-rules), so they ship with whichever page mounts this component.
+
+	`serif` opts into preloading the italic serif. Only the home page paints its
+	LCP heading with it; elsewhere the face is declared but rarely used, and a
+	preload the page never consumes costs bandwidth and a console warning.
 -->
+<script lang="ts">
+	let { serif = false }: { serif?: boolean } = $props();
+</script>
+
 <svelte:head>
 	<link
 		rel="preload"
@@ -18,13 +26,15 @@
 		type="font/woff2"
 		crossorigin="anonymous"
 	/>
-	<link
-		rel="preload"
-		href="/fonts/InstrumentSerif-Italic.woff2"
-		as="font"
-		type="font/woff2"
-		crossorigin="anonymous"
-	/>
+	{#if serif}
+		<link
+			rel="preload"
+			href="/fonts/InstrumentSerif-Italic.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin="anonymous"
+		/>
+	{/if}
 </svelte:head>
 
 <style>

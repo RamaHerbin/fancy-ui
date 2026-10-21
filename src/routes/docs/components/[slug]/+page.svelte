@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { t, tCategory, componentDocTitle, createSkinState } from "$lib/stores";
+	import { t, tCategory, componentDocTitle, createSkinState, getLocale } from "$lib/stores";
+	import { formatList } from "$lib/i18n/format.js";
 	// The group badge composes its key at runtime, so the cast needs the key union.
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
@@ -72,20 +73,21 @@
 	// Which ports exist, written into the prerendered markup: the framework
 	// switch only changes the page after mount, so this sentence is what a
 	// crawler (or a reader without scripts) learns about the React and Vue
-	// editions. "Svelte 5, React and Vue 3" — the order of the switch.
+	// editions, in the order of the switch. The list is joined for the active
+	// locale ("Svelte 5, React et Vue 3"), since it lands inside a translated sentence.
 	const FRAMEWORK_EDITIONS: Record<Framework, string> = {
 		svelte: "Svelte 5",
 		react: "React",
 		vue: "Vue 3",
 	};
-	let availableEditions = $derived.by(() => {
-		const names = data.variants
-			.filter((v) => v.availability !== "unavailable")
-			.map((v) => FRAMEWORK_EDITIONS[v.framework]);
-		return names.length > 1
-			? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
-			: (names[0] ?? "");
-	});
+	let availableEditions = $derived(
+		formatList(
+			data.variants
+				.filter((v) => v.availability !== "unavailable")
+				.map((v) => FRAMEWORK_EDITIONS[v.framework]),
+			getLocale()
+		)
+	);
 	let sourcePath = $derived(sourcePathForRoute(path));
 	let markdownPath = $derived(`${path}.md`);
 	// The export link carries the framework so it can serve that edition. Until

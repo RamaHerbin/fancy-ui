@@ -114,7 +114,7 @@
 
 <Seo title="FancyUI — UI inspiration & components for React, Svelte, Vue" {description} path="/" />
 <JsonLd data={graph} />
-<SiteFonts />
+<SiteFonts serif />
 
 <!--
 	Fixed dark shell: `.fx-root` carries the site tokens, `.dark` keeps the

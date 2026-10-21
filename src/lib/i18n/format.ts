@@ -40,6 +40,25 @@ export function formatNumber(n: number, locale = "en"): string {
 	return nf.format(n);
 }
 
+const listFormats = new Map<string, Intl.ListFormat>();
+
+/**
+ * Join `items` as a conjunction list for a locale ("A, B and C", "A, B et C").
+ * Without `Intl.ListFormat` (old engines) the items are joined with ", ",
+ * which reads correctly in every catalog rather than wiring in one language's "and".
+ */
+export function formatList(items: readonly string[], locale = "en"): string {
+	if (typeof Intl === "undefined" || typeof Intl.ListFormat !== "function") {
+		return items.join(", ");
+	}
+	let lf = listFormats.get(locale);
+	if (!lf) {
+		lf = new Intl.ListFormat(safeLocale(locale), { style: "long", type: "conjunction" });
+		listFormats.set(locale, lf);
+	}
+	return lf.format(items);
+}
+
 /** CLDR cardinal category of `n` in `locale`. */
 export function pluralCategory(n: number, locale = "en"): PluralCategory {
 	let pr = pluralRules.get(locale);
