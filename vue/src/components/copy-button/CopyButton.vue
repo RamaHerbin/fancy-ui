@@ -233,7 +233,7 @@ watch(
 		:disabled="disabled"
 		:label="iconOnly ? currentLabel : undefined"
 		:class="classes"
-		:onclick="handleClick"
+		@click="handleClick"
 	>
 		<!--
 			`resetAfter` is clamped away from 0 for a vocabulary clash, not a whim:

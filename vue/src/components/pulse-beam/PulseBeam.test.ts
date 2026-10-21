@@ -343,4 +343,53 @@ describe("PulseBeam", () => {
 		const host = getHost(container);
 		expect(host.firstElementChild?.id).toBe("kid");
 	});
+
+	describe("camelCase listeners (@fade-in / @fade-out)", () => {
+		async function fadeOut(attrs: Record<string, unknown>, props: Record<string, unknown> = {}) {
+			vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+			const { container, rerender } = render(PulseBeam, {
+				props: { active: true, ...props },
+				attrs,
+			});
+			await nextTick();
+			vi.runAllTimers();
+			await rerender({ active: false, ...props });
+			await nextTick();
+			const ev = new Event("transitionend", { bubbles: true }) as TransitionEvent;
+			Object.defineProperty(ev, "propertyName", { value: "opacity" });
+			await fireEvent(getStroke(container), ev);
+			await nextTick();
+			vi.runAllTimers();
+		}
+
+		it("calls a consumer onFadeIn and onFadeOut once each", async () => {
+			const onFadeIn = vi.fn();
+			const onFadeOut = vi.fn();
+			await fadeOut({ onFadeIn, onFadeOut });
+			expect(onFadeIn).toHaveBeenCalledTimes(1);
+			expect(onFadeOut).toHaveBeenCalledTimes(1);
+		});
+
+		it("still calls the deprecated lowercase props once, and only onFadeIn / onFadeOut when both are given", async () => {
+			const onfadein = vi.fn();
+			const onfadeout = vi.fn();
+			await fadeOut({}, { onfadein, onfadeout });
+			expect(onfadein).toHaveBeenCalledTimes(1);
+			expect(onfadeout).toHaveBeenCalledTimes(1);
+			cleanup();
+
+			const camelIn = vi.fn();
+			const camelOut = vi.fn();
+			const lowerIn = vi.fn();
+			const lowerOut = vi.fn();
+			await fadeOut(
+				{ onFadeIn: camelIn, onFadeOut: camelOut },
+				{ onfadein: lowerIn, onfadeout: lowerOut }
+			);
+			expect(camelIn).toHaveBeenCalledTimes(1);
+			expect(camelOut).toHaveBeenCalledTimes(1);
+			expect(lowerIn).not.toHaveBeenCalled();
+			expect(lowerOut).not.toHaveBeenCalled();
+		});
+	});
 });

@@ -79,7 +79,7 @@ const BRAND_WORDS = [
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
 /** Vue files over all 151 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 487;
+const VUE_EXPECTED_FILES = 488;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";

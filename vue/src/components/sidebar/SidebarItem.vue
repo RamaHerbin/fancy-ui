@@ -18,8 +18,10 @@ export interface SidebarItemProps {
 	badgeLabel?: string;
 	/** Disables both the click and keyboard-activation paths. */
 	disabled?: boolean;
-	/** Native click handler, for the `<button>` branch. Never called while `disabled`. */
-	onclick?: (event: MouseEvent) => void;
+	/** Click handler. Never called while `disabled`. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
 	/**
@@ -31,6 +33,7 @@ export interface SidebarItemProps {
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, inject, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { SIDEBAR_KEY, type SidebarContext } from "./types.js";
@@ -44,6 +47,7 @@ const {
 	badge,
 	badgeLabel,
 	disabled = false,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
@@ -88,7 +92,7 @@ function handleClick(event: MouseEvent) {
 		return;
 	}
 	if (sound && !current) soundFx.play("select");
-	onclick?.(event);
+	callListener(onClick ?? onclick, event);
 }
 </script>
 
