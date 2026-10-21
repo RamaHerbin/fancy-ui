@@ -309,6 +309,19 @@ describe("attachFocusTrap — radio groups are one Tab stop", () => {
 		expect(document.activeElement?.id).toBe("r2");
 		trap.destroy();
 	});
+
+	// Shift+Tab into a group with nothing checked lands on its LAST radio in
+	// the browser, so a backwards wrap onto that group has to as well.
+	it("Shift+Tab wrapping onto an unchecked group lands on its last radio", () => {
+		const trap = attachFocusTrap(setup("none"));
+		expect(document.activeElement?.id).toBe("close");
+
+		const event = pressTab({ shiftKey: true });
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("r2");
+		trap.destroy();
+	});
 });
 
 describe("attachFocusTrap — visibility and empty containers", () => {

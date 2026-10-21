@@ -136,6 +136,7 @@
 		outsideClick: ctx.dismissible,
 		exclude: () => [ctx.triggerRef],
 		active: () => ctx.open,
+		keepFocus: true,
 	}}
 	transition:anchored={{ side: resolvedSide, entering: ctx.open }}
 	data-state="open"

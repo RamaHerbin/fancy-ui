@@ -123,6 +123,7 @@ useDismissable(panel, () => ({
 	outsideClick: ctx.dismissible,
 	exclude: () => [ctx.triggerRef],
 	active: () => ctx.open,
+	keepFocus: true,
 }));
 
 // Built ONCE in `setup`: the identity must not change between patches, or Vue

@@ -341,6 +341,7 @@
 			escape: dismissible,
 			outsideClick: dismissible,
 			active: () => open,
+			keepFocus: true,
 		}}
 		transition:drawerSlide={{ entering: open }}
 		data-state="open"

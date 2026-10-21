@@ -206,6 +206,7 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 		escape: dismissible,
 		outsideClick: dismissible,
 		active: open,
+		keepFocus: true,
 	});
 
 	// Convention C-2: composed ABOVE the conditional below. `side` rides in

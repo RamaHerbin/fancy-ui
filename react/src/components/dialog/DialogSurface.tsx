@@ -80,7 +80,14 @@ export const DialogSurface = forwardRef<HTMLDivElement, DialogSurfaceProps>(func
 	// The layer stays ON the stack for its whole exit and stops being TOP of
 	// it the instant `open` flips, so a second Escape during the fade falls
 	// through to whatever is underneath.
-	useDismissable(panel, { onDismiss, escape, outsideClick, exclude, active: open });
+	useDismissable(panel, {
+		onDismiss,
+		escape,
+		outsideClick,
+		exclude,
+		active: open,
+		keepFocus: true,
+	});
 
 	// Convention C-2: composed ABOVE any conditional. Calling this inside the
 	// JSX branch below would be a conditional hook and would throw the first

@@ -154,6 +154,7 @@ useDismissable(panel, () => ({
 	escape: dismissible,
 	outsideClick: dismissible,
 	active: () => open.value,
+	keepFocus: true,
 }));
 
 // The one place this component owns motion. Not `anchored`: that helper is

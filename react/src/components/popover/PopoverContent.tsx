@@ -110,6 +110,7 @@ export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
 			outsideClick: ctx.dismissible,
 			exclude: () => [ctx.triggerRef],
 			active: ctx.open,
+			keepFocus: true,
 		});
 
 		// Convention C-2: composed ABOVE the conditional below. Calling this

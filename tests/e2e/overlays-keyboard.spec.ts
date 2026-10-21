@@ -163,6 +163,7 @@ test.describe("Overlays keyboard and focus contract", () => {
 		// An alert dialog does not close on an outside click — focus must stay in it.
 		await clickOutside(page);
 		await expect(alert).toBeVisible();
+		expect(await focusInside(alert)).toBe(true);
 
 		await page.keyboard.press("Escape");
 		await expect(alert).toBeHidden();
@@ -347,5 +348,28 @@ test.describe("Overlays keyboard and focus contract", () => {
 		await expect(tooltip).toBeHidden();
 		await expect(trigger).toBeFocused();
 		await expect(trigger).not.toHaveAttribute("aria-describedby");
+	});
+
+	// An input-anchored panel hands no focus back on dismiss: a press on plain
+	// page text has to blur the input as usual, or the field stays focused and
+	// a focus-to-open field cannot be reopened by clicking it again.
+	test("Combobox: an outside press on plain text blurs the input, and a click reopens it", async ({
+		page,
+	}) => {
+		await openDocs(page, "combobox");
+		const input = stage(page).getByRole("combobox");
+		const listbox = page.getByRole("listbox");
+
+		await input.click();
+		await expect(listbox).toBeVisible();
+		await expect(input).toBeFocused();
+
+		await page.locator("h1").first().click();
+		await expect(listbox).toBeHidden();
+		await expect(input).not.toBeFocused();
+
+		await input.click();
+		await expect(listbox).toBeVisible();
+		await expect(input).toBeFocused();
 	});
 });

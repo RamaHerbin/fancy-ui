@@ -264,6 +264,7 @@
 			escape: dismissible,
 			outsideClick: dismissible,
 			active: () => open,
+			keepFocus: true,
 		}}
 		transition:edgeSlide={{ side, entering: open }}
 		data-state="open"

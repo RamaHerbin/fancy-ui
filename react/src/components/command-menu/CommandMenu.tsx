@@ -309,7 +309,7 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 	// The layer stays ON the stack for its whole exit and stops being TOP of
 	// it the instant `open` flips, so a second Escape during the fade falls
 	// through to whatever is underneath.
-	useDismissable(panel, { onDismiss: () => setOpen(false), active: open });
+	useDismissable(panel, { onDismiss: () => setOpen(false), active: open, keepFocus: true });
 
 	// Convention C-2: composed ABOVE any conditional. Calling this inside the
 	// JSX branch below would be a conditional hook and would throw the first

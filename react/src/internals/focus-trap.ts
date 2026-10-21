@@ -169,6 +169,18 @@ function getFocusableElements(node: HTMLElement): HTMLElement[] {
 	});
 }
 
+// Where Shift+Tab really lands when it enters `stop`'s Tab stop backwards. A
+// radio group with nothing checked is entered at its LAST radio going
+// backwards (its first going forwards), so a backwards wrap onto such a group
+// has to land there too. Anything else is entered at `stop` itself.
+function backwardEntry(node: HTMLElement, stop: HTMLElement): HTMLElement {
+	if (radioGroupKey(stop) === null || (stop as HTMLInputElement).checked) return stop;
+	const group = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+		(el) => isVisible(el) && sameTabStop(el, stop)
+	);
+	return group[group.length - 1] ?? stop;
+}
+
 /**
  * Unwraps the one option this port widens. The Svelte action takes a raw
  * element because a Svelte template always has one by the time the action
@@ -319,7 +331,7 @@ export function attachFocusTrap(
 		if (event.shiftKey) {
 			if (sameTabStop(active, first) || !node.contains(active)) {
 				event.preventDefault();
-				last.focus();
+				backwardEntry(node, last).focus();
 			}
 		} else if (sameTabStop(active, last) || !node.contains(active)) {
 			event.preventDefault();

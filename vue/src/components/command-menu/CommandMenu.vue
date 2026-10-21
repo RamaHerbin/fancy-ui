@@ -252,6 +252,7 @@ useScrollLock(() => presence.mounted);
 useDismissable(panel, () => ({
 	onDismiss: () => setOpen(false),
 	active: () => open.value,
+	keepFocus: true,
 }));
 
 // Built ONCE in `setup`: the identity must not change between patches, or Vue

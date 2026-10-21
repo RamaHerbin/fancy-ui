@@ -239,6 +239,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(function Drawer(
 		escape: dismissible,
 		outsideClick: dismissible,
 		active: open,
+		keepFocus: true,
 	});
 
 	// Convention C-2: composed ABOVE the conditional below.

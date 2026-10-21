@@ -75,6 +75,7 @@ useDismissable(panel, () => ({
 	outsideClick: props.outsideClick,
 	exclude: props.exclude,
 	active: () => props.open,
+	keepFocus: true,
 }));
 
 // Built ONCE in `setup`: the identity must not change between patches, or Vue

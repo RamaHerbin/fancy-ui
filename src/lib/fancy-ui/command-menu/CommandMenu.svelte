@@ -449,7 +449,7 @@
 				rearmFocusTrap = rearm;
 			},
 		}}
-		use:dismissable={{ onDismiss: () => setOpen(false), active: () => open }}
+		use:dismissable={{ onDismiss: () => setOpen(false), active: () => open, keepFocus: true }}
 		transition:anchored={{
 			entering: open,
 			duration: DURATIONS.base,
