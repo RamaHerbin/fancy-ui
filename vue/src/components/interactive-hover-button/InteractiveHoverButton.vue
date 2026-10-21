@@ -7,8 +7,8 @@ export interface InteractiveHoverButtonProps {
 	/** Custom CSS class */
 	class?: HTMLAttributes["class"];
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Native disabled state — read by the click handler to gate the cue. */
@@ -18,9 +18,10 @@ export interface InteractiveHoverButtonProps {
 </script>
 
 <script setup lang="ts">
-import { useAttrs } from "vue";
+import { useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/index.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 
 defineOptions({ name: "InteractiveHoverButton", inheritAttrs: false });
 
@@ -34,6 +35,14 @@ defineSlots<{ default?: () => unknown }>();
 const attrs = useAttrs();
 
 const playCue = useSoundCue(() => props.sound);
+const el = useTemplateRef<HTMLButtonElement>("el");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: props.sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled: !!props.disabled,
+}));
 
 function handleClick(event: MouseEvent) {
 	if (!props.disabled) playCue("press");
@@ -51,6 +60,7 @@ function handleClick(event: MouseEvent) {
 -->
 <template>
 	<button
+		ref="el"
 		:class="
 			cn(
 				'ihb group bg-background relative isolate w-auto cursor-pointer overflow-hidden rounded-full border px-6 py-2.5 text-center font-semibold',

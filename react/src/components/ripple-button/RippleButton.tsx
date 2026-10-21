@@ -8,6 +8,7 @@ import type {
 } from "react";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { cn } from "../../utils.js";
 import "./ripple-button.css";
 
@@ -24,8 +25,8 @@ export interface RippleButtonProps extends Omit<
 	/** Button content */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
@@ -70,10 +71,16 @@ export const RippleButton = forwardRef<HTMLButtonElement, RippleButtonProps>(
 		forwardedRef
 	) => {
 		const buttonRef = useRef<HTMLButtonElement | null>(null);
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: restProps.disabled,
+		});
 		// One composed callback whose identity changes only when the incoming
 		// ref does — a click pushes and later drops a ripple, and a consumer's
 		// callback ref must not be detached and re-attached on those renders.
-		const composedRef = useComposedRefs(forwardedRef, buttonRef);
+		const composedRef = useComposedRefs(forwardedRef, buttonRef, soundRef);
 		const [ripples, setRipples] = useState<Ripple[]>([]);
 		// A monotonic counter, not a wall-clock stamp: two clicks landing in the
 		// same millisecond would otherwise mint the same key, and the removal

@@ -5,16 +5,18 @@ export interface ConfettiButtonProps {
 	/** Confetti options for this button, merged over the surrounding root's options. */
 	options?: ConfettiOptions;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
 </script>
 
 <script setup lang="ts">
+import { useTemplateRef } from "vue";
 import confetti from "canvas-confetti";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 import { CONFETTI_CONTEXT } from "./context.js";
 
 defineOptions({ name: "ConfettiButton", inheritAttrs: false });
@@ -24,6 +26,13 @@ defineSlots<{ default?: () => unknown }>();
 const { options = {}, sound = false } = defineProps<ConfettiButtonProps>();
 
 const confettiContext = CONFETTI_CONTEXT.useOptional();
+const el = useTemplateRef<HTMLButtonElement>("el");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+}));
 
 function handleClick(event: MouseEvent) {
 	if (sound) soundFx.play("press");
@@ -52,7 +61,7 @@ function handleClick(event: MouseEvent) {
   `inheritAttrs: false` leaves consumers no way to override it.
 -->
 <template>
-	<button type="button" @click="handleClick">
+	<button ref="el" type="button" @click="handleClick">
 		<slot v-if="$slots.default" />
 	</button>
 </template>

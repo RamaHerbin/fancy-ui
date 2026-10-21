@@ -13,8 +13,8 @@ export interface RainbowButtonProps {
 	/** Disables the button / marks the link aria-disabled */
 	disabled?: boolean;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
@@ -24,6 +24,7 @@ export interface RainbowButtonProps {
 import { computed, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/index.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 
 defineOptions({ name: "RainbowButton", inheritAttrs: false });
 
@@ -46,6 +47,13 @@ const el = useTemplateRef<HTMLButtonElement | HTMLAnchorElement>("el");
 defineExpose({ ref: el });
 
 const playCue = useSoundCue(() => props.sound);
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: props.sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled: props.disabled,
+}));
 
 const speedStyle = computed(() => ({ "--rainbow-speed": `${props.speed}s` }));
 
