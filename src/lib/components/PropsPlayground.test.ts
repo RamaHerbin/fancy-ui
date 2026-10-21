@@ -1,6 +1,6 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { tick } from "svelte";
+import { tick, type Component } from "svelte";
 import { setFramework } from "$lib/stores/framework.svelte.js";
 import PropsPlaygroundHarness from "./PropsPlaygroundHarness.test.svelte";
 import ToastPlayground from "./docs/examples/toast/Playground.svelte";
@@ -36,5 +36,44 @@ describe("PropsPlayground export", () => {
 		expect(exportText(container)).toContain("<Button />");
 		expect(exportText(container)).not.toContain("size={5}");
 		expect(container.querySelector("[data-testid=size]")?.textContent).toBe("2");
+	});
+
+	describe.each<[string, Component<Record<string, never>>, string]>([
+		["toast", ToastPlayground as unknown as Component<Record<string, never>>, "Toast"],
+		["dialog", DialogPlayground as unknown as Component<Record<string, never>>, "Dialog"],
+		["select", SelectPlayground as unknown as Component<Record<string, never>>, "Select"],
+	])("%s playground follows the framework switch", (_slug, Playground, name) => {
+		afterEach(() => setFramework("svelte"));
+
+		it("re-emits the export block for React, Vue and back to Svelte", async () => {
+			const { container } = render(Playground);
+			await tick();
+			const svelte = exportText(container);
+			expect(svelte).toContain("Framework: Svelte");
+			expect(svelte).toContain("pnpm add fancy-ui-svelte");
+			expect(svelte).toContain(name);
+			expect(svelte).toMatch(/Import: import \{[^}]*\} from "fancy-ui-svelte";/);
+
+			setFramework("react");
+			await tick();
+			const react = exportText(container);
+			expect(react).toContain("Framework: React");
+			expect(react).toContain("pnpm add fancy-ui-react");
+			expect(react).toMatch(/Import: import \{[^}]*\} from "fancy-ui-react/);
+			expect(react).not.toContain("pnpm add fancy-ui-svelte");
+			expect(react).not.toBe(svelte);
+
+			setFramework("vue");
+			await tick();
+			const vue = exportText(container);
+			expect(vue).toContain("Framework: Vue");
+			expect(vue).toContain("pnpm add fancy-ui-vue");
+			expect(vue).toMatch(/Import: import \{[^}]*\} from "fancy-ui-vue/);
+			expect(vue).not.toBe(react);
+
+			setFramework("svelte");
+			await tick();
+			expect(exportText(container)).toBe(svelte);
+		});
 	});
 });
