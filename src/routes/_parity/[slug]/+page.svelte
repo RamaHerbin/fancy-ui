@@ -17,6 +17,7 @@
 	// The theme comes from the URL so a capture never depends on stored state.
 	$effect(() => {
 		document.documentElement.classList.toggle("dark", data.theme === "dark");
+		document.documentElement.toggleAttribute("data-parity-fill", data.fill);
 	});
 </script>
 
@@ -24,7 +25,7 @@
 	<div
 		data-parity-stage
 		class="bg-background relative flex items-center justify-center overflow-hidden"
-		style="width: 800px; height: 500px;"
+		style={data.fill ? "width: 100%; height: 100vh;" : "width: 800px; height: 500px;"}
 	>
 		{#if !data.variant}
 			<DemoRenderer slug={data.slug} />

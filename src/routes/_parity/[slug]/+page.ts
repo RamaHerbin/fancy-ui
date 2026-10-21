@@ -25,5 +25,9 @@ export const load: PageLoad = ({ params, url }) => {
 		// docs demo, for an interaction state that needs other content
 		// (scripts/parity/states.mjs).
 		variant: url.searchParams.get("variant"),
+		// ?frame=fill drops the fixed 800×500 box for the whole viewport, so a
+		// phone-width page can be tested at its real width (e2e only, never
+		// photographed).
+		fill: url.searchParams.get("frame") === "fill",
 	};
 };

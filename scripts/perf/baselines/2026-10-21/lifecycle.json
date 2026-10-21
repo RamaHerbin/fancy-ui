@@ -1,0 +1,533 @@
+[
+	{
+		"framework": "svelte",
+		"chromium": "145.0.7632.6",
+		"loadAvgAtEnd": [5.5126953125, 8.4384765625, 15.1416015625],
+		"rows": [
+			{
+				"name": "fluid-cursor",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 443056,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 50,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 653724,
+					"nodes": 50,
+					"cdpListeners": 153,
+					"persistentListeners": 123,
+					"persistentListenersByType": {
+						"mousemove": 20,
+						"touchstart": 20,
+						"touchend": 10,
+						"touchcancel": 10,
+						"mousedown": 10,
+						"mouseup": 10,
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1,
+						"change": 10,
+						"resize": 10,
+						"scroll": 10,
+						"touchmove": 10
+					},
+					"observers": 10,
+					"intervals": 0,
+					"contextsCreated": 10,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 1.4019999999999773,
+					"rafPerSec": 29.333333333333332
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 469764,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "border-beam",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 215152,
+					"nodes": -57,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 672384,
+					"nodes": 523,
+					"cdpListeners": 33,
+					"persistentListeners": 3,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1
+					},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 39.92900000000001,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 228088,
+					"nodes": -57,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "displacement-text",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 1026084,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 100,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 2143928,
+					"nodes": 60,
+					"cdpListeners": 103,
+					"persistentListeners": 23,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1,
+						"change": 10,
+						"resize": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 20,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 5.508830389869966,
+					"rafPerSec": 109.96334555148285
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 1115048,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "mosaic-glow",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 410756,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 765396,
+					"nodes": 100,
+					"cdpListeners": 73,
+					"persistentListeners": 13,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1,
+						"change": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 25.472175941352877,
+					"rafPerSec": 959.680106631123
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 445988,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "toast",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 463344,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 513036,
+					"nodes": 96,
+					"cdpListeners": 14,
+					"persistentListeners": 3,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1
+					},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 0.06697767410862346,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 476944,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	},
+	{
+		"framework": "react",
+		"chromium": "145.0.7632.6",
+		"loadAvgAtEnd": [6.7998046875, 8.1943359375, 14.34130859375],
+		"rows": [
+			{
+				"name": "fluid-cursor",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 632360,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 50,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 950368,
+					"nodes": 30,
+					"cdpListeners": 1550,
+					"persistentListeners": 120,
+					"persistentListenersByType": {
+						"mousemove": 20,
+						"touchstart": 20,
+						"touchend": 10,
+						"touchcancel": 10,
+						"mousedown": 10,
+						"mouseup": 10,
+						"change": 10,
+						"resize": 10,
+						"scroll": 10,
+						"touchmove": 10
+					},
+					"observers": 10,
+					"intervals": 0,
+					"contextsCreated": 10,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 2.2712429190271908,
+					"rafPerSec": 45.31822725758081
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 653812,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "border-beam",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 429096,
+					"nodes": -46,
+					"cdpListeners": -143,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 724104,
+					"nodes": 414,
+					"cdpListeners": 1287,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 38.226257914028665,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 449708,
+					"nodes": -46,
+					"cdpListeners": -143,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "displacement-text",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 1165676,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 100,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 2454084,
+					"nodes": 40,
+					"cdpListeners": 1500,
+					"persistentListeners": 20,
+					"persistentListenersByType": {
+						"change": 10,
+						"resize": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 20,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 5.222925691436399,
+					"rafPerSec": 93.30223258913695
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 1278256,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "mosaic-glow",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 598220,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 1072848,
+					"nodes": 50,
+					"cdpListeners": 1470,
+					"persistentListeners": 10,
+					"persistentListenersByType": {
+						"change": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 28.500833055648116,
+					"rafPerSec": 962.3458847050983
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 631396,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "toast",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 461492,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 516416,
+					"nodes": 59,
+					"cdpListeners": 146,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 0.026333333333331915,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 480452,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	}
+]

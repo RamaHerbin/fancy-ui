@@ -1,0 +1,16 @@
+{
+	"states": {
+		"idle": {
+			"steps": [],
+			"expect": [{ "role": "button", "name": "Copy" }]
+		},
+		"copied": {
+			"steps": [{ "clipboard": "ok" }, { "click": { "role": "button", "name": "Copy" } }],
+			"expect": [{ "role": "button", "name": "Copied" }]
+		},
+		"failed": {
+			"steps": [{ "clipboard": "denied" }, { "click": { "role": "button", "name": "Copy" } }],
+			"expect": [{ "role": "button", "name": "Copy failed" }]
+		}
+	}
+}

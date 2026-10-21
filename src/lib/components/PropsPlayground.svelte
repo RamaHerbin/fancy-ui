@@ -3,7 +3,7 @@
 		| { key: string; type: "range"; label: string; min: number; max: number; step?: number }
 		| { key: string; type: "number"; label: string; min?: number; max?: number; step?: number }
 		| { key: string; type: "color"; label: string }
-		| { key: string; type: "text"; label: string }
+		| { key: string; type: "text"; label: string; maxLength?: number }
 		| { key: string; type: "boolean"; label: string }
 		| { key: string; type: "select"; label: string; options: { value: string; label: string }[] };
 
@@ -11,15 +11,60 @@
 </script>
 
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import { onMount, type Snippet } from "svelte";
+	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import type { Framework } from "$lib/inspiration/types.js";
+	import type { PortOptions } from "$lib/docs/port-names.js";
+	import { buildExportBlock, serializePlayground } from "$lib/docs/playground-code.js";
+	import { pt } from "$lib/docs/playground-text.js";
 
 	interface Props {
 		controls: ControlDef[];
 		initialValues: PlaygroundValues;
 		preview: Snippet<[PlaygroundValues]>;
+		/** The component as the package exports it (`Button`, `CopyButton`); without it there is no export block. */
+		component?: string;
+		slug?: string;
+		/** What an agent must respect, e.g. "Mount it in a sized container." */
+		constraints?: string[];
+		/** Names to import per framework when more than the component itself (defaults to it). */
+		importNames?: Partial<Record<Framework, string[]>>;
+		/** Text between the tags of the generated usage. */
+		children?: string;
+		/** A value whose text is the usage's children rather than an attribute. */
+		childrenKey?: string;
+		/** Props written even when unchanged (required props). */
+		required?: string[];
+		/** Callbacks written into the usage, Svelte names (`onclick`) with a handler identifier. */
+		callbacks?: { name: string; handler: string }[];
+		ports?: PortOptions;
+		/** For components used through a function call: write the code from the values. */
+		codeFor?: (values: PlaygroundValues, framework: Framework) => string | null;
 	}
 
-	let { controls, initialValues, preview }: Props = $props();
+	let {
+		controls,
+		initialValues,
+		preview,
+		component,
+		slug,
+		constraints = [],
+		importNames,
+		children,
+		childrenKey,
+		required,
+		callbacks,
+		ports,
+		codeFor,
+	}: Props = $props();
+
+	// The framework store hydrates in the browser; read it after mount so the
+	// prerendered markup (Svelte) matches the first client render.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const framework = $derived<Framework>(mounted ? frameworkState.framework : "svelte");
 
 	let panelOpen = $state(false);
 	// Seed only: the playground owns `values` after mount and `reset()` re-reads the prop.
@@ -32,6 +77,29 @@
 	function reset() {
 		values = { ...initialValues };
 	}
+
+	// Derived from the values, so Reset restores the code with them.
+	const exportBlock = $derived(
+		component === undefined
+			? null
+			: buildExportBlock({
+					framework,
+					importNames: importNames?.[framework] ?? [component],
+					code: serializePlayground({
+						framework,
+						component,
+						values,
+						initialValues,
+						children,
+						childrenKey,
+						required,
+						callbacks,
+						ports,
+						codeFor,
+					}),
+					constraints,
+				})
+	);
 
 	$effect(() => {
 		if (panelOpen) {
@@ -54,6 +122,14 @@
 		<div class="flex min-h-48 items-center justify-center p-8">
 			{@render preview(values)}
 		</div>
+		<!-- Code for an agent: follows the controls and the framework switch -->
+		{#if exportBlock}
+			<div class="border-t px-4 py-3" data-playground-export data-slug={slug}>
+				<p class="mb-1 text-sm font-medium">{pt("playground.exportTitle")}</p>
+				<p class="text-muted-foreground mb-2 text-xs">{pt("playground.exportHint")}</p>
+				<CodeBlock code={exportBlock} lang="text" />
+			</div>
+		{/if}
 		<!-- Footer bar -->
 		<div class="flex items-center justify-between border-t px-4 py-3">
 			<span class="text-sm font-medium">Playground</span>
@@ -183,6 +259,7 @@
 						<input
 							id="ctrl-{def.key}"
 							type="text"
+							maxlength={def.maxLength}
 							value={values[def.key] as string}
 							oninput={(e) => (values[def.key] = e.currentTarget.value)}
 							class="border-input bg-background w-full rounded-md border px-3 py-1.5 text-sm"

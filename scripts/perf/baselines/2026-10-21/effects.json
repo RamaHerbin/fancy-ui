@@ -1,0 +1,284 @@
+[
+	{
+		"framework": "svelte",
+		"chromium": "145.0.7632.6",
+		"loadAvgAtEnd": [8.2373046875, 16.6015625, 25.40576171875],
+		"rows": [
+			{
+				"name": "none",
+				"idle": {
+					"cpuMsPerSec": 0.01879999999999998,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 0.018199999999999987,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "fluid-cursor",
+				"idle": {
+					"cpuMsPerSec": 6.828034393121376,
+					"scriptMsPerSec": 2.6606678664267145,
+					"rafPerSec": 42.982806877249104,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 8.28864133678138,
+					"scriptMsPerSec": 2.215897743159577,
+					"rafPerSec": 29.83887010145216,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "border-beam",
+				"idle": {
+					"cpuMsPerSec": 36.64067186562687,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 45.656187823318746,
+					"scriptMsPerSec": 0.21189812972542776,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "displacement-text",
+				"idle": {
+					"cpuMsPerSec": 17.859028194361127,
+					"scriptMsPerSec": 7.679264147170567,
+					"rafPerSec": 118.97620475904819,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 21.8564031069508,
+					"scriptMsPerSec": 8.182234614618602,
+					"rafPerSec": 115.73705179282868,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "mosaic-glow",
+				"idle": {
+					"cpuMsPerSec": 15.944211157768446,
+					"scriptMsPerSec": 6.487102579484103,
+					"rafPerSec": 119.9760047990402,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 17.517158818834798,
+					"scriptMsPerSec": 5.702114924181964,
+					"rafPerSec": 120.1039168665068,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "toast",
+				"idle": {
+					"cpuMsPerSec": 0.07716913234706135,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 10.138,
+					"scriptMsPerSec": 0.36759999999999987,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	},
+	{
+		"framework": "react",
+		"chromium": "145.0.7632.6",
+		"loadAvgAtEnd": [22.5849609375, 17.6162109375, 22.52685546875],
+		"rows": [
+			{
+				"name": "none",
+				"idle": {
+					"cpuMsPerSec": 0.019396120775844846,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 0.015596880623875212,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "fluid-cursor",
+				"idle": {
+					"cpuMsPerSec": 7.482703459308138,
+					"scriptMsPerSec": 2.8955999999999995,
+					"rafPerSec": 45.39092181563687,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 8.75916334661355,
+					"scriptMsPerSec": 2.6723107569721116,
+					"rafPerSec": 29.282868525896415,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "border-beam",
+				"idle": {
+					"cpuMsPerSec": 37.54349130173964,
+					"scriptMsPerSec": 0.05298940211957617,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 48.02677322677322,
+					"scriptMsPerSec": 0.9610311750599522,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "displacement-text",
+				"idle": {
+					"cpuMsPerSec": 19.593681263747246,
+					"scriptMsPerSec": 8.546509301860375,
+					"rafPerSec": 117.57648470305939,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 25.431899641577065,
+					"scriptMsPerSec": 9.831342094782954,
+					"rafPerSec": 116.57668466306738,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "mosaic-glow",
+				"idle": {
+					"cpuMsPerSec": 19.835665733706517,
+					"scriptMsPerSec": 8.180927628948421,
+					"rafPerSec": 119.37612477504499,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 23.92230876772519,
+					"scriptMsPerSec": 8.376672658278412,
+					"rafPerSec": 119.88011988011988,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			},
+			{
+				"name": "toast",
+				"idle": {
+					"cpuMsPerSec": 0.042582966813274274,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 14.19624675583949,
+					"scriptMsPerSec": 1.0631096954011547,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 5
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	}
+]

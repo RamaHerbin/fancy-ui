@@ -4,6 +4,7 @@ import { render } from "svelte/server";
 import SiteHeader from "./SiteHeader.svelte";
 import FrameworkSwitch from "./FrameworkSwitch.svelte";
 import SectionHeading from "./SectionHeading.svelte";
+import SiteFooter from "./SiteFooter.svelte";
 
 describe("SiteHeader (SSR)", () => {
 	it("links the three destinations and Saved", () => {
@@ -42,5 +43,15 @@ describe("SectionHeading (SSR)", () => {
 		});
 		expect(body).toMatch(/<h2[^>]*>.*01.*Previews/s);
 		expect(body).toContain('href="/inspiration"');
+	});
+});
+
+describe("SiteFooter (SSR)", () => {
+	it("links only community channels the repository actually runs", () => {
+		const { body } = render(SiteFooter);
+		expect(body).toContain("/issues");
+		expect(body).toContain("CONTRIBUTING.md");
+		expect(body).not.toContain("/discussions");
+		expect(body).not.toContain(">Discussions<");
 	});
 });
