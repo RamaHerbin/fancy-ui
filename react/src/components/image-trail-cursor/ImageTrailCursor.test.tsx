@@ -117,15 +117,15 @@ describe("ImageTrailCursor", () => {
 	});
 
 	// Same fact as the Svelte assertion — the container declares
-	// `touch-action: none` — read off the rendered markup instead of the live
+	// `touch-action: pan-y` — read off the rendered markup instead of the live
 	// node. Svelte emits the style attribute as a literal string, so jsdom
 	// keeps it verbatim; React writes inline styles through the CSSOM, and
 	// jsdom's `cssstyle` does not implement `touch-action`, so it swallows the
 	// value before it can reach the attribute. Real browsers keep it, and the
 	// server markup below is what they receive.
-	it("sets touch-action: none on the container", () => {
+	it("sets touch-action: pan-y on the container", () => {
 		const html = renderToStaticMarkup(<ImageTrailCursor />);
-		expect(html).toContain('style="touch-action:none"');
+		expect(html).toContain('style="touch-action:pan-y pinch-zoom"');
 	});
 
 	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {

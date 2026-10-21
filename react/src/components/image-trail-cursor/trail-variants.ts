@@ -161,7 +161,6 @@ abstract class BaseVariant implements ImageTrailVariant {
 		this.cacheMousePos = { x: 0, y: 0 };
 
 		this.handlePointerMove = (ev: MouseEvent | TouchEvent) => {
-			if ("touches" in ev) ev.preventDefault();
 			const rect = this.container.getBoundingClientRect();
 			this.mousePos = getLocalPointerPos(ev, rect);
 			if (this.touchActive) {
@@ -169,10 +168,9 @@ abstract class BaseVariant implements ImageTrailVariant {
 			}
 		};
 		container.addEventListener("mousemove", this.handlePointerMove);
-		container.addEventListener("touchmove", this.handlePointerMove, { passive: false });
+		container.addEventListener("touchmove", this.handlePointerMove, { passive: true });
 
 		this.initRender = (ev: MouseEvent | TouchEvent) => {
-			if ("touches" in ev) ev.preventDefault();
 			const rect = this.container.getBoundingClientRect();
 			this.mousePos = getLocalPointerPos(ev, rect);
 			this.cacheMousePos = { ...this.mousePos };
@@ -181,11 +179,10 @@ abstract class BaseVariant implements ImageTrailVariant {
 			container.removeEventListener("touchmove", this.initRender as EventListener);
 		};
 		container.addEventListener("mousemove", this.initRender as EventListener);
-		container.addEventListener("touchmove", this.initRender as EventListener, { passive: false });
+		container.addEventListener("touchmove", this.initRender as EventListener, { passive: true });
 
 		// Touch lifecycle handlers
 		this.handleTouchStart = (ev: TouchEvent) => {
-			ev.preventDefault();
 			this.touchActive = true;
 			const rect = this.container.getBoundingClientRect();
 			const pos = getLocalPointerPos(ev, rect);
@@ -196,7 +193,7 @@ abstract class BaseVariant implements ImageTrailVariant {
 			this.pushPositionHistory(pos.x, pos.y);
 			this.startRafLoop();
 		};
-		container.addEventListener("touchstart", this.handleTouchStart, { passive: false });
+		container.addEventListener("touchstart", this.handleTouchStart, { passive: true });
 
 		this.handleTouchEnd = () => {
 			this.touchActive = false;

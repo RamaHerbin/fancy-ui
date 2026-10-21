@@ -105,9 +105,9 @@ describe("ImageTrailCursor", () => {
 	 * is asserted against the server render, which stringifies the style
 	 * without the CSSOM — strictly the production output, not a shim.
 	 */
-	it("sets touch-action: none on the container", async () => {
+	it("sets touch-action: pan-y on the container", async () => {
 		const html = await renderToString(createSSRApp(ImageTrailCursor));
-		expect(html).toContain("touch-action:none");
+		expect(html).toContain("touch-action:pan-y pinch-zoom");
 	});
 
 	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {

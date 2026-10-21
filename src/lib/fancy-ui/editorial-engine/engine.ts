@@ -422,7 +422,7 @@ export function createEditorialEngine(
 		headlineFont: string;
 	} | null = null;
 
-	function stagePoint(event: PointerEvent): { x: number; y: number } {
+	function stagePoint(event: { clientX: number; clientY: number }): { x: number; y: number } {
 		const rect = stage.getBoundingClientRect();
 		return { x: event.clientX - rect.left, y: event.clientY - rect.top };
 	}
@@ -704,6 +704,21 @@ export function createEditorialEngine(
 		scheduleRender();
 	}
 
+	// Under `touch-action: pan-y` the browser would take over a touch drag with a
+	// vertical component and cancel the pointer stream. Claim the gesture only
+	// when it starts on an orb, so page scrolling still works everywhere else.
+	function onTouchStart(event: TouchEvent): void {
+		const touch = event.changedTouches[0];
+		if (touch === undefined || !event.cancelable) return;
+		const point = stagePoint(touch);
+		const isNarrow = stageW < NARROW_BREAKPOINT;
+		const activeOrbCount = isNarrow ? NARROW_ACTIVE_ORBS : orbs.length;
+		const radiusScale = isNarrow ? NARROW_ORB_SCALE : 1;
+		if (hitTestOrbs(orbs, point.x, point.y, activeOrbCount, radiusScale) !== -1) {
+			event.preventDefault();
+		}
+	}
+
 	function onPointerMove(event: PointerEvent): void {
 		const point = stagePoint(event);
 		pointer = point;
@@ -737,6 +752,7 @@ export function createEditorialEngine(
 	}
 
 	stage.addEventListener("pointerdown", onPointerDown);
+	stage.addEventListener("touchstart", onTouchStart, { passive: false });
 	window.addEventListener("pointermove", onPointerMove);
 	window.addEventListener("pointerup", onPointerUp);
 	window.addEventListener("pointercancel", onPointerUp);
@@ -758,6 +774,7 @@ export function createEditorialEngine(
 		if (scheduledRaf !== null) cancelAnimationFrame(scheduledRaf);
 		resizeObserver.disconnect();
 		stage.removeEventListener("pointerdown", onPointerDown);
+		stage.removeEventListener("touchstart", onTouchStart);
 		window.removeEventListener("pointermove", onPointerMove);
 		window.removeEventListener("pointerup", onPointerUp);
 		window.removeEventListener("pointercancel", onPointerUp);

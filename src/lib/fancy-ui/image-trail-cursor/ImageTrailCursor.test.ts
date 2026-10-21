@@ -94,10 +94,10 @@ describe("ImageTrailCursor", () => {
 		expect(div?.className).toContain("relative");
 	});
 
-	it("sets touch-action: none on the container", () => {
+	it("sets touch-action: pan-y on the container", () => {
 		const { container } = render(ImageTrailCursor);
 		const div = container.firstElementChild as HTMLElement;
-		expect(div?.getAttribute("style")).toContain("touch-action: none");
+		expect(div?.getAttribute("style")).toContain("touch-action: pan-y pinch-zoom");
 	});
 
 	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {
