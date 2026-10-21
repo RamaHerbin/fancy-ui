@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes } from "svelte/elements";
 
-	export interface NavigationMenuLinkProps {
+	type BaseProps = {
 		/** Destination URL. */
 		href: string;
 		/** Marks this as the current page: sets `aria-current="page"` and the current-row styling. */
@@ -20,7 +21,10 @@
 		children?: Snippet;
 		/** Additional CSS classes. */
 		class?: string;
-	}
+	};
+
+	/** Native anchor attributes land on the `<a>`; `aria-current`, `target` and `rel` stay managed while `current` or `external` apply. */
+	export type NavigationMenuLinkProps = BaseProps & Omit<HTMLAnchorAttributes, keyof BaseProps>;
 </script>
 
 <script lang="ts">
@@ -34,6 +38,7 @@
 		external = false,
 		children,
 		class: className,
+		...restProps
 	}: NavigationMenuLinkProps = $props();
 
 	const classes = $derived(
@@ -47,11 +52,12 @@
 </script>
 
 <a
+	{...restProps}
 	{href}
 	class={classes}
-	aria-current={current ? "page" : undefined}
-	target={external ? "_blank" : undefined}
-	rel={external ? "noopener noreferrer" : undefined}
+	aria-current={current ? "page" : restProps["aria-current"]}
+	target={external ? "_blank" : restProps.target}
+	rel={external ? "noopener noreferrer" : restProps.rel}
 >
 	{#if children}
 		{@render children()}

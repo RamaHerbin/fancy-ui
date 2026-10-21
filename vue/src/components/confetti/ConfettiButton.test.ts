@@ -71,4 +71,22 @@ describe("ConfettiButton contract", () => {
 		expect(onClick).not.toHaveBeenCalled();
 		expect(confetti).not.toHaveBeenCalled();
 	});
+
+	it("stops an array of click listeners after stopImmediatePropagation", async () => {
+		const first = vi.fn((e: MouseEvent) => e.stopImmediatePropagation());
+		const second = vi.fn();
+		render(ConfettiButton, { props: { onClick: [first, second] } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(first).toHaveBeenCalledTimes(1);
+		expect(second).not.toHaveBeenCalled();
+	});
+
+	it("calls every listener of an array when none stops propagation", async () => {
+		const first = vi.fn();
+		const second = vi.fn();
+		render(ConfettiButton, { props: { onClick: [first, second] } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(first).toHaveBeenCalledTimes(1);
+		expect(second).toHaveBeenCalledTimes(1);
+	});
 });
