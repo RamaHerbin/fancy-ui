@@ -72,6 +72,8 @@ Pin the bar to the top of the viewport with `sticky`:
 | `ref`      | `HTMLAnchorElement \| null`   | `null`  | Bindable element reference                                                                 |
 | `sound`    | `boolean`                     | `false` | Plays the `select` cue on activation, once the user has enabled sound                      |
 
+Any other native anchor attribute or listener goes to the inner `<a>`. `aria-current`, `aria-disabled`, `tabindex`, `target` and `rel` stay managed by `current`, `disabled` and `external` while those apply; otherwise the value you pass is used.
+
 ## Accessibility
 
 - `Navbar` renders a `<nav>` with an accessible name (`label`, default

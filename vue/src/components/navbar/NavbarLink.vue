@@ -33,7 +33,7 @@ export interface NavbarLinkProps {
 
 <script setup lang="ts">
 import { callListener } from "../../internals/call-listener.js";
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 
@@ -59,6 +59,18 @@ const el = useTemplateRef<HTMLAnchorElement>("el");
 defineExpose({ ref: el });
 
 const playCue = useSoundCue(() => sound);
+
+const attrs = useAttrs();
+
+// Only what the component manages right now is written over the consumer's
+// attributes: an unmanaged `aria-current` or `tabindex` from the caller passes
+// through instead of being overwritten with `undefined`.
+const anchorAttrs = computed((): Record<string, unknown> => ({
+	...attrs,
+	...(external ? { target: "_blank", rel: "noopener noreferrer" } : {}),
+	...(current ? { "aria-current": "page" } : {}),
+	...(disabled ? { "aria-disabled": "true", tabindex: -1 } : {}),
+}));
 
 const classes = computed(() =>
 	cn(
@@ -88,14 +100,10 @@ function handleClick(event: MouseEvent) {
 <template>
 	<a
 		ref="el"
-		:href="disabled ? undefined : href"
-		:target="external ? '_blank' : undefined"
-		:rel="external ? 'noopener noreferrer' : undefined"
-		:aria-current="current ? 'page' : undefined"
-		:aria-disabled="disabled ? 'true' : undefined"
-		:tabindex="disabled ? -1 : undefined"
-		:class="classes"
 		@click="handleClick"
+		v-bind="anchorAttrs"
+		:href="disabled ? undefined : href"
+		:class="classes"
 	>
 		<slot />
 		<span v-if="external" class="sr-only">{{ " " }}(opens in a new tab)</span>

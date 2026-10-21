@@ -51,6 +51,8 @@ Grounded answers need somewhere to put the receipt. A footnote list at the botto
 | `class`   | `string`                | —            | Additional CSS classes, merged onto the marker               |
 | `ref`     | `HTMLElement\|null`     | `null`       | Bindable reference to the marker element                     |
 
+Any other native attribute or listener (`id`, `data-*`, `onkeydown`, ...) goes to the marker, the `<a>` or, when unlinked, the `<button>`. The card's own hover, focus and click handling runs first, then yours, once. A `aria-describedby` you pass is joined with the card's id while it is open; the label, `target` and `rel` stay the component's.
+
 ## Behavior
 
 The card body is a `SourceCard` — the same card the sources list shows — so a document a reader meets under an answer is recognisable when they meet it again mid-sentence, and there is one implementation of "what is this document's host and monogram" rather than two that drift. `preview` replaces that body; the floating surface, its placement and its dismissal stay with this component either way.

@@ -107,11 +107,12 @@ function handleClick(event: MouseEvent) {
 <template>
 	<a
 		ref="el"
+		@click="handleClick"
+		v-bind="$attrs"
 		:href="href"
 		:target="computedTarget"
 		:rel="computedRel"
 		:class="classes"
-		@click="handleClick"
 	>
 		<slot />
 		<template v-if="external">

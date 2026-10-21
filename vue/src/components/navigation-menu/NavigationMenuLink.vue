@@ -18,7 +18,7 @@ export interface NavigationMenuLinkProps {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useAttrs } from "vue";
 
 import { cn } from "../../utils.js";
 
@@ -42,6 +42,16 @@ defineSlots<{
 	default?: () => unknown;
 }>();
 
+const attrs = useAttrs();
+
+// Only what the component manages right now is written over the consumer's
+// attributes, so an unmanaged `aria-current` or `target` passes through.
+const anchorAttrs = computed((): Record<string, unknown> => ({
+	...attrs,
+	...(current ? { "aria-current": "page" } : {}),
+	...(external ? { target: "_blank", rel: "noopener noreferrer" } : {}),
+}));
+
 const classes = computed(() =>
 	cn(
 		"ft-navigation-menu-link flex flex-col gap-0.5 rounded-lg px-2.5 py-2 text-left no-underline transition-colors",
@@ -53,13 +63,7 @@ const classes = computed(() =>
 </script>
 
 <template>
-	<a
-		:href="href"
-		:class="classes"
-		:aria-current="current ? 'page' : undefined"
-		:target="external ? '_blank' : undefined"
-		:rel="external ? 'noopener noreferrer' : undefined"
-	>
+	<a v-bind="anchorAttrs" :href="href" :class="classes">
 		<slot v-if="$slots.default" />
 		<template v-else>
 			<span

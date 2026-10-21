@@ -20,7 +20,7 @@ export interface InlineCitationProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useFloat } from "../../internals/use-float.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -183,6 +183,14 @@ function previewClass(): string {
 // The marker's text is a bare number; on its own it names nothing, so the
 // title rides along as the accessible name and the card stays supplementary.
 const markerLabel = computed(() => `Source ${index}: ${source.title}`);
+
+// A consumer's own description is kept next to the card's id, never replaced by it.
+const attrs = useAttrs();
+const describedBy = computed(
+	() =>
+		[attrs["aria-describedby"], open.value ? previewId : undefined].filter(Boolean).join(" ") ||
+		undefined
+);
 </script>
 
 <template>
@@ -200,31 +208,33 @@ const markerLabel = computed(() => `Source ${index}: ${source.title}`);
 	<a
 		v-if="isLink"
 		ref="marker"
+		@mouseenter="scheduleShow"
+		@mouseleave="scheduleHide"
+		@focus="show"
+		@blur="hide"
+		v-bind="$attrs"
 		:href="resolvedHref"
 		target="_blank"
 		rel="noopener noreferrer nofollow ugc"
 		:class="markerClass"
 		:aria-label="markerLabel"
-		:aria-describedby="open ? previewId : undefined"
-		@mouseenter="scheduleShow"
-		@mouseleave="scheduleHide"
-		@focus="show"
-		@blur="hide"
+		:aria-describedby="describedBy"
 		>[{{ index }}]</a
 	>
 	<!-- prettier-ignore -->
 	<button
 		v-else
 		ref="marker"
-		type="button"
-		:class="markerClass"
-		:aria-label="markerLabel"
-		:aria-describedby="open ? previewId : undefined"
 		@mouseenter="scheduleShow"
 		@mouseleave="scheduleHide"
 		@focus="show"
 		@blur="hide"
 		@click="show"
+		v-bind="$attrs"
+		type="button"
+		:class="markerClass"
+		:aria-label="markerLabel"
+		:aria-describedby="describedBy"
 	>[{{ index }}]</button>
 	<!--
 		Rendered only while it is on screen: a tooltip that lives in the DOM
