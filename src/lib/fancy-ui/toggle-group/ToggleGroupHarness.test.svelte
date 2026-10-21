@@ -28,6 +28,8 @@
 		orientation?: "horizontal" | "vertical";
 		label?: string;
 		sound?: boolean;
+		name?: string;
+		form?: string;
 	}
 
 	let {
@@ -40,10 +42,23 @@
 		orientation = "horizontal",
 		label = "Test group",
 		sound = false,
+		name = undefined,
+		form = undefined,
 	}: Props = $props();
 </script>
 
-<ToggleGroup {type} bind:value {onValueChange} {disabled} {size} {orientation} {label} {sound}>
+<ToggleGroup
+	{type}
+	bind:value
+	{onValueChange}
+	{disabled}
+	{size}
+	{orientation}
+	{label}
+	{sound}
+	{name}
+	{form}
+>
 	{#snippet children()}
 		{#each items as item (item.value)}
 			<ToggleGroupItem value={item.value} disabled={item.disabled}>{item.label}</ToggleGroupItem>

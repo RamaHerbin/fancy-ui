@@ -51,6 +51,9 @@
 		ref = $bindable(null),
 		sound = false,
 		onclick,
+		name = undefined,
+		value = undefined,
+		form = undefined,
 		...rest
 	}: ToggleProps = $props();
 
@@ -104,6 +107,9 @@
 >
 	{@render children?.()}
 </button>
+{#if name && pressed && !disabled}
+	<input type="hidden" {name} value={value ?? "on"} {form} />
+{/if}
 
 <style>
 	/*

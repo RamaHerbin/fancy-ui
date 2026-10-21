@@ -21,6 +21,14 @@ export interface ToggleGroupProps {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Form field name. When set, one hidden input named `name` is rendered per
+	 * selected value, so a single group submits its value and a multiple group
+	 * submits every selected one. Items are `type="button"` and never submit.
+	 */
+	name?: string;
+	/** `id` of the `<form>` the hidden inputs belong to, when not nested in it. */
+	form?: string;
 }
 </script>
 
@@ -41,6 +49,8 @@ const {
 	label,
 	class: className,
 	sound = false,
+	name = undefined,
+	form = undefined,
 } = defineProps<ToggleGroupProps>();
 
 defineSlots<{ default?(): unknown }>();
@@ -216,6 +226,17 @@ TOGGLE_GROUP_KEY.provide(context);
 		:aria-label="label"
 	>
 		<slot />
+		<template v-if="name">
+			<input
+				v-for="picked in selected"
+				:key="picked"
+				type="hidden"
+				:name="name"
+				:value="picked"
+				:form="form"
+				:disabled="disabled || undefined"
+			/>
+		</template>
 	</div>
 </template>
 

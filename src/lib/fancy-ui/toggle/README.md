@@ -59,6 +59,9 @@ not at all while the toggle is disabled.
 | `class`           | `string`                     | —         | Additional CSS classes                                              |
 | `ref`             | `HTMLButtonElement \| null`  | `null`    | Bindable element reference                                          |
 | `sound`           | `boolean`                    | `false`   | Plays `toggle-on`/`toggle-off` on activation, once sound is enabled |
+| `name`            | `string`                     | —         | Form field name; renders a hidden input that submits while pressed  |
+| `value`           | `string`                     | `"on"`    | Value submitted under `name` while pressed                          |
+| `form`            | `string`                     | —         | `id` of the form the hidden input belongs to                        |
 
 ## Theming
 

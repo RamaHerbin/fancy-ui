@@ -35,6 +35,14 @@ export interface ToggleGroupProps {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Form field name. When set, one hidden input named `name` is rendered per
+	 * selected value, so a single group submits its value and a multiple group
+	 * submits every selected one. Items are `type="button"` and never submit.
+	 */
+	name?: string;
+	/** `id` of the `<form>` the hidden inputs belong to, when not nested in it. */
+	form?: string;
 }
 
 /**
@@ -61,6 +69,8 @@ export const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
 			children,
 			className,
 			sound = false,
+			name,
+			form,
 		},
 		forwardedRef
 	) => {
@@ -265,6 +275,18 @@ export const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
 					aria-label={label}
 				>
 					{children}
+					{name
+						? selected.map((picked) => (
+								<input
+									key={picked}
+									type="hidden"
+									name={name}
+									value={picked}
+									form={form}
+									disabled={disabled || undefined}
+								/>
+							))
+						: null}
 				</div>
 			</TOGGLE_GROUP_KEY.Provider>
 		);

@@ -27,6 +27,16 @@ type BaseProps = {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Form field name. When set, a hidden input named `name` is rendered next to
+	 * the button and submits `value` (default `"on"`) while pressed, nothing
+	 * while off, like a checkbox. The button is `type="button"` and never submits.
+	 */
+	name?: string;
+	/** Value submitted under `name` while pressed. Defaults to `"on"`. */
+	value?: string;
+	/** `id` of the `<form>` the hidden input belongs to, when not nested in it. */
+	form?: string;
 };
 
 export interface ToggleProps
@@ -51,6 +61,9 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 			className,
 			onClick,
 			sound = false,
+			name,
+			value,
+			form,
 			...rest
 		},
 		ref
@@ -92,18 +105,23 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 		}
 
 		return (
-			<button
-				{...rest}
-				ref={ref}
-				type="button"
-				className={classes}
-				aria-pressed={pressed}
-				aria-label={label ?? rest["aria-label"]}
-				disabled={disabled}
-				onClick={toggle}
-			>
-				{children}
-			</button>
+			<>
+				<button
+					{...rest}
+					ref={ref}
+					type="button"
+					className={classes}
+					aria-pressed={pressed}
+					aria-label={label ?? rest["aria-label"]}
+					disabled={disabled}
+					onClick={toggle}
+				>
+					{children}
+				</button>
+				{name && pressed && !disabled ? (
+					<input type="hidden" name={name} value={value ?? "on"} form={form} />
+				) : null}
+			</>
 		);
 	}
 );

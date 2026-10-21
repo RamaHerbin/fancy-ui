@@ -30,6 +30,14 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/**
+		 * Form field name. When set, one hidden input named `name` is rendered per
+		 * selected value, so a single group submits its value and a multiple group
+		 * submits every selected one. Items are `type="button"` and never submit.
+		 */
+		name?: string;
+		/** `id` of the `<form>` the hidden inputs belong to, when not nested in it. */
+		form?: string;
 	}
 </script>
 
@@ -51,6 +59,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		name = undefined,
+		form = undefined,
 	}: ToggleGroupProps = $props();
 
 	// The public prop is a string or an array depending on `type`; everything
@@ -244,6 +254,11 @@
 >
 	{#if children}
 		{@render children()}
+	{/if}
+	{#if name}
+		{#each selected as picked (picked)}
+			<input type="hidden" {name} value={picked} {form} disabled={disabled || undefined} />
+		{/each}
 	{/if}
 </div>
 
