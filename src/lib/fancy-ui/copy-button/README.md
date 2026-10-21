@@ -55,22 +55,25 @@ successful one does through `copiedLabel`.
 
 ## Props
 
-| Prop          | Type                                             | Default         | Description                                                               |
-| ------------- | ------------------------------------------------ | --------------- | ------------------------------------------------------------------------- |
-| `value`       | `string`                                         | —               | The text written to the clipboard on activation (required)                |
-| `label`       | `string`                                         | `"Copy"`        | Idle label                                                                |
-| `copiedLabel` | `string`                                         | `"Copied"`      | Label shown for `resetMs` after a successful copy                         |
-| `errorLabel`  | `string`                                         | `"Copy failed"` | Label and announcement shown for `resetMs` after a failed copy            |
-| `resetMs`     | `number`                                         | `2000`          | How long the copied state holds before reverting, in milliseconds         |
-| `variant`     | `ButtonVariant`                                  | `"outline"`     | Passed straight through to the underlying `Button`                        |
-| `size`        | `ButtonSize`                                     | `"md"`          | Passed straight through to the underlying `Button`                        |
-| `disabled`    | `boolean`                                        | `false`         | Disables the button and blocks the copy                                   |
-| `iconOnly`    | `boolean`                                        | `false`         | Drops the visible label, moving it to `aria-label` instead                |
-| `onCopy`      | `(value: string, ok: boolean) => void`           | —               | Called with the value and whether the write actually succeeded            |
-| `children`    | `Snippet`                                        | —               | Overrides the default icon + label content                                |
-| `class`       | `string`                                         | —               | Additional CSS classes                                                    |
-| `ref`         | `HTMLButtonElement \| HTMLAnchorElement \| null` | `null`          | Bindable element reference — matches `Button`'s own ref type              |
-| `sound`       | `boolean`                                        | `false`         | Plays `copy`/`error` on the copy outcome, once the user has enabled sound |
+| Prop          | Type                                             | Default         | Description                                                                     |
+| ------------- | ------------------------------------------------ | --------------- | ------------------------------------------------------------------------------- |
+| `value`       | `string`                                         | —               | The text written to the clipboard on activation (required)                      |
+| `label`       | `string`                                         | `"Copy"`        | Idle label                                                                      |
+| `copiedLabel` | `string`                                         | `"Copied"`      | Label shown for `resetMs` after a successful copy                               |
+| `errorLabel`  | `string`                                         | `"Copy failed"` | Label and announcement shown for `resetMs` after a failed copy                  |
+| `resetMs`     | `number`                                         | `2000`          | How long the copied state holds before reverting, in milliseconds               |
+| `variant`     | `ButtonVariant`                                  | `"outline"`     | Passed straight through to the underlying `Button`                              |
+| `size`        | `ButtonSize`                                     | `"md"`          | Passed straight through to the underlying `Button`                              |
+| `disabled`    | `boolean`                                        | `false`         | Disables the button and blocks the copy                                         |
+| `iconOnly`    | `boolean`                                        | `false`         | Drops the visible label, moving it to `aria-label` instead                      |
+| `onCopy`      | `(value: string, ok: boolean) => void`           | —               | Called with the value and whether the write actually succeeded                  |
+| `onclick`     | `(event: MouseEvent) => void`                    | —               | Fires on activation, right after the copy starts; never called while `disabled` |
+| `children`    | `Snippet`                                        | —               | Overrides the default icon + label content                                      |
+| `class`       | `string`                                         | —               | Additional CSS classes                                                          |
+| `ref`         | `HTMLButtonElement \| HTMLAnchorElement \| null` | `null`          | Bindable element reference — matches `Button`'s own ref type                    |
+| `sound`       | `boolean`                                        | `false`         | Plays `copy`/`error` on the copy outcome, once the user has enabled sound       |
+
+Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded to the inner `<button>`.
 
 ## Theming
 
