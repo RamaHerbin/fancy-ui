@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	FakeAudioContext,
+	FIXTURE_SOUND_THEME,
 	installFakeAudioContext,
 	type FakeAudioContextOptions,
 } from "./web-audio-mock.js";
@@ -29,6 +30,7 @@ function makeEngine(
 		getContext: () => fake as unknown as AudioContext,
 		now: clock.now,
 		canCreateContext: () => true,
+		theme: FIXTURE_SOUND_THEME,
 		...overrides,
 	});
 	return { engine, fake, clock };
@@ -213,6 +215,112 @@ describe("start/stop scheduling", () => {
 		engine.play("toggle-on"); // second layer has delay: 45ms
 		const secondOsc = fake.created.oscillators[1];
 		expect(secondOsc.startTime).toBeCloseTo(0.045, 5);
+	});
+	it("falls off exponentially to silence when the envelope curve is exponential", () => {
+		const theme = {
+			...FIXTURE_SOUND_THEME,
+			cues: {
+				...FIXTURE_SOUND_THEME.cues,
+				press: {
+					layers: [
+						{
+							kind: "oscillator" as const,
+							wave: "triangle" as const,
+							frequency: 900,
+							gain: 0.5,
+							envelope: {
+								attack: 2,
+								decay: 20,
+								sustain: 0,
+								release: 8,
+								curve: "exponential" as const,
+							},
+							duration: 30,
+						},
+					],
+				},
+			},
+		};
+		const { engine, fake } = makeEngine({ initialState: "running" }, { theme });
+		engine.play("press");
+		const events = fake.created.gains[1].gain.events;
+		const t0 = events[0].time;
+		expect(events.map((e) => e.method)).toEqual([
+			"setValueAtTime",
+			"linearRampToValueAtTime",
+			"exponentialRampToValueAtTime",
+			"setValueAtTime",
+			"exponentialRampToValueAtTime",
+			"setValueAtTime",
+		]);
+		expect(events[2].time).toBeCloseTo(t0 + 0.022, 5);
+		// Exponential segments never target 0; only the final step is silent.
+		for (const e of events.filter((e) => e.method === "exponentialRampToValueAtTime")) {
+			expect(e.value).toBeGreaterThan(0);
+		}
+		const last = events[events.length - 1];
+		expect(last).toMatchObject({ method: "setValueAtTime", value: 0 });
+		expect(last.time).toBeCloseTo(t0 + 0.03, 5);
+	});
+
+	it("never schedules the release hold before the decay ramp ends (float drift)", () => {
+		// 2 + 16 + 8 = 26 exactly, yet t0 + a + d and t0 + duration - r differ in
+		// the last float bit; a hold placed first would flatten the whole decay.
+		for (const curve of ["linear", "exponential"] as const) {
+			const theme = {
+				...FIXTURE_SOUND_THEME,
+				cues: {
+					...FIXTURE_SOUND_THEME.cues,
+					press: {
+						layers: [
+							{
+								kind: "oscillator" as const,
+								wave: "triangle" as const,
+								frequency: 700,
+								gain: 0.6,
+								envelope: { attack: 2, decay: 16, sustain: 0, release: 8, curve },
+								duration: 26,
+							},
+						],
+					},
+				},
+			};
+			const { engine, fake } = makeEngine({ initialState: "running" }, { theme });
+			engine.play("press");
+			const times = fake.created.gains[1].gain.events.map((e) => e.time);
+			for (let i = 1; i < times.length; i++) {
+				expect(times[i]).toBeGreaterThanOrEqual(times[i - 1]);
+			}
+		}
+	});
+
+	it("reaches frequencyEnd after `glide` ms, scaled by playbackRate", () => {
+		const theme = {
+			...FIXTURE_SOUND_THEME,
+			cues: {
+				...FIXTURE_SOUND_THEME.cues,
+				press: {
+					layers: [
+						{
+							kind: "oscillator" as const,
+							wave: "triangle" as const,
+							frequency: 900,
+							frequencyEnd: 170,
+							glide: 18,
+							gain: 0.5,
+							envelope: { attack: 2, decay: 20, sustain: 0, release: 8 },
+							duration: 30,
+						},
+					],
+				},
+			},
+		};
+		const { engine, fake } = makeEngine({ initialState: "running" }, { theme });
+		engine.play("press", { playbackRate: 2 });
+		const freqEvents = fake.created.oscillators[0].frequency.events;
+		const ramp = freqEvents.find((e) => e.method === "exponentialRampToValueAtTime")!;
+		expect(ramp.value).toBeCloseTo(170, 5);
+		expect(ramp.time - freqEvents[0].time).toBeCloseTo(0.009, 5);
 	});
 });
 

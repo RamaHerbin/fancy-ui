@@ -1,9 +1,10 @@
 /**
  * Sound themes — pure data plus a validator.
  *
- * `FANCY_SOUND_THEME` is the original FancyUI palette: glassy sine/triangle
- * pings with short noise transients. Rising pitch reads as positive/open,
- * falling pitch as negative/close (workflow/contracts.md §4).
+ * `FANCY_SOUND_THEME` is the FancyUI palette: short tactile taps (one
+ * oscillator, a fast downward pitch sweep under an exponential decay) and a
+ * quiet sine bell kept for success. No noise, no held notes. Ascending pairs
+ * and sweeps read as positive/open, descending ones as negative/close.
  */
 
 import {
@@ -12,12 +13,17 @@ import {
 	type CueRecipe,
 	type SoundCue,
 	type SoundEnvelope,
+	type SoundOscillatorLayer,
 	type SoundThemeDefinition,
 	type SoundThemeName,
 } from "./types.js";
 
 function env(attack: number, decay: number, sustain: number, release: number): SoundEnvelope {
 	return { attack, decay, sustain, release };
+}
+
+function exp(attack: number, decay: number, sustain: number, release: number): SoundEnvelope {
+	return { attack, decay, sustain, release, curve: "exponential" };
 }
 
 function deepFreeze<T>(value: T): T {
@@ -30,243 +36,89 @@ function deepFreeze<T>(value: T): T {
 	return value;
 }
 
+/**
+ * A tap: one oscillator whose pitch falls a couple of octaves over the whole
+ * decay while its level falls off exponentially. That fast, the ear hears no
+ * note, only a soft knock. Every gesture cue below is built from taps.
+ */
+function tap(
+	frequency: number,
+	frequencyEnd: number,
+	gain: number,
+	decay: number,
+	extra: Partial<SoundOscillatorLayer> = {}
+): SoundOscillatorLayer {
+	return {
+		kind: "oscillator",
+		wave: "triangle",
+		frequency,
+		frequencyEnd,
+		glide: 2 + decay,
+		gain,
+		envelope: exp(2, decay, 0, 8),
+		duration: 2 + decay + 8,
+		...extra,
+	};
+}
+
+/** A quiet sine bell that rings out, reserved for outcomes (success). */
+function bell(frequency: number, gain: number, decay: number, delay = 0): SoundOscillatorLayer {
+	return {
+		kind: "oscillator",
+		wave: "sine",
+		frequency,
+		gain,
+		envelope: exp(2, decay, 0, 10),
+		duration: 2 + decay + 10,
+		delay,
+	};
+}
+
 const FANCY_CUES: Record<SoundCue, CueRecipe> = {
+	// Bright and tiny: present under the pointer, gone before it registers as a sound.
 	hover: {
-		layers: [
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 1760,
-				frequencyEnd: 1975,
-				gain: 0.12,
-				envelope: env(2, 20, 0, 20),
-				duration: 45,
-				filter: { type: "highpass", frequency: 800 },
-			},
-		],
+		layers: [tap(1680, 420, 0.5, 10, { wave: "sine" })],
 	},
+	// The reference cue every other one is tuned against.
 	press: {
-		layers: [
-			{
-				kind: "oscillator",
-				wave: "triangle",
-				frequency: 520,
-				frequencyEnd: 440,
-				gain: 0.5,
-				envelope: env(2, 35, 0, 25),
-				duration: 70,
-			},
-			{
-				kind: "noise",
-				gain: 0.18,
-				envelope: env(1, 18, 0, 8),
-				duration: 30,
-				filter: { type: "bandpass", frequency: 2400, q: 1.2 },
-			},
-		],
+		layers: [tap(850, 160, 0.8, 18)],
 	},
 	"toggle-on": {
-		layers: [
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 660,
-				gain: 0.4,
-				envelope: env(3, 30, 0.2, 20),
-				duration: 55,
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 880,
-				gain: 0.4,
-				envelope: env(3, 40, 0, 25),
-				duration: 70,
-				delay: 45,
-				filter: { type: "lowpass", frequency: 4000 },
-			},
-		],
+		layers: [tap(700, 150, 0.6, 16), tap(1100, 240, 0.6, 16, { delay: 45 })],
 	},
 	"toggle-off": {
-		layers: [
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 880,
-				gain: 0.35,
-				envelope: env(3, 30, 0.2, 20),
-				duration: 55,
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 660,
-				gain: 0.32,
-				envelope: env(3, 35, 0, 20),
-				duration: 60,
-				delay: 45,
-				filter: { type: "lowpass", frequency: 3500 },
-			},
-		],
+		layers: [tap(1100, 240, 0.55, 16), tap(700, 150, 0.55, 16, { delay: 45 })],
 	},
+	// Rising and falling sine sweeps: direction tells open from close.
 	open: {
 		layers: [
-			{
-				kind: "oscillator",
-				wave: "triangle",
-				frequency: 392,
-				frequencyEnd: 784,
-				gain: 0.35,
-				envelope: env(5, 60, 0.3, 30),
-				duration: 110,
-			},
-			{
-				kind: "noise",
-				gain: 0.08,
-				envelope: env(10, 50, 0, 30),
-				duration: 90,
-				filter: { type: "highpass", frequency: 3000, frequencyEnd: 6000 },
-			},
+			tap(420, 1260, 0.45, 34, { wave: "sine", glide: 24 }),
+			tap(850, 160, 0.35, 14, { delay: 4 }),
 		],
 	},
 	close: {
 		layers: [
-			{
-				kind: "oscillator",
-				wave: "triangle",
-				frequency: 784,
-				frequencyEnd: 392,
-				gain: 0.3,
-				envelope: env(4, 50, 0.2, 30),
-				duration: 100,
-			},
-			{
-				kind: "noise",
-				gain: 0.06,
-				envelope: env(5, 40, 0, 30),
-				duration: 80,
-				filter: { type: "lowpass", frequency: 1500, frequencyEnd: 600 },
-			},
+			tap(1260, 380, 0.4, 34, { wave: "sine", glide: 24 }),
+			tap(700, 140, 0.35, 14, { delay: 26 }),
 		],
 	},
 	select: {
-		layers: [
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 1046.5,
-				gain: 0.35,
-				envelope: env(2, 40, 0, 25),
-				duration: 70,
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 1568,
-				gain: 0.12,
-				envelope: env(2, 30, 0, 18),
-				duration: 50,
-				delay: 10,
-			},
-		],
+		layers: [tap(1150, 230, 0.7, 14)],
 	},
 	success: {
-		layers: [
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 523.25,
-				gain: 0.35,
-				envelope: env(4, 60, 0.3, 40),
-				duration: 110,
-				filter: { type: "lowpass", frequency: 5000 },
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 659.25,
-				gain: 0.35,
-				envelope: env(4, 60, 0.3, 40),
-				duration: 110,
-				delay: 70,
-				filter: { type: "lowpass", frequency: 5000 },
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 783.99,
-				gain: 0.4,
-				envelope: env(4, 60, 0.3, 40),
-				duration: 150,
-				delay: 140,
-				filter: { type: "lowpass", frequency: 5000 },
-			},
-		],
+		layers: [tap(850, 160, 0.6, 18), bell(1046.5, 0.22, 110, 30), bell(1568, 0.18, 140, 90)],
 	},
 	error: {
 		layers: [
-			{
-				kind: "oscillator",
-				wave: "sawtooth",
-				frequency: 220,
-				detune: -8,
-				gain: 0.3,
-				envelope: env(5, 70, 0.4, 40),
-				duration: 130,
-				filter: { type: "lowpass", frequency: 900 },
-			},
-			{
-				kind: "oscillator",
-				wave: "sawtooth",
-				frequency: 233,
-				detune: 8,
-				gain: 0.3,
-				envelope: env(5, 70, 0.4, 40),
-				duration: 130,
-				delay: 110,
-				filter: { type: "lowpass", frequency: 900 },
-			},
+			tap(320, 120, 0.3, 40, { filter: { type: "lowpass", frequency: 1600 } }),
+			tap(240, 95, 0.3, 50, { delay: 95, filter: { type: "lowpass", frequency: 1600 } }),
 		],
 	},
 	tick: {
-		layers: [
-			{
-				kind: "noise",
-				gain: 0.2,
-				envelope: env(1, 12, 0, 8),
-				duration: 22,
-				filter: { type: "bandpass", frequency: 3500, q: 2 },
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 2093,
-				gain: 0.08,
-				envelope: env(1, 15, 0, 8),
-				duration: 25,
-			},
-		],
+		layers: [tap(2700, 675, 0.3, 8, { wave: "sine" })],
 	},
 	copy: {
-		layers: [
-			{
-				kind: "noise",
-				gain: 0.15,
-				envelope: env(1, 10, 0, 8),
-				duration: 20,
-				filter: { type: "bandpass", frequency: 5000, q: 1 },
-			},
-			{
-				kind: "oscillator",
-				wave: "sine",
-				frequency: 1318.5,
-				frequencyEnd: 1760,
-				gain: 0.3,
-				envelope: env(2, 50, 0, 25),
-				duration: 80,
-				delay: 8,
-			},
-		],
+		layers: [tap(1300, 260, 0.6, 14), tap(1800, 360, 0.55, 14, { delay: 40 })],
 	},
 };
 
@@ -342,6 +194,14 @@ export function validateSoundTheme(theme: SoundThemeDefinition): string[] {
 				problems.push(`${label}: envelope.sustain must be between 0 and 1`);
 			}
 
+			if (
+				layer.envelope.curve != null &&
+				layer.envelope.curve !== "linear" &&
+				layer.envelope.curve !== "exponential"
+			) {
+				problems.push(`${label}: invalid envelope.curve "${layer.envelope.curve}"`);
+			}
+
 			const requiredSpan = layer.envelope.attack + layer.envelope.decay + layer.envelope.release;
 			if (Number.isFinite(layer.duration) && layer.duration < requiredSpan) {
 				problems.push(`${label}: duration must be >= attack + decay + release`);
@@ -362,6 +222,14 @@ export function validateSoundTheme(theme: SoundThemeDefinition): string[] {
 					(!Number.isFinite(layer.frequencyEnd) || layer.frequencyEnd <= 0)
 				) {
 					problems.push(`${label}: frequencyEnd must be a finite number > 0`);
+				}
+				if (
+					layer.glide != null &&
+					(!Number.isFinite(layer.glide) ||
+						layer.glide <= 0 ||
+						(Number.isFinite(layer.duration) && layer.glide > layer.duration))
+				) {
+					problems.push(`${label}: glide must be a finite number > 0 and <= duration`);
 				}
 				if (layer.detune != null && !Number.isFinite(layer.detune)) {
 					problems.push(`${label}: detune must be a finite number`);
