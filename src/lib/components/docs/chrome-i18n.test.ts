@@ -62,4 +62,40 @@ describe("CommandSearch localized index", () => {
 		render(CommandSearch, { open: true });
 		expect(document.querySelector("button[aria-label]")?.getAttribute("aria-label")).toBeTruthy();
 	});
+
+	it("each empty-state suggestion chip searches for what it says", async () => {
+		for (const locale of ["en", "fr"] as const) {
+			setLocale(locale);
+			const { unmount } = render(CommandSearch, { open: true });
+			const input = document.querySelector("input[type=text]") as HTMLInputElement;
+			await fireEvent.input(input, { target: { value: "zzzzqqqq" } });
+			const labels = Array.from(
+				document.querySelectorAll('[data-testid="search-no-results"] button')
+			).map((b) => b.textContent?.trim() ?? "");
+			expect(labels.length).toBe(3);
+			for (const label of labels) {
+				await fireEvent.input(input, { target: { value: "zzzzqqqq" } });
+				const chip = Array.from(
+					document.querySelectorAll('[data-testid="search-no-results"] button')
+				).find((b) => b.textContent?.trim() === label)!;
+				await fireEvent.click(chip);
+				expect(input.value).toBe(label);
+				expect(
+					document.querySelectorAll('[data-result="component"]').length,
+					`${locale} chip "${label}"`
+				).toBeGreaterThan(0);
+			}
+			unmount();
+		}
+	});
+
+	it("a job title finds that job's components", async () => {
+		render(CommandSearch, { open: true });
+		const input = document.querySelector("input[type=text]") as HTMLInputElement;
+		await fireEvent.input(input, { target: { value: "Navigate" } });
+		const names = Array.from(document.querySelectorAll('[data-result="component"]')).map(
+			(el) => el.textContent ?? ""
+		);
+		expect(names.some((n) => /navbar|tabs|breadcrumb|pagination/i.test(n))).toBe(true);
+	});
 });

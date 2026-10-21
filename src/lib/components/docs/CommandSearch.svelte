@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { getAllComponents } from "$lib/fancy-ui/registry.js";
-	import { NO_RESULT_SUGGESTIONS, rankComponents } from "$lib/docs/search-rank.js";
+	import { rankComponents } from "$lib/docs/search-rank.js";
+	import { JOBS } from "$lib/docs/jobs.js";
 	import { t, tCategory } from "$lib/stores";
-	import { en } from "$lib/i18n/messages/en.js";
+	import { en, type MessageKey } from "$lib/i18n/messages/en.js";
 	import { tc } from "./chrome-i18n.js";
 
 	interface Props {
@@ -37,13 +38,9 @@
 		{ nameKey: "page.changelog", slug: "changelog", href: "/docs/getting-started/changelog" },
 	] as const;
 
-	// Each suggested query keeps its English search term (the registry index is English) but is
-	// labelled with the translated job or category name.
-	const suggestionLabelKey = {
-		button: "category.buttons",
-		scroll: "jobs.navigate",
-		glow: "jobs.attention",
-	} as const;
+	// Suggestions are searches: each chip inserts its own translated label, and that label is
+	// indexed below (category names and job titles), so what you read is what gets searched.
+	const suggestionKeys = ["category.buttons", "jobs.navigate", "jobs.attention"] as const;
 
 	const fold = (s: string) =>
 		s
@@ -80,9 +77,7 @@
 		const pages = gettingStartedPages
 			.filter(
 				(p) =>
-					fold(t(p.nameKey)).includes(fq) ||
-					fold(en[p.nameKey]).includes(fq) ||
-					p.slug.includes(q)
+					fold(t(p.nameKey)).includes(fq) || fold(en[p.nameKey]).includes(fq) || p.slug.includes(q)
 			)
 			.map(pageResult);
 
@@ -93,18 +88,29 @@
 		const byCategory = getAllComponents().filter(
 			(c) =>
 				!seen.has(c.slug) &&
-				(fold(tCategory(c.category)).includes(fq) || fold(en[`category.${c.category}`]).includes(fq))
+				(fold(tCategory(c.category)).includes(fq) ||
+					fold(en[`category.${c.category}`]).includes(fq))
 		);
 
-		const components = [...ranked, ...byCategory]
-			.slice(0, 10)
-			.map((c) => ({
-				name: c.name,
-				slug: c.slug,
-				href: `/docs/components/${c.slug}`,
-				category: tCategory(c.category),
-				type: "component" as const,
-			}));
+		// A job title (translated or English) admits that job's components.
+		const jobSlugs = new Set(
+			JOBS.filter(
+				(j) =>
+					fold(t(`jobs.${j.id}` as MessageKey)).includes(fq) ||
+					fold(en[`jobs.${j.id}` as MessageKey]).includes(fq)
+			).flatMap((j) => j.slugs)
+		);
+		const byJob = getAllComponents().filter(
+			(c) => jobSlugs.has(c.slug) && !seen.has(c.slug) && !byCategory.includes(c)
+		);
+
+		const components = [...ranked, ...byCategory, ...byJob].slice(0, 10).map((c) => ({
+			name: c.name,
+			slug: c.slug,
+			href: `/docs/components/${c.slug}`,
+			category: tCategory(c.category),
+			type: "component" as const,
+		}));
 
 		return [...pages, ...components];
 	});
@@ -210,16 +216,16 @@
 						<p class="text-muted-foreground text-sm">{t("search.noResults")}</p>
 						<p class="text-muted-foreground mt-3 text-xs">{t("search.tryInstead")}</p>
 						<div class="mt-2 flex flex-wrap justify-center gap-2">
-							{#each NO_RESULT_SUGGESTIONS as suggestion (suggestion)}
+							{#each suggestionKeys as suggestionKey (suggestionKey)}
 								<button
 									type="button"
 									class="border-border hover:bg-muted min-h-11 rounded-full border px-4 text-sm"
 									onclick={() => {
-										query = suggestion;
+										query = t(suggestionKey);
 										inputEl?.focus();
 									}}
 								>
-									{t(suggestionLabelKey[suggestion])}
+									{t(suggestionKey)}
 								</button>
 							{/each}
 						</div>

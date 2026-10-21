@@ -158,7 +158,9 @@
 	</section>
 
 	<section class="mb-10">
-		<h2 class="text-foreground mb-3 text-xl font-semibold" id="pitfalls">{tc("recipes.pitfalls")}</h2>
+		<h2 class="text-foreground mb-3 text-xl font-semibold" id="pitfalls">
+			{tc("recipes.pitfalls")}
+		</h2>
 		<ul class="text-foreground/90 list-disc space-y-2 pl-5 text-sm leading-relaxed">
 			{#each recipe.pitfalls as pitfall (pitfall)}
 				<li>{pitfall}</li>
@@ -167,7 +169,9 @@
 	</section>
 
 	<section class="mb-10">
-		<h2 class="text-foreground mb-3 text-xl font-semibold" id="components">{tc("recipes.componentsUsed")}</h2>
+		<h2 class="text-foreground mb-3 text-xl font-semibold" id="components">
+			{tc("recipes.componentsUsed")}
+		</h2>
 		<ul class="flex flex-wrap gap-2 text-sm">
 			{#each recipe.components as slug (slug)}
 				<li>
