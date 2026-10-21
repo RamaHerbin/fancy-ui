@@ -78,6 +78,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"check:registry": "node scripts/check-registry.mjs",
+		"check:docs-examples": "node scripts/check-docs-examples.mjs",
 		"check:cores": "node scripts/check-shared-cores.mjs",
 		"check:props": "node scripts/check-prop-parity.mjs --self-test && node scripts/check-prop-parity.mjs",
 		"check:i18n": "node scripts/check-i18n.mjs",
