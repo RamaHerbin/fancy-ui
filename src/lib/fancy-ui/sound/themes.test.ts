@@ -135,10 +135,25 @@ describe("validateSoundTheme", () => {
 
 	it("allows success/error cues up to 300ms but flags beyond that", () => {
 		const theme = cloneTheme();
-		theme.cues.success.layers[2].duration = 200;
+		const last = theme.cues.success.layers[theme.cues.success.layers.length - 1];
+		last.delay = 250;
 		expect(
 			validateSoundTheme(theme).some((p) => p.includes("success") && p.includes("exceeds"))
 		).toBe(true);
+	});
+
+	it("reports an invalid envelope curve", () => {
+		const theme = cloneTheme();
+		(theme.cues.hover.layers[0].envelope as { curve?: string }).curve = "cubic";
+		expect(validateSoundTheme(theme).some((p) => p.includes("invalid envelope.curve"))).toBe(true);
+	});
+
+	it("reports a glide that is not positive or outlasts the layer", () => {
+		for (const glide of [0, -1, Number.NaN, 10_000]) {
+			const theme = cloneTheme();
+			(theme.cues.hover.layers[0] as { glide?: number }).glide = glide;
+			expect(validateSoundTheme(theme).some((p) => p.includes("glide must be"))).toBe(true);
+		}
 	});
 
 	it("reports an invalid wave", () => {
@@ -150,7 +165,7 @@ describe("validateSoundTheme", () => {
 
 	it("reports an invalid filter type", () => {
 		const theme = cloneTheme();
-		theme.cues.press.layers[1].filter = { type: "not-a-filter" as never, frequency: 100 };
+		theme.cues.error.layers[0].filter = { type: "not-a-filter" as never, frequency: 100 };
 		const problems = validateSoundTheme(theme);
 		expect(problems.some((p) => p.includes("invalid filter type"))).toBe(true);
 	});
@@ -164,7 +179,7 @@ describe("validateSoundTheme", () => {
 
 	it("reports a non-positive filter frequency", () => {
 		const theme = cloneTheme();
-		theme.cues.press.layers[1].filter = { type: "bandpass", frequency: 0 };
+		theme.cues.error.layers[0].filter = { type: "bandpass", frequency: 0 };
 		const problems = validateSoundTheme(theme);
 		expect(problems.some((p) => p.includes("filter frequency must be a finite number > 0"))).toBe(
 			true
@@ -191,7 +206,7 @@ describe("validateSoundTheme", () => {
 
 	it("reports a non-finite filter frequency, frequencyEnd and q", () => {
 		const theme = cloneTheme();
-		theme.cues.press.layers[1].filter = {
+		theme.cues.error.layers[0].filter = {
 			type: "bandpass",
 			frequency: Number.POSITIVE_INFINITY,
 			frequencyEnd: Number.POSITIVE_INFINITY,

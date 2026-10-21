@@ -69,7 +69,7 @@ The library's foundational push-button: six variants, three sizes, a loading sta
 | `children`  | `Snippet`                                                                       | —           | The button's label / content                                                   |
 | `class`     | `string`                                                                        | —           | Additional CSS classes                                                         |
 | `ref`       | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                                     |
-| `sound`     | `boolean`                                                                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound           |
+| `sound`     | `boolean`                                                                       | `false`     | Plays `hover` (mouse/pen) and `press` (click) cues, once sound is enabled      |
 
 ## Theming
 
@@ -85,7 +85,7 @@ Five of the six variants read the theme's own `primary` / `secondary` / `border`
 
 ## Sound
 
-Set `sound` to play the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+Set `sound` to play the `hover` cue on mouse/pen pointer enter and the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
 
 ```svelte
 <Button sound onclick={save}>Save changes</Button>
