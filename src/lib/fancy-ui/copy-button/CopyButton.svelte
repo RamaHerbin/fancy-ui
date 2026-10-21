@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import type { ButtonVariant, ButtonSize } from "../button/types.js";
 
 	export interface CopyButtonProps {
@@ -39,7 +40,16 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/** Fires on activation, right after the copy starts. Never called while `disabled`. */
+		onclick?: (event: MouseEvent) => void;
 	}
+
+	/**
+	 * `CopyButtonProps` plus every native attribute and listener of the
+	 * `<button>` it renders. Own props win.
+	 */
+	export type CopyButtonAttributes = CopyButtonProps &
+		Omit<HTMLButtonAttributes, keyof CopyButtonProps | "type">;
 </script>
 
 <script lang="ts">
@@ -66,7 +76,9 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
-	}: CopyButtonProps = $props();
+		onclick,
+		...restProps
+	}: CopyButtonAttributes = $props();
 
 	// Read once, on purpose: `createCopy` takes its reset delay as a constructor
 	// argument, not a reactive input, so `resetMs` is not meant to be retuned
@@ -118,7 +130,7 @@
 		)
 	);
 
-	async function handleClick() {
+	async function handleClick(event: MouseEvent) {
 		// This click is the only user gesture in the interaction, and the outcome
 		// cue below plays after an await: on a reload with sound already enabled
 		// no AudioContext exists yet, and by then the transient activation may be
@@ -136,7 +148,11 @@
 		// missing clipboard API — that outcome is reported to the caller honestly,
 		// not swallowed into a silent no-op, and is now shown and announced too.
 		const mine = ++attempt;
-		const ok = await copyState.copy(value);
+		const pending = copyState.copy(value);
+		// The consumer click runs now, while the event is still live, so its
+		// `preventDefault` / `stopPropagation` mean something.
+		onclick?.(event);
+		const ok = await pending;
 		// `onCopy` still fires for every attempt, stale or not — it reports what
 		// that call did, matching `copy()`'s own honest return. Only the visible
 		// and audible cues, which describe the button's CURRENT state, are
@@ -222,6 +238,8 @@
 
 <Button
 	bind:ref
+	{...restProps as Record<string, unknown>}
+	type="button"
 	{variant}
 	{size}
 	{disabled}
