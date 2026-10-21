@@ -64,6 +64,20 @@ small demo reads bigger without mimicking fullscreen 1:1 — capped at ~30% of
 the container height (`scaleRadiusForContainer` in `fluid-shared.ts`).
 Fullscreen and viewport-sized containers are unaffected.
 
+### Reduced motion
+
+`prefers-reduced-motion: reduce` turns the simulation off entirely: no engine
+is created, so no animation loop runs, no pointer or touch listeners are
+attached and no WebGL/WebGPU context is acquired. The layer renders as an
+empty, transparent canvas with `pointer-events: none`, so the content under it
+stays fully usable.
+
+The preference is followed live, not only at mount. Switching reduce on
+mid-session destroys the running engine (loop cancelled, listeners removed,
+GPU resources released) and swaps in a blank canvas, so no frozen frame stays
+on screen. Switching it off starts a fresh simulation on a new canvas, without
+remounting the component; `onReady` fires again with the new handle.
+
 ### Event Handling
 
 - Window-level mouse/touch events for full-screen tracking

@@ -20,6 +20,7 @@ export interface FluidCursorProps extends Partial<
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { createReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import { createFluidCursor, type FluidCursorEngine } from "./fluid-cursor-core.js";
 
@@ -70,9 +71,37 @@ const canvasRef = useTemplateRef<HTMLCanvasElement>("canvas");
 /** Plain closure state on purpose: nothing rendered depends on the engine. */
 let engine: FluidCursorEngine | null = null;
 
-onMounted(() => {
+// `prefers-reduced-motion: reduce` means no simulation at all: no engine,
+// so no rAF loop, no pointer listeners and no GPU context. The layer stays
+// as an empty, pointer-transparent canvas. A live change of the preference
+// stops or starts the simulation without a remount.
+const reducedMotion = createReducedMotion();
+let stopReducedMotion: (() => void) | null = null;
+/** The element the running engine was created on. */
+let engineCanvas: HTMLCanvasElement | null = null;
+
+function stopEngine() {
+	engine?.destroy();
+	engine = null;
+	engineCanvas = null;
+}
+
+/**
+ * Bring the engine in line with the preference and the current canvas. The
+ * canvas is keyed on the preference in the template, so each start gets a
+ * fresh element (a destroyed engine has lost its context, which the same
+ * element cannot hand out again) and a stop leaves a blank one, not a frozen
+ * frame. Props are read at call time, so a restart uses their current values.
+ */
+function syncEngine() {
 	const canvas = canvasRef.value;
-	if (!canvas) return;
+	if (reducedMotion.current || !canvas) {
+		stopEngine();
+		return;
+	}
+	if (engine && engineCanvas === canvas) return;
+	stopEngine();
+	engineCanvas = canvas;
 	engine = createFluidCursor(
 		{ canvas },
 		{
@@ -109,11 +138,27 @@ onMounted(() => {
 			dev: DEV,
 		}
 	);
+}
+
+onMounted(() => {
+	stopReducedMotion = reducedMotion.start();
+	syncEngine();
 });
 
+// No `immediate`: onMounted owns the first sync. `post` so the keyed canvas
+// has been swapped (and the template ref updated) before the engine follows.
+watch(
+	[() => reducedMotion.current, canvasRef],
+	() => {
+		syncEngine();
+	},
+	{ flush: "post" }
+);
+
 onBeforeUnmount(() => {
-	engine?.destroy();
-	engine = null;
+	stopReducedMotion?.();
+	stopReducedMotion = null;
+	stopEngine();
 });
 
 // The running engine re-reads these six, exactly as the prop getters it
@@ -140,6 +185,7 @@ watch(
 		"
 	>
 		<canvas
+			:key="reducedMotion.current ? 'static' : 'live'"
 			ref="canvas"
 			:class="contained ? 'block h-full w-full' : 'block h-screen w-screen'"
 		></canvas>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import {
 	type ColorRGB,
@@ -122,6 +123,12 @@ export function FluidCursor({
 	});
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	// `prefers-reduced-motion: reduce` means no simulation at all: no engine,
+	// so no rAF loop, no pointer listeners and no GPU objects. The layer stays
+	// as an empty, pointer-transparent canvas. A live change of the preference
+	// stops or starts the simulation without a remount.
+	const reducedMotion = useReducedMotion();
 
 	// Singleton registry and monotonic mount counter, so an async (WebGPU)
 	// startup that finishes out of order cannot let an older instance destroy
@@ -261,9 +268,12 @@ export function FluidCursor({
 
 	// Mount-only, exactly like the Svelte `onMount`: every simulation prop is
 	// captured here and a later change is ignored until the component is
-	// re-keyed. Empty deps on purpose — re-running would tear down the GL
-	// context and restart the fluid on every unrelated re-render.
+	// re-keyed. The reduced-motion preference is the one dependency: it stops
+	// the fluid (reduce on) or starts it afresh (reduce off). Re-running on
+	// anything else would tear down the GL context and restart the fluid on
+	// every unrelated re-render.
 	useEffect(() => {
+		if (reducedMotion) return;
 		const canvasNode = canvasRef.current;
 		if (!canvasNode) return;
 		// Re-bound with an explicit non-null type: `startWebGl` below is a
@@ -1910,7 +1920,7 @@ export function FluidCursor({
 
 			return dispose;
 		}
-	}, []);
+	}, [reducedMotion]);
 
 	return (
 		<div
@@ -1921,7 +1931,10 @@ export function FluidCursor({
 				className
 			)}
 		>
+			{/* Keyed on the preference: a stop leaves a blank canvas rather than
+			    the last drawn frame, and a restart gets a fresh element. */}
 			<canvas
+				key={reducedMotion ? "static" : "live"}
 				ref={canvasRef}
 				className={contained ? "block h-full w-full" : "block h-screen w-screen"}
 			/>
