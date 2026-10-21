@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import { searchComponents, getAllComponents } from "$lib/fancy-ui/registry.js";
+	import { getAllComponents } from "$lib/fancy-ui/registry.js";
+	import { NO_RESULT_SUGGESTIONS, rankComponents } from "$lib/docs/search-rank.js";
 	import { t, tCategory } from "$lib/stores";
 
 	interface Props {
@@ -63,7 +64,7 @@
 			.filter((p) => t(p.nameKey).toLowerCase().includes(q) || p.slug.includes(q))
 			.map(pageResult);
 
-		const components = searchComponents(q)
+		const components = rankComponents(q)
 			.slice(0, 10)
 			.map((c) => ({
 				name: c.name,
@@ -173,10 +174,28 @@
 			<!-- Results -->
 			<div class="max-h-[300px] overflow-y-auto p-2">
 				{#if results.length === 0}
-					<p class="text-muted-foreground px-3 py-6 text-center text-sm">{t("search.noResults")}</p>
+					<div class="px-3 py-6 text-center" data-testid="search-no-results">
+						<p class="text-muted-foreground text-sm">{t("search.noResults")}</p>
+						<p class="text-muted-foreground mt-3 text-xs">{t("search.tryInstead")}</p>
+						<div class="mt-2 flex flex-wrap justify-center gap-2">
+							{#each NO_RESULT_SUGGESTIONS as suggestion (suggestion)}
+								<button
+									type="button"
+									class="border-border hover:bg-muted min-h-11 rounded-full border px-4 text-sm"
+									onclick={() => {
+										query = suggestion;
+										inputEl?.focus();
+									}}
+								>
+									{suggestion}
+								</button>
+							{/each}
+						</div>
+					</div>
 				{:else}
 					{#each results as result, i}
 						<button
+							data-result={result.type}
 							onclick={() => navigate(result.href)}
 							onmouseenter={() => (selectedIndex = i)}
 							class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors {selectedIndex ===

@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "جستجوی کامپوننت‌ها و صفحه‌ها...",
 	"search.noResults": "نتیجه‌ای یافت نشد",
 	"search.esc": "ESC",
+	"search.tryInstead": "به‌جای آن یکی از این جستجوها را امتحان کنید:",
+	"jobs.heading": "مرور بر اساس نیاز شما",
+	"jobs.feedback": "بازخورد دادن",
+	"jobs.input": "دریافت ورودی",
+	"jobs.attention": "هدایت توجه",
+	"jobs.navigate": "پیمایش",
+	"jobs.progress": "نمایش پیشرفت",
+	"jobs.surprise": "شگفت‌زده کردن",
 
 	// Component page
 	"comp.preview": "پیش‌نمایش",

@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "컴포넌트 및 페이지 검색...",
 	"search.noResults": "검색 결과가 없습니다",
 	"search.esc": "ESC",
+	"search.tryInstead": "대신 이 검색어를 사용해 보세요:",
+	"jobs.heading": "필요한 것으로 둘러보기",
+	"jobs.feedback": "피드백 주기",
+	"jobs.input": "입력 받기",
+	"jobs.attention": "시선 유도하기",
+	"jobs.navigate": "내비게이션",
+	"jobs.progress": "진행 상황 보여주기",
+	"jobs.surprise": "깜짝 놀라게 하기",
 
 	// Component page
 	"comp.preview": "미리보기",

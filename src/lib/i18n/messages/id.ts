@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "Cari komponen dan halaman...",
 	"search.noResults": "Tidak ada hasil ditemukan",
 	"search.esc": "ESC",
+	"search.tryInstead": "Coba salah satu pencarian ini:",
+	"jobs.heading": "Jelajahi sesuai kebutuhan Anda",
+	"jobs.feedback": "Beri umpan balik",
+	"jobs.input": "Kumpulkan input",
+	"jobs.attention": "Arahkan perhatian",
+	"jobs.navigate": "Navigasi",
+	"jobs.progress": "Tampilkan progres",
+	"jobs.surprise": "Beri kejutan",
 
 	// Component page
 	"comp.preview": "Pratinjau",
