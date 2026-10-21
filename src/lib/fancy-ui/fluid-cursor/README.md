@@ -68,9 +68,11 @@ Fullscreen and viewport-sized containers are unaffected.
 
 `prefers-reduced-motion: reduce` turns the simulation off entirely: no engine
 is created, so no animation loop runs, no pointer or touch listeners are
-attached and no WebGL/WebGPU context is acquired. The layer renders as an
-empty, transparent canvas with `pointer-events: none`, so the content under it
-stays fully usable.
+attached and no WebGL/WebGPU context is acquired. This also holds on a
+server-rendered page: the preference is read from the browser before the
+engine starts at hydration, so no simulation is created and then thrown away.
+The layer renders as an empty, transparent canvas with `pointer-events: none`,
+so the content under it stays fully usable.
 
 The preference is followed live, not only at mount. Switching reduce on
 mid-session destroys the running engine (loop cancelled, listeners removed,

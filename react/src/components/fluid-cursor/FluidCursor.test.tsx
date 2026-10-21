@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import { act, render, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { FluidCursor } from "./FluidCursor.js";
 
 describe("FluidCursor", () => {
@@ -482,5 +484,62 @@ describe("reduced motion", () => {
 		expect(frames.pending.size).toBeGreaterThan(0);
 		const fake = contexts.get(container.querySelector("canvas")!);
 		expect(fake && countLive(fake)).toBeGreaterThan(0);
+	});
+});
+
+describe("reduced motion on a server-rendered, hydrated page", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
+
+	// During hydration the reduced-motion hook answers with its server value
+	// (`false`) and only learns the real one in a passive effect that runs in
+	// the same flush as the mount effect. The engine must not start in that
+	// window when the preference is already set.
+	async function hydrate(element: React.ReactElement) {
+		const html = renderToString(element);
+		stubReducedMotion(true);
+		const contexts = stubWebGlContext();
+		const frames = trackFrames();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const container = document.createElement("div");
+		container.innerHTML = html;
+		document.body.appendChild(container);
+		const root = await act(async () => hydrateRoot(container, element));
+		return {
+			contexts,
+			frames,
+			addSpy,
+			async dispose() {
+				await act(async () => root.unmount());
+				container.remove();
+			},
+		};
+	}
+
+	it("starts no WebGL engine, loop or listeners and never calls onReady", async () => {
+		const onReady = vi.fn();
+		const page = await hydrate(<FluidCursor onReady={onReady} />);
+		expect(page.frames.scheduled()).toBe(0);
+		expect(page.contexts.size).toBe(0);
+		expect(onReady).not.toHaveBeenCalled();
+		expect(page.addSpy.mock.calls.some(([event]) => event === "mousemove")).toBe(false);
+		await page.dispose();
+	});
+
+	it("does not ask for a WebGPU adapter on the hdr path", async () => {
+		const requestAdapter = vi.fn(async () => null);
+		vi.stubGlobal("navigator", { ...navigator, gpu: { requestAdapter } });
+		const onReady = vi.fn();
+		const page = await hydrate(<FluidCursor hdr contained onReady={onReady} />);
+		await act(async () => {
+			await Promise.resolve();
+		});
+		expect(requestAdapter).not.toHaveBeenCalled();
+		expect(page.frames.scheduled()).toBe(0);
+		expect(page.contexts.size).toBe(0);
+		expect(onReady).not.toHaveBeenCalled();
+		await page.dispose();
 	});
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { REDUCED_MOTION_QUERY, useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import {
 	type ColorRGB,
@@ -66,6 +66,15 @@ export interface FluidCursorProps {
 	 * without a real cursor.
 	 */
 	onReady?: (handle: FluidCursorHandle) => void;
+}
+
+/** The reduced-motion preference as the browser reports it right now. */
+function prefersReducedMotionNow(): boolean {
+	return (
+		typeof window !== "undefined" &&
+		typeof window.matchMedia === "function" &&
+		window.matchMedia(REDUCED_MOTION_QUERY).matches
+	);
 }
 
 export function FluidCursor({
@@ -272,8 +281,14 @@ export function FluidCursor({
 	// the fluid (reduce on) or starts it afresh (reduce off). Re-running on
 	// anything else would tear down the GL context and restart the fluid on
 	// every unrelated re-render.
+	//
+	// The live media state is read as well: on a hydrated page the hook still
+	// answers with its server value (`false`) during this first passive flush,
+	// and only learns the real preference in its own effect, which schedules a
+	// re-render. Without this read, reduce-on would start the engine once
+	// (context, frame, listeners, onReady) just to tear it down again.
 	useEffect(() => {
-		if (reducedMotion) return;
+		if (reducedMotion || prefersReducedMotionNow()) return;
 		const canvasNode = canvasRef.current;
 		if (!canvasNode) return;
 		// Re-bound with an explicit non-null type: `startWebGl` below is a
