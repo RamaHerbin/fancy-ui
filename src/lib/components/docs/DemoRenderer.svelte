@@ -212,6 +212,8 @@
 <script lang="ts">
 	import { createSkinState, t } from "$lib/stores";
 	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
+	import PreviewBoundary from "./PreviewBoundary.svelte";
+	import PreviewError from "./PreviewError.svelte";
 
 	interface Props {
 		slug: string;
@@ -227,6 +229,14 @@
 	let ExampleComponent = $state<any>(null);
 	let loading = $state(true);
 	let error = $state("");
+	/** The preview's module was found but its import rejected (a broken or missing chunk). */
+	let importFailed = $state(false);
+
+	// A failed import is a real bug in the docs build: show it and log the real error,
+	// never swallow it.
+	function reportImport(path: string, e: unknown) {
+		console.error(`[docs] preview module "${path}" failed to load`, e);
+	}
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
 	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/*.svelte");
@@ -244,6 +254,7 @@
 		ExampleComponent = null;
 		loading = true;
 		error = "";
+		importFailed = false;
 
 		if (skipDirectRender.has(currentSlug)) {
 			// Load the skin/slug preview override (if any), else BasicUsage
@@ -257,8 +268,10 @@
 							loading = false;
 						}
 					})
-					.catch(() => {
+					.catch((e) => {
+						reportImport(exPath, e);
 						if (slug === currentSlug) {
+							importFailed = true;
 							loading = false;
 						}
 					});
@@ -271,6 +284,7 @@
 		const path = `/src/lib/fancy-ui/${currentSlug}/index.ts`;
 		const loader = modules[path];
 		if (!loader) {
+			console.error(`[docs] no preview module for "${currentSlug}"`);
 			error = `No module found for "${currentSlug}"`;
 			loading = false;
 			return;
@@ -284,8 +298,9 @@
 				}
 			})
 			.catch((e) => {
+				reportImport(path, e);
 				if (slug === currentSlug) {
-					error = `Failed to load: ${e}`;
+					importFailed = true;
 					loading = false;
 				}
 			});
@@ -389,16 +404,25 @@
 	<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 		{error}
 	</div>
+{:else if importFailed}
+	<PreviewError kind="import" />
 {:else if skipDirectRender.has(slug)}
 	{#if ExampleComponent}
-		{#if isRetro && slug === "apple-card-carousel"}
-			<div class="relative w-full" bind:this={carouselWrap}>
-				<ExampleComponent />
-				<RetroCarouselNav target={() => carouselWrap?.querySelector(".overflow-x-auto") ?? null} />
-			</div>
-		{:else}
-			<ExampleComponent />
-		{/if}
+		<!-- Keyed so a new slug gets a fresh boundary instead of inheriting a failed one. -->
+		{#key slug}
+			<PreviewBoundary source={slug}>
+				{#if isRetro && slug === "apple-card-carousel"}
+					<div class="relative w-full" bind:this={carouselWrap}>
+						<ExampleComponent />
+						<RetroCarouselNav
+							target={() => carouselWrap?.querySelector(".overflow-x-auto") ?? null}
+						/>
+					</div>
+				{:else}
+					<ExampleComponent />
+				{/if}
+			</PreviewBoundary>
+		{/key}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			{t("demo.noPreview")}
@@ -478,13 +502,18 @@
 				<Comp {...props} />
 			{/if}
 		{/snippet}
-		{#if previewBox[slug]}
-			<div data-demo-stage class={previewBox[slug]}>
-				{@render demo()}
-			</div>
-		{:else}
-			{@render demo()}
-		{/if}
+		<!-- Keyed so a new slug gets a fresh boundary instead of inheriting a failed one. -->
+		{#key slug}
+			<PreviewBoundary source={slug}>
+				{#if previewBox[slug]}
+					<div data-demo-stage class={previewBox[slug]}>
+						{@render demo()}
+					</div>
+				{:else}
+					{@render demo()}
+				{/if}
+			</PreviewBoundary>
+		{/key}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			{t("demo.notFound")}
