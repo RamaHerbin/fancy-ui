@@ -44,6 +44,23 @@ The loop stops itself when nothing moves: no pointer, no remaining decay, no fli
 
 With `prefers-reduced-motion: reduce` there is no animation loop at all. The field is painted once at mount (halo parked at the drift origin when `idle="drift"`), every `pointermove` repaints instantly at the pointer, and `pointerleave` repaints the idle frame. No drift, no flicker, no lag.
 
+## HDR
+
+A 2D canvas stops at SDR white. With `hdr` (on by default), MosaicGlow also
+starts `mosaic-glow-hdr.ts`, a framework-free module shared by the three
+packages: a WebGPU canvas laid over the mosaic (`rgba16float`, `display-p3`,
+`toneMapping: { mode: "extended" }`). After every painted frame the engine hands
+it the light field through `onFrame` (per-tile heat, grid geometry, the halo),
+and a single full-screen pass adds only the light above white: tiles past half
+heat ramp toward 4.9× SDR white (≈1000 nits against a 203-nit reference), and
+the halo gets a hot core. Resting and ambient tiles get nothing, so the SDR
+picture is untouched.
+
+It starts only when extended tone mapping sticks AND the display reports
+`(dynamic-range: high)`; anywhere else nothing is created. The host gets
+`data-hdr` while it runs. A layer that throws is dropped by the engine; the
+mosaic keeps animating.
+
 ## Design decisions
 
 - **Canvas 2D, not DOM tiles** — 1 200 tiles at 800×600 is one `fillRect` loop, not 1 200 elements with transitions.

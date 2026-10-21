@@ -21,8 +21,10 @@ import {
 	updateTiles,
 	DEFAULT_COLOR,
 	type Halo,
+	type MosaicGlowFrame,
 	type MosaicGrid,
 } from "./mosaic-glow-core.js";
+import { startMosaicGlowHdr } from "./mosaic-glow-hdr.js";
 
 export type MosaicGlowIdle = "drift" | "none";
 
@@ -36,7 +38,10 @@ export type MosaicGlowIdle = "drift" | "none";
  * scattering of faint tiles stays visible outside the halo. With nobody
  * pointing, the halo drifts on its own.
  */
-export interface MosaicGlowProps extends Omit<HTMLAttributes<HTMLDivElement>, "color" | "children"> {
+export interface MosaicGlowProps extends Omit<
+	HTMLAttributes<HTMLDivElement>,
+	"color" | "children"
+> {
 	/** Additional classes on the host */
 	className?: string;
 	/** Content rendered above the canvas — give the host a height */
@@ -69,6 +74,12 @@ export interface MosaicGlowProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 	interactive?: boolean;
 	/** Seed for the per-tile randomness — same seed, same mosaic */
 	seed?: number;
+	/**
+	 * On a display that reports HDR, add the light above SDR white in a WebGPU
+	 * layer with extended tone mapping: the hottest tiles peak around 1000
+	 * nits and the halo gets a hot core. Elsewhere the mosaic is unchanged.
+	 */
+	hdr?: boolean;
 }
 
 /** Wait after the pointer leaves before the idle drift takes over (ms). */
@@ -116,6 +127,8 @@ interface MosaicMachine {
 	dirty: boolean;
 	visible: boolean;
 	reducedMotion: boolean;
+	/** Light-layer callback, called after every painted frame. */
+	onFrame: ((frame: MosaicGlowFrame) => void) | null;
 }
 
 function createMachine(): MosaicMachine {
@@ -146,6 +159,7 @@ function createMachine(): MosaicMachine {
 		dirty: true,
 		visible: true,
 		reducedMotion: false,
+		onFrame: null,
 	};
 }
 
@@ -198,6 +212,7 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 		idle = "drift",
 		interactive = true,
 		seed = 1,
+		hdr = true,
 		style,
 		...restProps
 	},
@@ -243,6 +258,10 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 	});
 
 	const [reducedMotion, setReducedMotion] = useState(false);
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	const [hdrOn, setHdrOn] = useState(false);
+	/** Set once the draw runtime exists, so the HDR effect can attach to it. */
+	const [engineReady, setEngineReady] = useState(false);
 
 	// --- mount: context, observers, reduced motion -----------------------------
 
@@ -480,9 +499,35 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 			}
 
 			c.globalCompositeOperation = "source-over";
+
+			if (m.onFrame) {
+				try {
+					m.onFrame({
+						heat: g.heat,
+						cols,
+						rows,
+						pitch: m.pitchDev,
+						tile: m.tileDev,
+						width: m.w,
+						height: m.h,
+						halo: {
+							x: m.sx,
+							y: m.sy,
+							r: (halo ? halo.r : p.radiusC * m.dpr) * 1.15,
+							fade: m.haloFade,
+						},
+						intensity: p.intensityC,
+						color: p.color,
+					});
+				} catch (error) {
+					m.onFrame = null;
+					console.warn("[MosaicGlow] light layer disabled:", error);
+				}
+			}
 		}
 
 		runtimeRef.current = { resize, requestFrame, stopLoop, drawStatic, initialHalo };
+		setEngineReady(true);
 
 		let mq: MediaQueryList | undefined;
 		let onMq: ((e: MediaQueryListEvent) => void) | undefined;
@@ -534,6 +579,7 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 			io?.disconnect();
 			if (mq && onMq) mq.removeEventListener("change", onMq);
 			runtimeRef.current = null;
+			setEngineReady(false);
 			m.ctx = null;
 			m.grid = null;
 			m.glassLayer = null;
@@ -633,11 +679,50 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 		};
 	}, [host, interactive, machine, live]);
 
+	// HDR light: async WebGPU start; resolves to null off HDR displays.
+	useEffect(() => {
+		if (!hdrCanvas || !engineReady) return;
+		const m = machine;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		void startMosaicGlowHdr(hdrCanvas).then((light) => {
+			const runtime = runtimeRef.current;
+			if (!light) return;
+			if (cancelled || !runtime) {
+				light.destroy();
+				return;
+			}
+			// A light layer attached to a settled or static mosaic needs one frame.
+			const repaint = () => {
+				m.dirty = true;
+				if (m.reducedMotion)
+					runtime.drawStatic(
+						m.haloFade > 0 ? { x: m.sx, y: m.sy, r: live.current.radiusC * m.dpr } : null
+					);
+				else runtime.requestFrame();
+			};
+			m.onFrame = (frame) => light.render(frame);
+			repaint();
+			setHdrOn(true);
+			stop = () => {
+				m.onFrame = null;
+				light.destroy();
+				repaint();
+				setHdrOn(false);
+			};
+		});
+		return () => {
+			cancelled = true;
+			stop?.();
+		};
+	}, [hdrCanvas, engineReady, machine, live]);
+
 	return (
 		<div
 			ref={composedHostRef}
 			className={cn("mosaic-glow relative overflow-hidden", className)}
 			style={{ ...style, backgroundColor: background }}
+			data-hdr={hdrOn ? "" : undefined}
 			{...restProps}
 		>
 			<canvas
@@ -645,6 +730,13 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 				className="pointer-events-none absolute inset-0 block h-full w-full"
 				aria-hidden="true"
 			/>
+			{hdr ? (
+				<canvas
+					ref={hdrCanvasRef}
+					className="mosaic-glow__hdr pointer-events-none absolute inset-0 block h-full w-full"
+					aria-hidden="true"
+				/>
+			) : null}
 			{children != null ? (
 				<div className="mosaic-glow__content relative z-[1] h-full w-full">{children}</div>
 			) : null}

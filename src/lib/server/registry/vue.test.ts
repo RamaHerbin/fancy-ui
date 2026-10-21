@@ -286,9 +286,9 @@ describe("buildRegistry with the vue stack on the real vue/src tree", () => {
 		).toEqual(["internals", "internals-dom", "internals-motion", "sound", "utils"]);
 	});
 
-	// Observed on 2026-10-21: 486 shipped files. The gate pins the exact number.
-	it("ships 486 files, every one registry:ui under the steering path, no target", () => {
-		expect(all).toHaveLength(486);
+	// Observed on 2026-10-21: 487 shipped files. The gate pins the exact number.
+	it("ships 487 files, every one registry:ui under the steering path, no target", () => {
+		expect(all).toHaveLength(487);
 		for (const f of all) {
 			expect(f.type, f.path).toBe("registry:ui");
 			expect(f.path.startsWith(VUE_PATH_PREFIX), f.path).toBe(true);
