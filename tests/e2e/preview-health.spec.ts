@@ -124,6 +124,8 @@ interface CanvasInfo {
 
 interface StageProbe {
 	text: string;
+	/** `data-preview-error` of the docs error state inside the stage ("render" | "import"), or null. */
+	errorState: string | null;
 	children: number;
 	visible: number;
 	biggest: string;
@@ -289,6 +291,8 @@ function probeStage(stage: Element, minVisible: number): StageProbe {
 
 	return {
 		text: (stage as HTMLElement).innerText ?? "",
+		errorState:
+			stage.querySelector("[data-preview-error]")?.getAttribute("data-preview-error") ?? null,
 		children: stage.children.length,
 		visible,
 		biggest: `${biggest.tag || "none"} ${Math.round(biggest.width)}×${Math.round(biggest.height)}`,
@@ -401,6 +405,14 @@ function classifyStage(
 	ink: InkReading,
 	quiet: boolean
 ): { class: FailureClass; detail: string } | null {
+	// The docs' own error state (PreviewError): a boundary caught a render crash, or the
+	// demo's module failed to import.
+	if (probe.errorState === "render") {
+		return { class: "CRASH", detail: "stage shows the preview error state (render threw)" };
+	}
+	if (probe.errorState === "import") {
+		return { class: "RESOLVE", detail: "stage shows the preview error state (import failed)" };
+	}
 	const resolveError = probe.text.match(RESOLVE_ERROR);
 	if (resolveError) return { class: "RESOLVE", detail: `stage shows "${resolveError[0]}"` };
 	if (probe.children === 0) return { class: "RESOLVE", detail: "stage never received an element" };
