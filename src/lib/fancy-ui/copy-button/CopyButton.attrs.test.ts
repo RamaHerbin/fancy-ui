@@ -38,15 +38,17 @@ describe("CopyButton native attributes", () => {
 		expect(onblur).toHaveBeenCalledTimes(1);
 	});
 
-	it("calls the consumer click once, after the copy has been written", async () => {
+	it("calls the consumer click once, synchronously, with the copy already started", async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined);
 		stubClipboard(writeText);
+		let writesSeen = -1;
 		const onclick = vi.fn(() => {
-			expect(writeText).toHaveBeenCalledTimes(1);
+			writesSeen = writeText.mock.calls.length;
 		});
 		const { container } = render(CopyButton, { props: { value: "x", onclick } });
 		await fireEvent.click(button(container));
-		await vi.waitFor(() => expect(onclick).toHaveBeenCalledTimes(1));
+		expect(onclick).toHaveBeenCalledTimes(1);
+		expect(writesSeen).toBe(1);
 	});
 
 	it("does not call the consumer click while disabled", async () => {

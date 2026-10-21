@@ -40,7 +40,7 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
-		/** Fires on activation, after the copy settles. Never called while `disabled`. */
+		/** Fires on activation, right after the copy starts. Never called while `disabled`. */
 		onclick?: (event: MouseEvent) => void;
 	}
 
@@ -148,7 +148,11 @@
 		// missing clipboard API — that outcome is reported to the caller honestly,
 		// not swallowed into a silent no-op, and is now shown and announced too.
 		const mine = ++attempt;
-		const ok = await copyState.copy(value);
+		const pending = copyState.copy(value);
+		// The consumer click runs now, while the event is still live, so its
+		// `preventDefault` / `stopPropagation` mean something.
+		onclick?.(event);
+		const ok = await pending;
 		// `onCopy` still fires for every attempt, stale or not — it reports what
 		// that call did, matching `copy()`'s own honest return. Only the visible
 		// and audible cues, which describe the button's CURRENT state, are
@@ -158,7 +162,6 @@
 			if (sound) soundFx.play(ok ? "copy" : "error");
 		}
 		onCopy?.(value, ok);
-		onclick?.(event);
 	}
 
 	// StatusMorph's `resetAfter` is what normally walks `morphState` back to

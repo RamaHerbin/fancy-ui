@@ -24,7 +24,7 @@ export interface CopyButtonProps {
 	/** Called with the value and whether the write actually succeeded */
 	onCopy?: (value: string, ok: boolean) => void;
 	/**
-	 * Fires on activation, after the copy settles. Never called while
+	 * Fires on activation, right after the copy starts. Never called while
 	 * `disabled`. `@click` reaches it.
 	 */
 	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
@@ -112,7 +112,7 @@ const slots = useSlots();
 
 // Native attributes and listeners ride through to Button, which lands them on
 // its `<button>`. `onClick` is a declared prop (above) so it can run after the
-// copy settles rather than merging into Button's own listener.
+// copy starts rather than merging into Button's own listener.
 const attrs = useAttrs();
 
 // The element Button itself published. Read through Button's own exposed `ref`
@@ -203,7 +203,10 @@ async function handleClick(event: MouseEvent) {
 	// change while the clipboard write is pending would otherwise make `onCopy`
 	// report a different string than the one actually copied.
 	const attempted = value;
-	const ok = await copyState.copy(attempted);
+	const pending = copyState.copy(attempted);
+	// The consumer click runs now, while the event is still live.
+	callListener(onClick, event);
+	const ok = await pending;
 	// `onCopy` still fires for every attempt, stale or not — it reports what
 	// that call did, matching `copy()`'s own honest return. Only the visible and
 	// audible cues, which describe the button's CURRENT state, are dropped when
@@ -213,7 +216,6 @@ async function handleClick(event: MouseEvent) {
 		if (sound) soundFx.play(ok ? "copy" : "error");
 	}
 	onCopy?.(attempted, ok);
-	callListener(onClick, event);
 }
 
 // StatusMorph's `resetAfter` is what normally walks `morphState` back to

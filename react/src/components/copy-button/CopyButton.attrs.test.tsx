@@ -1,4 +1,4 @@
-import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { render, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CopyButton } from "./CopyButton.js";
 
@@ -38,15 +38,17 @@ describe("CopyButton native attributes", () => {
 		expect(onBlur).toHaveBeenCalledTimes(1);
 	});
 
-	it("calls the consumer click once, after the copy has been written", async () => {
+	it("calls the consumer click once, synchronously, with the copy already started", async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined);
 		stubClipboard(writeText);
+		let writesSeen = -1;
 		const onClick = vi.fn(() => {
-			expect(writeText).toHaveBeenCalledTimes(1);
+			writesSeen = writeText.mock.calls.length;
 		});
 		const { container } = render(<CopyButton value="x" onClick={onClick} />);
 		fireEvent.click(button(container));
-		await waitFor(() => expect(onClick).toHaveBeenCalledTimes(1));
+		expect(onClick).toHaveBeenCalledTimes(1);
+		expect(writesSeen).toBe(1);
 	});
 
 	it("does not call the consumer click while disabled", () => {

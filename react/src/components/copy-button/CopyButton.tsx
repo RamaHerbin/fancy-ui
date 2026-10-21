@@ -48,7 +48,7 @@ export interface CopyButtonProps extends Omit<
 	 * so the button keeps an accessible name.
 	 */
 	children?: ReactNode;
-	/** Fires on activation, after the copy settles. Never called while `disabled`. */
+	/** Fires on activation, right after the copy starts. Never called while `disabled`. */
 	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/** Additional CSS classes */
 	className?: string;
@@ -202,7 +202,10 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			// honestly, not swallowed into a silent no-op, and is now shown and
 			// announced too.
 			const mine = ++attempt.current;
-			const ok = await copyState.copy(value);
+			const pending = copyState.copy(value);
+			// The consumer click runs now, while the event is still live.
+			onClick?.(event);
+			const ok = await pending;
 			// `onCopy` still fires for every attempt, stale or not — it reports
 			// what that call did, matching `copy()`'s own honest return. Only the
 			// visible and audible cues, which describe the button's CURRENT state,
@@ -212,7 +215,6 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 				if (sound) soundFx.play(ok ? "copy" : "error");
 			}
 			onCopy?.(value, ok);
-			onClick?.(event);
 		}
 
 		// StatusMorph's `resetAfter` is what normally walks `morphState` back to

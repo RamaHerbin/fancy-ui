@@ -71,7 +71,7 @@ The library's foundational push-button: six variants, three sizes, a loading sta
 | `ref`       | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                                     |
 | `sound`     | `boolean`                                                                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound           |
 
-Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded to the rendered `<button>`, or to the `<a>` once `href` is set. They are spread first: `disabled`, `loading`, the inert-link `tabindex` / `aria-disabled` and the button `type` always win, and `onclick` stays behind the activation guard.
+Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded to the rendered `<button>`, or to the `<a>` once `href` is set. They are spread first: `disabled`, `loading`, the inert-link `tabindex` / `aria-disabled` and the button `type` always win, and `onclick` stays behind the activation guard. Capture-phase listeners (`onclickcapture`) are not gated by `disabled` / `loading` (the Vue port strips them; a native disabled `<button>` blocks real clicks anyway).
 
 ## Theming
 

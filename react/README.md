@@ -291,7 +291,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
   `<button>`, or the `<a>` once `href` is set, ahead of the attributes the
   component manages: `disabled`, `loading`, the inert-link `tabIndex` and
   `aria-disabled`, and the button `type` always win. `onClick` runs after the
-  guard (and, on `CopyButton`, after the copy settles), exactly once.
+  guard (and, on `CopyButton`, right after the copy starts), exactly once.
 - **`RainbowButton` accepts no extra DOM props** (`onClick` included) — the
   Svelte source reads only its declared props and spreads nothing, and its own
   README example inherits that bug. Ported as-is per the fidelity law; fix it
