@@ -22,16 +22,10 @@ export interface FluidCursorProps extends Partial<
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
+import { isDev as DEV } from "../../internals/env.js";
 import { createFluidCursor, type FluidCursorEngine } from "./fluid-cursor-core.js";
 
 defineOptions({ name: "FluidCursor", inheritAttrs: false });
-
-/**
- * The bundler's dev flag, read through a local cast: the package's tsconfig
- * does not pull in the bundler client types, so `import.meta.env` is untyped
- * here. Statically replaced at build time exactly like a direct read.
- */
-const DEV = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV ?? false;
 
 const {
 	simResolution = 128,

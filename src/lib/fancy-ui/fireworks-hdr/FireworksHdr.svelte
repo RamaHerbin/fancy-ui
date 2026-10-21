@@ -56,6 +56,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { isDev } from "../_internals/env.js";
 	import { onMount } from "svelte";
 	import { EXPOSURE_AMBIENT } from "./fireworks-shared.js";
 	import { createFireworksHdr, type FireworksHdrEngine } from "./fireworks-hdr-core.js";
@@ -127,7 +128,7 @@
 				quality,
 				ambientShells,
 				reducedMotion: prefersReduced,
-				debug: import.meta.env.DEV,
+				debug: isDev,
 				onReady,
 				onLost,
 				// Any teardown — unmount, the handle's `cleanup()`, or the give-up

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { untrack } from "svelte";
+	import { isDev } from "../_internals/env.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import {
 		createFluidCursor,
@@ -109,7 +110,7 @@
 					ditherPixelSize,
 					ditherLevels,
 					onReady,
-					dev: import.meta.env.DEV,
+					dev: isDev,
 				}
 			)
 		);

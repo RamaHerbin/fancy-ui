@@ -1,7 +1,7 @@
 // bg-stars-core.ts — framework-free engine for StarsBackground.
 //
 // Zero framework imports. No module-scope window/document/navigator access,
-// no import.meta.env, no Math.random outside create*/generateStars (both take
+// no bundler env reads, no Math.random outside create*/generateStars (both take
 // an optional `random` param, default Math.random, so a future seed prop can
 // drive them).
 
