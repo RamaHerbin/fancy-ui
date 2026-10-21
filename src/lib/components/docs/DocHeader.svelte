@@ -117,6 +117,7 @@
 
 	<!-- Breadcrumbs -->
 	<nav
+		data-docs-crumbs
 		aria-label={t("a11y.docsBreadcrumb")}
 		class="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-sm whitespace-nowrap"
 	>
@@ -141,7 +142,7 @@
 	</nav>
 
 	<!-- Right side -->
-	<div class="ms-auto flex shrink-0 items-center justify-end gap-2">
+	<div data-docs-controls class="ms-auto flex shrink-0 items-center justify-end gap-2">
 		<!-- Search trigger: icon only below sm -->
 		<button
 			onclick={onSearchClick}

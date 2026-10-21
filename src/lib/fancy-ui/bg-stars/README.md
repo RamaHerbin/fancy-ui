@@ -24,7 +24,7 @@ Animated starfield background with parallax mouse tracking.
 
 ```svelte
 <script>
-  import { StarsBackground } from '$lib/fancy-ui/bg-stars';
+  import { StarsBackground } from 'fancy-ui-svelte';
 </script>
 
 <StarsBackground class="h-screen">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { InlineCitation } from "$lib/fancy-ui/inline-citation";
-	import type { SourceData } from "$lib/fancy-ui/_internals/ai-types.js";
+	import type { SourceData } from "$lib/fancy-ui";
 
 	const decoding: SourceData = {
 		id: "s1",

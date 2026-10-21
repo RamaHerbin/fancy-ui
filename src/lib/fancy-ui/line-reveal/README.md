@@ -12,7 +12,7 @@ and lines re-wrap instantly on container resize.
 
 ```svelte
 <script lang="ts">
-	import { LineReveal } from "$lib/fancy-ui/line-reveal";
+	import { LineReveal } from "fancy-ui-svelte";
 </script>
 
 <LineReveal

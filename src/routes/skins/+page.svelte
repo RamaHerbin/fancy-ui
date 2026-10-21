@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from "$lib/components/Seo.svelte";
 	import {
 		FancyProvider,
 		Button,
@@ -42,8 +43,14 @@
 	];
 </script>
 
+<Seo
+	title="Cameleon Engine — Design System"
+	description="Skin reference for the Cameleon engine: tokens, radii and component states across every skin."
+	path="/skins"
+	noindex
+/>
+
 <svelte:head>
-	<title>Cameleon Engine — Design System</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link

@@ -6,7 +6,7 @@ SVG grid of squares that highlight on hover with smooth fade transitions.
 
 ```svelte
 <script lang="ts">
-	import { InteractiveGridPattern } from "$lib/fancy-ui/interactive-grid-pattern";
+	import { InteractiveGridPattern } from "fancy-ui-svelte";
 </script>
 
 <div class="relative h-96 w-full overflow-hidden">

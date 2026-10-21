@@ -10,7 +10,7 @@ import { cn } from "../../utils.js";
  * sized from `devicePixelRatio` and kept in sync by a `ResizeObserver`.
  */
 export interface FallingStarsBgProps {
-	/** Star color as hex string */
+	/** Star color: a hex string, or `currentColor` (default) to follow the text colour */
 	color?: string;
 	/** Number of stars */
 	count?: number;
@@ -38,8 +38,10 @@ interface Rgb {
 	b: number;
 }
 
-function hexToRgb(hex: string): Rgb {
-	let h = (hex || "#000").replace(/^#/, "");
+const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
+
+function parseHex(hex: string): Rgb {
+	let h = (hex || "#000").trim().replace(/^#/, "");
 	if (h.length === 3) {
 		h = h
 			.split("")
@@ -47,10 +49,59 @@ function hexToRgb(hex: string): Rgb {
 			.join("");
 	}
 	const bigint = parseInt(h, 16) || 0;
-	return {
-		r: (bigint >> 16) & 255,
-		g: (bigint >> 8) & 255,
-		b: bigint & 255,
+	return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+
+/**
+ * Turn the browser's computed `color` into 0-255 channels. The common
+ * `rgb()`/`rgba()` serialisation is parsed directly; newer spaces (oklch,
+ * color-mix, ...) are rasterised through a 1x1 canvas, which converts them to
+ * sRGB for free. Falls back to black when neither works (no canvas backend).
+ */
+function computedToRgb(computed: string): Rgb {
+	const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(computed);
+	if (m) return { r: Math.round(+m[1]!), g: Math.round(+m[2]!), b: Math.round(+m[3]!) };
+	if (!computed) return { r: 0, g: 0, b: 0 };
+	try {
+		const probe = document.createElement("canvas");
+		probe.width = probe.height = 1;
+		const pctx = probe.getContext("2d", { willReadFrequently: true });
+		if (pctx) {
+			pctx.fillStyle = computed;
+			pctx.fillRect(0, 0, 1, 1);
+			const [r = 0, g = 0, b = 0] = pctx.getImageData(0, 0, 1, 1).data;
+			return { r, g, b };
+		}
+	} catch {
+		// fall through to the black fallback
+	}
+	return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * Colour resolver: a hex string is parsed once per value, `currentColor` is
+ * re-read from `el`'s computed style on every call (so a light/dark switch
+ * lands on the next frame) and re-parsed only when that string changes.
+ */
+function createColorResolver(el: Element) {
+	let lastComputed = "";
+	let lastRgb: Rgb = { r: 0, g: 0, b: 0 };
+	let lastHex = "";
+	let lastHexRgb: Rgb = { r: 0, g: 0, b: 0 };
+	return (color: string): Rgb => {
+		if (CURRENT_COLOR.test(color)) {
+			const computed = getComputedStyle(el).color;
+			if (computed !== lastComputed) {
+				lastComputed = computed;
+				lastRgb = computedToRgb(computed);
+			}
+			return lastRgb;
+		}
+		if (color !== lastHex) {
+			lastHex = color;
+			lastHexRgb = parseHex(color);
+		}
+		return lastHexRgb;
 	};
 }
 
@@ -73,7 +124,7 @@ function mulberry32(seed: number): () => number {
 }
 
 export function FallingStarsBg({
-	color = "#FFF",
+	color = "currentColor",
 	count = 200,
 	className = "",
 	seed = 1,
@@ -83,9 +134,9 @@ export function FallingStarsBg({
 	// The Svelte source caches the parsed colour in a `$derived`. Here the
 	// running loop reads it through a ref, so a colour change repaints on the
 	// next frame instead of tearing the starfield down and re-seeding it.
-	const rgbRef = useRef<Rgb>(hexToRgb(color));
+	const colorRef = useRef(color);
 	useEffect(() => {
-		rgbRef.current = hexToRgb(color);
+		colorRef.current = color;
 	}, [color]);
 
 	useEffect(() => {
@@ -93,6 +144,8 @@ export function FallingStarsBg({
 		if (!canvas) return;
 
 		const random = mulberry32(seed);
+		const resolveColor = createColorResolver(canvas);
+		let rgb: Rgb = resolveColor(colorRef.current);
 		let perspective = 0;
 		let stars: Star[] = [];
 		let ctx: CanvasRenderingContext2D | null = null;
@@ -131,8 +184,6 @@ export function FallingStarsBg({
 			const xPrev = width / 2 + star.x * prevScale;
 			const yPrev = height / 2 + star.y * prevScale;
 
-			const rgb = rgbRef.current;
-
 			// Layered strokes from wide+faint to narrow+brighter to fake blur
 			const layerAlphas = [0.08, 0.14, 0.22];
 			for (let i = 0; i < layerAlphas.length; i++) {
@@ -168,6 +219,7 @@ export function FallingStarsBg({
 			const height = canvas.clientHeight;
 
 			ctx.clearRect(0, 0, width, height);
+			rgb = resolveColor(colorRef.current);
 
 			for (const star of stars) {
 				drawStar(star, width, height);

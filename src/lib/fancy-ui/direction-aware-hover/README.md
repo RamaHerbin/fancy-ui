@@ -30,7 +30,7 @@ An image card that reveals an overlay sliding in from the direction the mouse en
 
 ```svelte
 <script>
-  import { DirectionAwareHover } from '$lib/fancy-ui/direction-aware-hover';
+  import { DirectionAwareHover } from 'fancy-ui-svelte';
 </script>
 
 <DirectionAwareHover imageUrl="/photo.jpg">
