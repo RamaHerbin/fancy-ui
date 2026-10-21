@@ -3,43 +3,18 @@
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
-	import { copyCommandFor } from "$lib/copy-source.js";
-	import { INSTALL_SNIPPETS } from "$lib/docs/install-snippets.js";
+	import { INSTALL_SNIPPETS, INSTALL_VARIANTS } from "$lib/docs/install-snippets.js";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
 	import type { Framework } from "$lib/inspiration/types.js";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import { onMount, type ComponentProps } from "svelte";
 
 	// The same three packages the docs component pages switch between.
-	const installVariants: NonNullable<ComponentProps<typeof InstallBlock>["variants"]> = [
-		{
-			framework: "svelte",
-			package: "fancy-ui-svelte",
-			importLine: "import { RainbowButton } from 'fancy-ui-svelte';",
-			installLine: "pnpm add fancy-ui-svelte",
-			copyLine: copyCommandFor("rainbow-button", "svelte"),
-			note: null,
-			availability: "available",
-		},
-		{
-			framework: "react",
-			package: "fancy-ui-react",
-			importLine: "import { RainbowButton } from 'fancy-ui-react';",
-			installLine: "pnpm add fancy-ui-react",
-			copyLine: copyCommandFor("rainbow-button"),
-			note: null,
-			availability: "available",
-		},
-		{
-			framework: "vue",
-			package: "fancy-ui-vue",
-			importLine: "import { RainbowButton } from 'fancy-ui-vue';",
-			installLine: "pnpm add fancy-ui-vue",
-			copyLine: copyCommandFor("rainbow-button", "vue"),
-			note: null,
-			availability: "available",
-		},
-	];
+	const installVariants: NonNullable<ComponentProps<typeof InstallBlock>["variants"]> =
+		INSTALL_VARIANTS;
+
+	// i18n: install.peerDeps.optional
+	const OPTIONAL_LABEL = "optional";
 
 	// Like the component pages, read the framework after mount so the
 	// prerendered markup (Svelte) matches the first client render.
@@ -77,6 +52,7 @@
 			} satisfies Record<Framework, Record<string, MessageKey>>
 		)[framework]
 	);
+	const prerequisiteTitle = $derived(framework === "svelte" ? "Svelte" : t(copy.title));
 </script>
 
 <div class="install">
@@ -101,7 +77,7 @@
 		<div class="cards">
 			<div class="card">
 				<div class="card-head">
-					<span class="card-title">{t(copy.title)}</span>
+					<span class="card-title">{prerequisiteTitle}</span>
 					<code class="chip">{t(copy.version)}</code>
 				</div>
 				<p class="card-desc">{t(copy.desc)}</p>
@@ -121,6 +97,9 @@
 				<p class="card-desc">{t("install.prerequisites.card3.desc")}</p>
 			</div>
 		</div>
+		{#if framework === "svelte"}
+			<p class="caption">{t("install.kitOptional")}</p>
+		{/if}
 	</section>
 
 	<section class="sec">
@@ -196,6 +175,14 @@
 							><td><code class="chip">{peer.name}</code></td><td
 								><code class="chip">{peer.range}</code></td
 							></tr
+						>
+					{/each}
+					{#each snippets.optionalPeers as peer (peer.name)}
+						<tr data-optional
+							><td
+								><code class="chip">{peer.name}</code>
+								<span class="optional-tag">{OPTIONAL_LABEL}</span></td
+							><td><code class="chip">{peer.range}</code></td></tr
 						>
 					{/each}
 				</tbody>
@@ -489,6 +476,12 @@
 	/* Peer dependencies ----------------------------------------------------- */
 	.table-wrap {
 		overflow-x: auto;
+	}
+
+	.install .optional-tag {
+		margin-inline-start: 6px;
+		font-size: 12px;
+		color: var(--muted-foreground);
 	}
 
 	.install .peer-table {

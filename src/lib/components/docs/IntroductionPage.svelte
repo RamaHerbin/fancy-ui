@@ -1,23 +1,38 @@
 <script lang="ts">
-	import { t, createSkinState } from "$lib/stores";
+	import { onMount } from "svelte";
+	import { t, tCategory, createSkinState } from "$lib/stores";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import { INSTALL_SNIPPETS, INSTALL_VARIANTS } from "$lib/docs/install-snippets.js";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
-	import { COMPONENT_COUNT } from "$lib/site.js";
-	import {
-		categories,
-		categoryLabels,
-		getComponentsGroupedByCategory,
-	} from "$lib/fancy-ui/registry.js";
+	import { COMPONENT_COUNT, PACKAGE_VERSION } from "$lib/site.js";
+	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
 
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 
-	const importSnippet = "import { BorderBeam, Sparkles } from 'fancy-ui-svelte';";
-	const usageSnippet = `<div class="relative overflow-hidden rounded-xl border p-6">
-	<p>Your content here</p>
-	<BorderBeam />
-</div>`;
+	// The framework store hydrates from localStorage; read it after mount so the
+	// prerendered markup (Svelte) matches the first client render.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const snippets = $derived(INSTALL_SNIPPETS[mounted ? frameworkState.framework : "svelte"]);
+
+	// Framework names are not translated; these three strings had no neutral
+	// catalog wording yet.
+	// i18n: intro.pill.svelte
+	const FRAMEWORKS_PILL = "Svelte 5, React, Vue";
+	// i18n: intro.philosophy.card1.title
+	const NATIVE_TITLE = "Svelte, React & Vue";
+	// i18n: intro.philosophy.card1.desc
+	const NATIVE_DESC =
+		"Written natively for each framework: runes in Svelte, hooks in React, the Composition API in Vue.";
+	// i18n: intro.quickStart.step3.desc
+	const USE_DESC = "Drop it into your components.";
+
+	// The lead is one message; the count inside it keeps the gradient highlight.
+	const leadParts = $derived(t("intro.leadNeutral").split("{count}"));
 
 	/* Retro "What's included" stat cards — real counts from the registry.
 	   $derived so the labels re-localize on locale switch. */
@@ -50,7 +65,7 @@
 	{#if isRetro}
 		<div class="intro-badges">
 			<span class="intro-badge intro-badge-a">{t("nav.gettingStarted")}</span>
-			<span class="intro-badge intro-badge-b">v1.0</span>
+			<span class="intro-badge intro-badge-b">v{PACKAGE_VERSION}</span>
 		</div>
 	{/if}
 
@@ -58,16 +73,14 @@
 
 	<p class="lead">
 		<strong>FancyUI</strong>
-		{t("intro.leadPre")}
-		<span class="grad">{t("intro.leadHighlight").replace("{count}", String(COMPONENT_COUNT))}</span
-		>,
-		<span class="solid">{t("intro.leadHighlight2")}</span>
-		{t("intro.leadPost")}
+		{leadParts[0]}<span class="grad">{COMPONENT_COUNT}</span>{leadParts
+			.slice(1)
+			.join(String(COMPONENT_COUNT))}
 	</p>
 
 	<div class="pills">
 		<span class="pill" data-accent="1"
-			><span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.pill.svelte")}</span
+			><span class="ic" style="color:#ff5d3b">⚡</span>{FRAMEWORKS_PILL}</span
 		>
 		<span class="pill" data-accent="2"
 			><span class="ic" style="color:#c084fc">✦</span>{t("intro.pill.animation")}</span
@@ -85,9 +98,9 @@
 	<div class="cards">
 		<div class="card" data-accent="1" data-initial="S">
 			<div class="card-head">
-				<span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.philosophy.card1.title")}
+				<span class="ic" style="color:#ff5d3b">⚡</span>{NATIVE_TITLE}
 			</div>
-			<p class="card-desc">{t("intro.philosophy.card1.desc")}</p>
+			<p class="card-desc">{NATIVE_DESC}</p>
 		</div>
 		<div class="card" data-accent="2" data-initial="A">
 			<div class="card-head">
@@ -122,23 +135,23 @@
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step1.title")}</div>
 				<p class="step-desc">{t("intro.quickStart.step1.desc")}</p>
-				<InstallBlock />
+				<InstallBlock variants={INSTALL_VARIANTS} />
 			</div>
 		</div>
 		<div class="step">
 			<div class="num num-2">2</div>
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step2.title")}</div>
-				<p class="step-desc">{t("intro.quickStart.step2.desc")}</p>
-				<CodeBlock lang="ts" code={importSnippet} />
+				<p class="step-desc">{t("intro.importHint")}</p>
+				<CodeBlock lang="ts" code={snippets.imports} />
 			</div>
 		</div>
 		<div class="step">
 			<div class="num num-3">3</div>
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step3.title")}</div>
-				<p class="step-desc">{t("intro.quickStart.step3.desc")}</p>
-				<CodeBlock lang="svelte" code={usageSnippet} />
+				<p class="step-desc">{USE_DESC}</p>
+				<CodeBlock lang={snippets.lang} code={snippets.usage} />
 			</div>
 		</div>
 	</div>
@@ -164,11 +177,10 @@
 				.replace("{count}", String(COMPONENT_COUNT))
 				.replace("{categories}", String(usedCategories.length))}
 		</p>
-		<!-- Every category the registry uses, in registry order; the labels stay
-		     English on purpose (they are the machine-facing names). -->
+		<!-- Every category the registry uses, in registry order, labelled through the catalog. -->
 		<div class="cats">
 			{#each usedCategories as category (category)}
-				<div class="cat">{categoryLabels[category]}</div>
+				<div class="cat">{tCategory(category)}</div>
 			{/each}
 		</div>
 	{/if}
@@ -260,11 +272,6 @@
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
 		color: transparent;
-		font-weight: 600;
-	}
-
-	.intro .solid {
-		color: #b07aff;
 		font-weight: 600;
 	}
 
