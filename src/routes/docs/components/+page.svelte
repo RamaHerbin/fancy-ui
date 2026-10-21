@@ -7,8 +7,8 @@
 	import JobsBrowse from "$lib/components/docs/JobsBrowse.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
-	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
-	import { t, tn, tCategory, docTitle } from "$lib/stores";
+	import { COMPONENT_COUNT, SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
+	import { t, tn, tCategory } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import type { ComponentCategory, ComponentMeta } from "$lib/types.js";
 
@@ -142,7 +142,12 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<Seo title={docTitle(t("gallery.title"))} description={SITE_DESCRIPTION} path="/docs/components" />
+<!-- Search-result headline, English whatever the locale (see componentDocTitle). -->
+<Seo
+	title="{COMPONENT_COUNT} animated UI components for React, Svelte & Vue | FancyUI"
+	description={SITE_DESCRIPTION}
+	path="/docs/components"
+/>
 <JsonLd data={itemList} />
 
 <div class="max-w-5xl">

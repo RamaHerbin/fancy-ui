@@ -90,6 +90,7 @@
 		"build:brand-assets": "node scripts/build-brand-assets.mjs",
 		"build:og": "node scripts/build-og-images.mjs",
 		"build:thumbs": "node scripts/build-component-thumbs.mjs",
+		"build:sitemap-lastmod": "node scripts/build-sitemap-lastmod.mjs",
 		"parity:capture": "node scripts/parity/capture.mjs",
 		"parity:diff": "node scripts/parity/diff.mjs",
 		"test": "vitest run",

@@ -31,7 +31,7 @@ describe("+page.svelte", () => {
 		// The footer repeats the line; the hero's copy is the one in <main>.
 		expect(
 			within(screen.getByRole("main")).getByText(
-				/UI inspiration and expressive components for React, Svelte, and Vue/i
+				/Open-source animated UI components and inspiration for React, Svelte 5 and Vue 3/i
 			)
 		).toBeInTheDocument();
 	});

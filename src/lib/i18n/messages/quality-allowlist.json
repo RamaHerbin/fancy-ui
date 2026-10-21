@@ -109,7 +109,6 @@
 			"table.description": "Loanword or cognate that reads the same in this language (baseline before the native review).",
 			"tg.accent": "Loanword or cognate that reads the same in this language (baseline before the native review).",
 			"intro.title": "Loanword or cognate that reads the same in this language (baseline before the native review).",
-			"intro.metaTitle": "Loanword or cognate that reads the same in this language (baseline before the native review).",
 			"category.actions": "Loanword or cognate that reads the same in this language (baseline before the native review).",
 			"footer.discussions": "Loanword or cognate that reads the same in this language (baseline before the native review).",
 			"footer.versions": "Loanword or cognate that reads the same in this language (baseline before the native review)."
@@ -343,6 +342,16 @@
 			"file": "src/routes/docs/getting-started/theme-generator/+page.svelte",
 			"text": "Shimmer",
 			"reason": "Sample label on the live shimmer-button used to preview the generated palette, not docs chrome."
+		},
+		{
+			"file": "src/routes/docs/components/+page.svelte",
+			"text": "animated UI components for React, Svelte & Vue | FancyUI",
+			"reason": "Search-result headline: kept English whatever the locale, like componentDocTitle, because the query it must match is English."
+		},
+		{
+			"file": "src/routes/docs/getting-started/introduction/+page.svelte",
+			"text": "Introduction — FancyUI, animated components for Svelte 5, React and Vue",
+			"reason": "Search-result headline: kept English whatever the locale, like componentDocTitle, because the query it must match is English."
 		}
 	]
 }

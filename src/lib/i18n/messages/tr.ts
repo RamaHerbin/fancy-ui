@@ -74,6 +74,7 @@ export default {
 		"Adlandırma kurallarından çıkarılamıyor; Svelte API’sinden farklara bakın.",
 	"comp.events": "Olaylar",
 	"comp.copyMarkdown": "Markdown olarak kopyala",
+	"comp.editions": "{editions} için kullanılabilir.",
 
 	// Copy buttons
 	"action.copy": "Kopyala",
@@ -160,7 +161,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "Giriş",
-	"intro.metaTitle": "Giriş",
 	"intro.pill.animation": "Önce Animasyon",
 	"intro.pill.copyPaste": "Kopyala-Yapıştır Dostu",
 	"intro.pill.tailwind": "Tailwind CSS 4",

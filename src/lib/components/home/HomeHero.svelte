@@ -40,7 +40,9 @@
 					>feel <br /><span class="serif">alive.</span></IridescentText
 				>
 			</h1>
-			<p class="lede">UI inspiration and expressive components for React, Svelte, and Vue.</p>
+			<p class="lede">
+				Open-source animated UI components and inspiration for React, Svelte 5 and Vue 3.
+			</p>
 			<FrameworkSwitch class="chips" />
 			<div class="ctas">
 				<span class="cta-rim">

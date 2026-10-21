@@ -120,6 +120,7 @@ export const en = {
 		"Not derivable by the naming rules; see the differences from the Svelte API.",
 	"comp.events": "Events",
 	"comp.copyMarkdown": "Copy as Markdown",
+	"comp.editions": "Available for {editions}.",
 
 	// Copy buttons
 	"action.copy": "Copy",
@@ -209,7 +210,6 @@ export const en = {
 
 	// Introduction page
 	"intro.title": "Introduction",
-	"intro.metaTitle": "Introduction",
 	"intro.pill.animation": "Animation-first",
 	"intro.pill.copyPaste": "Copy-paste friendly",
 	"intro.pill.tailwind": "Tailwind CSS 4",

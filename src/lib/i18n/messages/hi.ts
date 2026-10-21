@@ -73,6 +73,7 @@ export default {
 	"table.portNameUnknown": "नामकरण नियमों से नहीं निकाला जा सकता; Svelte API से अंतर देखें।",
 	"comp.events": "इवेंट्स",
 	"comp.copyMarkdown": "Markdown के रूप में कॉपी करें",
+	"comp.editions": "{editions} के लिए उपलब्ध।",
 
 	// Copy buttons
 	"action.copy": "कॉपी करें",
@@ -159,7 +160,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "परिचय",
-	"intro.metaTitle": "परिचय",
 	"intro.pill.animation": "एनिमेशन-फर्स्ट",
 	"intro.pill.copyPaste": "कॉपी-पेस्ट अनुकूल",
 	"intro.pill.tailwind": "Tailwind CSS 4",

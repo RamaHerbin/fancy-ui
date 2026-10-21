@@ -4,7 +4,7 @@
 
 # fancy-ui
 
-Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Tailwind CSS v4.
+Fancy UI (FancyUI): animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Tailwind CSS v4.
 
 [![npm fancy-ui-svelte](https://img.shields.io/npm/v/fancy-ui-svelte?label=fancy-ui-svelte&color=FF3E00)](https://www.npmjs.com/package/fancy-ui-svelte)
 [![npm fancy-ui-react](https://img.shields.io/npm/v/fancy-ui-react?label=fancy-ui-react&color=149ECA)](https://www.npmjs.com/package/fancy-ui-react)

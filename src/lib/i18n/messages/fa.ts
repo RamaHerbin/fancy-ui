@@ -74,6 +74,7 @@ export default {
 		"از قواعد نام‌گذاری قابل استنتاج نیست؛ تفاوت‌ها با رابط برنامه‌نویسی Svelte را ببینید.",
 	"comp.events": "رویدادها",
 	"comp.copyMarkdown": "کپی به‌صورت Markdown",
+	"comp.editions": "برای {editions} در دسترس است.",
 
 	// Copy buttons
 	"action.copy": "کپی",
@@ -159,7 +160,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "معرفی",
-	"intro.metaTitle": "معرفی",
 	"intro.pill.animation": "اولویت با انیمیشن",
 	"intro.pill.copyPaste": "سازگار با کپی‌وچسباندن",
 	"intro.pill.tailwind": "Tailwind CSS 4",

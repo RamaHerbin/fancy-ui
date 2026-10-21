@@ -73,6 +73,7 @@ export default {
 	"table.portNameUnknown": "이름 규칙으로 도출할 수 없습니다. Svelte API와의 차이를 참고하세요.",
 	"comp.events": "이벤트",
 	"comp.copyMarkdown": "Markdown으로 복사",
+	"comp.editions": "{editions}에서 사용할 수 있습니다.",
 
 	// Copy buttons
 	"action.copy": "복사",
@@ -157,7 +158,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "소개",
-	"intro.metaTitle": "소개",
 	"intro.pill.animation": "애니메이션 우선",
 	"intro.pill.copyPaste": "복사-붙여넣기 친화적",
 	"intro.pill.tailwind": "Tailwind CSS 4",

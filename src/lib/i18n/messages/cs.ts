@@ -73,6 +73,7 @@ export default {
 	"table.portNameUnknown": "Nelze odvodit z pravidel pojmenování; viz rozdíly oproti API Svelte.",
 	"comp.events": "Události",
 	"comp.copyMarkdown": "Kopírovat jako Markdown",
+	"comp.editions": "K dispozici pro {editions}.",
 
 	// Copy buttons
 	"action.copy": "Kopírovat",
@@ -161,7 +162,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "Úvod",
-	"intro.metaTitle": "Úvod",
 	"intro.pill.animation": "Animace na prvním místě",
 	"intro.pill.copyPaste": "Vhodné pro kopírování",
 	"intro.pill.tailwind": "Tailwind CSS 4",
