@@ -51,7 +51,8 @@ reduced-motion gate, visibility gating and sound hooks — nothing else.
   argument order and literals.
 - **`defineOptions({ name: '<Name>', inheritAttrs: false })` on every SFC**; the
   name is read by a dist gate, closed attrs match Svelte. `v-bind="attrs"` goes
-  **only** on the element Svelte spreads `{...restProps}` onto.
+  **only** on the element Svelte spreads `{...restProps}` onto (see "Native
+  attributes" below).
 - **`defineExpose({ ref })` exactly where Svelte has `ref = $bindable(null)`**,
   on the same node, exposing nothing else; no Svelte ref, no Vue ref. `ref` is a
   reserved vnode key: neither prop nor model, absent from `<Name>Props`.
@@ -72,6 +73,36 @@ reduced-motion gate, visibility gating and sound hooks — nothing else.
   deterministic PRNG, with the React package's defaults. Media queries and the
   sound store hydrate in `onMounted`; production hydration does not patch
   attribute mismatches, so a wrong value stays wrong on screen.
+
+## Native attributes
+
+Components that render a native element let consumers pass what they would put
+on it: `id`, `name`, `aria-*`, `data-*`, `autocomplete`, `@blur`, `@keydown`.
+Svelte is the reference: open it there, then spread at the same position here.
+
+- **Target.** `v-bind="attrs"` goes on the primary native element: the
+  `<button>` / `<a>` of a button, the `<input>` / `<textarea>` of a field, the
+  focusable trigger of a choice control. `class` keeps its current target.
+- **Order.** Bind `attrs` first, then everything the component needs for
+  correctness (`role`, computed `aria-*`, inert `tabindex`, fixed `type`, id
+  links, controlled `value`), so consumers can add but not break. Where a
+  consumer value is legitimate and unmanaged, fall back to it
+  (`:tabindex="inert ? -1 : attrs.tabindex"`); never overwrite it with
+  `undefined`, which Vue treats as a value.
+- **Handlers.** A listener the component does not handle just rides in `attrs`.
+  One it handles itself is written `@event` BEFORE `v-bind="attrs"`, so Vue
+  merges both, internal first. Only when a guard must block the consumer
+  (disabled, loading) declare a camelCase prop (`onClick`) and call it through
+  `callListener` (`internals/call-listener.ts`), never a lowercase prop. Modified
+  forms (`@click.once`, `.capture`) compile to `onClickOnce` and the like, which
+  bind past that guard, so drop every `onClick*` attr while the control is inert.
+- **Descriptions.** A consumer `aria-describedby` is merged (space-joined) with
+  the component's own description or error id, not replaced.
+- **Types.** Props stay own-only; native attributes are untyped, as above.
+- **Tests.** Per component, with the consumer form `attrs: { ... }`: `id`,
+  `aria-describedby` and `data-testid` reach the element, an unhandled listener
+  fires once, a handled one fires once after the internal logic, and invariants
+  survive a consumer override.
 
 ## Rune → Composition API
 
