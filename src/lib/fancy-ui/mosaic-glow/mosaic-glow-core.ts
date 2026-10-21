@@ -382,6 +382,32 @@ export interface MosaicGlowLiveOptions {
 	reducedMotion?: boolean;
 	/** The wrapper's visibility gate: false parks the loop. */
 	visible?: boolean;
+	/**
+	 * Called after every painted frame with the light field, for a renderer
+	 * that adds light on top (the HDR layer). `null` removes it. A callback
+	 * that throws is dropped; it never stops the mosaic.
+	 */
+	onFrame?: ((frame: MosaicGlowFrame) => void) | null;
+}
+
+/** What one painted frame looked like, in device px (the canvas backing store). */
+export interface MosaicGlowFrame {
+	/** Per-tile lit level 0..1, row-major; live view, read it synchronously. */
+	heat: Float32Array;
+	cols: number;
+	rows: number;
+	/** Distance between tile origins and tile edge. */
+	pitch: number;
+	tile: number;
+	/** Backing-store size. */
+	width: number;
+	height: number;
+	/** Smoothed halo centre and radius; `fade` 0..1 (0 = no halo). */
+	halo: { x: number; y: number; r: number; fade: number };
+	/** 0..1, as passed. */
+	intensity: number;
+	/** Tile / halo colour, as passed. */
+	color: string;
 }
 
 export interface MosaicGlowEngine {
@@ -428,6 +454,7 @@ export function createMosaicGlow(
 	let seed = options.seed ?? 1;
 	let reducedMotion = options.reducedMotion ?? false;
 	let visible = options.visible ?? true;
+	let onFrame: ((frame: MosaicGlowFrame) => void) | null = options.onFrame ?? null;
 
 	// --- frame state (touched every frame, never rendered) ---------------------
 
@@ -670,6 +697,26 @@ export function createMosaicGlow(
 		}
 
 		c.globalCompositeOperation = "source-over";
+
+		if (onFrame) {
+			try {
+				onFrame({
+					heat: g.heat,
+					cols,
+					rows,
+					pitch: pitchDev,
+					tile: tileDev,
+					width: w,
+					height: h,
+					halo: { x: sx, y: sy, r: (halo ? halo.r : radius * dpr) * 1.15, fade: haloFade },
+					intensity,
+					color,
+				});
+			} catch (error) {
+				onFrame = null;
+				console.warn("[MosaicGlow] light layer disabled:", error);
+			}
+		}
 	}
 
 	// --- pointer ---------------------------------------------------------------
@@ -725,6 +772,8 @@ export function createMosaicGlow(
 		const motion = next.reducedMotion !== undefined;
 		const pointer = next.interactive !== undefined;
 		const visibility = next.visible !== undefined;
+		const layer = "onFrame" in next;
+		if (layer) onFrame = next.onFrame ?? null;
 
 		if (next.tileSize !== undefined) tile = normalizeTileSize(next.tileSize);
 		if (next.gap !== undefined) gap = normalizeGap(next.gap);
@@ -775,6 +824,13 @@ export function createMosaicGlow(
 		if (visibility) {
 			if (visible) requestFrame();
 			else stopLoop();
+		}
+
+		// A light layer attached to a settled or static mosaic needs one frame.
+		if (layer) {
+			dirty = true;
+			if (reducedMotion) drawStatic(haloFade > 0 ? { x: sx, y: sy, r: radius * dpr } : null);
+			else requestFrame();
 		}
 	}
 

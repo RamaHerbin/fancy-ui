@@ -83,6 +83,16 @@
 		}
 	},
 	{
+		"id": "mosaic-glow/mosaic-glow-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/mosaic-glow/mosaic-glow-hdr.ts",
+			"react": "react/src/components/mosaic-glow/mosaic-glow-hdr.ts",
+			"vue": "vue/src/components/mosaic-glow/mosaic-glow-hdr.ts"
+		}
+	},
+	{
 		"id": "mosaic-glow/mosaic-glow-core.ts",
 		"kind": "engine-core",
 		"shared": true,

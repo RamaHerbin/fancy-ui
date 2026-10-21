@@ -53,6 +53,12 @@
 		interactive?: boolean;
 		/** Seed for the per-tile randomness — same seed, same mosaic */
 		seed?: number;
+		/**
+		 * On a display that reports HDR, add the light above SDR white in a WebGPU
+		 * layer with extended tone mapping: the hottest tiles peak around 1000
+		 * nits and the halo gets a hot core. Elsewhere the mosaic is unchanged.
+		 */
+		hdr?: boolean;
 	}
 
 	export type MosaicGlowProps = BaseProps & Omit<HTMLAttributes<HTMLDivElement>, keyof BaseProps>;
@@ -69,6 +75,7 @@
 		normalizeTileSize,
 		type MosaicGlowEngine,
 	} from "./mosaic-glow-core.js";
+	import { startMosaicGlowHdr } from "./mosaic-glow-hdr.js";
 
 	let {
 		class: className,
@@ -88,6 +95,7 @@
 		idle = "drift",
 		interactive = true,
 		seed = 1,
+		hdr = true,
 		...restProps
 	}: MosaicGlowProps = $props();
 
@@ -105,6 +113,10 @@
 
 	let reducedMotion = $state(false);
 	let canvasEl: HTMLCanvasElement | null = $state(null);
+	let hdrCanvas: HTMLCanvasElement | null = $state(null);
+	let hdrOn = $state(false);
+	/** Set once the engine exists, so the HDR effect can attach to it. */
+	let engineReady = $state(false);
 	/** Plain closure state on purpose: nothing rendered depends on the engine. */
 	let engine: MosaicGlowEngine | null = null;
 
@@ -142,6 +154,7 @@
 			}
 		);
 		if (!engine) return;
+		engineReady = true;
 
 		const onMq = (e: MediaQueryListEvent) => {
 			reducedMotion = e.matches;
@@ -169,6 +182,7 @@
 		return () => {
 			engine?.destroy();
 			engine = null;
+			engineReady = false;
 			ro?.disconnect();
 			io?.disconnect();
 			mq?.removeEventListener("change", onMq);
@@ -220,12 +234,40 @@
 		const on = interactive;
 		untrack(() => engine?.setOptions({ interactive: on }));
 	});
+
+	// HDR light: async WebGPU start; resolves to null off HDR displays.
+	$effect(() => {
+		const canvas = hdrCanvas;
+		if (!canvas || !engineReady) return;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		void startMosaicGlowHdr(canvas).then((light) => {
+			if (!light) return;
+			if (cancelled || !engine) {
+				light.destroy();
+				return;
+			}
+			const target = engine;
+			target.setOptions({ onFrame: (frame) => light.render(frame) });
+			hdrOn = true;
+			stop = () => {
+				target.setOptions({ onFrame: null });
+				light.destroy();
+				hdrOn = false;
+			};
+		});
+		return () => {
+			cancelled = true;
+			stop?.();
+		};
+	});
 </script>
 
 <div
 	bind:this={ref}
 	class={cn("mosaic-glow relative overflow-hidden", className)}
 	style:background-color={background}
+	data-hdr={hdrOn ? "" : undefined}
 	{...restProps}
 >
 	<canvas
@@ -233,6 +275,14 @@
 		class="pointer-events-none absolute inset-0 block h-full w-full"
 		aria-hidden="true"
 	></canvas>
+	{#if hdr}
+		<!-- Light above SDR white, added over the 2D mosaic on HDR displays only. -->
+		<canvas
+			bind:this={hdrCanvas}
+			class="mosaic-glow__hdr pointer-events-none absolute inset-0 block h-full w-full"
+			aria-hidden="true"
+		></canvas>
+	{/if}
 	{#if children}
 		<div class="mosaic-glow__content relative z-[1] h-full w-full">
 			{@render children()}

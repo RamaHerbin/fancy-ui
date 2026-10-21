@@ -1910,6 +1910,13 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds the light above SDR white in a WebGPU layer with extended tone mapping: the hottest tiles peak around 1000 nits and the halo gets a hot core. Elsewhere nothing starts and the mosaic is unchanged",
+			},
 			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
 			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
 			{
