@@ -95,7 +95,7 @@ Then import any component:
 </div>
 ```
 
-That is the whole surface: `fancy-ui-svelte` for the components, `fancy-ui-svelte/tailwind.css` for Tailwind, and `fancy-ui-svelte/cameleon` for the skin engine (`FancyProvider` and the skins). There is no stylesheet to import, since each component's styles compile with it, and importing one component from the package root costs the same as importing its own file: the rest tree-shakes away.
+The package exports `fancy-ui-svelte` for the components, `fancy-ui-svelte/tailwind.css` for Tailwind, `fancy-ui-svelte/cameleon` for the skin engine (`FancyProvider` and the skins), `fancy-ui-svelte/cameleon/retro-kit` for the retro-os skin's own components, a `fancy-ui-svelte/cameleon/*` wildcard into the engine's own files, and `fancy-ui-svelte/package.json` for tooling that resolves a manifest by specifier. There is no stylesheet to import, since each component's styles compile with it, and importing one component from the package root costs the same as importing its own file: the rest tree-shakes away.
 
 <details>
 <summary>Alternative: manual @source (without the CSS import)</summary>

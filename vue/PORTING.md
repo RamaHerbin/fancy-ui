@@ -202,13 +202,13 @@ who adds a file, a stylesheet or a module-scope statement knows which promise
 it touches. `pnpm check:dist-env` (after the builds), `pnpm check:tailwind` and
 publint enforce the mechanical half.
 
-| Specifier | Svelte | React | Vue |
-| --- | --- | --- | --- |
-| `<pkg>` | every component, hook, `sound`, `toast` | same | same |
-| `<pkg>/cameleon` | `FancyProvider`, primitives, skins; plus `cameleon/retro-kit` and a `cameleon/*` wildcard | barrel only | barrel only |
-| `<pkg>/tailwind.css` | `@source` + dark variant + 18 tokens | same body | same body |
-| `<pkg>/styles.css` | none: each component's styles compile with it | required, once | required, once |
-| `<pkg>/package.json` | yes | yes | yes |
+| Specifier            | Svelte                                                                                    | React          | Vue            |
+| -------------------- | ----------------------------------------------------------------------------------------- | -------------- | -------------- |
+| `<pkg>`              | every component, hook, `sound`, `toast`                                                   | same           | same           |
+| `<pkg>/cameleon`     | `FancyProvider`, primitives, skins; plus `cameleon/retro-kit` and a `cameleon/*` wildcard | barrel only    | barrel only    |
+| `<pkg>/tailwind.css` | `@source` + dark variant + 18 tokens                                                      | same body      | same body      |
+| `<pkg>/styles.css`   | none: each component's styles compile with it                                             | required, once | required, once |
+| `<pkg>/package.json` | yes                                                                                       | yes            | yes            |
 
 - **CSS entry.** `tailwind.css` is the only file a consumer's Tailwind reads.
   Below their `@source` lines the three entries are one body, byte for byte
@@ -221,9 +221,9 @@ publint enforce the mechanical half.
   import inside a component module would land in the consumer's graph twice.
 - **Cameleon subpath.** `fancy-ui-vue/cameleon` is a barrel: engine, primitives
   and the five skins. It must run in any Vue app, with or without a
-  meta-framework, so it imports nothing framework-private (`pnpm
-  check:dist-env` rejects `$app/*` and `$env/*` in the Svelte tarball, where
-  that bug happened once).
+  meta-framework, so it imports nothing framework-private
+  (`pnpm check:dist-env` rejects `$app/*` and `$env/*` in the Svelte tarball,
+  where that bug happened once).
 - **No environment reads.** No raw `import.meta.env` in shipped code: dev-only
   branches read the literal `process.env.NODE_ENV` inside a `try`, as
   `internals/env.ts` does.

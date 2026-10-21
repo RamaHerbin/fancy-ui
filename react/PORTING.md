@@ -154,9 +154,9 @@ publint enforce the mechanical half.
   import inside a component module would land in the consumer's graph twice.
 - **Cameleon subpath.** `fancy-ui-react/cameleon` is a barrel: engine,
   primitives and the five skins. It must run in any React app, with or without
-  a meta-framework, so it imports nothing framework-private (`pnpm
-  check:dist-env` rejects `$app/*` and `$env/*` in the Svelte tarball, where
-  that bug happened once).
+  a meta-framework, so it imports nothing framework-private
+  (`pnpm check:dist-env` rejects `$app/*` and `$env/*` in the Svelte tarball,
+  where that bug happened once).
 - **No environment reads.** No raw `import.meta.env` in shipped code: dev-only
   branches read the literal `process.env.NODE_ENV` inside a `try`, as
   `components/fluid-cursor/dev.ts` does.
