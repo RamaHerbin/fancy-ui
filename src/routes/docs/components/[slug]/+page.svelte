@@ -212,6 +212,22 @@
 		href={markdownPath}
 		title="{component.name} (Markdown)"
 	/>
+	{#if data.markdown.react}
+		<link
+			rel="alternate"
+			type="text/markdown"
+			href={data.markdown.react}
+			title="{component.name} for React (Markdown)"
+		/>
+	{/if}
+	{#if data.markdown.vue}
+		<link
+			rel="alternate"
+			type="text/markdown"
+			href={data.markdown.vue}
+			title="{component.name} for Vue (Markdown)"
+		/>
+	{/if}
 </svelte:head>
 
 <Seo

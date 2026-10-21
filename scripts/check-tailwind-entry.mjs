@@ -101,7 +101,50 @@ for (const entry of ENTRIES) {
 		console.log(`ok   ${entry}`);
 	}
 }
+// The three shipped entries differ only in their header and `@source` lines.
+// Everything after the last `@source` (dark variant, token mapping, defaults
+// and the comments explaining them) is one body, kept byte-identical so a
+// wording fix or a token change can never land in one package only.
+if (process.argv.slice(2).length === 0) {
+	const bodyOf = async (entry) => {
+		const text = await readFile(resolve(root, entry), "utf8");
+		const lines = text.split("\n");
+		let last = -1;
+		lines.forEach((line, i) => {
+			if (/^@source\s/.test(line)) last = i;
+		});
+		return last === -1
+			? null
+			: lines
+					.slice(last + 1)
+					.join("\n")
+					.trim();
+	};
+	const [reference, ...others] = ENTRIES;
+	const expected = await bodyOf(reference);
+	for (const entry of others) {
+		const body = await bodyOf(entry);
+		if (body === null || expected === null) {
+			failed = true;
+			console.error(`FAIL ${entry}: no @source line to split the header from the body`);
+			continue;
+		}
+		if (body !== expected) {
+			failed = true;
+			const a = expected.split("\n");
+			const b = body.split("\n");
+			const at = a.findIndex((line, i) => line !== b[i]);
+			console.error(`FAIL ${entry}: body differs from ${reference} after its @source lines`);
+			console.error(`  first difference at body line ${at + 1}:`);
+			console.error(`    ${reference}: ${JSON.stringify(a[at] ?? "<end>")}`);
+			console.error(`    ${entry}: ${JSON.stringify(b[at] ?? "<end>")}`);
+		} else {
+			console.log(`ok   ${entry} body matches ${reference}`);
+		}
+	}
+}
+
 if (failed) {
-	console.error("\nA Tailwind entry does not ship a usable token base (see above).");
+	console.error("\nA Tailwind entry is unusable or has drifted from the others (see above).");
 	process.exit(1);
 }

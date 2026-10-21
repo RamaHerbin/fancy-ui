@@ -1,0 +1,12 @@
+{
+	"states": {
+		"open": {
+			"steps": [{ "click": { "role": "button", "name": "Show more" } }],
+			"expect": [{ "role": "button", "name": "Show less" }]
+		},
+		"focus": {
+			"steps": [{ "focus": { "role": "button", "name": "Show more" } }],
+			"expect": [{ "role": "button", "name": "Show more", "focusVisible": true }]
+		}
+	}
+}

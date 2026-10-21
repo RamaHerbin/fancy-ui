@@ -25,6 +25,15 @@ export interface ToastAction {
 	onClick: () => void;
 }
 
+/**
+ * Why a toast closed, as handed to `onClose`:
+ * - `"timeout"` — its unpaused on-screen time ran out.
+ * - `"dismiss"` — the close button, or a `dismissToast` call.
+ * - `"action"` — its action button was pressed (the toast itself stays until dismissed).
+ * - `"evicted"` — pushed out by a newer toast once the stack was full.
+ */
+export type ToastCloseReason = "timeout" | "dismiss" | "action" | "evicted";
+
 export interface ToastOptions {
 	/** Primary line. */
 	title: string;
@@ -42,6 +51,17 @@ export interface ToastOptions {
 	duration?: number;
 	/** A single optional action button. */
 	action?: ToastAction;
+	/**
+	 * Called exactly once, with the reason the toast closed. Pressing the
+	 * action settles it with `"action"` before the action's own `onClick`
+	 * runs; a later `dismissToast` on that same toast does not fire it again.
+	 */
+	onClose?: (reason: ToastCloseReason) => void;
+	/**
+	 * Shows a thin bar that drains over `duration`, pausing while the toast
+	 * is paused and static under reduced motion. Ignored for a sticky toast.
+	 */
+	progress?: boolean;
 }
 
 export interface ToastItem {
@@ -51,6 +71,8 @@ export interface ToastItem {
 	readonly variant: ToastVariant;
 	readonly duration: number;
 	readonly action?: ToastAction;
+	readonly onClose?: (reason: ToastCloseReason) => void;
+	readonly progress: boolean;
 }
 
 /** Toasts visible at once. Past this, the oldest is dismissed to make room for the newest. */
@@ -110,7 +132,39 @@ function armHandle(id: string) {
 	const entry = timers.get(id);
 	if (!entry) return;
 	const ms = Math.max(0, entry.deadline - Date.now());
-	entry.handle = setTimeout(() => dismissToast(id), ms);
+	entry.handle = setTimeout(() => removeToast(id, "timeout"), ms);
+}
+
+/** Ids whose `onClose` already fired (only `"action"` does so while the toast is still listed). */
+const settled = new Set<string>();
+
+function fireClose(item: ToastItem, reason: ToastCloseReason): void {
+	try {
+		item.onClose?.(reason);
+	} catch (error) {
+		// A throwing handler must not wedge the store; surface it out of band.
+		queueMicrotask(() => {
+			throw error;
+		});
+	}
+}
+
+function removeToast(id: string, reason: ToastCloseReason): void {
+	const item = items.find((candidate) => candidate.id === id);
+	if (!item) return;
+	setItems(items.filter((candidate) => candidate.id !== id));
+	clearHandle(id);
+	timers.delete(id);
+	if (settled.delete(id)) return;
+	fireClose(item, reason);
+}
+
+/** Settles a toast as `"action"` — called by `<Toast>` just before it runs the action's `onClick`. Does not close it. */
+export function settleToastAction(id: string): void {
+	const item = items.find((candidate) => candidate.id === id);
+	if (!item || settled.has(id)) return;
+	settled.add(id);
+	fireClose(item, "action");
 }
 
 /**
@@ -135,19 +189,23 @@ export function toast(options: ToastOptions): string {
 		variant,
 		duration,
 		action: options.action,
+		onClose: options.onClose,
+		progress: options.progress === true && Number.isFinite(duration),
 	};
 
 	// Append-ordered, so index 0 is always the longest-standing toast — the
 	// one evicted when a new toast would push the stack past the limit.
 	const next = [...items, item];
+	let evicted: ToastItem | undefined;
 	if (next.length > MAX_VISIBLE) {
-		const evicted = next.shift();
+		evicted = next.shift();
 		if (evicted) {
 			clearHandle(evicted.id);
 			timers.delete(evicted.id);
 		}
 	}
 	setItems(next);
+	if (evicted && !settled.delete(evicted.id)) fireClose(evicted, "evicted");
 
 	if (Number.isFinite(duration)) {
 		timers.set(id, { handle: undefined, deadline: Date.now() + duration, pausedAt: undefined });
@@ -159,9 +217,7 @@ export function toast(options: ToastOptions): string {
 
 /** Dismisses a toast immediately and clears its timer. Safe to call with an id that no longer exists. */
 export function dismissToast(id: string): void {
-	setItems(items.filter((item) => item.id !== id));
-	clearHandle(id);
-	timers.delete(id);
+	removeToast(id, "dismiss");
 }
 
 /**
@@ -191,7 +247,7 @@ export function resumeToast(id: string): void {
 		entry.pausedAt = undefined;
 	}
 	if (entry.deadline <= Date.now()) {
-		dismissToast(id);
+		removeToast(id, "timeout");
 		return;
 	}
 	armHandle(id);
