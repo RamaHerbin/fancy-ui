@@ -12,4 +12,4 @@
 	path="/docs/getting-started/changelog"
 />
 
-<ChangelogPage raw={data.changelogRaw} />
+<ChangelogPage packages={data.changelogPackages} />

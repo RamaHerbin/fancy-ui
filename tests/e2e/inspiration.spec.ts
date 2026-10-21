@@ -149,7 +149,7 @@ test.describe("inspiration detail", () => {
 		expect(missing.status()).toBe(404);
 	});
 
-	test("the variant panel follows the framework switch and never prints a Vue install", async ({
+	test("the variant panel follows the framework switch and prints each framework install", async ({
 		page,
 	}) => {
 		await page.goto("/inspiration/pulse-beam");
@@ -160,8 +160,7 @@ test.describe("inspiration detail", () => {
 		await expect(panel).not.toContainText("fancy-ui-svelte");
 		await panel.getByRole("radio", { name: "Vue" }).click();
 		await expect(panel).toContainText('from "fancy-ui-vue"');
-		await expect(panel).not.toContainText("pnpm add fancy-ui-vue");
-		await expect(panel).toContainText("not on npm yet");
+		await expect(panel).toContainText("pnpm add fancy-ui-vue");
 	});
 
 	test("Copy brief writes the brief to the clipboard", async ({ page, context }) => {

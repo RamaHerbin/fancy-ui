@@ -47,12 +47,12 @@
  * are inert: a Dialog gets no border, a Combobox popover no background.
  *
  * The list below is the full token set the components use: every one of the
- * 18 names is spent by at least one component.
+ * 18 names is spent by at least one component of this package.
  *
  * `@theme inline` on purpose: each utility resolves `var(--primary)` at USE
  * time rather than baking a value in, so an app that already defines the
- * token set (the common case) keeps
- * its own colours with no configuration here. The defaults below only fill in
+ * same token names (the common case for a themed Tailwind project) keeps its
+ * own colours with no configuration here. The defaults below only fill in
  * when nothing else defines them.
  */
 @theme inline {
@@ -81,8 +81,10 @@
  * token block is almost always unlayered, and unlayered rules beat layered
  * ones whatever the import order. So these apply when the app defines
  * nothing, and lose the moment it does — no `!important`, no ordering
- * requirement in the app's CSS. Values match the defaults the docs site runs on,
- * and the React and Vue packages ship the same ones. `.dark` mirrors what the docs site switches to.
+ * requirement in the app's CSS. Values match the defaults the docs site runs
+ * on, and the Svelte, React and Vue entries share this body word for word, so
+ * the three packages look alike out of the box. `.dark` mirrors what the docs
+ * site switches to.
  */
 @layer base {
 	:root {

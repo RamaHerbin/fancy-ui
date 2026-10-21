@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-146-8B5CF6)
+![Components](https://img.shields.io/badge/Components-148-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **146 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **148 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 146 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 148 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -88,6 +88,8 @@ export function Hero() {
 ```
 
 Props keep their Svelte names; `class` becomes `className` and snippets become `ReactNode` (render functions when the snippet takes arguments). Every deliberate difference is listed under [Divergences](#divergences-from-the-svelte-api).
+
+Importing one component from the package root costs the same as importing its own file: the rest tree-shakes away, so there are no per-component subpaths. The four entry points are listed under [Package shape](#package-shape).
 
 **Or copy the source into your project:** see [Copy the source](#copy-the-source-into-your-project) below.
 
@@ -188,8 +190,8 @@ The docs site serves documentation built for coding agents, following the [llms.
 
 - [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) &mdash; setup guide, usage rules, a React section and an index of every component
 - [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) &mdash; full reference: import, props and a working example per component
-- `https://fancy-ui.rama.app/docs/components/<slug>.md` &mdash; one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
-- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: import names, props, snippets, links
+- `https://fancy-ui.rama.app/docs/components/react/<slug>.md` &mdash; one component as Markdown, written for React: the names the React port takes, its props and its React example when there is one (e.g. [react/compare.md](https://fancy-ui.rama.app/docs/components/react/compare.md)); each docs page also has a **Copy as Markdown** button
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: for each framework (Svelte, React, Vue) the import names, Markdown page, copy-source item and availability, plus props, snippets and links
 
 To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
 

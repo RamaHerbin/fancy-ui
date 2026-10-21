@@ -59,6 +59,8 @@ Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Ta
 npm install fancy-ui-svelte
 ```
 
+Peer dependencies: `svelte` 5.20 or later, `tailwindcss` 4. It works in SvelteKit and in a plain Svelte + Vite app alike.
+
 Add the Tailwind integration to your app's CSS (e.g. `src/app.css`):
 
 ```css
@@ -92,6 +94,8 @@ Then import any component:
 	<BorderBeam />
 </div>
 ```
+
+The package exports `fancy-ui-svelte` for the components, `fancy-ui-svelte/tailwind.css` for Tailwind, `fancy-ui-svelte/cameleon` for the skin engine (`FancyProvider` and the skins), `fancy-ui-svelte/cameleon/retro-kit` for the retro-os skin's own components, a `fancy-ui-svelte/cameleon/*` wildcard into the engine's own files, and `fancy-ui-svelte/package.json` for tooling that resolves a manifest by specifier. There is no stylesheet to import, since each component's styles compile with it, and importing one component from the package root costs the same as importing its own file: the rest tree-shakes away.
 
 <details>
 <summary>Alternative: manual @source (without the CSS import)</summary>
@@ -184,7 +188,7 @@ The docs site serves documentation built for coding agents, following the [llms.
 - [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) — setup guide, usage rules, and an index of every component
 - [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) — full reference: import, props and a working example per component
 - `https://fancy-ui.rama.app/docs/components/<slug>.md` — one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
-- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) — every component as JSON: import names (Svelte and React), props, snippets, links
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) — every component as JSON: for each framework (Svelte, React, Vue) the import names, Markdown page, copy-source item and availability, plus props, snippets and links
 
 To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
 

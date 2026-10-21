@@ -48,3 +48,54 @@
 	);
 	color: var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216)));
 }
+
+/*
+ * Label cell. Three `aria-hidden` ghosts (idle, copied, failed) share one grid
+ * cell with the live span, so the cell is as wide as the widest label and the
+ * button never changes width when the text swaps. Pure CSS, nothing measured.
+ */
+.ft-copybtn__label {
+	display: inline-grid;
+	text-align: start;
+}
+
+.ft-copybtn__label > * {
+	grid-area: 1 / 1;
+	white-space: nowrap;
+}
+
+.ft-copybtn__ghost {
+	visibility: hidden;
+	pointer-events: none;
+	user-select: none;
+}
+
+.ft-copybtn__leave {
+	pointer-events: none;
+}
+
+/* transform / opacity only ever run under `no-preference`; under reduce the
+   text snaps and the component never renders the outgoing layer. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-copybtn__leave {
+		animation: ft-copybtn-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+	}
+
+	.ft-copybtn__live[data-swapped] {
+		animation: ft-copybtn-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+	}
+}
+
+@keyframes ft-copybtn-out {
+	to {
+		opacity: 0;
+		transform: translateY(-2px);
+	}
+}
+
+@keyframes ft-copybtn-in {
+	from {
+		opacity: 0;
+		transform: translateY(2px);
+	}
+}
