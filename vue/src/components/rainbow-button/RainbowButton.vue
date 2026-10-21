@@ -36,7 +36,7 @@ defineOptions({ name: "RainbowButton", inheritAttrs: false });
 
 // `disabled: undefined` is load-bearing, not noise: a `boolean` prop compiles
 // to `type: Boolean`, and Vue casts an ABSENT boolean prop to `false` unless
-// the prop declares a default. Without it, `:aria-disabled="disabled ? 'true' : undefined"` below
+// the prop declares a default. Without it, a boolean `disabled` bound straight to `aria-disabled` below
 // would write `aria-disabled="false"` on every enabled anchor, where the
 // Svelte source emits no attribute at all.
 const props = withDefaults(defineProps<RainbowButtonProps>(), {
@@ -52,6 +52,7 @@ const props = withDefaults(defineProps<RainbowButtonProps>(), {
 // Every other attribute and listener lands on the rendered element. `onClick`
 // is a declared prop, so it never appears here (no double call).
 const attrs = useAttrs();
+type AriaDisabled = boolean | "true" | "false" | undefined;
 
 defineSlots<{ default?: () => unknown }>();
 
@@ -99,9 +100,9 @@ const baseClasses = computed(() =>
 		:style="speedStyle"
 		:href="disabled ? undefined : href"
 		:target="disabled ? undefined : target"
-		:aria-disabled="disabled ? 'true' : undefined"
-		:role="disabled ? 'link' : undefined"
-		:tabindex="disabled ? -1 : undefined"
+		:aria-disabled="disabled ? 'true' : (attrs['aria-disabled'] as AriaDisabled)"
+		:role="disabled ? 'link' : (attrs.role as string | undefined)"
+		:tabindex="disabled ? -1 : (attrs.tabindex as number | string | undefined)"
 		@click="handleClick"
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>

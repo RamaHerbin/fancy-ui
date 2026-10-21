@@ -97,9 +97,9 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 					style={speedStyle}
 					href={disabled ? undefined : href}
 					target={disabled ? undefined : target}
-					aria-disabled={disabled ? "true" : undefined}
-					role={disabled ? "link" : undefined}
-					tabIndex={disabled ? -1 : undefined}
+					aria-disabled={disabled ? "true" : restProps["aria-disabled"]}
+					role={disabled ? "link" : restProps.role}
+					tabIndex={disabled ? -1 : restProps.tabIndex}
 					onClick={handleClick}
 				>
 					<span className="rainbow-button__glow" aria-hidden="true">

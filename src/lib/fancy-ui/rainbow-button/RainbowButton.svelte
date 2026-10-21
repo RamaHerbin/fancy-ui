@@ -82,9 +82,9 @@
 		{...restProps as HTMLAnchorAttributes}
 		href={disabled ? undefined : href}
 		target={disabled ? undefined : target}
-		aria-disabled={disabled ? "true" : undefined}
-		role={disabled ? "link" : undefined}
-		tabindex={disabled ? -1 : undefined}
+		aria-disabled={disabled ? "true" : restProps["aria-disabled"]}
+		role={disabled ? "link" : restProps.role}
+		tabindex={disabled ? -1 : restProps.tabindex}
 		onclick={handleClick}
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>

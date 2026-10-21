@@ -252,6 +252,15 @@ describe("RainbowButton public contract", () => {
 		expect(link).toHaveAttribute("aria-disabled", "true");
 	});
 
+	it("keeps a consumer tabindex and role on an enabled anchor", () => {
+		render(RainbowButton, {
+			props: { href: "/pricing" },
+			attrs: { tabindex: 2, role: "menuitem" },
+		});
+		const link = screen.getByRole("menuitem");
+		expect(link).toHaveAttribute("tabindex", "2");
+	});
+
 	it("renders no aria-disabled on an enabled anchor", () => {
 		render(RainbowButton, { props: { href: "/pricing" } });
 		expect(screen.getByRole("link")).not.toHaveAttribute("aria-disabled");
