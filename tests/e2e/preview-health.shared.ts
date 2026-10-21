@@ -8,8 +8,10 @@
  * Failure classes. Every failure the sweep reports carries exactly one.
  *
  *   RESOLVE         the stage shows a resolution error ("No preview available",
- *                   "Component not found", "No module found", "Failed to load")
- *                   or never received a single element
+ *                   "Component not found", "No module found", "Failed to load"),
+ *                   the docs error state for a failed import
+ *                   ([data-preview-error="import"]), or never received a
+ *                   single element
  *   STUCK           the hero spinner is still there after its 8 s budget and
  *                   a 15 s grace (clearing inside the grace is only noted as
  *                   slow), or the page itself never loaded
@@ -22,7 +24,8 @@
  *   INVISIBLE       fewer than 0.4 % of the demo's pixels (or of a canvas's)
  *                   differ from the background behind them (white on white,
  *                   black on black, an empty canvas)
- *   CRASH           an uncaught exception on the page
+ *   CRASH           an uncaught exception on the page, or a demo caught by the
+ *                   docs error boundary ([data-preview-error="render"])
  *   CONSOLE         a console error outside the project's allowlist
  *   GPU_ONLY        in the no-gpu project only: any of the above on a stage
  *                   whose canvas asked for a WebGL/WebGPU context, or a crash
