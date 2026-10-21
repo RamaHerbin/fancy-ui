@@ -48,10 +48,12 @@ Paths are relative to `src/lib/fancy-ui/` unless they start with `react/` or `vu
 - Text is `"<label>: <outcome>"` when the outcome alone would not say what it is about, and only
   the outcome when the control's name already does ("Copied" on a copy button).
 - Why: assistive tech hears every region; duplicates and context-free outcomes are noise.
-- Where: `status-morph/StatusMorph.svelte` (one portalled `role="status"` region, polite/assertive
-  swap) and `react/src/components/status-morph/StatusMorph.tsx`; `copy-button/CopyButton.svelte`
-  keeps its own region only when a custom child replaces StatusMorph; the `"label: value"` form is
-  `composer/ComposerModelPicker.svelte`'s accessible name.
+- Where: `status-morph/StatusMorph.svelte` (one `role="status"` region portalled to the body, so
+  outside every button's name; polite/assertive swap) and its React and Vue ports; the
+  `"label: value"` form is `composer/ComposerModelPicker.svelte`'s accessible name.
+- Known gap (CopyButton mission): with a custom child, `copy-button/CopyButton.svelte` and its two
+  ports fall back to an sr-only `aria-live` span inside the button, so the name flips from "Copy"
+  to "Copied" each attempt. Fix: move that region out of the button as a static `role="status"`.
 
 ## 4. Keyboard and touch
 
@@ -59,13 +61,16 @@ Paths are relative to `src/lib/fancy-ui/` unless they start with `react/` or `vu
   any other host handles them itself and ignores key-repeat.
 - Pending keeps focus: mark it `aria-busy="true"` and block activation in the handler, never with
   the native `disabled` attribute (it drops focus and skips the control in tab order).
-- No state is reachable by hover alone. Hover styles sit behind `@media (hover: hover)` with a
-  matching `:focus-visible` rule; hover-only behaviour in JS checks `pointerType` (mouse or pen).
+- No state is reachable by hover alone. Hover motion and hover-revealed content sit behind
+  `@media (hover: hover)` with a matching `:focus-visible` rule (a hover colour shift may stay
+  ungated); hover-only behaviour in JS checks `pointerType` (mouse or pen).
 - Why: a coarse pointer has no hover, and a sticky synthetic hover after a tap reads as a bug.
-- Where: `button/Button.svelte` (`loading` → `aria-busy`, native `disabled` left alone, guard in
-  `handleClick`); `pressable/Pressable.svelte` (`isActivationKey`, `event.repeat`);
-  `link/Link.svelte` and `dim-siblings/DimSiblings.svelte` (`(hover: hover)` + `:focus-visible`);
-  `sound/sound-feedback.ts` (hover cue for mouse and pen only).
+- Where: `button/Button.svelte`, `<button>` branch (`loading` → `aria-busy`, native `disabled` left
+  alone, guard in `handleClick`); `pressable/Pressable.svelte` (`isActivationKey`, `event.repeat`);
+  the `link/Link.svelte` arrow motion and `dim-siblings/DimSiblings.svelte` (`(hover: hover)` +
+  `:focus-visible`); `sound/sound-feedback.ts` (hover cue for mouse and pen only).
+- Known gap (Button form-contract mission): the `href` branch of Button, in all three packages,
+  goes inert while `loading` (`anchorInert`: no `href`, `tabindex="-1"`), so it leaves the tab order.
 
 ## 5. Reduced motion
 
