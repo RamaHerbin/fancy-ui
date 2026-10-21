@@ -1,0 +1,22 @@
+{
+	"name": "docs-examples-vue-harness",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"typecheck": "vue-tsc --noEmit -p tsconfig.json",
+		"dev": "vite"
+	},
+	"dependencies": {
+		"fancy-ui-vue": "file:.tarball/fancy-ui-vue.tgz",
+		"vue": "^3.5.2"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.1.17",
+		"@vitejs/plugin-vue": "^6.0.0",
+		"tailwindcss": "^4.1.17",
+		"typescript": "^5.9.3",
+		"vite": "^7.2.6",
+		"vue-tsc": "^3.0.0"
+	}
+}
