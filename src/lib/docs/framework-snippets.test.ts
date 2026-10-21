@@ -15,6 +15,9 @@ const PRIORITY = [
 	"thinking-indicator",
 ];
 const PRIORITY = ["button", "input", "select", "dialog", "rainbow-button", "glow-border", "reveal"];
+	"composer",
+	"chat-panel",
+];
 
 describe("framework snippets", () => {
 	it("has a React and a Vue snippet for every priority component", () => {
