@@ -2,7 +2,7 @@ import { render, cleanup, waitFor } from "@testing-library/svelte";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
-import DemoRenderer, { previewBox } from "./DemoRenderer.svelte";
+import DemoRenderer, { previewBox, DEFAULT_STAGE, defaultProps } from "./DemoRenderer.svelte";
 
 beforeAll(() => {
 	// jsdom has no layout engine: stub what the canvas components touch on mount.
@@ -41,6 +41,42 @@ describe("DemoRenderer sized stage", () => {
 		for (const value of Object.values(previewBox)) {
 			expect(typeof value).toBe("string");
 		}
+	});
+
+	// The preview frame is `flex items-center justify-center`. A stage that is a plain
+	// block would pin its content to the top-left corner, so every stage must either
+	// vanish from layout (display: contents) or centre its own content.
+	const centred = (cls: string) =>
+		cls.split(/\s+/).includes("contents") ||
+		(["flex", "items-center", "justify-center"] as const).every((c) =>
+			cls.split(/\s+/).includes(c)
+		);
+
+	it("never uses a block stage that would break the frame's centring", () => {
+		expect(centred(DEFAULT_STAGE)).toBe(true);
+		for (const value of Object.values(previewBox)) expect(centred(value)).toBe(true);
+	});
+
+	it.each(["button", "card-spotlight", "glare-card", "neon-border", "hyper-text"])(
+		"renders %s without a layout-affecting stage",
+		async (slug) => {
+			const { container } = render(DemoRenderer, { slug });
+			const stage = await waitFor(() => {
+				const el = container.querySelector<HTMLElement>("[data-demo-stage]");
+				expect(el).toBeInTheDocument();
+				return el!;
+			});
+			expect(stage.className.split(/\s+/)).toContain("contents");
+			expect(stage.className).not.toContain("w-full");
+		}
+	);
+});
+
+describe("sparkles preview visibility", () => {
+	it("pairs white particles with an opaque backdrop so light theme shows them", () => {
+		const props = defaultProps.sparkles;
+		expect(props.particleColor).toBe("#ffffff");
+		expect(props.background).not.toBe("transparent");
 	});
 });
 

@@ -22,7 +22,8 @@
 		"container-text-flip": { words: ["better", "faster", "stronger", "beautiful"] },
 		"displacement-text": { text: "Hover Me" },
 		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
-		sparkles: { background: "transparent", particleColor: "#ffffff", particleDensity: 60 },
+		// White particles need a dark backdrop of their own or the preview is blank in light theme.
+		sparkles: { background: "#0b1020", particleColor: "#ffffff", particleDensity: 60 },
 		"matrix-rain": { color: "#00ff00" },
 		ripple: {},
 		meteors: { count: 15 },
@@ -43,50 +44,24 @@
 		skeleton: { variant: "text", lines: 3, class: "w-72 text-base" },
 	};
 
-	// Stage around every directly rendered component. Library roots such as Sparkles and
-	// StarsBackground are `size-full` over an absolutely positioned layer, so they collapse
-	// to 0 in a parent without a definite height; the stage gives them one without touching
-	// the components. i18n-free: classes only.
-	export const DEFAULT_STAGE = "relative h-[300px] w-full";
-	const CONTENT_STAGE = "relative w-full";
+	// Stage around every directly rendered component. The preview frame centres its
+	// content with `flex items-center justify-center`, so the stage must not change how a
+	// component is laid out: by default it is `display: contents` and the library root
+	// stays a direct flex item of the frame, exactly as before.
+	//
+	// Roots that are `size-full` over an absolutely positioned layer (Sparkles,
+	// StarsBackground) collapse to 0 when no ancestor has a definite height. Those slugs
+	// get a real stage instead: a 300px by full-width box that also centres its content,
+	// so library roots stay unchanged in the three ports. i18n-free: classes only.
+	export const CONTENTS_STAGE = "contents";
+	export const SIZED_STAGE = "relative flex h-[300px] w-full items-center justify-center";
+	export const DEFAULT_STAGE = CONTENTS_STAGE;
 
-	// Per-slug override of the stage classes. Content-sized components (buttons, text,
-	// form fields) keep their natural height instead of floating in a 300px box.
+	// Per-slug override of the stage classes. Add a slug here when its root has no
+	// intrinsic size of its own.
 	export const previewBox: Record<string, string> = {
-		button: CONTENT_STAGE,
-		toggle: CONTENT_STAGE,
-		"copy-button": CONTENT_STAGE,
-		label: CONTENT_STAGE,
-		input: CONTENT_STAGE,
-		textarea: CONTENT_STAGE,
-		slider: CONTENT_STAGE,
-		"number-input": CONTENT_STAGE,
-		"search-input": CONTENT_STAGE,
-		"password-input": CONTENT_STAGE,
-		"date-picker": CONTENT_STAGE,
-		"time-picker": CONTENT_STAGE,
-		skeleton: CONTENT_STAGE,
-		"rainbow-button": CONTENT_STAGE,
-		"ripple-button": CONTENT_STAGE,
-		"shimmer-button": CONTENT_STAGE,
-		"gradient-button": CONTENT_STAGE,
-		"interactive-hover-button": CONTENT_STAGE,
-		confetti: CONTENT_STAGE,
-		"line-hover-link": CONTENT_STAGE,
-		"colourful-text": CONTENT_STAGE,
-		"flip-words": CONTENT_STAGE,
-		"hyper-text": CONTENT_STAGE,
-		"letter-pullup": CONTENT_STAGE,
-		"number-ticker": CONTENT_STAGE,
-		"sparkles-text": CONTENT_STAGE,
-		"text-generate-effect": CONTENT_STAGE,
-		"line-shadow-text": CONTENT_STAGE,
-		"displacement-text": CONTENT_STAGE,
-		"terminal-text": CONTENT_STAGE,
-		"container-text-flip": CONTENT_STAGE,
-		"box-reveal": CONTENT_STAGE,
-		"blur-reveal": CONTENT_STAGE,
-		focus: CONTENT_STAGE,
+		sparkles: SIZED_STAGE,
+		"bg-stars": SIZED_STAGE,
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
