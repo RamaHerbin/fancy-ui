@@ -69,6 +69,12 @@ export interface SoundEnvelope {
 	decay: number;
 	sustain: number;
 	release: number;
+	/**
+	 * Shape of the decay and release segments. `"linear"` (default) ramps
+	 * straight to the target; `"exponential"` falls off like a struck object,
+	 * which is what makes short percussive taps sound natural. Attack is always linear.
+	 */
+	curve?: "linear" | "exponential";
 }
 
 export interface SoundFilter {
@@ -96,8 +102,10 @@ export interface SoundOscillatorLayer extends SoundLayerBase {
 	wave: SoundWave;
 	/** Hz at start. */
 	frequency: number;
-	/** Hz at end; exponential glide over `duration` when set. */
+	/** Hz at end; exponential glide over `glide` (default `duration`) when set. */
 	frequencyEnd?: number;
+	/** Ms to reach `frequencyEnd`, > 0 and <= `duration`. Default `duration`. */
+	glide?: number;
 	/** Cents. Default 0. */
 	detune?: number;
 }
@@ -134,8 +142,8 @@ export type SoundEngineState = "idle" | "ready" | "suspended" | "unsupported" | 
 
 /** Default same-cue minimum interval, ms. Engine-enforced, independent of the action's own guards. */
 export const SOUND_MIN_INTERVAL_MS: Readonly<Record<SoundCue, number>> = Object.freeze({
-	hover: 60,
-	tick: 40,
+	hover: 30,
+	tick: 15,
 	select: 40,
 	press: 15,
 	"toggle-on": 15,

@@ -1,5 +1,6 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/vue";
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { defineComponent, h, nextTick, ref } from "vue";
+import { afterEach,beforeEach, describe, it, expect, vi } from "vitest";
 import RainbowButton from "./RainbowButton.vue";
 import { sound } from "../../sound/index.js";
 
@@ -172,6 +173,144 @@ describe("RainbowButton disabled anchor (upstream fix)", () => {
 	});
 });
 
+describe("RainbowButton public contract", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	it("calls the consumer onClick exactly once on a button and on an anchor", async () => {
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onClick: handler } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(handler).toHaveBeenCalledTimes(1);
+		cleanup();
+
+		const onLink = vi.fn();
+		render(RainbowButton, { props: { onClick: onLink, href: "#x" } });
+		await fireEvent.click(screen.getByRole("link"));
+		expect(onLink).toHaveBeenCalledTimes(1);
+	});
+
+	it("calls the consumer onClick once and plays the cue once when sound is enabled", async () => {
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onClick: handler, sound: true } });
+
+		await fireEvent.click(screen.getByRole("button"));
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(play).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not call the consumer onClick while disabled (button and anchor)", () => {
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onClick: handler, disabled: true } });
+		screen
+			.getByRole("button")
+			.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		cleanup();
+
+		render(RainbowButton, { props: { onClick: handler, disabled: true, href: "/x" } });
+		screen
+			.getByRole("link")
+			.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+		expect(handler).not.toHaveBeenCalled();
+	});
+
+	it("forwards aria-label and data-* attributes on the button and anchor branches", () => {
+		render(RainbowButton, { attrs: { "aria-label": "Go", "data-test": "rb" } });
+		const button = screen.getByRole("button");
+		expect(button).toHaveAttribute("aria-label", "Go");
+		expect(button).toHaveAttribute("data-test", "rb");
+		cleanup();
+
+		render(RainbowButton, {
+			props: { href: "/x" },
+			attrs: { "aria-label": "Go", "data-test": "rb" },
+		});
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("aria-label", "Go");
+		expect(link).toHaveAttribute("data-test", "rb");
+	});
+
+	it("drops the href of a disabled anchor", () => {
+		render(RainbowButton, { props: { disabled: true, href: "/pricing", target: "_blank" } });
+		const link = screen.getByRole("link");
+		expect(link).not.toHaveAttribute("href");
+		expect(link).not.toHaveAttribute("target");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("keeps the inert-link attributes authoritative over consumer attributes", () => {
+		render(RainbowButton, {
+			props: { disabled: true, href: "/pricing" },
+			attrs: { tabindex: 0, "aria-disabled": "false" },
+		});
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("tabindex", "-1");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("keeps a consumer tabindex and role on an enabled anchor", () => {
+		render(RainbowButton, {
+			props: { href: "/pricing" },
+			attrs: { tabindex: 2, role: "menuitem" },
+		});
+		const link = screen.getByRole("menuitem");
+		expect(link).toHaveAttribute("tabindex", "2");
+	});
+
+	it("renders no aria-disabled on an enabled anchor", () => {
+		render(RainbowButton, { props: { href: "/pricing" } });
+		expect(screen.getByRole("link")).not.toHaveAttribute("aria-disabled");
+	});
+
+	it("calls a consumer listener passed as an attribute exactly once", async () => {
+		const handler = vi.fn();
+		render(RainbowButton, { attrs: { onClick: handler } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe("RainbowButton review fixes", () => {
+	afterEach(cleanup);
+
+	it("lets a consumer style override --rainbow-speed on both branches", () => {
+		render(RainbowButton, { props: { speed: 5 }, attrs: { style: "--rainbow-speed: 10s" } });
+		expect(screen.getByRole("button").style.getPropertyValue("--rainbow-speed")).toBe("10s");
+		cleanup();
+		render(RainbowButton, {
+			props: { href: "/x", speed: 5 },
+			attrs: { style: "--rainbow-speed: 10s; color: red" },
+		});
+		const link = screen.getByRole("link");
+		expect(link.style.getPropertyValue("--rainbow-speed")).toBe("10s");
+		expect(link.style.color).toBe("red");
+	});
+
+	it("does not run modified click listeners on a disabled anchor", async () => {
+		const once = vi.fn();
+		const capture = vi.fn();
+		render(RainbowButton, {
+			props: { href: "/x", disabled: true },
+			attrs: { onClickOnce: once, onClickCapture: capture },
+		});
+		await fireEvent.click(screen.getByRole("link"));
+		expect(once).not.toHaveBeenCalled();
+		expect(capture).not.toHaveBeenCalled();
+	});
+
+	it("keeps modified click listeners on an enabled anchor", async () => {
+		const once = vi.fn();
+		render(RainbowButton, { props: { href: "/x" }, attrs: { onClickOnce: once } });
+		await fireEvent.click(screen.getByRole("link"));
+		expect(once).toHaveBeenCalledTimes(1);
+	});
+});
+
 describe("RainbowButton default slot", () => {
 	afterEach(cleanup);
 
@@ -181,5 +320,41 @@ describe("RainbowButton default slot", () => {
 		cleanup();
 		render(RainbowButton, { props: { href: "#x" }, slots: { default: "Link" } });
 		expect(screen.getByRole("link").textContent).toBe("Link");
+	});
+});
+
+describe("RainbowButton forwarded attributes reactivity", () => {
+	afterEach(cleanup);
+
+	it.each([
+		["button", {}, "button"],
+		["anchor", { href: "/x" }, "link"],
+	] as const)("forwards attributes added after mount (%s branch)", async (_name, base, role) => {
+		// A parent toggling `v-bind` is what adds attributes after mount.
+		const on = ref(false);
+		const Parent = defineComponent({
+			setup: () => () =>
+				h(RainbowButton, { ...base, ...(on.value ? { "data-x": "1", "aria-label": "A" } : {}) }),
+		});
+		render(Parent);
+		const el = screen.getByRole(role);
+		expect(el).not.toHaveAttribute("data-x");
+		on.value = true;
+		await nextTick();
+		expect(el).toHaveAttribute("data-x", "1");
+		expect(el).toHaveAttribute("aria-label", "A");
+	});
+
+	it("drops a listener forwarded while enabled once disabled", async () => {
+		const onClickOnce = vi.fn();
+		const disabled = ref(false);
+		const Parent = defineComponent({
+			setup: () => () => h(RainbowButton, { disabled: disabled.value, onClickOnce }),
+		});
+		render(Parent);
+		disabled.value = true;
+		await nextTick();
+		await fireEvent.click(screen.getByRole("button"));
+		expect(onClickOnce).not.toHaveBeenCalled();
 	});
 });

@@ -1,0 +1,2 @@
+@import "tailwindcss";
+@import "fancy-ui-react/tailwind.css";

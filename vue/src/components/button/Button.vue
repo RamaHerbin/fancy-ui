@@ -27,22 +27,26 @@ export interface ButtonProps {
 	fullWidth?: boolean;
 	/** Accessible name for a button whose content is icon-only. */
 	label?: string;
-	/** Fires on activation. Never called while `disabled` or `loading`. */
-	onclick?: (event: MouseEvent) => void;
+	/** Fires on activation. Never called while `disabled` or `loading`. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { linear } from "../../internals/motion/easing.js";
@@ -62,6 +66,7 @@ const {
 	rel = undefined,
 	fullWidth = false,
 	label = undefined,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
@@ -147,6 +152,13 @@ const resolvedRel = computed(() => {
 // can't drift out of sync with each other.
 const anchorInert = computed(() => disabled || loading);
 
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled: anchorInert.value,
+}));
+
 // The one duration the lead slot's cross-fade runs on: `DURATIONS.micro`, the
 // glyph-scale rung, collapsed to 0 when the user has asked for less motion —
 // at 0 `runTransition` skips `element.animate()` entirely and the swap is
@@ -205,7 +217,7 @@ function handleClick(event: MouseEvent) {
 		return;
 	}
 	if (sound) soundFx.play("press");
-	onclick?.(event);
+	callListener(onClick ?? onclick, event);
 }
 </script>
 
@@ -320,8 +332,7 @@ function handleClick(event: MouseEvent) {
 	   tokens.EASINGS.inout — the reversible-state pair. It runs the colour
 	   channel, and the release half of the press: letting go settles, it
 	   does not snap back. */
-	--ft-btn-motion: var(--ft-duration-fast, 150ms)
-		var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	--ft-btn-motion: var(--ft-duration-fast, 150ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	/* The down-stroke only. 150ms = tokens.DURATIONS.fast,
 	   cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out — the arrival
 	   curve, which spends most of the scale in the first frames. Same clock

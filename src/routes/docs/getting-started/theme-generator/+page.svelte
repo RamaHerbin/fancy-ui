@@ -127,8 +127,10 @@
 	const cssOutput = $derived(
 		`@import "tailwindcss";
 @import "fancy-ui-svelte/tailwind.css";
-/* Assumes a shadcn-svelte-style setup that maps these tokens to Tailwind theme
-   colors via @theme inline (e.g. --color-primary: var(--primary)). See Theming. */
+/* The entry already maps these tokens to Tailwind colors (@theme inline) and ships
+   defaults in a low-priority layer, so the values below simply win. See Theming.
+   Put "light" or "dark" on <html> to pin the mode; with neither, the OS preference
+   picks the light-dark() branch. */
 
 ${selector} {
 	/* Surface (base: ${base}) */
