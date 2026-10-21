@@ -5,13 +5,14 @@
 	import confetti from "canvas-confetti";
 	import type { Options as ConfettiOptions } from "canvas-confetti";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 
 	type BaseProps = {
 		options?: ConfettiOptions;
 		children?: Snippet;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 		/** Custom CSS class */
@@ -29,6 +30,13 @@
 		onclick,
 		...restProps
 	}: Props = $props();
+
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: !!restProps.disabled,
+	});
 
 	const confettiContext = getContext<{ fire: (opts?: ConfettiOptions) => void } | undefined>(
 		"ConfettiContext"
@@ -56,7 +64,13 @@
 	}
 </script>
 
-<button class={className} {type} {...restProps} onclick={handleClick}>
+<button
+	use:soundFeedback={hoverFeedback}
+	class={className}
+	{type}
+	{...restProps}
+	onclick={handleClick}
+>
 	{#if children}
 		{@render children()}
 	{/if}

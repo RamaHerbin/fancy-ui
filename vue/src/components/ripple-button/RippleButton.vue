@@ -9,8 +9,8 @@ export interface RippleButtonProps {
 	/** Animation duration in milliseconds */
 	duration?: number;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Native `disabled`, read to guard the sound cue. */
@@ -49,6 +49,7 @@ export function rippleGeometry(
 import { ref, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 
 defineOptions({ name: "RippleButton", inheritAttrs: false });
 
@@ -66,6 +67,13 @@ defineSlots<{ default?: () => unknown }>();
 const attrs = useAttrs();
 
 const buttonRef = useTemplateRef<HTMLButtonElement>("buttonRef");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(buttonRef, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled,
+}));
 const ripples = ref<Ripple[]>([]);
 let nextRippleKey = 0;
 

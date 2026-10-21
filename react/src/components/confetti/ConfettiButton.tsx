@@ -3,6 +3,8 @@ import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
 import confetti from "canvas-confetti";
 import type { Options as ConfettiOptions } from "canvas-confetti";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { ConfettiReactContext } from "./context.js";
 
 type BaseProps = {
@@ -11,8 +13,8 @@ type BaseProps = {
 	/** Button content. */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Custom CSS class */
@@ -39,6 +41,13 @@ export const ConfettiButton = forwardRef<HTMLButtonElement, ConfettiButtonProps>
 	) {
 		const confettiContext = ConfettiReactContext.useOptional();
 		const playCue = useSoundCue(sound);
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: !!restProps.disabled,
+		});
+		const composedRef = useComposedRefs(ref, soundRef);
 
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (restProps.disabled) return;
@@ -67,7 +76,7 @@ export const ConfettiButton = forwardRef<HTMLButtonElement, ConfettiButtonProps>
 		}
 
 		return (
-			<button ref={ref} className={className} type={type} {...restProps} onClick={handleClick}>
+			<button ref={composedRef} className={className} type={type} {...restProps} onClick={handleClick}>
 				{children}
 			</button>
 		);

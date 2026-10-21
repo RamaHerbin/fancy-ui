@@ -6,8 +6,8 @@ export interface ConfettiButtonProps {
 	/** Confetti options for this button, merged over the surrounding root's options. */
 	options?: ConfettiOptions;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Custom CSS class */
@@ -20,10 +20,11 @@ export interface ConfettiButtonProps {
 </script>
 
 <script setup lang="ts">
-import { useAttrs } from "vue";
+import { useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import confetti from "canvas-confetti";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 import { CONFETTI_CONTEXT } from "./context.js";
 
 defineOptions({ name: "ConfettiButton", inheritAttrs: false });
@@ -41,6 +42,14 @@ const {
 const attrs = useAttrs();
 
 const confettiContext = CONFETTI_CONTEXT.useOptional();
+const el = useTemplateRef<HTMLButtonElement>("el");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled,
+}));
 
 // `onClick` is a declared prop (so `@click` and `attrs: { onClick }` both land
 // here); a function or an array of functions is dispatched once each.
@@ -79,6 +88,7 @@ function handleClick(event: MouseEvent) {
 -->
 <template>
 	<button
+		ref="el"
 		:class="cn(className)"
 		type="button"
 		:disabled="disabled"
