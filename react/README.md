@@ -188,8 +188,8 @@ The docs site serves documentation built for coding agents, following the [llms.
 
 - [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) &mdash; setup guide, usage rules, a React section and an index of every component
 - [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) &mdash; full reference: import, props and a working example per component
-- `https://fancy-ui.rama.app/docs/components/<slug>.md` &mdash; one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
-- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: import names, props, snippets, links
+- `https://fancy-ui.rama.app/docs/components/react/<slug>.md` &mdash; one component as Markdown, written for React: the names the React port takes, its props and its React example when there is one (e.g. [react/compare.md](https://fancy-ui.rama.app/docs/components/react/compare.md)); each docs page also has a **Copy as Markdown** button
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: for each framework (Svelte, React, Vue) the import names, Markdown page, copy-source item and availability, plus props, snippets and links
 
 To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
 
