@@ -274,6 +274,42 @@ describe("RainbowButton public contract", () => {
 	});
 });
 
+describe("RainbowButton review fixes", () => {
+	afterEach(cleanup);
+
+	it("lets a consumer style override --rainbow-speed on both branches", () => {
+		render(RainbowButton, { props: { speed: 5 }, attrs: { style: "--rainbow-speed: 10s" } });
+		expect(screen.getByRole("button").style.getPropertyValue("--rainbow-speed")).toBe("10s");
+		cleanup();
+		render(RainbowButton, {
+			props: { href: "/x", speed: 5 },
+			attrs: { style: "--rainbow-speed: 10s; color: red" },
+		});
+		const link = screen.getByRole("link");
+		expect(link.style.getPropertyValue("--rainbow-speed")).toBe("10s");
+		expect(link.style.color).toBe("red");
+	});
+
+	it("does not run modified click listeners on a disabled anchor", async () => {
+		const once = vi.fn();
+		const capture = vi.fn();
+		render(RainbowButton, {
+			props: { href: "/x", disabled: true },
+			attrs: { onClickOnce: once, onClickCapture: capture },
+		});
+		await fireEvent.click(screen.getByRole("link"));
+		expect(once).not.toHaveBeenCalled();
+		expect(capture).not.toHaveBeenCalled();
+	});
+
+	it("keeps modified click listeners on an enabled anchor", async () => {
+		const once = vi.fn();
+		render(RainbowButton, { props: { href: "/x" }, attrs: { onClickOnce: once } });
+		await fireEvent.click(screen.getByRole("link"));
+		expect(once).toHaveBeenCalledTimes(1);
+	});
+});
+
 describe("RainbowButton default slot", () => {
 	afterEach(cleanup);
 

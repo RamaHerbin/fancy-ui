@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes, StyleValue } from "vue";
 
 export interface RainbowButtonProps {
 	/** Animation speed in seconds */
@@ -52,6 +52,17 @@ const props = withDefaults(defineProps<RainbowButtonProps>(), {
 // Every other attribute and listener lands on the rendered element. `onClick`
 // is a declared prop, so it never appears here (no double call).
 const attrs = useAttrs();
+// Attributes spread onto the element. `style` is excluded and merged after the
+// component's own custom property so a consumer `--rainbow-speed` wins, as it
+// does in the other ports. While disabled, every `onClick*` key is dropped:
+// modified listeners (`@click.once`, `.capture`, `.passive`) compile to
+// `onClickOnce` / `onClickCapture` / `onClickPassive` and would otherwise bind
+// straight to the element and run past the disabled guard.
+const forwarded = computed(() => {
+	const { style: _style, ...rest } = attrs;
+	if (!props.disabled) return rest;
+	return Object.fromEntries(Object.entries(rest).filter(([key]) => !/^onClick/.test(key)));
+});
 type AriaDisabled = boolean | "true" | "false" | undefined;
 
 defineSlots<{ default?: () => unknown }>();
@@ -95,9 +106,9 @@ const baseClasses = computed(() =>
 	<a
 		v-if="href"
 		ref="el"
-		v-bind="attrs"
+		v-bind="forwarded"
 		:class="baseClasses"
-		:style="speedStyle"
+		:style="[speedStyle, attrs.style as StyleValue]"
 		:href="disabled ? undefined : href"
 		:target="disabled ? undefined : target"
 		:aria-disabled="disabled ? 'true' : (attrs['aria-disabled'] as AriaDisabled)"
@@ -112,9 +123,9 @@ const baseClasses = computed(() =>
 	<button
 		v-else
 		ref="el"
-		v-bind="attrs"
+		v-bind="forwarded"
 		:class="baseClasses"
-		:style="speedStyle"
+		:style="[speedStyle, attrs.style as StyleValue]"
 		:type="type"
 		:disabled="disabled"
 		@click="handleClick"
