@@ -212,6 +212,8 @@
 	import { tc } from "./chrome-i18n.js";
 	import { createSkinState } from "$lib/stores";
 	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
+	import PreviewBoundary from "./PreviewBoundary.svelte";
+	import PreviewError from "./PreviewError.svelte";
 
 	interface Props {
 		slug: string;
@@ -227,6 +229,14 @@
 	let ExampleComponent = $state<any>(null);
 	let loading = $state(true);
 	let error = $state("");
+	/** The preview's module was found but its import rejected (a broken or missing chunk). */
+	let importFailed = $state(false);
+
+	// A failed import is a real bug in the docs build: show it and log the real error,
+	// never swallow it.
+	function reportImport(path: string, e: unknown) {
+		console.error(`[docs] preview module "${path}" failed to load`, e);
+	}
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
 	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/*.svelte");
@@ -244,6 +254,7 @@
 		ExampleComponent = null;
 		loading = true;
 		error = "";
+		importFailed = false;
 
 		if (skipDirectRender.has(currentSlug)) {
 			// Load the skin/slug preview override (if any), else BasicUsage
@@ -257,8 +268,10 @@
 							loading = false;
 						}
 					})
-					.catch(() => {
+					.catch((e) => {
+						reportImport(exPath, e);
 						if (slug === currentSlug) {
+							importFailed = true;
 							loading = false;
 						}
 					});
@@ -271,6 +284,7 @@
 		const path = `/src/lib/fancy-ui/${currentSlug}/index.ts`;
 		const loader = modules[path];
 		if (!loader) {
+			console.error(`[docs] no preview module for "${currentSlug}"`);
 			error = `No module found for "${currentSlug}"`;
 			loading = false;
 			return;
@@ -284,8 +298,9 @@
 				}
 			})
 			.catch((e) => {
+				reportImport(path, e);
 				if (slug === currentSlug) {
-					error = `Failed to load: ${e}`;
+					importFailed = true;
 					loading = false;
 				}
 			});
@@ -389,16 +404,25 @@
 	<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 		{error}
 	</div>
+{:else if importFailed}
+	<PreviewError kind="import" />
 {:else if skipDirectRender.has(slug)}
 	{#if ExampleComponent}
-		{#if isRetro && slug === "apple-card-carousel"}
-			<div class="relative w-full" bind:this={carouselWrap}>
-				<ExampleComponent />
-				<RetroCarouselNav target={() => carouselWrap?.querySelector(".overflow-x-auto") ?? null} />
-			</div>
-		{:else}
-			<ExampleComponent />
-		{/if}
+		<!-- Keyed so a new slug gets a fresh boundary instead of inheriting a failed one. -->
+		{#key slug}
+			<PreviewBoundary source={slug}>
+				{#if isRetro && slug === "apple-card-carousel"}
+					<div class="relative w-full" bind:this={carouselWrap}>
+						<ExampleComponent />
+						<RetroCarouselNav
+							target={() => carouselWrap?.querySelector(".overflow-x-auto") ?? null}
+						/>
+					</div>
+				{:else}
+					<ExampleComponent />
+				{/if}
+			</PreviewBoundary>
+		{/key}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			{tc("demo.noPreview")}
@@ -408,74 +432,83 @@
 	{@const Comp = getComponent()}
 	{@const props = defaultProps[slug] || {}}
 	{#if Comp}
-		<div data-demo-stage class={previewBox[slug] ?? DEFAULT_STAGE}>
-			<!-- Simple or needs-props: render with defaults -->
-			{#if slug === "rainbow-button"}
-				<Comp {...props}>Rainbow Button</Comp>
-			{:else if slug === "shimmer-button"}
-				<Comp {...props}>Shimmer Button</Comp>
-			{:else if slug === "ripple-button"}
-				<Comp {...props}>Ripple Button</Comp>
-			{:else if slug === "gradient-button"}
-				<Comp {...props}>Gradient Button</Comp>
-			{:else if slug === "button"}
-				<Comp {...props}>Button</Comp>
-			{:else if slug === "toggle"}
-				<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
-			{:else if slug === "label"}
-				<Comp {...props}>Email address</Comp>
-			{:else if slug === "confetti"}
-				<Comp {...props}
-					><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
-						>Click for Confetti</button
-					></Comp
-				>
-			{:else if slug === "box-reveal"}
-				<Comp color="var(--primary)" duration={0.5}>
-					<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
-				</Comp>
-			{:else if slug === "blur-reveal"}
-				<Comp>
-					<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>
-					<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
-				</Comp>
-			{:else if slug === "card-spotlight"}
-				<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
-					<div class="relative z-20 p-6">
-						<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
-						<p class="text-muted-foreground mt-2 text-sm">
-							Mouse-following radial gradient effect.
-						</p>
-					</div>
-				</Comp>
-			{:else if slug === "glare-card"}
-				<Comp>
-					<div class="flex h-full items-center justify-center p-6">
-						<p class="text-foreground text-lg font-bold">Glare Card</p>
-					</div>
-				</Comp>
-			{:else if slug === "neon-border"}
-				<Comp {...props}>
-					<div class="rounded-xl p-8 text-center">
-						<p class="text-foreground font-semibold">Neon Border</p>
-					</div>
-				</Comp>
-			{:else if slug === "line-hover-link"}
-				<div class="flex flex-col gap-4">
-					<Comp href="#" variant="slide">Slide</Comp>
-					<Comp href="#" variant="grow">Grow</Comp>
-					<Comp href="#" variant="sweep">Sweep</Comp>
+		{#key slug}
+			<PreviewBoundary source={slug}>
+				<div data-demo-stage class={previewBox[slug] ?? DEFAULT_STAGE}>
+					<!-- Simple or needs-props: render with defaults -->
+					{#if slug === "rainbow-button"}
+						<Comp {...props}>Rainbow Button</Comp>
+					{:else if slug === "shimmer-button"}
+						<Comp {...props}>Shimmer Button</Comp>
+					{:else if slug === "ripple-button"}
+						<Comp {...props}>Ripple Button</Comp>
+					{:else if slug === "gradient-button"}
+						<Comp {...props}>Gradient Button</Comp>
+					{:else if slug === "button"}
+						<Comp {...props}>Button</Comp>
+					{:else if slug === "toggle"}
+						<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
+					{:else if slug === "label"}
+						<Comp {...props}>Email address</Comp>
+					{:else if slug === "confetti"}
+						<Comp {...props}
+							><button
+								class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
+								>Click for Confetti</button
+							></Comp
+						>
+					{:else if slug === "box-reveal"}
+						<Comp color="var(--primary)" duration={0.5}>
+							<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
+						</Comp>
+					{:else if slug === "blur-reveal"}
+						<Comp>
+							<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>
+							<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
+						</Comp>
+					{:else if slug === "card-spotlight"}
+						<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
+							<div class="relative z-20 p-6">
+								<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
+								<p class="text-muted-foreground mt-2 text-sm">
+									Mouse-following radial gradient effect.
+								</p>
+							</div>
+						</Comp>
+					{:else if slug === "glare-card"}
+						<Comp>
+							<div class="flex h-full items-center justify-center p-6">
+								<p class="text-foreground text-lg font-bold">Glare Card</p>
+							</div>
+						</Comp>
+					{:else if slug === "neon-border"}
+						<Comp {...props}>
+							<div class="rounded-xl p-8 text-center">
+								<p class="text-foreground font-semibold">Neon Border</p>
+							</div>
+						</Comp>
+					{:else if slug === "line-hover-link"}
+						<div class="flex flex-col gap-4">
+							<Comp href="#" variant="slide">Slide</Comp>
+							<Comp href="#" variant="grow">Grow</Comp>
+							<Comp href="#" variant="sweep">Sweep</Comp>
+						</div>
+					{:else if slug === "glow-border"}
+						<div
+							class="bg-background relative flex h-40 w-64 items-center justify-center rounded-xl p-6"
+						>
+							<p data-glow-border-demo class="text-muted-foreground text-center">
+								{glowBorderLabel}
+							</p>
+							<Comp {...props} />
+						</div>
+					{:else}
+						<!-- Default: render with props, no children -->
+						<Comp {...props} />
+					{/if}
 				</div>
-			{:else if slug === "glow-border"}
-				<div class="bg-background relative flex h-40 w-64 items-center justify-center rounded-xl p-6">
-					<p data-glow-border-demo class="text-muted-foreground text-center">{glowBorderLabel}</p>
-					<Comp {...props} />
-				</div>
-			{:else}
-				<!-- Default: render with props, no children -->
-				<Comp {...props} />
-			{/if}
-		</div>
+			</PreviewBoundary>
+		{/key}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			{tc("demo.notFound")}
