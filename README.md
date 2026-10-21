@@ -11,7 +11,7 @@ Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Ta
 [![npm fancy-ui-vue](https://img.shields.io/npm/v/fancy-ui-vue?label=fancy-ui-vue&color=42B883)](https://www.npmjs.com/package/fancy-ui-vue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-146-8B5CF6)
+![Components](https://img.shields.io/badge/Components-149-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -41,7 +41,7 @@ Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Ta
 
 ## Features
 
-- **146 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **149 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Svelte 5 runes** &mdash; built with `$state`, `$derived`, `$effect` and `$props`; snippets, no legacy syntax
 - **React and Vue editions** &mdash; [`fancy-ui-react`](./react/README.md) (React 18 and 19) and [`fancy-ui-vue`](./vue/README.md) (Vue 3.5+) ship the same components under the same names, ported from the Svelte source and kept at parity by CI
@@ -251,7 +251,7 @@ Component tests are colocated with their component (see `RainbowButton.test.ts` 
 
 ## Contributing
 
-Contributions are welcome! 146 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
+Contributions are welcome! 149 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 
