@@ -58,6 +58,7 @@ vi.mock("three", () => {
 			setSize: vi.fn(),
 			render: vi.fn(),
 			dispose: vi.fn(),
+			forceContextLoss: vi.fn(),
 			domElement: Object.assign(document.createElement("canvas"), {
 				style: { width: "", height: "" },
 			}),
@@ -197,6 +198,16 @@ describe("DisplacementText", () => {
 			const renderer = lastMock.renderer;
 			unmount();
 			expect(renderer.dispose).toHaveBeenCalled();
+		});
+
+		it("drops the WebGL context before disposing the renderer", () => {
+			const { unmount } = render(DisplacementText);
+			const renderer = lastMock.renderer;
+			unmount();
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
 		});
 	});
 

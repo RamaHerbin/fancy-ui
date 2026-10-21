@@ -276,9 +276,10 @@ const LIVE_KEYS = [
 /**
  * Build the three.js scene inside `container` and drive it.
  *
- * Returns `null` when the host reports a zero height, when the renderer
- * cannot get a WebGL context (three throws), or when building the scene throws;
- * in every case nothing is left appended to the host and nothing stays allocated.
+ * A host that reports no size is drawn as a 1x1 box until the next resize.
+ * Returns `null` when the renderer cannot get a WebGL context (three throws) or
+ * when building the scene throws; in both cases nothing is left appended to the
+ * host and nothing stays allocated, the WebGL context included.
  */
 function createDisplacementText(
 	elements: DisplacementTextElements,
@@ -295,7 +296,6 @@ function createDisplacementText(
 	const rect = container.getBoundingClientRect();
 	const width = rect.width || 1;
 	const height = rect.height || 1;
-	if (height === 0) return null;
 
 	let renderer: THREE.WebGLRenderer;
 	try {
@@ -370,6 +370,9 @@ function createDisplacementText(
 		hitPlane = new THREE.Mesh(hitGeometry, hitMaterial);
 		scene.add(hitPlane);
 	} catch {
+		// dispose() alone leaves the context alive until garbage collection, and
+		// browsers cap live contexts, so it is dropped explicitly first.
+		renderer.forceContextLoss();
 		for (const item of built) item.dispose();
 		return null;
 	}
@@ -443,13 +446,13 @@ function createDisplacementText(
 	// caller. preventDefault() keeps the context eligible for restoration.
 	const onContextLostEvent = (event: Event) => {
 		event.preventDefault();
-		release();
+		release(true);
 		onContextLost?.();
 	};
 	renderer.domElement.addEventListener("webglcontextlost", onContextLostEvent, false);
 
 	let released = false;
-	function release() {
+	function release(contextAlreadyLost = false) {
 		if (released) return;
 		released = true;
 		renderer.domElement.removeEventListener("webglcontextlost", onContextLostEvent);
@@ -459,6 +462,10 @@ function createDisplacementText(
 		if (observing) observer.disconnect();
 		observing = false;
 		if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
+		// Without an explicit loss the context outlives dispose() until garbage
+		// collection, so repeated mounts or reduced-motion toggles would pile up
+		// live contexts against the browser's cap.
+		if (!contextAlreadyLost) renderer.forceContextLoss();
 		renderer.dispose();
 		textTexture.dispose();
 		geometry.dispose();

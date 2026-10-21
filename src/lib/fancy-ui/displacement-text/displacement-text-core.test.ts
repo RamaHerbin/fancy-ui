@@ -109,6 +109,7 @@ vi.mock("three", () => {
 			setSize: vi.fn(),
 			render: vi.fn(),
 			dispose: vi.fn(),
+			forceContextLoss: vi.fn(),
 			domElement: document.createElement("canvas"),
 		};
 		made.renderers.push(renderer);
@@ -388,6 +389,17 @@ describe("createDisplacementText", () => {
 			expect(rafSpy).not.toHaveBeenCalled();
 		});
 
+		it("drops the WebGL context before disposing when the scene build throws", () => {
+			made.failMaterial = true;
+			createDisplacementText({ container: makeHost() }, {});
+			const renderer = made.renderers[0];
+
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
+		});
+
 		it("stops the loop, releases everything and reports a lost context", () => {
 			const onContextLost = vi.fn();
 			const host = makeHost();
@@ -403,10 +415,13 @@ describe("createDisplacementText", () => {
 			expect(renderer.dispose).toHaveBeenCalledTimes(1);
 			expect(made.textures[0].dispose).toHaveBeenCalledTimes(1);
 			expect(host.querySelector("canvas")).toBeNull();
+			// the context is already gone: forcing a loss again would be an invalid call
+			expect(renderer.forceContextLoss).not.toHaveBeenCalled();
 
 			// a later destroy does not release anything twice
 			engine?.destroy();
 			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss).not.toHaveBeenCalled();
 		});
 	});
 
@@ -546,6 +561,19 @@ describe("createDisplacementText", () => {
 			expect(made.materials[0].dispose).toHaveBeenCalledTimes(1);
 		});
 
+		it("drops the WebGL context before disposing the renderer", () => {
+			const engine = createDisplacementText({ container: makeHost() }, {});
+			const renderer = made.renderers[0];
+			expect(renderer.forceContextLoss).not.toHaveBeenCalled();
+
+			engine?.destroy();
+
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
+		});
+
 		it("is idempotent", () => {
 			const engine = createDisplacementText({ container: makeHost() }, {});
 			engine?.destroy();
@@ -554,6 +582,7 @@ describe("createDisplacementText", () => {
 
 			expect(cafSpy).toHaveBeenCalledTimes(1);
 			expect(made.renderers[0].dispose).toHaveBeenCalledTimes(1);
+			expect(made.renderers[0].forceContextLoss).toHaveBeenCalledTimes(1);
 		});
 
 		it("stops the pointer handler", () => {
@@ -745,6 +774,7 @@ describe("mountDisplacementText", () => {
 		expect(last()?.mode).toBe("static");
 		expect(cafSpy).toHaveBeenCalledWith(42);
 		expect(first.dispose).toHaveBeenCalledTimes(1);
+		expect(first.forceContextLoss).toHaveBeenCalledTimes(1);
 		expect(host.querySelector("canvas")).toBeNull();
 
 		rafSpy.mockClear();

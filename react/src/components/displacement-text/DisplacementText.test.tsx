@@ -58,6 +58,7 @@ vi.mock("three", () => {
 			setSize: vi.fn(),
 			render: vi.fn(),
 			dispose: vi.fn(),
+			forceContextLoss: vi.fn(),
 			domElement: Object.assign(document.createElement("canvas"), {
 				style: { width: "", height: "" },
 			}),
@@ -204,6 +205,16 @@ describe("DisplacementText", () => {
 			unmount();
 			expect(renderer.dispose).toHaveBeenCalled();
 		});
+
+		it("drops the WebGL context before disposing the renderer", () => {
+			const { unmount } = render(<DisplacementText />);
+			const renderer = lastMock.renderer;
+			unmount();
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
+		});
 	});
 
 	describe("theme observer", () => {
@@ -283,6 +294,7 @@ describe("DisplacementText", () => {
 
 			expect(cafSpy).toHaveBeenCalled();
 			expect(first.dispose).toHaveBeenCalledTimes(1);
+			expect(first.forceContextLoss).toHaveBeenCalledTimes(1);
 			expect(container.querySelector("canvas")).toBeNull();
 			expect(screen.getByText("Flip")).toBeInTheDocument();
 
@@ -348,6 +360,10 @@ describe("DisplacementText", () => {
 
 			expect(renderer).not.toBeNull();
 			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss.mock.invocationCallOrder[0]).toBeLessThan(
+				renderer.dispose.mock.invocationCallOrder[0]
+			);
 			expect(container.querySelector("canvas")).toBeNull();
 			expect(screen.getByText("Broken")).toBeInTheDocument();
 
@@ -363,6 +379,7 @@ describe("DisplacementText", () => {
 				renderer.domElement.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
 			});
 			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(renderer.forceContextLoss).not.toHaveBeenCalled();
 			expect(container.querySelector("canvas")).toBeNull();
 			expect(screen.getByText("Lost")).toBeInTheDocument();
 		});
