@@ -18,9 +18,9 @@ const VARIANT_ICON_CLASSES: Record<ToastItem["variant"], string> = {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
-import { dismissToast, pauseToast, resumeToast } from "./store.js";
+import { dismissToast, pauseToast, resumeToast, settleToastAction } from "./store.js";
 
 /**
  * One toast panel. Renders what the store hands it and wires the pause /
@@ -47,9 +47,13 @@ defineExpose({ ref: el });
 // exactly as the source keeps them non-reactive.
 let hovering = false;
 let focusedWithin = false;
+// Mirrors the pause state for the progress bar's `data-paused` — the only
+// thing in the template that reads it, hence the one reactive flag.
+const paused = ref(false);
 
 function syncTimer() {
-	if (hovering || focusedWithin) {
+	paused.value = hovering || focusedWithin;
+	if (paused.value) {
 		pauseToast(item.id);
 	} else {
 		resumeToast(item.id);
@@ -77,6 +81,9 @@ function handleFocusOut() {
 }
 
 function handleAction() {
+	// Settle first: an `onClick` that dismisses the toast must not turn
+	// the close reason into "dismiss".
+	settleToastAction(item.id);
 	item.action?.onClick();
 }
 
@@ -88,6 +95,7 @@ const classes = computed(() =>
 	cn(
 		"ft-toast bg-popover text-popover-foreground border-border flex w-[300px] items-center gap-3 rounded-xl border p-3 shadow-[0_12px_32px_rgba(0,0,0,.5)]",
 		item.variant === "error" && "border-destructive/30",
+		item.progress && "relative overflow-hidden",
 		className
 	)
 );
@@ -139,6 +147,14 @@ const iconClasses = computed(() =>
 		>
 			✕
 		</button>
+
+		<div
+			v-if="item.progress"
+			class="ft-toast-progress"
+			aria-hidden="true"
+			:data-paused="paused ? 'true' : 'false'"
+			:style="{ '--toast-duration': `${item.duration}ms` }"
+		></div>
 	</div>
 </template>
 
@@ -189,6 +205,34 @@ const iconClasses = computed(() =>
 @media (prefers-reduced-motion: no-preference) {
 	.ft-toast-spinner {
 		animation: ft-toast-spin 0.8s linear infinite;
+	}
+}
+
+.ft-toast-progress {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 2px;
+	background: var(--ft-overlay-accent);
+	opacity: 0.7;
+	transform-origin: left center;
+}
+
+/* Static (full) under reduced motion: the bar only ever animates when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-toast-progress {
+		animation: ft-toast-drain linear forwards;
+		animation-duration: var(--toast-duration);
+	}
+
+	.ft-toast-progress[data-paused="true"] {
+		animation-play-state: paused;
+	}
+}
+
+@keyframes ft-toast-drain {
+	to {
+		transform: scaleX(0);
 	}
 }
 

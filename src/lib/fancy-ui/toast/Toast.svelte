@@ -13,7 +13,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { dismissToast, pauseToast, resumeToast } from "./store.svelte.js";
+	import { dismissToast, pauseToast, resumeToast, settleToastAction } from "./store.svelte.js";
 	import { preset } from "../_internals/motion/transitions.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
@@ -47,9 +47,13 @@
 	// idempotent, so re-pausing while still engaged is a harmless no-op.
 	let hovering = false;
 	let focusedWithin = false;
+	// Mirrors the pause state for the progress bar's `data-paused` — the only
+	// thing in the markup that reads it, hence the one reactive flag.
+	let paused = $state(false);
 
 	function syncTimer() {
-		if (hovering || focusedWithin) {
+		paused = hovering || focusedWithin;
+		if (paused) {
 			pauseToast(item.id);
 		} else {
 			resumeToast(item.id);
@@ -77,6 +81,9 @@
 	}
 
 	function handleAction() {
+		// Settle first: an `onClick` that dismisses the toast must not turn
+		// the close reason into "dismiss".
+		settleToastAction(item.id);
 		item.action?.onClick();
 	}
 
@@ -95,6 +102,7 @@
 		cn(
 			"ft-toast bg-popover text-popover-foreground border-border flex w-[300px] items-center gap-3 rounded-xl border p-3 shadow-[0_12px_32px_rgba(0,0,0,.5)]",
 			item.variant === "error" && "border-destructive/30",
+			item.progress && "relative overflow-hidden",
 			className
 		)
 	);
@@ -160,6 +168,15 @@
 	>
 		✕
 	</button>
+
+	{#if item.progress}
+		<div
+			class="ft-toast-progress"
+			aria-hidden="true"
+			data-paused={paused ? "true" : "false"}
+			style:--toast-duration="{item.duration}ms"
+		></div>
+	{/if}
 </div>
 
 <style>
@@ -209,6 +226,34 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-toast-spinner {
 			animation: ft-toast-spin 0.8s linear infinite;
+		}
+	}
+
+	.ft-toast-progress {
+		position: absolute;
+		inset-inline: 0;
+		bottom: 0;
+		height: 2px;
+		background: var(--ft-overlay-accent);
+		opacity: 0.7;
+		transform-origin: left center;
+	}
+
+	/* Static (full) under reduced motion: the bar only ever animates when motion is welcome. */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-toast-progress {
+			animation: ft-toast-drain linear forwards;
+			animation-duration: var(--toast-duration);
+		}
+
+		.ft-toast-progress[data-paused="true"] {
+			animation-play-state: paused;
+		}
+	}
+
+	@keyframes ft-toast-drain {
+		to {
+			transform: scaleX(0);
 		}
 	}
 
