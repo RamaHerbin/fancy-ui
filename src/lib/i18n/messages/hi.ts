@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "कॉम्पोनेंट्स",
 	"gallery.subtitle":
-		"Svelte 5 के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
+		"Svelte 5, React, Vue के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
 	"gallery.intro":
-		"हर कॉम्पोनेंट runes के साथ Svelte 5 के लिए नेटिव रूप से बना है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript में टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका।",
+		"हर कॉम्पोनेंट Svelte 5, React और Vue के लिए बनाया गया है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript से टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका हो जाता है।",
 	"gallery.filterPlaceholder": "कॉम्पोनेंट्स फ़िल्टर करें...",
 	"gallery.all": "सभी",
 	"gallery.noMatch": "आपकी खोज से कोई कॉम्पोनेंट मेल नहीं खाता।",
-	"gallery.meta": "{components} कॉम्पोनेंट · {categories} श्रेणियाँ · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} कॉम्पोनेंट · {categories} श्रेणियाँ · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} परिणाम",
 	"gallery.resultOne": "1 परिणाम",
 	"gallery.clearFilters": "फ़िल्टर हटाएँ",
@@ -344,4 +345,20 @@ export default {
 	"retro.explorer": "एक्सप्लोरर",
 	"retro.start": "स्टार्ट",
 	"retro.tagline": "Svelte 5 के लिए एनिमेटेड कंपोनेंट — कॉपी-पेस्ट के लिए तैयार।",
+	"comp.snippetSvelteOnly":
+		"इस फ्रेमवर्क के लिए पूरा उदाहरण अभी नहीं लिखा गया है; फिलहाल केवल Svelte संस्करण में है।",
+	"install.lead.react":
+		"तीन चरणों में FancyUI को React प्रोजेक्ट में जोड़ें: पैकेज इंस्टॉल करें, स्टाइलशीट इम्पोर्ट करें, और एक कॉम्पोनेंट रेंडर करें।",
+	"install.lead.vue":
+		"तीन चरणों में FancyUI को Vue प्रोजेक्ट में जोड़ें: पैकेज इंस्टॉल करें, स्टाइलशीट इम्पोर्ट करें, और एक कॉम्पोनेंट रेंडर करें।",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18 और 19 को सपोर्ट करता है। कॉम्पोनेंट क्लाइंट मॉड्यूल के रूप में आते हैं, इसलिए Server Components उन्हें सीधे इम्पोर्ट कर सकते हैं।",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"कॉम्पोनेंट Vue 3.5 के सिंगल-फ़ाइल कॉम्पोनेंट हैं, इसलिए Vue 3.5.2 या उससे नया संस्करण ज़रूरी है।",
 } satisfies Catalog;

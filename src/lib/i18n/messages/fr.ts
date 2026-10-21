@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Composants",
 	"gallery.subtitle":
-		"{count} composants magnifiquement animés pour Svelte 5. Parcourez, recherchez et trouvez ce qu'il vous faut.",
+		"{count} composants magnifiquement animés pour Svelte 5, React, Vue. Parcourez, recherchez et trouvez ce qu'il vous faut.",
 	"gallery.intro":
-		"Chaque composant est conçu nativement pour Svelte 5 avec les runes, stylé avec Tailwind CSS v4, typé avec TypeScript, et livré avec un aperçu en direct et des exemples à copier-coller. Installez le paquet une fois et le code vous appartient.",
+		"Chaque composant est conçu pour Svelte 5, React et Vue, stylé avec Tailwind CSS v4, typé avec TypeScript, et livré avec un aperçu en direct et des exemples à copier-coller. Installez le paquet une fois et le code vous appartient.",
 	"gallery.filterPlaceholder": "Filtrer les composants...",
 	"gallery.all": "Tous",
 	"gallery.noMatch": "Aucun composant ne correspond à votre recherche.",
-	"gallery.meta": "{components} composants · {categories} catégories · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} composants · {categories} catégories · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} résultats",
 	"gallery.resultOne": "1 résultat",
 	"gallery.clearFilters": "Effacer les filtres",
@@ -356,4 +357,20 @@ export default {
 	"retro.explorer": "Explorateur",
 	"retro.start": "Démarrer",
 	"retro.tagline": "Composants animés pour Svelte 5 — prêts à copier-coller.",
+	"comp.snippetSvelteOnly":
+		"Un exemple complet pour ce framework n'est pas encore écrit ; seule la version Svelte en propose un pour l'instant.",
+	"install.lead.react":
+		"Ajoutez FancyUI à un projet React en trois étapes : installez le paquet, importez la feuille de style, affichez un composant.",
+	"install.lead.vue":
+		"Ajoutez FancyUI à un projet Vue en trois étapes : installez le paquet, importez la feuille de style, affichez un composant.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Compatible avec React 18 et 19. Les composants sont livrés comme modules client, donc les Server Components peuvent les importer directement.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Les composants sont des composants monofichiers Vue 3.5, donc Vue 3.5.2 ou une version ultérieure est requis.",
 } satisfies Catalog;

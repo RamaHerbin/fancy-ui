@@ -20,6 +20,9 @@
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_URL, SITE_NAME } from "$lib/site.js";
 	import { toConsumerImports } from "$lib/docs/code.js";
+	import { getUsageSnippet } from "$lib/docs/framework-snippets.js";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
 
 	const REPO_URL = "https://github.com/RamaHerbin/fancy-ui";
@@ -32,8 +35,23 @@
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 
+	// The framework store hydrates from localStorage; read it after mount so the
+	// prerendered markup (Svelte) matches the first client render.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const framework = $derived(mounted ? frameworkState.framework : "svelte");
+	const variant = $derived(data.variants.find((v) => v.framework === framework) ?? null);
+
+	// React and Vue show their own compiled example, or the import line plus a
+	// note when none exists; never another framework's code.
+	const frameworkSnippet = $derived(getUsageSnippet(component.slug, framework));
+	const fallbackCode = $derived(variant?.importLine ?? "");
+
 	let sourceUrl = $derived(
-		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
+		framework !== "svelte" && variant
+			? variant.sourceUrl
+			: `https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
 	);
 	let path = $derived(`/docs/components/${component.slug}`);
 	let markdownPath = $derived(`${path}.md`);
@@ -163,6 +181,21 @@
 		setTimeout(() => (markdownCopied = false), 2000);
 	}
 </script>
+
+{#snippet snippetBlock(svelteCode: string, active: boolean)}
+	{#if framework === "svelte"}
+		<CodeBlock code={svelteCode} lang="svelte" {active} />
+	{:else if frameworkSnippet}
+		<CodeBlock code={frameworkSnippet.code} lang={frameworkSnippet.lang} {active} />
+	{:else}
+		{#if fallbackCode}
+			<CodeBlock code={fallbackCode} lang="ts" {active} />
+		{/if}
+		<p class="text-muted-foreground px-4 py-3 text-sm" data-snippet-missing>
+			{variant && !variant.importLine ? t("install.unavailable") : t("comp.snippetSvelteOnly")}
+		</p>
+	{/if}
+{/snippet}
 
 <svelte:head>
 	<link
@@ -304,7 +337,7 @@
 				     prerendered HTML instead of appearing solely after a client-side tab switch.
 				     Highlighting still waits for the tab to be opened. -->
 				<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
-					<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
+					{@render snippetBlock(previewCode, previewTab === "code")}
 				</div>
 			</div>
 		</div>
@@ -321,7 +354,7 @@
 	<!-- ═══ USAGE ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="usage">{t("comp.usage")}</h2>
-		<CodeBlock code={basicUsageCode} lang="svelte" />
+		{@render snippetBlock(basicUsageCode, true)}
 	</section>
 
 	<!-- ═══ EXAMPLES ═══ -->

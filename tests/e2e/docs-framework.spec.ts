@@ -1,0 +1,79 @@
+import { expect, test, type Page } from "@playwright/test";
+
+// The framework choice is client state read after mount, so interactions wait
+// for hydration instead of racing the prerendered (Svelte) HTML.
+async function hydrated(page: Page) {
+	await page.waitForLoadState("networkidle");
+}
+
+async function pick(page: Page, name: "React" | "Svelte" | "Vue") {
+	await page.getByRole("radio", { name }).first().click();
+}
+
+test.describe("Docs follow the selected framework", () => {
+	test.beforeEach(async ({ page }) => {
+		await page.addInitScript(() => localStorage.removeItem("fancy-ui-framework"));
+	});
+
+	test("component usage switches to React, then Vue", async ({ page }) => {
+		await page.goto("/docs/components/rainbow-button");
+		await hydrated(page);
+
+		const usage = page.locator("section:has(h2#usage)");
+		await expect(usage).toContainText("fancy-ui-svelte");
+
+		await pick(page, "React");
+		await expect(usage).toContainText("fancy-ui-react");
+		await expect(usage).not.toContainText("<script");
+		await expect(usage).not.toContainText("fancy-ui-svelte");
+
+		await pick(page, "Vue");
+		await expect(usage).toContainText("fancy-ui-vue");
+		await expect(usage).not.toContainText("fancy-ui-react");
+	});
+
+	test("the Code tab follows the framework and the source link follows the port", async ({
+		page,
+	}) => {
+		await page.goto("/docs/components/rainbow-button");
+		await hydrated(page);
+		await pick(page, "React");
+
+		await page
+			.locator("section:has(h2#preview)")
+			.getByRole("button", { name: "Code", exact: true })
+			.first()
+			.click();
+		await expect(page.locator("section:has(h2#preview) .docs-code").first()).toContainText(
+			"fancy-ui-react"
+		);
+		await expect(page.locator('a[href*="/react/src/components/rainbow-button"]')).toBeVisible();
+	});
+
+	test("installation page switches stylesheet and peer dependencies", async ({ page }) => {
+		await page.goto("/docs/getting-started/installation");
+		await hydrated(page);
+		await expect(page.locator("main")).toContainText("fancy-ui-svelte/tailwind.css");
+
+		await pick(page, "React");
+		await expect(page.locator("main")).toContainText("fancy-ui-react/tailwind.css");
+		await expect(page.locator("main")).not.toContainText("fancy-ui-svelte/tailwind.css");
+		await expect(page.locator(".peer-table")).toContainText("react-dom");
+
+		await pick(page, "Vue");
+		await expect(page.locator("main")).toContainText("fancy-ui-vue/styles.css");
+		await expect(page.locator(".peer-table")).not.toContainText("react-dom");
+	});
+
+	test("a component without a full example says so instead of showing other code", async ({
+		page,
+	}) => {
+		await page.goto("/docs/components/border-beam");
+		await hydrated(page);
+		await pick(page, "React");
+
+		const usage = page.locator("section:has(h2#usage)");
+		await expect(usage.locator("[data-snippet-missing]")).toBeVisible();
+		await expect(usage).not.toContainText("<script");
+	});
+});

@@ -78,13 +78,13 @@ export default {
 	// Components gallery
 	"gallery.title": "المكوّنات",
 	"gallery.subtitle":
-		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5. تصفّح وابحث واعثر على ما تحتاجه.",
+		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5, React, Vue. تصفّح وابحث واعثر على ما تحتاجه.",
 	"gallery.intro":
-		"كل مكوّن مبني أصلاً لـ Svelte 5 باستخدام الـ runes، ومنسّق بـ Tailwind CSS v4، ومكتوب بـ TypeScript، ويأتي مع معاينة حيّة وأمثلة جاهزة للنسخ واللصق. ثبّت الحزمة مرة واحدة وستمتلك الشيفرة.",
+		"كل مكوّن مبني لـ Svelte 5 وReact وVue، ومنسّق بـ Tailwind CSS v4، ومكتوب الأنواع بـ TypeScript، ويأتي مع معاينة حيّة وأمثلة جاهزة للنسخ واللصق. ثبّت الحزمة مرة واحدة ويصبح الكود ملكك.",
 	"gallery.filterPlaceholder": "تصفية المكوّنات...",
 	"gallery.all": "الكل",
 	"gallery.noMatch": "لا توجد مكوّنات تطابق بحثك.",
-	"gallery.meta": "{components} مكوّنًا · {categories} فئات · Svelte 5 · TypeScript",
+	"gallery.meta": "{components} مكوّنًا · {categories} فئات · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} نتيجة",
 	"gallery.resultOne": "نتيجة واحدة",
 	"gallery.clearFilters": "مسح عوامل التصفية",
@@ -338,4 +338,20 @@ export default {
 	"retro.explorer": "المستكشف",
 	"retro.start": "ابدأ",
 	"retro.tagline": "مكوّنات متحركة لـ Svelte 5 — جاهزة للنسخ واللصق.",
+	"comp.snippetSvelteOnly":
+		"لم يُكتب بعد مثال كامل لهذا الإطار؛ حاليًا نسخة Svelte فقط لديها واحد.",
+	"install.lead.react":
+		"أضف FancyUI إلى مشروع React في ثلاث خطوات: ثبّت الحزمة، واستورد ملف الأنماط، واعرض مكوّناً.",
+	"install.lead.vue":
+		"أضف FancyUI إلى مشروع Vue في ثلاث خطوات: ثبّت الحزمة، واستورد ملف الأنماط، واعرض مكوّناً.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"يدعم React 18 و19. تُوزَّع المكوّنات كوحدات عميل، لذا يمكن لـ Server Components استيرادها مباشرة.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"المكوّنات هي مكوّنات Vue 3.5 أحادية الملف، لذا يلزم Vue 3.5.2 أو أحدث.",
 } satisfies Catalog;

@@ -78,11 +78,12 @@ export default {
 	// Components gallery
 	"gallery.title": "コンポーネント",
 	"gallery.intro":
-		"すべてのコンポーネントは runes を使って Svelte 5 向けにネイティブに作られ、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされ、ライブプレビューとコピー＆ペーストできる使用例が付属します。パッケージを一度インストールすれば、コードはあなたのものです。",
+		"すべてのコンポーネントは Svelte 5、React、Vue 向けに作られ、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされ、ライブプレビューとコピー＆ペーストできる使用例が付属します。パッケージを一度インストールすれば、コードはあなたのものです。",
 	"gallery.filterPlaceholder": "コンポーネントを絞り込む...",
 	"gallery.all": "すべて",
 	"gallery.noMatch": "検索に一致するコンポーネントがありません。",
-	"gallery.meta": "{components} コンポーネント · {categories} カテゴリ · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} コンポーネント · {categories} カテゴリ · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} 件の結果",
 	"gallery.resultOne": "1 件の結果",
 	"gallery.clearFilters": "フィルターをクリア",
@@ -107,7 +108,7 @@ export default {
 	"gallery.desc.overlays": "ダイアログ、ポップオーバー、メニュー、シート",
 	"gallery.desc.display": "バッジ、アバター、ステータス表示",
 	"gallery.subtitle":
-		"Svelte 5 向けの美しくアニメーションする {count} 個のコンポーネント。閲覧・検索して、必要なものを見つけましょう。",
+		"Svelte 5, React, Vue 向けの美しくアニメーションする {count} 個のコンポーネント。閲覧・検索して、必要なものを見つけましょう。",
 
 	// Theme-generator page
 	"tg.metaDescription":
@@ -350,4 +351,20 @@ export default {
 	"retro.explorer": "エクスプローラー",
 	"retro.start": "スタート",
 	"retro.tagline": "Svelte 5 のためのアニメーションコンポーネント — コピペしてすぐ使えます。",
+	"comp.snippetSvelteOnly":
+		"このフレームワーク向けの完全な使用例はまだありません。現時点では Svelte 版のみ用意されています。",
+	"install.lead.react":
+		"FancyUI は 3 つのステップで React プロジェクトに追加できます: パッケージをインストールし、スタイルシートをインポートし、コンポーネントをレンダリングするだけです。",
+	"install.lead.vue":
+		"FancyUI は 3 つのステップで Vue プロジェクトに追加できます: パッケージをインストールし、スタイルシートをインポートし、コンポーネントをレンダリングするだけです。",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18 と 19 に対応しています。コンポーネントはクライアントモジュールとして配布されるため、Server Components から直接インポートできます。",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"コンポーネントは Vue 3.5 のシングルファイルコンポーネントのため、Vue 3.5.2 以降が必要です。",
 } satisfies Catalog;

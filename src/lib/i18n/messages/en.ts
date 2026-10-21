@@ -91,13 +91,14 @@ export const en = {
 	// Components gallery
 	"gallery.title": "Components",
 	"gallery.subtitle":
-		"{count} beautifully animated components for Svelte 5. Browse, search, and find what you need.",
+		"{count} beautifully animated components for Svelte 5, React and Vue. Browse, search, and find what you need.",
 	"gallery.intro":
-		"Every component is built natively for Svelte 5 with runes, styled with Tailwind CSS v4, typed with TypeScript, and ships with a live preview and copy-paste examples. Install the package once and own the code.",
+		"Every component is built for Svelte 5, React and Vue, styled with Tailwind CSS v4, typed with TypeScript, and ships with a live preview and copy-paste examples. Install the package once and own the code.",
 	"gallery.filterPlaceholder": "Filter components...",
 	"gallery.all": "All",
 	"gallery.noMatch": "No components match your search.",
-	"gallery.meta": "{components} components · {categories} categories · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} components · {categories} categories · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} results",
 	"gallery.resultOne": "1 result",
 	"gallery.clearFilters": "Clear filters",
@@ -349,6 +350,22 @@ export const en = {
 	"retro.explorer": "Explorer",
 	"retro.start": "Start",
 	"retro.tagline": "Animated components for Svelte 5 — copy-paste friendly.",
+	"comp.snippetSvelteOnly":
+		"A full example for this framework is not written yet; only the Svelte version has one for now.",
+	"install.lead.react":
+		"Add FancyUI to a React project in three steps: install the package, import the stylesheet, render a component.",
+	"install.lead.vue":
+		"Add FancyUI to a Vue project in three steps: install the package, import the stylesheet, render a component.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Supports React 18 and 19. Components ship as client modules, so Server Components can import them directly.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Components are Vue 3.5 single-file components, so Vue 3.5.2 or later is required.",
 } as const;
 export type Messages = typeof en;
 export type MessageKey = keyof Messages;

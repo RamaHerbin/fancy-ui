@@ -78,11 +78,12 @@ export default {
 	// Components gallery
 	"gallery.title": "Bileşenler",
 	"gallery.intro":
-		"Her bileşen runes ile Svelte 5 için yerel olarak geliştirildi, Tailwind CSS v4 ile biçimlendirildi, TypeScript ile tiplendirildi ve canlı önizleme ile kopyala-yapıştır örnekleriyle geliyor. Paketi bir kez kurun, kod sizin olsun.",
+		"Her bileşen Svelte 5, React ve Vue için geliştirilmiştir, Tailwind CSS v4 ile stillendirilmiş, TypeScript ile tiplendirilmiştir ve canlı önizleme ile kopyala-yapıştır örneklerle gelir. Paketi bir kez kurun, kod sizin olsun.",
 	"gallery.filterPlaceholder": "Bileşenleri filtrele...",
 	"gallery.all": "Tümü",
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
-	"gallery.meta": "{components} bileşen · {categories} kategori · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} bileşen · {categories} kategori · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} sonuç",
 	"gallery.resultOne": "1 sonuç",
 	"gallery.clearFilters": "Filtreleri temizle",
@@ -107,7 +108,7 @@ export default {
 	"gallery.desc.overlays": "İletişim kutuları, açılır pencereler, menüler ve paneller",
 	"gallery.desc.display": "Rozetler, avatarlar ve durum gösterimi",
 	"gallery.subtitle":
-		"Svelte 5 için güzelce animasyonlu {count} bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
+		"Svelte 5, React, Vue için güzelce animasyonlu {count} bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
 
 	// Theme-generator page
 	"tg.metaDescription":
@@ -350,4 +351,20 @@ export default {
 	"retro.explorer": "Gezgin",
 	"retro.start": "Başlat",
 	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyalayıp yapıştırmaya hazır.",
+	"comp.snippetSvelteOnly":
+		"Bu framework için tam bir örnek henüz yazılmadı; şimdilik yalnızca Svelte sürümünde var.",
+	"install.lead.react":
+		"FancyUI'yi üç adımda bir React projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+	"install.lead.vue":
+		"FancyUI'yi üç adımda bir Vue projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18 ve 19'u destekler. Bileşenler istemci modülleri olarak gönderilir, bu yüzden Server Components bunları doğrudan içe aktarabilir.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Bileşenler Vue 3.5 tek dosyalı bileşenleridir, bu nedenle Vue 3.5.2 veya üzeri gerekir.",
 } satisfies Catalog;

@@ -78,13 +78,13 @@ export default {
 	// Components gallery
 	"gallery.title": "کامپوننت‌ها",
 	"gallery.subtitle":
-		"{count} کامپوننت زیبا و متحرک برای Svelte 5. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
+		"{count} کامپوننت زیبا و متحرک برای Svelte 5, React, Vue. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
 	"gallery.intro":
-		"هر کامپوننت به‌صورت بومی برای Svelte 5 با runes ساخته شده، با Tailwind CSS v4 استایل‌دهی شده، با TypeScript تایپ شده و همراه با پیش‌نمایش زنده و نمونه‌های آمادهٔ کپی و جای‌گذاری ارائه می‌شود. بسته را یک بار نصب کنید و کد از آنِ شماست.",
+		"هر کامپوننت برای Svelte 5، React و Vue ساخته شده، با Tailwind CSS v4 استایل می‌گیرد، با TypeScript تایپ شده و با پیش‌نمایش زنده و مثال‌های قابل کپی همراه است. بسته را یک بار نصب کنید و کد مال شما باشد.",
 	"gallery.filterPlaceholder": "فیلتر کردن کامپوننت‌ها...",
 	"gallery.all": "همه",
 	"gallery.noMatch": "هیچ کامپوننتی با جستجوی شما مطابقت ندارد.",
-	"gallery.meta": "{components} کامپوننت · {categories} دسته · Svelte 5 · TypeScript",
+	"gallery.meta": "{components} کامپوننت · {categories} دسته · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} نتیجه",
 	"gallery.resultOne": "۱ نتیجه",
 	"gallery.clearFilters": "پاک کردن فیلترها",
@@ -347,4 +347,20 @@ export default {
 	"retro.explorer": "کاوشگر",
 	"retro.start": "شروع",
 	"retro.tagline": "کامپوننت‌های متحرک برای Svelte 5 — آماده کپی و چسباندن.",
+	"comp.snippetSvelteOnly":
+		"هنوز مثال کاملی برای این فریم‌ورک نوشته نشده است؛ فعلاً فقط نسخه Svelte یکی دارد.",
+	"install.lead.react":
+		"FancyUI را در سه گام به یک پروژه‌ی React اضافه کنید: بسته را نصب کنید، استایل‌شیت را وارد کنید و یک کامپوننت رندر کنید.",
+	"install.lead.vue":
+		"FancyUI را در سه گام به یک پروژه‌ی Vue اضافه کنید: بسته را نصب کنید، استایل‌شیت را وارد کنید و یک کامپوننت رندر کنید.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"از React 18 و 19 پشتیبانی می‌کند. کامپوننت‌ها به‌صورت ماژول کلاینت منتشر می‌شوند، پس Server Components می‌توانند آن‌ها را مستقیم وارد کنند.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"کامپوننت‌ها کامپوننت‌های تک‌فایلی Vue 3.5 هستند، بنابراین Vue 3.5.2 یا بالاتر لازم است.",
 } satisfies Catalog;

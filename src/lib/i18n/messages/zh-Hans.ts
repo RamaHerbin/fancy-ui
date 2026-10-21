@@ -67,13 +67,14 @@ export default {
 	"theme.switchToDark": "切换到深色模式",
 
 	"gallery.title": "组件",
-	"gallery.subtitle": "{count} 个精美的 Svelte 5 动画组件。浏览、搜索，找到你需要的内容。",
+	"gallery.subtitle":
+		"{count} 个精美的 Svelte 5, React, Vue 动画组件。浏览、搜索，找到你需要的内容。",
 	"gallery.intro":
-		"每个组件都使用 runes 为 Svelte 5 原生构建，采用 Tailwind CSS v4 样式，使用 TypeScript 类型定义，并附带实时预览和可复制粘贴的示例。安装一次依赖包，代码即归你所有。",
+		"每个组件都为 Svelte 5、React 和 Vue 构建，使用 Tailwind CSS v4 样式，使用 TypeScript 类型，并附带实时预览和可复制粘贴的示例。只需安装一次包，代码就归你所有。",
 	"gallery.filterPlaceholder": "筛选组件…",
 	"gallery.all": "全部",
 	"gallery.noMatch": "没有与搜索匹配的组件。",
-	"gallery.meta": "{components} 个组件 · {categories} 个分类 · Svelte 5 · TypeScript",
+	"gallery.meta": "{components} 个组件 · {categories} 个分类 · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} 个结果",
 	"gallery.resultOne": "1 个结果",
 	"gallery.clearFilters": "清除筛选",
@@ -311,4 +312,17 @@ export default {
 	"retro.explorer": "资源管理器",
 	"retro.start": "开始",
 	"retro.tagline": "面向 Svelte 5 的动效组件 — 复制粘贴即可使用。",
+	"comp.snippetSvelteOnly": "该框架的完整示例尚未编写，目前只有 Svelte 版本提供。",
+	"install.lead.react": "只需三步即可将 FancyUI 添加到 React 项目：安装包、导入样式表、渲染组件。",
+	"install.lead.vue": "只需三步即可将 FancyUI 添加到 Vue 项目：安装包、导入样式表、渲染组件。",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"支持 React 18 和 19。组件以客户端模块形式发布，因此 Server Components 可以直接导入。",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"组件是 Vue 3.5 单文件组件，因此需要 Vue 3.5.2 或更高版本。",
 } satisfies Catalog;

@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Komponen",
 	"gallery.subtitle":
-		"{count} komponen beranimasi indah untuk Svelte 5. Jelajahi, cari, dan temukan yang Anda butuhkan.",
+		"{count} komponen beranimasi indah untuk Svelte 5, React, Vue. Jelajahi, cari, dan temukan yang Anda butuhkan.",
 	"gallery.intro":
-		"Setiap komponen dibangun secara native untuk Svelte 5 dengan runes, ditata dengan Tailwind CSS v4, diketik dengan TypeScript, dan dilengkapi pratinjau langsung serta contoh siap salin-tempel. Instal paketnya sekali dan kodenya menjadi milik Anda.",
+		"Setiap komponen dibuat untuk Svelte 5, React, dan Vue, ditata dengan Tailwind CSS v4, diberi tipe dengan TypeScript, dan hadir dengan pratinjau langsung serta contoh siap salin. Instal paketnya sekali dan kodenya jadi milik Anda.",
 	"gallery.filterPlaceholder": "Filter komponen...",
 	"gallery.all": "Semua",
 	"gallery.noMatch": "Tidak ada komponen yang cocok dengan pencarian Anda.",
-	"gallery.meta": "{components} komponen · {categories} kategori · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} komponen · {categories} kategori · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} hasil",
 	"gallery.resultOne": "1 hasil",
 	"gallery.clearFilters": "Hapus filter",
@@ -346,4 +347,20 @@ export default {
 	"retro.explorer": "Penjelajah",
 	"retro.start": "Mulai",
 	"retro.tagline": "Komponen beranimasi untuk Svelte 5 — siap disalin-tempel.",
+	"comp.snippetSvelteOnly":
+		"Contoh lengkap untuk framework ini belum ditulis; untuk saat ini hanya versi Svelte yang memilikinya.",
+	"install.lead.react":
+		"Tambahkan FancyUI ke proyek React dalam tiga langkah: instal paketnya, impor stylesheet-nya, lalu render sebuah komponen.",
+	"install.lead.vue":
+		"Tambahkan FancyUI ke proyek Vue dalam tiga langkah: instal paketnya, impor stylesheet-nya, lalu render sebuah komponen.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Mendukung React 18 dan 19. Komponen dikirim sebagai modul klien, sehingga Server Components dapat mengimpornya langsung.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Komponen adalah single-file component Vue 3.5, jadi Vue 3.5.2 atau lebih baru diperlukan.",
 } satisfies Catalog;

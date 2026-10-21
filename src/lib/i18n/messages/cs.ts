@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Komponenty",
 	"gallery.subtitle":
-		"{count} krásně animovaných komponent pro Svelte 5. Procházejte, vyhledávejte a najděte, co potřebujete.",
+		"{count} krásně animovaných komponent pro Svelte 5, React, Vue. Procházejte, vyhledávejte a najděte, co potřebujete.",
 	"gallery.intro":
-		"Každá komponenta je nativně postavená pro Svelte 5 s runes, nastylovaná pomocí Tailwind CSS v4, otypovaná v TypeScriptu a přichází s živým náhledem a příklady ke zkopírování. Balíček nainstalujete jednou a kód je váš.",
+		"Každá komponenta je vytvořena pro Svelte 5, React a Vue, ostylována pomocí Tailwind CSS v4, otypována v TypeScriptu a obsahuje živý náhled a příklady ke zkopírování. Balíček nainstalujete jednou a kód je váš.",
 	"gallery.filterPlaceholder": "Filtrovat komponenty...",
 	"gallery.all": "Vše",
 	"gallery.noMatch": "Vašemu hledání neodpovídají žádné komponenty.",
-	"gallery.meta": "{components} komponent · {categories} kategorií · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} komponent · {categories} kategorií · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "Výsledků: {count}",
 	"gallery.resultOne": "1 výsledek",
 	"gallery.clearFilters": "Zrušit filtry",
@@ -344,4 +345,20 @@ export default {
 	"retro.explorer": "Průzkumník",
 	"retro.start": "Start",
 	"retro.tagline": "Animované komponenty pro Svelte 5 — připravené ke zkopírování.",
+	"comp.snippetSvelteOnly":
+		"Úplný příklad pro tento framework zatím není napsán; zatím ho má jen verze pro Svelte.",
+	"install.lead.react":
+		"Přidejte FancyUI do projektu React ve třech krocích: nainstalujte balíček, importujte stylesheet, vykreslete komponentu.",
+	"install.lead.vue":
+		"Přidejte FancyUI do projektu Vue ve třech krocích: nainstalujte balíček, importujte stylesheet, vykreslete komponentu.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Podporuje React 18 a 19. Komponenty se dodávají jako klientské moduly, takže je Server Components mohou importovat přímo.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Komponenty jsou jednosouborové komponenty Vue 3.5, proto je vyžadováno Vue 3.5.2 nebo novější.",
 } satisfies Catalog;
