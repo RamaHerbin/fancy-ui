@@ -1,0 +1,21 @@
+{
+	"name": "consumer-vue-vite",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview --port 4179 --strictPort"
+	},
+	"dependencies": {
+		"fancy-ui-vue": "file:.tarball/fancy-ui-vue.tgz",
+		"vue": "^3.5.2"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.1.17",
+		"@vitejs/plugin-vue": "^6.0.0",
+		"tailwindcss": "^4.1.17",
+		"vite": "^7.2.6"
+	}
+}

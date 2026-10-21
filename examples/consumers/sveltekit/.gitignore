@@ -1,0 +1,6 @@
+node_modules
+.svelte-kit
+.tarball
+build
+package-lock.json
+test-results
