@@ -1,0 +1,25 @@
+{
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"headers": [
+		{
+			"source": "/(llms|llms-full).txt",
+			"headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+		},
+		{
+			"source": "/registry.json",
+			"headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+		},
+		{
+			"source": "/r/(.*)",
+			"headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+		},
+		{
+			"source": "/docs/components/(.*).md",
+			"headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+		},
+		{
+			"source": "/fonts/(.*)",
+			"headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+		}
+	]
+}

@@ -48,8 +48,7 @@ export default {
 	"install.sourceOnly": "Henüz npm'de değil — bu uyarlama şimdilik depoda yer alıyor.",
 	"install.unavailable": "Bu bileşenin bu framework için henüz bir uyarlaması yok.",
 	"install.copySource": "Kaynak kodunu kopyala",
-	"install.copySourceNote":
-		"Bileşenin kaynak kodunu projenize kopyalar; kod artık sizindir.",
+	"install.copySourceNote": "Bileşenin kaynak kodunu projenize kopyalar; kod artık sizindir.",
 	"comp.usage": "Kullanım",
 	"comp.props": "Özellikler",
 	"comp.slots": "Slotlar",
@@ -75,6 +74,7 @@ export default {
 		"Adlandırma kurallarıyla türetilemiyor; Svelte API'sinden farklar listesine bakın.",
 	"comp.events": "Olaylar",
 	"comp.copyMarkdown": "Markdown olarak kopyala",
+	"comp.editions": "{editions} için kullanılabilir.",
 
 	// Copy buttons
 	"action.copy": "Kopyala",
@@ -161,7 +161,6 @@ export default {
 
 	// Introduction page
 	"intro.title": "Giriş",
-	"intro.metaTitle": "Giriş",
 	"intro.pill.animation": "Animasyon öncelikli",
 	"intro.pill.copyPaste": "Kopyala-yapıştır dostu",
 	"intro.pill.tailwind": "Tailwind CSS 4",
@@ -187,7 +186,8 @@ export default {
 	"intro.category.buttons": "Düğmeler",
 	"intro.category.cards": "Kartlar",
 	"intro.category.effects": "Efektler",
-	"intro.stats.buttons": "Rainbow, Ripple, Shimmer ve benzerleri. Tıklanmak için can atan düğmeler.",
+	"intro.stats.buttons":
+		"Rainbow, Ripple, Shimmer ve benzerleri. Tıklanmak için can atan düğmeler.",
 	"intro.stats.cards":
 		"Karuseller, bento ızgaralar, 3D eğimler. İçeriği kimseyi sıkmadan sunmanın yolları.",
 	"intro.stats.effects": "İmleçler, izler, animasyonlu metinler. Farkı yaratan küçük dokunuşlar.",
@@ -262,7 +262,8 @@ export default {
 	"install.typescript.heading": "TypeScript",
 	"install.typescript.body":
 		"Özellik türleri her bileşenin yanında dışa aktarılır; böylece sarmalayıcılarınızı ve paylaşılan ön ayarlarınızı tiplendirebilirsiniz.",
-	"install.typescript.note": "Türler paketin içinde gelir. Ayrıca kurmanız gereken bir tür paketi yoktur.",
+	"install.typescript.note":
+		"Türler paketin içinde gelir. Ayrıca kurmanız gereken bir tür paketi yoktur.",
 	"install.peerDeps.heading": "Eş bağımlılıklar",
 	"install.peerDeps.body": "FancyUI, bunların projenizde zaten bulunmasını bekler:",
 	"install.peerDeps.colPackage": "Paket",
@@ -325,7 +326,8 @@ export default {
 	// Changelog page
 	"changelog.metaTitle": "Değişiklik Günlüğü",
 	"changelog.title": "Değişiklik Günlüğü",
-	"changelog.lead": "FancyUI'ın tüm sürümleri ve her birinde nelerin değiştiği, en yeniden en eskiye.",
+	"changelog.lead":
+		"FancyUI'ın tüm sürümleri ve her birinde nelerin değiştiği, en yeniden en eskiye.",
 	"changelog.latest": "En yeni",
 	"changelog.major": "Büyük değişiklikler",
 	"changelog.minor": "Küçük değişiklikler",
@@ -404,8 +406,7 @@ export default {
 	"status.planned": "Planlı",
 	"status.deprecated": "Kullanım dışı",
 	"comp.sinceVersion": "v{version} sürümünde yeni",
-	"comp.deprecatedNotice":
-		"Bu bileşen kullanım dışıdır ve gelecekteki bir sürümde kaldırılabilir.",
+	"comp.deprecatedNotice": "Bu bileşen kullanım dışıdır ve gelecekteki bir sürümde kaldırılabilir.",
 	"comp.inspiredByNoLink": "İlham kaynağı: {name}",
 	"recipes.title": "Tarifler",
 	"recipes.lead":

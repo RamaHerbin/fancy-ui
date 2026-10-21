@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { t, tCategory, componentDocTitle, createSkinState } from "$lib/stores";
+	import { t, tCategory, componentDocTitle, createSkinState, getLocale } from "$lib/stores";
+	import { formatList } from "$lib/i18n/format.js";
 	// The group badge composes its key at runtime, so the cast needs the key union.
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
@@ -24,6 +25,7 @@
 	import { toConsumerImports } from "$lib/docs/code.js";
 	import { getUsageSnippet } from "$lib/docs/framework-snippets.js";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import type { Framework } from "$lib/inspiration/types.js";
 	import { portEventName, portSlotName } from "$lib/docs/port-names.js";
 	import PortName from "$lib/components/docs/PortName.svelte";
 	import { onMount } from "svelte";
@@ -67,6 +69,25 @@
 	);
 	let path = $derived(`/docs/components/${component.slug}`);
 	let badges = $derived(componentBadges(component));
+
+	// Which ports exist, written into the prerendered markup: the framework
+	// switch only changes the page after mount, so this sentence is what a
+	// crawler (or a reader without scripts) learns about the React and Vue
+	// editions, in the order of the switch. The list is joined for the active
+	// locale ("Svelte 5, React et Vue 3"), since it lands inside a translated sentence.
+	const FRAMEWORK_EDITIONS: Record<Framework, string> = {
+		svelte: "Svelte 5",
+		react: "React",
+		vue: "Vue 3",
+	};
+	let availableEditions = $derived(
+		formatList(
+			data.variants
+				.filter((v) => v.availability !== "unavailable")
+				.map((v) => FRAMEWORK_EDITIONS[v.framework]),
+			getLocale()
+		)
+	);
 	let sourcePath = $derived(sourcePathForRoute(path));
 	let markdownPath = $derived(`${path}.md`);
 	// The export link carries the framework so it can serve that edition. Until
@@ -330,7 +351,12 @@
 			{t("comp.deprecatedNotice")}
 		</p>
 	{/if}
-	<p class="text-muted-foreground mb-6">{component.description}</p>
+	<p class="text-muted-foreground mb-2">{component.description}</p>
+	{#if availableEditions}
+		<p class="text-muted-foreground mb-6 text-sm" data-editions>
+			{t("comp.editions", { editions: availableEditions })}
+		</p>
+	{/if}
 
 	<!-- ═══ PREVIEW ═══ -->
 	<section class="mb-10">

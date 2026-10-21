@@ -75,6 +75,7 @@ export default {
 		"Tidak dapat diturunkan dengan aturan penamaan; lihat perbedaan dengan API Svelte.",
 	"comp.events": "Event",
 	"comp.copyMarkdown": "Salin sebagai Markdown",
+	"comp.editions": "Tersedia untuk {editions}.",
 
 	// Copy buttons
 	"action.copy": "Salin",
@@ -160,7 +161,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "Pengantar",
-	"intro.metaTitle": "Pengantar",
 	"intro.pill.animation": "Mengutamakan animasi",
 	"intro.pill.copyPaste": "Ramah salin-tempel",
 	"intro.pill.tailwind": "Tailwind CSS 4",

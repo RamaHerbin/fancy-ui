@@ -73,6 +73,7 @@ export default {
 		"Nelze odvodit podle pravidel pojmenování; viz rozdíly oproti API Svelte.",
 	"comp.events": "Události",
 	"comp.copyMarkdown": "Kopírovat jako Markdown",
+	"comp.editions": "K dispozici pro {editions}.",
 
 	// Copy buttons
 	"action.copy": "Kopírovat",
@@ -161,7 +162,6 @@ export default {
 
 	// Introduction page
 	"intro.title": "Úvod",
-	"intro.metaTitle": "Úvod",
 	"intro.pill.animation": "Animace na prvním místě",
 	"intro.pill.copyPaste": "Připraveno ke zkopírování",
 	"intro.pill.tailwind": "Tailwind CSS 4",

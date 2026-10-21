@@ -75,6 +75,7 @@ export default {
 		"Non ricavabile dalle regole di denominazione; vedi le differenze dall'API Svelte.",
 	"comp.events": "Eventi",
 	"comp.copyMarkdown": "Copia come Markdown",
+	"comp.editions": "Disponibile per {editions}.",
 
 	// Copy buttons
 	"action.copy": "Copia",
@@ -162,7 +163,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "Introduzione",
-	"intro.metaTitle": "Introduzione",
 	"intro.pill.animation": "Animazioni al primo posto",
 	"intro.pill.copyPaste": "Facile da copiare e incollare",
 	"intro.pill.tailwind": "Tailwind CSS 4",

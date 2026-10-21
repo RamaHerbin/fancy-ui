@@ -73,6 +73,7 @@ export default {
 		"لا يمكن استنتاجه من قواعد التسمية؛ راجع الفروق عن واجهة Svelte البرمجية.",
 	"comp.events": "الأحداث",
 	"comp.copyMarkdown": "نسخ بصيغة Markdown",
+	"comp.editions": "متاح لـ {editions}.",
 
 	// Copy buttons
 	"action.copy": "نسخ",
@@ -162,7 +163,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "مقدّمة",
-	"intro.metaTitle": "مقدّمة",
 	"intro.pill.animation": "الحركة أولًا",
 	"intro.pill.copyPaste": "سهولة النسخ واللصق",
 	"intro.pill.tailwind": "Tailwind CSS 4",

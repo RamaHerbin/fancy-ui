@@ -67,6 +67,7 @@ export default {
 	"table.portNameUnknown": "无法按命名规则推导；请参阅与 Svelte API 的差异说明。",
 	"comp.events": "事件",
 	"comp.copyMarkdown": "复制为 Markdown",
+	"comp.editions": "可用于 {editions}。",
 
 	"action.copy": "复制",
 	"action.copied": "已复制！",
@@ -145,7 +146,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "简介",
-	"intro.metaTitle": "简介",
 	"intro.pill.animation": "动画优先",
 	"intro.pill.copyPaste": "便于复制粘贴",
 	"intro.pill.tailwind": "Tailwind CSS 4",

@@ -74,6 +74,7 @@ export default {
 		"Lässt sich nicht aus den Benennungsregeln ableiten; siehe die Unterschiede zur Svelte-API.",
 	"comp.events": "Ereignisse",
 	"comp.copyMarkdown": "Als Markdown kopieren",
+	"comp.editions": "Verfügbar für {editions}.",
 
 	// Copy buttons
 	"action.copy": "Kopieren",
@@ -161,7 +162,6 @@ export default {
 
 	// Introduction page
 	"intro.title": "Einführung",
-	"intro.metaTitle": "Einführung",
 	"intro.pill.animation": "Animation im Mittelpunkt",
 	"intro.pill.copyPaste": "Einfach zu kopieren",
 	"intro.pill.tailwind": "Tailwind CSS 4",

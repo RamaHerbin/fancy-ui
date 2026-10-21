@@ -17,13 +17,18 @@
 	import { createMotionState } from "$lib/stores/motion.svelte.js";
 	import {
 		DEFAULT_OG_IMAGE,
+		GITHUB_URL,
 		LICENSE_URL,
 		PACKAGE_NAME,
+		PACKAGE_VERSION,
 		REACT_PACKAGE_NAME,
+		REACT_PACKAGE_URL,
 		SCHEMA_APP_ID,
 		SCHEMA_WEBSITE_ID,
 		SITE_NAME,
 		SITE_URL,
+		VUE_PACKAGE_NAME,
+		VUE_PACKAGE_URL,
 		absoluteUrl,
 	} from "$lib/site.js";
 	import type { PageData } from "./$types";
@@ -77,13 +82,25 @@
 				"@type": "SoftwareApplication",
 				"@id": SCHEMA_APP_ID,
 				name: SITE_NAME,
-				alternateName: [PACKAGE_NAME, REACT_PACKAGE_NAME],
+				// Every spelling a search for the project uses: the two-word brand,
+				// the repository name and the three package names.
+				alternateName: ["Fancy UI", "fancy-ui", PACKAGE_NAME, REACT_PACKAGE_NAME, VUE_PACKAGE_NAME],
 				applicationCategory: "DeveloperApplication",
 				operatingSystem: "Web",
+				softwareVersion: PACKAGE_VERSION,
 				description,
 				url: SITE_URL,
 				image: absoluteUrl(DEFAULT_OG_IMAGE),
 				license: LICENSE_URL,
+				codeRepository: GITHUB_URL,
+				// The same entity on GitHub and npm, so crawlers merge the profiles.
+				sameAs: [
+					GITHUB_URL,
+					`https://www.npmjs.com/package/${PACKAGE_NAME}`,
+					REACT_PACKAGE_URL,
+					VUE_PACKAGE_URL,
+				],
+				author: { "@type": "Person", name: "Rama Herbin", url: "https://rama.app" },
 				isPartOf: { "@id": SCHEMA_WEBSITE_ID },
 				offers: {
 					"@type": "Offer",
@@ -97,7 +114,7 @@
 
 <Seo title="FancyUI — UI inspiration & components for React, Svelte, Vue" {description} path="/" />
 <JsonLd data={graph} />
-<SiteFonts />
+<SiteFonts serif />
 
 <!--
 	Fixed dark shell: `.fx-root` carries the site tokens, `.dark` keeps the

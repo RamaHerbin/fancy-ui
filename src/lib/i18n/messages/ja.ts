@@ -75,6 +75,7 @@ export default {
 	"table.portNameUnknown": "命名規則からは導けません。Svelte API との違いを参照してください。",
 	"comp.events": "イベント",
 	"comp.copyMarkdown": "Markdown としてコピー",
+	"comp.editions": "{editions} で利用できます。",
 
 	// Copy buttons
 	"action.copy": "コピー",
@@ -160,7 +161,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "はじめに",
-	"intro.metaTitle": "はじめに",
 	"intro.pill.animation": "アニメーション重視",
 	"intro.pill.copyPaste": "コピー＆ペーストに対応",
 	"intro.pill.tailwind": "Tailwind CSS 4",

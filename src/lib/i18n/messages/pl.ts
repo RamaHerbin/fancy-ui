@@ -74,6 +74,7 @@ export default {
 	"table.portNameUnknown": "Nie wynika z reguł nazewnictwa; zobacz różnice względem API Svelte.",
 	"comp.events": "Zdarzenia",
 	"comp.copyMarkdown": "Kopiuj jako Markdown",
+	"comp.editions": "Dostępne dla {editions}.",
 
 	// Copy buttons
 	"action.copy": "Kopiuj",
@@ -163,7 +164,6 @@ export default {
 
 	// Introduction (redesigned page)
 	"intro.title": "Wprowadzenie",
-	"intro.metaTitle": "Wprowadzenie",
 	"intro.pill.animation": "Animacja przede wszystkim",
 	"intro.pill.copyPaste": "Gotowe do skopiowania",
 	"intro.pill.tailwind": "Tailwind CSS 4",
