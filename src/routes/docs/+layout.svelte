@@ -3,6 +3,7 @@
 	import Sidebar from "$lib/components/docs/Sidebar.svelte";
 	import DocHeader from "$lib/components/docs/DocHeader.svelte";
 	import TableOfContents from "$lib/components/docs/TableOfContents.svelte";
+	import DocsFooter from "$lib/components/docs/DocsFooter.svelte";
 	import CommandSearch from "$lib/components/docs/CommandSearch.svelte";
 	import RetroTaskbar from "$lib/components/docs/retro/RetroTaskbar.svelte";
 	import { FancyProvider, brutalSkin, defaultSkin, retroOsSkin, type Skin } from "$lib/cameleon";
@@ -87,6 +88,7 @@
 				{/if}
 			</div>
 		</div>
+		<DocsFooter />
 	</div>
 {/snippet}
 
