@@ -23,6 +23,11 @@ export interface CopyButtonProps {
 	iconOnly?: boolean;
 	/** Called with the value and whether the write actually succeeded */
 	onCopy?: (value: string, ok: boolean) => void;
+	/**
+	 * Fires on activation, right after the copy starts. Never called while
+	 * `disabled`. `@click` reaches it.
+	 */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
 	/**
@@ -67,7 +72,8 @@ const MORPH_STYLE: CSSProperties = {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useSlots, useTemplateRef, watch } from "vue";
+import { computed, ref, useAttrs, useSlots, useTemplateRef, watch } from "vue";
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { useCopy } from "../../internals/use-copy.js";
 import { sound as soundFx } from "../../sound/sound.js";
@@ -87,6 +93,7 @@ const {
 	disabled = false,
 	iconOnly = false,
 	onCopy,
+	onClick,
 	class: className,
 	sound = false,
 } = defineProps<CopyButtonProps>();
@@ -102,6 +109,11 @@ defineSlots<{
 }>();
 
 const slots = useSlots();
+
+// Native attributes and listeners ride through to Button, which lands them on
+// its `<button>`. `onClick` is a declared prop (above) so it can run after the
+// copy starts rather than merging into Button's own listener.
+const attrs = useAttrs();
 
 // The element Button itself published. Read through Button's own exposed `ref`
 // so it tracks the control across a swap between the `<a>` and `<button>`
@@ -169,7 +181,7 @@ const classes = computed(() =>
 	)
 );
 
-async function handleClick() {
+async function handleClick(event: MouseEvent) {
 	// This click is the only user gesture in the interaction, and the outcome
 	// cue below plays after an await: on a reload with sound already enabled no
 	// AudioContext exists yet, and by then the transient activation may be
@@ -191,7 +203,10 @@ async function handleClick() {
 	// change while the clipboard write is pending would otherwise make `onCopy`
 	// report a different string than the one actually copied.
 	const attempted = value;
-	const ok = await copyState.copy(attempted);
+	const pending = copyState.copy(attempted);
+	// The consumer click runs now, while the event is still live.
+	callListener(onClick, event);
+	const ok = await pending;
 	// `onCopy` still fires for every attempt, stale or not — it reports what
 	// that call did, matching `copy()`'s own honest return. Only the visible and
 	// audible cues, which describe the button's CURRENT state, are dropped when
@@ -228,6 +243,8 @@ watch(
 <template>
 	<Button
 		ref="btn"
+		v-bind="attrs"
+		type="button"
 		:variant="variant"
 		:size="size"
 		:disabled="disabled"

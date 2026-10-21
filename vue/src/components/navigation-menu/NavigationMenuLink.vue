@@ -54,11 +54,12 @@ const classes = computed(() =>
 
 <template>
 	<a
+		v-bind="$attrs"
 		:href="href"
 		:class="classes"
-		:aria-current="current ? 'page' : undefined"
-		:target="external ? '_blank' : undefined"
-		:rel="external ? 'noopener noreferrer' : undefined"
+		:aria-current="current ? 'page' : ($attrs['aria-current'] as 'page' | undefined)"
+		:target="external ? '_blank' : ($attrs.target as string | undefined)"
+		:rel="external ? 'noopener noreferrer' : ($attrs.rel as string | undefined)"
 	>
 		<slot v-if="$slots.default" />
 		<template v-else>

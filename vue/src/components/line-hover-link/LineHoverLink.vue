@@ -92,12 +92,13 @@ function handleClick() {
 
 <template>
 	<a
+		@click="handleClick"
+		v-bind="$attrs"
 		:href="href"
 		:target="target"
 		:aria-label="ariaLabel"
 		:rel="relValue"
 		:class="cn('link-hover', `link-hover--${variant}`, className)"
-		@click="handleClick"
 	>
 		<span v-if="needsSpan"><slot /></span>
 		<slot v-else />
