@@ -41,10 +41,11 @@ import {
 	readFileSync,
 	realpathSync,
 	rmSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -84,12 +85,14 @@ if (missing.length > 0) {
 	process.exit(2);
 }
 
+const userWork = Boolean(value("work"));
 const work = realpathSync(
 	value("work")
 		? (mkdirSync(value("work"), { recursive: true }), resolve(value("work")))
 		: mkdtempSync(join(tmpdir(), "fancy-registry-cli-"))
 );
-if (work.startsWith(repoRoot)) {
+const realRepoRoot = realpathSync(repoRoot);
+if (work === realRepoRoot || work.startsWith(realRepoRoot + sep)) {
 	console.error("The scratch app must live outside the repository.");
 	process.exit(2);
 }
@@ -120,7 +123,7 @@ function serve() {
 		const server = createServer((req, res) => {
 			const rel = decodeURIComponent((req.url ?? "").split("?")[0]).replace(/^\/r\/svelte\//, "");
 			const file = join(registryDir, rel);
-			if (rel.includes("..") || !existsSync(file)) {
+			if (rel.includes("..") || !existsSync(file) || !statSync(file).isFile()) {
 				res.writeHead(404);
 				return res.end("not found");
 			}
@@ -184,12 +187,15 @@ async function main() {
 		};
 		writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, "\t"));
 		const vitePath = join(app, "vite.config.ts");
+		const viteSource = readFileSync(vitePath, "utf8");
+		if (!viteSource.includes("sveltekit({")) {
+			throw new Error(
+				"vite.config.ts has no literal `sveltekit({`; the $lib alias cannot be injected (scaffold changed?)"
+			);
+		}
 		writeFileSync(
 			vitePath,
-			readFileSync(vitePath, "utf8").replace(
-				"sveltekit({",
-				"sveltekit({\n\t\t\talias: { $lib: 'src/lib' },"
-			)
+			viteSource.replace("sveltekit({", "sveltekit({\n\t\t\talias: { $lib: 'src/lib' },")
 		);
 		writeFileSync(
 			join(app, "components.json"),
@@ -288,6 +294,7 @@ try {
 	console.error(`\nFAILED: ${e.message}`);
 } finally {
 	if (flag("keep") || failed) console.log(`scratch app kept at ${app}`);
-	else rmSync(work, { recursive: true, force: true });
+	// A directory the user passed in is theirs: only remove what this run created.
+	else rmSync(userWork ? app : work, { recursive: true, force: true });
 }
 process.exit(failed ? 1 : 0);

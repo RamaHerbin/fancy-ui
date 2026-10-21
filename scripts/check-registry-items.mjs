@@ -967,6 +967,21 @@ function svelteCases() {
 			"dependency left-pad is not a package.json dependency",
 		],
 		[
+			"svelte: pinned scoped and plain dependencies pass",
+			(s) => {
+				s.deps.add("@scope/pkg");
+				const pinned = ["three@^0.160.0", "@scope/pkg@^1.2.0"];
+				rb(s).dependencies = pinned;
+				s.index.items.find((i) => i.name === "rainbow-button").dependencies = pinned;
+			},
+			null,
+		],
+		[
+			"svelte: pinned unknown dependency is flagged",
+			(s) => (rb(s).dependencies = ["left-pad@^1.0.0"]),
+			"dependency left-pad is not a package.json dependency",
+		],
+		[
 			"svelte: file count drift",
 			(s) => rb(s).files.push(file("rainbow-button/extra.ts", "export {};\n")),
 			"count: 8 files, expected 7",
