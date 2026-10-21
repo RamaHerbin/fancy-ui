@@ -25,10 +25,13 @@ describe("DemoRenderer theme-aware defaults", () => {
 
 	it("renders the glow-border hero with a visible child, not an empty frame", async () => {
 		const { container } = render(DemoRenderer, { slug: "glow-border" });
-		await waitFor(() => {
-			const label = container.querySelector("[data-glow-border-demo]");
-			expect(label).toBeInTheDocument();
-			expect(label?.textContent?.trim().length).toBeGreaterThan(0);
-		});
-	});
+		await waitFor(
+			() => {
+				const label = container.querySelector("[data-glow-border-demo]");
+				expect(label).toBeInTheDocument();
+				expect(label?.textContent?.trim().length).toBeGreaterThan(0);
+			},
+			{ timeout: 10_000 }
+		);
+	}, 20_000);
 });

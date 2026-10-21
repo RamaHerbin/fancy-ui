@@ -2,20 +2,28 @@
  * Near-uniform frame detection for gallery thumbnails. A capture whose pixels
  * are (almost) all one colour means the demo did not render, so the capture
  * script fails the slug instead of writing a blank WebP.
+ *
+ * isNearUniform is self-contained (no module-level bindings) on purpose: the
+ * capture script serialises it with `.toString()` and runs it inside the
+ * browser on the full-resolution capture, so the unit tests and the real check
+ * share one implementation. A downsampled canvas read would skip thin glyphs.
  */
 
-/** Largest per-channel distance from the dominant colour still counted as background. */
-const CHANNEL_TOLERANCE = 10;
-/** Fewer than this share of non-background pixels counts as blank. */
-const MIN_CONTENT_SHARE = 0.005;
-
 /**
+ * Background = the most common colour (5 bits per channel). A pixel is content
+ * when any channel is more than 10 away from it. A frame is blank when fewer
+ * than 0.04% of its pixels are content: blank frames measure 0, the sparsest
+ * real thumbnails (a lone icon button, a toggle, a tooltip, meteors) measure
+ * about 0.06-0.7%, so the line sits below all of them.
+ *
  * @param {Uint8ClampedArray | Uint8Array} rgba RGBA pixels, row-major
  * @param {number} width
  * @param {number} height
  * @returns {boolean} true when the frame is blank or nearly so
  */
 export function isNearUniform(rgba, width, height) {
+	const CHANNEL_TOLERANCE = 10;
+	const MIN_CONTENT_SHARE = 0.0004;
 	const total = width * height;
 	if (total === 0) return true;
 	// Dominant colour: the most common 5-bit-per-channel bucket.

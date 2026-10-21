@@ -19,23 +19,30 @@ beforeAll(() => {
 
 afterEach(cleanup);
 
+// Lazy component imports can exceed waitFor's 1 s default on a cold or busy runner.
+const LOAD = { timeout: 10_000 };
+
 // Components whose root is `size-full` over an absolutely positioned layer: they
 // collapse to 0 in any container without a definite height.
 const FILL_ROOT = ["sparkles", "bg-stars"];
 
 describe("DemoRenderer sized stage", () => {
-	it.each(FILL_ROOT)("wraps %s in a stage with a definite height", async (slug) => {
-		const { container } = render(DemoRenderer, { slug });
-		const stage = await waitFor(() => {
-			const el = container.querySelector<HTMLElement>("[data-demo-stage]");
-			expect(el).toBeInTheDocument();
-			return el!;
-		});
-		expect(stage.className).toContain("h-[300px]");
-		expect(stage.className).toContain("w-full");
-		expect(stage.className).toContain("relative");
-		expect(stage.firstElementChild).not.toBeNull();
-	});
+	it.each(FILL_ROOT)(
+		"wraps %s in a stage with a definite height",
+		async (slug) => {
+			const { container } = render(DemoRenderer, { slug });
+			const stage = await waitFor(() => {
+				const el = container.querySelector<HTMLElement>("[data-demo-stage]");
+				expect(el).toBeInTheDocument();
+				return el!;
+			}, LOAD);
+			expect(stage.className).toContain("h-[300px]");
+			expect(stage.className).toContain("w-full");
+			expect(stage.className).toContain("relative");
+			expect(stage.firstElementChild).not.toBeNull();
+		},
+		20_000
+	);
 
 	it("keeps the override map to plain class strings", () => {
 		for (const value of Object.values(previewBox)) {
@@ -65,9 +72,21 @@ describe("DemoRenderer sized stage", () => {
 				const el = container.querySelector<HTMLElement>("[data-demo-stage]");
 				expect(el).toBeInTheDocument();
 				return el!;
-			});
+			}, LOAD);
 			expect(stage.className.split(/\s+/)).toContain("contents");
 			expect(stage.className).not.toContain("w-full");
-		}
+		},
+		20_000
 	);
+});
+
+describe("sparkles example wrappers", () => {
+	it.each(["BasicUsage", "CustomColors", "DenseAndFast"])("%s wrapper is full width", (name) => {
+		const src = readFileSync(
+			join(process.cwd(), `src/lib/components/docs/examples/sparkles/${name}.svelte`),
+			"utf8"
+		);
+		const wrapper = src.match(/<div class="([^"]*)">/)?.[1] ?? "";
+		expect(wrapper.split(/\s+/)).toContain("w-full");
+	});
 });

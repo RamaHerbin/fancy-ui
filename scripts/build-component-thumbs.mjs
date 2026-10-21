@@ -28,14 +28,23 @@
  * captured (or are listed as `skip` in scripts/lib/thumb-hints.mjs) get an
  * explicit `false` in the manifest and ComponentCard renders its generated
  * fallback tile instead. A near-uniform capture fails the slug rather than
- * writing a blank WebP.
+ * writing a blank WebP, and removes any earlier file for that slug and theme
+ * so the manifest turns false instead of keeping a stale blank thumbnail.
  *
  * The manifest src/lib/components/docs/thumbs.json lists every slug that has
  * both theme files, so a card never requests an image that does not exist.
  */
 
 import { chromium } from "@playwright/test";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	statSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { THUMB_HINTS } from "./lib/thumb-hints.mjs";
@@ -120,7 +129,15 @@ async function capture(page, encoder, base, slug) {
 	// stays crisp. Absolutely positioned layers (backgrounds, overlays) already
 	// fill the stage and are left alone.
 	await stage.evaluate((el) => {
-		const kids = [...el.children].filter((c) => getComputedStyle(c).position !== "absolute");
+		// Layout-less wrappers (`display: contents`, e.g. the demo renderer's stage)
+		// have no box to scale: look through them to the element they wrap.
+		const inFlow = (parent) =>
+			[...parent.children].flatMap((c) => {
+				const style = getComputedStyle(c);
+				if (style.display === "contents") return inFlow(c);
+				return style.position === "absolute" ? [] : [c];
+			});
+		const kids = inFlow(el);
 		if (kids.length !== 1) return;
 		const child = kids[0];
 		const pad = 24;
@@ -147,7 +164,7 @@ async function capture(page, encoder, base, slug) {
 
 	const png = await stage.screenshot({ type: "png", animations: "allow" });
 	if (await looksBlank(encoder, png)) {
-		throw new Error("near-uniform capture (nothing rendered)");
+		throw Object.assign(new Error("near-uniform capture (nothing rendered)"), { blank: true });
 	}
 	return encodeWebp(encoder, png, {
 		width: OUT_WIDTH,
@@ -157,25 +174,28 @@ async function capture(page, encoder, base, slug) {
 	});
 }
 
-/** Downsample the PNG in the encoder page and test it for a blank frame. */
+/**
+ * Test the full-resolution capture for a blank frame inside the encoder page,
+ * running the very function the unit tests cover. Reading a downsampled canvas
+ * instead would skip thin glyphs and misreport a lone small control as blank.
+ */
 async function looksBlank(encoderPage, png) {
-	const W = 160;
-	const H = 100;
-	const pixels = await encoderPage.evaluate(
-		async ({ b64, W, H }) => {
+	return encoderPage.evaluate(
+		async ({ b64, src }) => {
+			const isNearUniform = new Function(`return (${src})`)();
 			const img = new Image();
 			img.src = `data:image/png;base64,${b64}`;
 			await img.decode();
 			const canvas = document.createElement("canvas");
-			canvas.width = W;
-			canvas.height = H;
+			canvas.width = img.naturalWidth;
+			canvas.height = img.naturalHeight;
 			const ctx = canvas.getContext("2d", { willReadFrequently: true });
-			ctx.drawImage(img, 0, 0, W, H);
-			return Array.from(ctx.getImageData(0, 0, W, H).data);
+			ctx.drawImage(img, 0, 0);
+			const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			return isNearUniform(data, canvas.width, canvas.height);
 		},
-		{ b64: png.toString("base64"), W, H }
+		{ b64: png.toString("base64"), src: isNearUniform.toString() }
 	);
-	return isNearUniform(Uint8ClampedArray.from(pixels), W, H);
 }
 
 function formatBytes(n) {
@@ -235,6 +255,10 @@ async function main() {
 						done++;
 						process.stdout.write(`\r  ${theme}: ${done} captured`);
 					} catch (err) {
+						// A blank capture must not leave an earlier (possibly blank) file in
+						// place under a `true` entry: drop it so the manifest goes false and
+						// the gallery shows its fallback tile.
+						if (err.blank) rmSync(join(outDir, `${slug}.webp`), { force: true });
 						failures.push(`${theme}/${slug}: ${err.message.split("\n")[0]}`);
 					}
 				}
