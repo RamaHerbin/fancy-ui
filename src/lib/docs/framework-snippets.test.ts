@@ -50,8 +50,8 @@ describe("framework snippets", () => {
 		}
 	});
 
-	it("covers the forms-and-overlays batch in both packages (31 slugs in all)", () => {
-		expect(COVERED).toHaveLength(31);
+	it("covers the forms-and-overlays batch in both packages (33 slugs in all)", () => {
+		expect(COVERED).toHaveLength(33);
 		for (const framework of ["react", "vue"] as const) {
 			for (const slug of FORMS_AND_OVERLAYS) expect(snippetSlugs(framework)).toContain(slug);
 		}
