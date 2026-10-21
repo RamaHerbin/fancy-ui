@@ -64,7 +64,7 @@ All of these run in CI and must pass. When you touch `react/` or `vue/`, also ru
 
 ### Browser suite (e2e)
 
-`pnpm test:e2e` runs the Playwright suite in `tests/e2e/`. The `E2E` workflow (`.github/workflows/e2e.yml`) runs a stable subset on every pull request to `develop` or `main` and on pushes to both: `docs-framework`, `components-gallery`, `home` and `landing-footer`. It starts the dev server in test mode, runs Chromium with two retries, and uploads the HTML report and the traces as artifacts when it fails. Download them from the run page and open a trace with `pnpm exec playwright show-trace <trace.zip>`.
+`pnpm test:e2e` runs the Playwright suite in `tests/e2e/`. The `E2E` workflow (`.github/workflows/e2e.yml`) runs a stable subset on every pull request to `develop` or `main` and on pushes to both: `docs-framework`, `components-gallery`, `home`, `landing-footer`, `overlays-keyboard` and `touch-scroll`. It starts the dev server in test mode, runs Chromium with two retries, and uploads the HTML report and the traces as artifacts when it fails. Download them from the run page and open a trace with `pnpm exec playwright show-trace <trace.zip>`.
 
 The other specs (`builder-*`, `inspiration`, `sound-lab`) are not run there yet. Run them locally with `pnpm test:e2e` when a change touches the builder, the Inspiration gallery or the sound lab. Keep specs offline: stub third-party requests with `page.route` instead of reaching the network.
 

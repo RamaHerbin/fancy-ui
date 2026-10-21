@@ -24,7 +24,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -58,6 +58,8 @@ jobs:
           tests/e2e/components-gallery.spec.ts
           tests/e2e/home.spec.ts
           tests/e2e/landing-footer.spec.ts
+          tests/e2e/overlays-keyboard.spec.ts
+          tests/e2e/touch-scroll.spec.ts
 
       - name: Upload the HTML report
         if: failure()
