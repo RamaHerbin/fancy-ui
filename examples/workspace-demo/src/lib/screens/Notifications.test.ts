@@ -41,6 +41,29 @@ describe("Notifications screen states", () => {
 		expect(screen.getByText("3 unread")).toBeInTheDocument();
 	});
 
+	it("ready: avatars are decorative initials, so no person is announced twice", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		// The title beside each avatar already says who acted; the avatar adds no image role.
+		expect(screen.queryAllByRole("img")).toHaveLength(0);
+		const byTitle = (title: string) => screen.getByText(title).closest("li")!;
+		expect(
+			byTitle("Theo mentioned you in Onboarding copy").querySelector("[data-slot='initials']")
+		).toHaveTextContent("TL");
+		// A system notification has no actor: a silhouette, still hidden.
+		expect(
+			byTitle("New sign-in from an unrecognised device").querySelector("[data-slot='silhouette']")
+		).not.toBeNull();
+	});
+
+	it("ready: the count badge is emphasised and clears to a success badge", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		expect(screen.getByText("3 unread")).toHaveAttribute("data-variant", "default");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		expect(screen.getByText("All caught up")).toHaveAttribute("data-variant", "success");
+	});
+
 	it("empty: nothing to show and nothing to press", async () => {
 		mount(makeApi({ scenario: "empty" }));
 		await waitForState("notifications", "empty");

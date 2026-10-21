@@ -10002,6 +10002,85 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	badge: {
+		name: "Badge",
+		slug: "badge",
+		description:
+			"A short pill of status text in five treatments and two sizes, with native span attributes passed through",
+		category: "data-display",
+		group: "core",
+		status: "done",
+		tags: ["badge", "label", "status", "pill", "tag", "chip"],
+		props: [
+			{
+				name: "variant",
+				type: '"default" | "secondary" | "outline" | "destructive" | "success"',
+				default: '"default"',
+				description:
+					"Visual treatment. Always pair it with a visible word: colour is never the message",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md"',
+				default: '"md"',
+				description: "Compact or regular",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+		],
+		slots: [{ name: "children", description: "The label" }],
+	},
+
+	avatar: {
+		name: "Avatar",
+		slug: "avatar",
+		description:
+			"A person or account as an image that shows a skeleton while it loads and falls back to one or two initials on a colour fixed by the name, as a circle or a rounded square",
+		category: "data-display",
+		group: "core",
+		status: "done",
+		tags: ["avatar", "profile", "user", "initials", "image", "fallback"],
+		props: [
+			{
+				name: "src",
+				type: "string",
+				description: "Image URL. While it loads a skeleton shows; if it fails the initials show",
+			},
+			{
+				name: "alt",
+				type: "string",
+				description:
+					'The accessible name, and the one required decision whenever src is set: describe the image, or pass "" to mark the avatar decorative beside a visible name. Falls back to name',
+			},
+			{
+				name: "name",
+				type: "string",
+				description:
+					"Who this is. Gives one or two initials for the fallback and a colour that is always the same for the same name",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Diameter: 28, 36 or 64px",
+			},
+			{
+				name: "shape",
+				type: '"circle" | "square"',
+				default: '"circle"',
+				description: "Fully round, or a rounded square",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+		],
+	},
+
 	"status-morph": {
 		name: "StatusMorph",
 		slug: "status-morph",

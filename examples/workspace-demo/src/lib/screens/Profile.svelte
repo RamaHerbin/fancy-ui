@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onDestroy, tick } from "svelte";
 	import {
+		Avatar,
+		Badge,
 		Button,
 		FormField,
 		Input,
@@ -14,8 +16,6 @@
 	} from "fancy-ui-svelte";
 	import { ApiError, api as sharedApi, type Profile, type WorkspaceApi } from "$lib/data/api.js";
 	import { strings } from "$lib/strings.js";
-	import Avatar from "$lib/local/Avatar.svelte";
-	import Badge from "$lib/local/Badge.svelte";
 	import Card from "$lib/local/Card.svelte";
 	import EmptyState from "$lib/local/EmptyState.svelte";
 	import ErrorState from "$lib/local/ErrorState.svelte";
@@ -174,12 +174,17 @@
 		<div class="flex flex-col gap-4">
 			<Card title={text.identity}>
 				<div class="flex items-center gap-4">
-					<Avatar initials={profile.initials} name={profile.name} size="lg" />
+					<Avatar
+						src={profile.avatarUrl ?? undefined}
+						name={profile.name}
+						alt={profile.name}
+						size="lg"
+					/>
 					<div class="min-w-0">
 						<p class="truncate text-lg font-semibold">{profile.name}</p>
 						<p class="text-muted-foreground truncate text-sm">{profile.email}</p>
 						<div class="mt-2 flex flex-wrap items-center gap-2">
-							<Badge tone="info">{profile.role}</Badge>
+							<Badge variant="secondary">{profile.role}</Badge>
 							<span class="text-muted-foreground text-xs">
 								{text.memberSince}
 								{formatDate(profile.joinedAt)}

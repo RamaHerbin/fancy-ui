@@ -39,6 +39,15 @@ describe("ApiKeys screen states", () => {
 		expect(screen.getByRole("button", { name: "Revoke Production deploys" })).toBeInTheDocument();
 	});
 
+	it("ready: the admin scope stands out from the other scope badges", async () => {
+		mount(makeApi());
+		await waitForState("api-keys", "ready");
+		expect(screen.getByText("admin")).toHaveAttribute("data-variant", "default");
+		for (const badge of screen.getAllByText("read")) {
+			expect(badge).toHaveAttribute("data-variant", "secondary");
+		}
+	});
+
 	it("empty: invites to create the first key", async () => {
 		mount(makeApi({ scenario: "empty" }));
 		await waitForState("api-keys", "empty");

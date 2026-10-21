@@ -20,8 +20,6 @@ export type Scenario = "ready" | "empty";
 
 export interface Person {
 	name: string;
-	/** One or two letters, for an avatar without a picture. */
-	initials: string;
 }
 
 export interface Profile {
@@ -35,8 +33,7 @@ export interface Profile {
 	location: string;
 	/** IANA zone, e.g. "Europe/Paris". */
 	timezone: string;
-	initials: string;
-	/** No picture ships with the demo: avatars fall back to `initials`. */
+	/** No picture ships with the demo: the avatar shows initials taken from `name`. */
 	avatarUrl: string | null;
 	joinedAt: string;
 }
@@ -153,7 +150,6 @@ const READY_PROFILE: Profile = {
 	bio: "Designs the quiet parts of the product: settings, empty states and everything in between.",
 	location: "Lisbon",
 	timezone: "Europe/Lisbon",
-	initials: "MO",
 	avatarUrl: null,
 	joinedAt: ago(412 * DAY),
 };
@@ -201,9 +197,9 @@ const API_KEYS: ApiKey[] = [
 	},
 ];
 
-const THEO: Person = { name: "Theo Lindqvist", initials: "TL" };
-const AMARA: Person = { name: "Amara Diallo", initials: "AD" };
-const KENJI: Person = { name: "Kenji Mori", initials: "KM" };
+const THEO: Person = { name: "Theo Lindqvist" };
+const AMARA: Person = { name: "Amara Diallo" };
+const KENJI: Person = { name: "Kenji Mori" };
 
 const NOTIFICATIONS: Notification[] = [
 	{

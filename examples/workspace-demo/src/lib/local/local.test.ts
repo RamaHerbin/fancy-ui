@@ -1,8 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import Avatar from "./Avatar.svelte";
-import Badge from "./Badge.svelte";
 import Card from "./Card.svelte";
 import EmptyState from "./EmptyState.svelte";
 import ErrorState from "./ErrorState.svelte";
@@ -10,43 +8,6 @@ import ErrorState from "./ErrorState.svelte";
 afterEach(cleanup);
 
 const text = (value: string) => createRawSnippet(() => ({ render: () => `<span>${value}</span>` }));
-
-describe("Avatar", () => {
-	it("is a named image when given a name", () => {
-		render(Avatar, { initials: "MO", name: "Maya Okafor" });
-		const avatar = screen.getByRole("img", { name: "Maya Okafor" });
-		expect(avatar).toHaveTextContent("MO");
-	});
-
-	it("is decorative without a name, so a neighbouring name is not read twice", () => {
-		const { container } = render(Avatar, { initials: "MO" });
-		expect(screen.queryByRole("img")).toBeNull();
-		expect(container.querySelector("[aria-hidden='true']")).toHaveTextContent("MO");
-	});
-
-	it("keeps at most two letters", () => {
-		render(Avatar, { initials: "abc", name: "x" });
-		expect(screen.getByRole("img")).toHaveTextContent("AB");
-	});
-
-	it("exposes its size", () => {
-		render(Avatar, { initials: "MO", name: "x", size: "lg" });
-		expect(screen.getByRole("img")).toHaveAttribute("data-size", "lg");
-	});
-});
-
-describe("Badge", () => {
-	it("renders its content with the neutral tone by default", () => {
-		render(Badge, { children: text("3 unread") });
-		const badge = screen.getByText("3 unread").parentElement!;
-		expect(badge).toHaveAttribute("data-tone", "neutral");
-	});
-
-	it.each(["success", "warning", "danger", "info"] as const)("accepts the %s tone", (tone) => {
-		render(Badge, { tone, children: text("x") });
-		expect(screen.getByText("x").parentElement).toHaveAttribute("data-tone", tone);
-	});
-});
 
 describe("Card", () => {
 	it("is a region named by its heading", () => {

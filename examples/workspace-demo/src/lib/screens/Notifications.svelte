@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { onDestroy, tick } from "svelte";
-	import { Button, Skeleton, dismissToast, toast } from "fancy-ui-svelte";
+	import { Avatar, Badge, Button, Skeleton, dismissToast, toast } from "fancy-ui-svelte";
 	import { api as sharedApi, type Notification, type WorkspaceApi } from "$lib/data/api.js";
 	import { strings } from "$lib/strings.js";
-	import Avatar from "$lib/local/Avatar.svelte";
-	import Badge from "$lib/local/Badge.svelte";
 	import EmptyState from "$lib/local/EmptyState.svelte";
 	import ErrorState from "$lib/local/ErrorState.svelte";
 	import ScreenHeader from "$lib/shell/ScreenHeader.svelte";
@@ -218,9 +216,9 @@
 		<div class="flex flex-col gap-4">
 			<div class="flex flex-wrap items-center justify-between gap-2">
 				{#if unread.length > 0}
-					<Badge tone="info">{unreadLabel(unread.length)}</Badge>
+					<Badge>{unreadLabel(unread.length)}</Badge>
 				{:else}
-					<Badge tone="success">{text.allCaughtUp}</Badge>
+					<Badge variant="success">{text.allCaughtUp}</Badge>
 				{/if}
 				<div class="flex flex-wrap gap-2" data-bulk-actions>
 					{#if readOnes.length > 0}
@@ -249,12 +247,13 @@
 			>
 				{#each visible as item (item.id)}
 					<li class="flex flex-wrap items-start gap-3 p-4 sm:flex-nowrap" data-read={item.read}>
-						<Avatar initials={item.actor?.initials ?? "•"} class="mt-0.5" />
+						<!-- Decorative: the title beside it already says who did what. -->
+						<Avatar name={item.actor?.name} alt="" class="mt-0.5" />
 						<div class="min-w-0 basis-[calc(100%-3.5rem)] sm:flex-1 sm:basis-0">
 							<div class="flex flex-wrap items-center gap-2">
 								<p class="text-sm {item.read ? 'font-normal' : 'font-semibold'}">{item.title}</p>
 								{#if !item.read}
-									<Badge tone="info">{text.unread}</Badge>
+									<Badge size="sm">{text.unread}</Badge>
 								{/if}
 							</div>
 							<p class="text-muted-foreground mt-0.5 text-sm">{item.body}</p>

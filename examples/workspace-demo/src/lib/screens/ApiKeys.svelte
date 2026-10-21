@@ -8,6 +8,7 @@
 <script lang="ts">
 	import { onDestroy, tick } from "svelte";
 	import {
+		Badge,
 		Button,
 		Checkbox,
 		CopyButton,
@@ -26,7 +27,6 @@
 	} from "$lib/data/api.js";
 	import { API_KEY_SCOPES } from "$lib/data/mock.js";
 	import { strings } from "$lib/strings.js";
-	import Badge from "$lib/local/Badge.svelte";
 	import Card from "$lib/local/Card.svelte";
 	import EmptyState from "$lib/local/EmptyState.svelte";
 	import ErrorState from "$lib/local/ErrorState.svelte";
@@ -290,7 +290,7 @@
 								</p>
 								<div class="mt-2 flex flex-wrap items-center gap-1.5">
 									{#each key.scopes as scope (scope)}
-										<Badge tone={scope === "admin" ? "warning" : "neutral"}>{scope}</Badge>
+										<Badge variant={scope === "admin" ? "default" : "secondary"}>{scope}</Badge>
 									{/each}
 								</div>
 								<p class="text-muted-foreground mt-2 flex flex-wrap gap-x-2 text-xs">

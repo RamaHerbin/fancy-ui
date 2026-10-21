@@ -1061,5 +1061,15 @@
 			"react": "react/src/components/follow-button/follow-core.ts",
 			"vue": "vue/src/components/follow-button/follow-core.ts"
 		}
+	},
+	{
+		"id": "avatar/avatar-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/avatar/avatar-core.ts",
+			"react": "react/src/components/avatar/avatar-core.ts",
+			"vue": "vue/src/components/avatar/avatar-core.ts"
+		}
 	}
 ]
