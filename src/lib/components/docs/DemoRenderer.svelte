@@ -189,6 +189,7 @@
 </script>
 
 <script lang="ts">
+	import { tc } from "./chrome-i18n.js";
 	import { createSkinState } from "$lib/stores";
 	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
 
@@ -376,7 +377,7 @@
 		{/if}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
-			No preview available
+			{tc("demo.noPreview")}
 		</div>
 	{/if}
 {:else}
@@ -444,7 +445,7 @@
 		{/if}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
-			Component not found in module
+			{tc("demo.notFound")}
 		</div>
 	{/if}
 {/if}
