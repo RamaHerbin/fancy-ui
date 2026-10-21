@@ -23,13 +23,18 @@ export const THUMB_HINTS = {
 	"direction-aware-hover": { hover: [0.5, 0.5] },
 	"card-spotlight": { hover: [0.4, 0.4] },
 	"glare-card": { hover: [0.35, 0.35] },
-	// WebGL / pointer-physics demos that render nothing legible headless.
-	"displacement-text": { skip: true },
+	// Pointer-driven demos that are empty until the pointer moves over them.
+	"displacement-text": { hover: [0.5, 0.5] },
+	// Captured with a sweep, the fluid simulation draws nothing headless (no GPU):
+	// the frame is just the card, so keep the fallback tile instead.
 	"fluid-cursor": { skip: true },
+	// Tried hero and example stages with a hover: the rings never rise above the
+	// blank-frame threshold in a still capture.
 	ripple: { skip: true },
+	"flickering-grid": { stage: 1 },
+	"bg-falling-stars": { stage: 1 },
 	"border-beam": { stage: 1 },
 	"glowing-effect": { stage: 1, hover: [0.4, 0.45] },
-	"bg-stars": { stage: 1 },
 	marquee: { stage: 1 },
 	"text-generate-effect": { delay: 3000 },
 	"number-ticker": { delay: 2500 },
