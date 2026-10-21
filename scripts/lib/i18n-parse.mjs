@@ -28,7 +28,7 @@ export const PLURAL_CATEGORIES = ["zero", "one", "two", "few", "many", "other"];
 
 /**
  * CLDR cardinal plural categories each locale must provide (pinned here rather
- * than read from Intl so the gate does not move with the ICU build; the test
+ * than read from Intl so the gate does not move with the runtime's locale data; the test
  * suite checks that Intl never selects a category outside ALLOWED).
  */
 export const REQUIRED_PLURALS = {
