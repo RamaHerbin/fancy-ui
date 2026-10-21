@@ -42,8 +42,13 @@ test.describe("routing", () => {
 		const res = await page.goto("/docs/recipes");
 		expect(res?.status()).toBe(200);
 		for (const { slug, title } of RECIPES) {
-			await expect(page.locator(`main a[href="/docs/recipes/${slug}"]`).first()).toBeVisible();
-			await expect(page.getByText(title).first()).toBeVisible();
+			const card = page.locator(`main li[data-recipe="${slug}"]`);
+			await expect(card).toBeVisible();
+			await expect(card).toContainText(title);
 		}
+		// A recipe added later must show up too: the card count follows the sitemap.
+		const sitemap = await (await page.request.get("/sitemap.xml")).text();
+		const listed = (sitemap.match(/\/docs\/recipes\/[a-z0-9-]+</g) ?? []).length;
+		await expect(page.locator("main li[data-recipe]")).toHaveCount(listed);
 	});
 });

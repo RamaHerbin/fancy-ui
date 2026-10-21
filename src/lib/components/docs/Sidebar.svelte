@@ -46,6 +46,12 @@
 	function isActive(href: string): boolean {
 		return $page.url.pathname === href;
 	}
+
+	/** Section index rows stay highlighted on their child pages. */
+	function isSectionActive(href: string): boolean {
+		const path = $page.url.pathname;
+		return path === href || path.startsWith(href + "/");
+	}
 </script>
 
 <!-- Mobile overlay -->
@@ -134,12 +140,12 @@
 				</div>
 
 				<!-- Recipes -->
-				<div class="mb-2">
+				<div class="docs-nav-components mb-2">
 					{#each DOCS_SECTION_LINKS as link}
 						<a
 							href={link.href}
 							onclick={onclose}
-							class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isActive(
+							class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isSectionActive(
 								link.href
 							)
 								? 'text-sidebar-accent-foreground'
