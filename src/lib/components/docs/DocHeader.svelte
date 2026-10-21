@@ -65,14 +65,21 @@
 	{/if}
 
 	<!-- Breadcrumbs -->
-	<nav class="flex items-center gap-1.5 text-sm">
-		<a href="/docs" class="text-muted-foreground hover:text-foreground transition-colors">Docs</a>
+	<nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm whitespace-nowrap">
+		<!-- Phone widths keep only the current page; the sidebar holds the rest. -->
+		<a
+			href="/docs"
+			class="text-muted-foreground hover:text-foreground hidden transition-colors sm:inline">Docs</a
+		>
 		{#each breadcrumbs as crumb}
-			<span class="retro-crumb-sep text-muted-foreground/50">/</span>
+			<span class="retro-crumb-sep text-muted-foreground/50 hidden sm:inline">/</span>
 			{#if crumb.current}
-				<span class="text-foreground font-medium">{crumb.label}</span>
+				<span class="text-foreground truncate font-medium">{crumb.label}</span>
 			{:else}
-				<a href={crumb.href} class="text-muted-foreground hover:text-foreground transition-colors">
+				<a
+					href={crumb.href}
+					class="text-muted-foreground hover:text-foreground hidden transition-colors sm:inline"
+				>
 					{crumb.label}
 				</a>
 			{/if}
