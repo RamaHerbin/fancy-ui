@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Composer } from "fancy-ui-react";
 
 export function ComposerExample() {
@@ -6,11 +6,21 @@ export function ComposerExample() {
 	const [reply, setReply] = useState("");
 	const [streaming, setStreaming] = useState(false);
 
+	const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+	useEffect(() => () => clearTimeout(timer.current), []);
+
+	function stop() {
+		clearTimeout(timer.current);
+		setStreaming(false);
+	}
+
 	function send({ text }: { text: string }) {
 		setReply(`You asked: "${text}"`);
 		setStreaming(true);
 		// Stand-in for a request: the send button is a stop button until it lands.
-		setTimeout(() => setStreaming(false), 1200);
+		clearTimeout(timer.current);
+		timer.current = setTimeout(() => setStreaming(false), 1200);
 	}
 
 	return (
@@ -24,7 +34,7 @@ export function ComposerExample() {
 				streaming={streaming}
 				placeholder="Ask anything"
 				onSubmit={send}
-				onStop={() => setStreaming(false)}
+				onStop={stop}
 			/>
 		</div>
 	);

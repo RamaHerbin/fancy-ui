@@ -36,9 +36,19 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(usage).not.toContainText("fancy-ui-react");
 	});
 
+	// Each priority page ships compiled React and Vue usage, with text taken from
+	// the real example so a fallback or a Svelte leak cannot pass.
 	for (const [slug, realText] of [
 		["gradient-button", "Click me"],
 		["border-beam", "Deploy in progress"],
+		["fluid-cursor", "Move your cursor here"],
+		["image-trail-cursor", "Move your cursor here"],
+		["liquid-glass", "Liquid Glass"],
+		["thinking-indicator", "Reading files"],
+		["glow-border", "Content goes here"],
+		["reveal", "Fast setup"],
+		["composer", "Ask anything"],
+		["chat-panel", "Why does my transcript jump around?"],
 	] as const) {
 		test(`${slug} usage has compiled React and Vue snippets`, async ({ page }) => {
 			await page.goto(`/docs/components/${slug}`);
@@ -50,35 +60,15 @@ test.describe("Docs follow the selected framework", () => {
 			await expect(usage).toContainText("fancy-ui-react");
 			await expect(usage).toContainText(realText);
 			await expect(usage).not.toContainText("<script");
+			await expect(usage).not.toContainText("fancy-ui-svelte");
 
 			await pick(page, "Vue");
 			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
 			await expect(usage).toContainText("fancy-ui-vue");
 			await expect(usage).toContainText(realText);
-			await expect(usage).not.toContainText("fancy-ui-react");
-		});
-	}
-
-	for (const slug of ["fluid-cursor", "image-trail-cursor"]) {
-		test(`${slug} usage switches to React, then Vue`, async ({ page }) => {
-			await page.goto(`/docs/components/${slug}`);
-			await hydrated(page);
-
-			const usage = page.locator("section:has(h2#usage)");
-			await pick(page, "React");
-			await expect(usage).toContainText("fancy-ui-react");
-			await expect(usage).not.toContainText("<script");
-			await expect(usage).not.toContainText("fancy-ui-svelte");
-			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
-			await expect(usage).toContainText("Move your cursor here");
-			await expect(usage).toContainText("className");
-
-			await pick(page, "Vue");
-			await expect(usage).toContainText("fancy-ui-vue");
-			await expect(usage).not.toContainText("fancy-ui-react");
-			await expect(usage).not.toContainText("fancy-ui-svelte");
-			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
 			await expect(usage).toContainText("<template>");
+			await expect(usage).not.toContainText("fancy-ui-react");
+			await expect(usage).not.toContainText("fancy-ui-svelte");
 		});
 	}
 

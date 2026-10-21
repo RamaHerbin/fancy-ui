@@ -13,8 +13,8 @@ const PRIORITY = [
 	"image-trail-cursor",
 	"liquid-glass",
 	"thinking-indicator",
-];
-const PRIORITY = ["button", "input", "select", "dialog", "rainbow-button", "glow-border", "reveal"];
+	"glow-border",
+	"reveal",
 	"composer",
 	"chat-panel",
 ];
