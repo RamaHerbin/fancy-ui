@@ -1,13 +1,14 @@
 import { forwardRef, useRef, useState } from "react";
-import type { ChangeEvent, HTMLInputAutoCompleteAttribute } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, HTMLInputAutoCompleteAttribute } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import "./textarea.css";
 
-export interface TextareaProps {
+export interface TextareaOwnProps {
 	/**
 	 * Current value. Controlled when supplied: pair it with `onValueChange`,
 	 * the React counterpart of the Svelte source's `bind:value`.
@@ -48,6 +49,13 @@ export interface TextareaProps {
 }
 
 /**
+ * Own props plus every native `<textarea>` attribute and listener; the rest are
+ * spread onto the inner `<textarea>` (see the component README for the rules).
+ */
+export interface TextareaProps
+	extends Omit<ComponentPropsWithoutRef<"textarea">, keyof TextareaOwnProps>, TextareaOwnProps {}
+
+/**
  * A styled native `<textarea>` with full FormField integration, an optional
  * character counter and an optional grow-to-fit mode.
  *
@@ -74,6 +82,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 			showCount = false,
 			autoResize = false,
 			className,
+			autoComplete: autoCompleteAttr,
+			maxLength: maxLengthAttr,
+			onChange,
+			"aria-describedby": consumerDescribedBy,
+			"aria-label": consumerAriaLabel,
+			"aria-invalid": consumerAriaInvalid,
+			readOnly: readOnlyAttr,
+			...rest
 		},
 		forwardedRef
 	) => {
@@ -97,7 +113,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 		const reactId = useFancyId();
 		const countId = `${reactId}-count`;
 		const count = value.length;
-		const atLimit = maxlength != null && count >= maxlength;
+		const effectiveMax = maxlength ?? maxLengthAttr;
+		const atLimit = effectiveMax != null && count >= effectiveMax;
 
 		// The count rides along on aria-describedby instead of an aria-live
 		// region. A screen reader announces a field's description once, when
@@ -106,9 +123,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 		// the way a polite live region would while the user is still typing. The
 		// visible counter span below *is* the description target, so there is no
 		// separate hidden node to keep in sync with it.
-		const describedBy =
-			[field?.describedBy, showCount ? countId : undefined].filter(Boolean).join(" ") ||
-			undefined;
+		const describedBy = mergeIds(
+			field?.describedBy,
+			consumerDescribedBy,
+			showCount ? countId : undefined
+		);
 
 		const classes = cn(
 			"ft-textarea w-full rounded-[8px] border border-input bg-background px-[12px] py-[10px] text-[13px] leading-[1.5] text-foreground transition-colors",
@@ -182,6 +201,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 			if (!isControlled) setUncontrolledValue(next);
 			onValueChange?.(next);
 			if (autoResize) grow();
+			onChange?.(event);
 		}
 
 		// Growth also has to answer to writes that never pass through
@@ -199,19 +219,20 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 		return (
 			<div className="ft-textarea-wrapper flex w-full flex-col gap-1.5">
 				<textarea
+					{...rest}
 					ref={composedRef}
 					id={effectiveId}
 					placeholder={placeholder}
 					name={name}
-					autoComplete={autocomplete}
+					autoComplete={autocomplete ?? autoCompleteAttr}
 					rows={rows}
-					maxLength={maxlength}
+					maxLength={effectiveMax}
 					disabled={effectiveDisabled}
-					readOnly={readonly}
+					readOnly={readonly || readOnlyAttr}
 					required={effectiveRequired}
-					aria-invalid={effectiveInvalid ? "true" : undefined}
+					aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
 					aria-describedby={describedBy}
-					aria-label={label}
+					aria-label={label ?? consumerAriaLabel}
 					className={classes}
 					value={value}
 					onChange={handleInput}
@@ -223,7 +244,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 						data-limit-reached={atLimit ? "true" : undefined}
 					>
 						{count}
-						{maxlength != null ? ` / ${maxlength}` : ""}
+						{effectiveMax != null ? ` / ${effectiveMax}` : ""}
 					</span>
 				)}
 			</div>

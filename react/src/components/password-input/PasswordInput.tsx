@@ -1,7 +1,8 @@
 import { forwardRef, useRef, useState } from "react";
-import type { ChangeEvent, MouseEvent, ReactNode } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
@@ -20,7 +21,7 @@ export interface PasswordStrengthResult {
 	label: string;
 }
 
-export interface PasswordInputProps {
+export interface PasswordInputOwnProps {
 	/**
 	 * Current value. Controlled when supplied: pair it with `onValueChange`,
 	 * the React counterpart of the Svelte source's `bind:value`.
@@ -62,6 +63,15 @@ export interface PasswordInputProps {
 	 */
 	sound?: boolean;
 }
+
+/**
+ * Own props plus every native `<input>` attribute and listener; the rest are
+ * spread onto the inner `<input>` (see the component README for the rules).
+ */
+export interface PasswordInputProps
+	extends
+		Omit<ComponentPropsWithoutRef<"input">, keyof PasswordInputOwnProps | "type">,
+		PasswordInputOwnProps {}
 
 // The reveal toggle swaps one 16px glyph for another in place. A hard cut
 // at that scale reads as a flicker, so the two icons cross-fade over
@@ -173,12 +183,21 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 			id,
 			name,
 			label,
-			autocomplete = "current-password",
+			autocomplete,
 			showToggle = true,
 			showStrength = false,
 			strength,
 			className,
 			sound = false,
+			autoComplete: autoCompleteAttr,
+			onChange,
+			"aria-describedby": consumerDescribedBy,
+			"aria-label": consumerAriaLabel,
+			"aria-invalid": consumerAriaInvalid,
+			readOnly: readOnlyAttr,
+			// An `<input>` is a void element: a stray `children` must not reach it.
+			children: _children,
+			...rest
 		},
 		forwardedRef
 	) => {
@@ -232,8 +251,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 		// that span's text when the string actually changes, so a screen reader
 		// that does treat aria-describedby text as live content still would not
 		// hear it churn on every character.
-		const describedBy =
-			[field?.describedBy, result ? strengthId : undefined].filter(Boolean).join(" ") || undefined;
+		const describedBy = mergeIds(
+			field?.describedBy,
+			consumerDescribedBy,
+			result ? strengthId : undefined
+		);
 
 		const tierClass = !result
 			? ""
@@ -264,6 +286,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 			const next = event.currentTarget.value;
 			if (!isControlled) setUncontrolledValue(next);
 			onValueChange?.(next);
+			onChange?.(event);
 		}
 
 		// Swapping `type` between "password" and "text" resets selection in some
@@ -318,19 +341,20 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 			<div className="ft-password-input-wrapper flex w-full flex-col gap-1.5">
 				<div className={wrapperClasses}>
 					<input
+						{...rest}
 						ref={composedRef}
 						type={type}
 						placeholder={placeholder}
 						name={name}
-						autoComplete={autocomplete}
+						autoComplete={autocomplete ?? autoCompleteAttr ?? "current-password"}
 						id={effectiveId}
 						value={value}
 						disabled={effectiveDisabled}
-						readOnly={readonly}
+						readOnly={readonly || readOnlyAttr}
 						required={effectiveRequired}
-						aria-invalid={effectiveInvalid ? "true" : undefined}
+						aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
 						aria-describedby={describedBy}
-						aria-label={label}
+						aria-label={label ?? consumerAriaLabel}
 						className="ft-password-input-field text-foreground placeholder:text-muted-foreground min-w-0 flex-1 border-0 bg-transparent p-0 outline-none disabled:cursor-not-allowed"
 						onChange={handleInput}
 					/>
