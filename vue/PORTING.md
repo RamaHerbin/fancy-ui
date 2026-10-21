@@ -248,3 +248,24 @@ Run with `npx vitest run src/components/<slug>` from `vue/`.
   silently changing the API.
 - Before reporting done: the component appears in `vue/src/index.ts` and passes
   `npx vue-tsc --noEmit` plus its own vitest file.
+
+## Interaction contracts
+
+The rules live in `src/lib/fancy-ui/_internals/CONTRACTS.md` (state ownership, async feedback,
+live announcements, keyboard and touch, reduced motion, width stability). This is how each one
+lands in Vue.
+
+| Contract                    | Svelte                                             | Vue                                                                                                                                                                                                                      |
+| --------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Consumer-ownable state      | `value = $bindable(d)` + `onValueChange`           | `defineModel<T>("value", { default: d })` → `v-model:value`, plus the `onValueChange` prop, called after the model write; a consumer that omits `v-model` gets the uncontrolled copy, so there is no `defaultValue` prop |
+| Mount-only prop             | `untrack(() => resetMs)`                           | read the destructured prop once in setup (`const resetWindow = resetMs`), never through `computed` or `watch`                                                                                                            |
+| Attempt ticket              | plain `let attempt = 0`                            | plain `let attempt = 0` in setup; destructured props are live getters, so snapshot the value before the first `await`                                                                                                    |
+| Timer and instance teardown | `$effect` cleanup                                  | `onScopeDispose` in composables (`vue/src/internals/use-copy.ts`), `onBeforeUnmount` in components, `onCleanup` in `watch`                                                                                               |
+| Live region                 | `use:portal`                                       | `<Portal>` from `vue/src/internals/Portal.vue`                                                                                                                                                                           |
+| Reduced motion in JS        | `createReducedMotion()` / `prefersReducedMotion()` | `useReducedMotion()` from `vue/src/internals/motion/use-media-query.ts` (started in `onMounted`) / `prefersReducedMotion()` from `vue/src/internals/motion/anchored.ts`                                                  |
+| Pending                     | `aria-busy`, guard in the handler                  | same: `:aria-busy`, guard in the `@click` handler, never `:disabled="pending"`                                                                                                                                           |
+
+The full triad is `vue/src/components/switch/Switch.vue` (`v-model:checked` + `onCheckedChange`);
+`vue/src/components/copy-button/CopyButton.vue` shows the ticket and the value snapshot. CSS
+gating (`no-preference`, `(hover: hover)`, grid-cell width reservation) moves verbatim into
+`<style scoped>`.

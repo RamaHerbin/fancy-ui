@@ -77,15 +77,15 @@ The Svelte package is the reference; open it first and this port follows.
 
 ## Rune → hook mapping
 
-| Svelte | React |
-|---|---|
-| `$props()` | props destructure with defaults |
-| `$state(x)` | `useState(x)` |
-| `$derived(expr)` | plain const per render, or `useMemo` only when measurably expensive |
-| `$effect(...)` | `useEffect` with an honest dependency array |
-| `$bindable(null)` ref | `forwardRef` |
-| `onMount` | `useEffect(..., [])` |
-| `onDestroy` | the effect's cleanup return |
+| Svelte                | React                                                               |
+| --------------------- | ------------------------------------------------------------------- |
+| `$props()`            | props destructure with defaults                                     |
+| `$state(x)`           | `useState(x)`                                                       |
+| `$derived(expr)`      | plain const per render, or `useMemo` only when measurably expensive |
+| `$effect(...)`        | `useEffect` with an honest dependency array                         |
+| `$bindable(null)` ref | `forwardRef`                                                        |
+| `onMount`             | `useEffect(..., [])`                                                |
+| `onDestroy`           | the effect's cleanup return                                         |
 
 ## Styling — the part that breaks silently
 
@@ -146,3 +146,24 @@ test file assertion-for-assertion; drop only what is Svelte-specific
   rule; write what the code does, not where an idea came from.
 - Every component you port must appear in `react/src/index.ts` and pass
   `npx tsc --noEmit` + its own vitest file before you report done.
+
+## Interaction contracts
+
+The rules live in `src/lib/fancy-ui/_internals/CONTRACTS.md` (state ownership, async feedback,
+live announcements, keyboard and touch, reduced motion, width stability). This is how each one
+lands in React.
+
+| Contract                    | Svelte                                             | React                                                                                                                                                                         |
+| --------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consumer-ownable state      | `value = $bindable(d)` + `onValueChange`           | `value` (controlled when `!== undefined`) / `defaultValue` (seed for `useState`) / `onValueChange`; write the local copy only when uncontrolled, call the callback either way |
+| Mount-only prop             | `untrack(() => resetMs)`                           | `useConstant(() => resetMs)` from `react/src/internals/dom/ssr.ts`                                                                                                            |
+| Attempt ticket              | plain `let attempt = 0`                            | `useRef(0)`; the handler's closure already holds the props of the render that was clicked, which is the snapshot the outcome callback reports                                 |
+| Timer and instance teardown | `$effect` cleanup                                  | `useEffect` cleanup; a factory latched by `destroy()` pairs it with `arm()` so the development double-mount is a no-op (`react/src/internals/use-copy.ts`)                    |
+| Live region                 | `use:portal`                                       | `<Portal>` from `react/src/internals/Portal.tsx`                                                                                                                              |
+| Reduced motion in JS        | `createReducedMotion()` / `prefersReducedMotion()` | `useReducedMotion()` from `react/src/internals/motion/media-query.ts` / `prefersReducedMotion()` from `react/src/internals/motion/anchored.ts`                                |
+| Pending                     | `aria-busy`, guard in the handler                  | same: `aria-busy`, guard in `onClick`, never `disabled={pending}`                                                                                                             |
+
+The full triad is `react/src/components/switch/Switch.tsx` (`checked` / `defaultChecked` /
+`onCheckedChange`). `react/src/components/toggle/Toggle.tsx` is a known gap: `pressed` only seeds
+local state, so the toggle cannot be controlled yet. CSS gating (`no-preference`, `(hover: hover)`,
+grid-cell width reservation) is ported verbatim per "Styling" rule 5 above.
