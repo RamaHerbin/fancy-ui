@@ -325,4 +325,45 @@ describe("DatamoshTransition", () => {
 		container.remove();
 		expect(messages).toEqual([]);
 	});
+
+	describe("camelCase listeners (@covered / @revealed)", () => {
+		it("calls a consumer onCovered and onRevealed once each", async () => {
+			const onCovered = vi.fn();
+			const onRevealed = vi.fn();
+			const { api } = render({}, { onCovered, onRevealed });
+			await api.cover();
+			await nextTick();
+			expect(onCovered).toHaveBeenCalledTimes(1);
+			expect(onRevealed).not.toHaveBeenCalled();
+			await api.reveal();
+			await nextTick();
+			expect(onCovered).toHaveBeenCalledTimes(1);
+			expect(onRevealed).toHaveBeenCalledTimes(1);
+		});
+
+		it("keeps the deprecated lowercase props, called only when the camelCase one is absent", async () => {
+			const oncovered = vi.fn();
+			const onrevealed = vi.fn();
+			const a = render({ oncovered, onrevealed });
+			await a.api.cover();
+			await a.api.reveal();
+			await nextTick();
+			expect(oncovered).toHaveBeenCalledTimes(1);
+			expect(onrevealed).toHaveBeenCalledTimes(1);
+
+			const camel = { c: vi.fn(), r: vi.fn() };
+			const lower = { c: vi.fn(), r: vi.fn() };
+			const b = render(
+				{ oncovered: lower.c, onrevealed: lower.r },
+				{ onCovered: camel.c, onRevealed: camel.r }
+			);
+			await b.api.cover();
+			await b.api.reveal();
+			await nextTick();
+			expect(camel.c).toHaveBeenCalledTimes(1);
+			expect(camel.r).toHaveBeenCalledTimes(1);
+			expect(lower.c).not.toHaveBeenCalled();
+			expect(lower.r).not.toHaveBeenCalled();
+		});
+	});
 });
