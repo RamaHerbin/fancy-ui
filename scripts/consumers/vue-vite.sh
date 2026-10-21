@@ -16,20 +16,27 @@ mkdir -p "$TARBALL_DIR"
 PACKED="$(ls "$TARBALL_DIR"/fancy-ui-vue-*.tgz)"
 mv "$PACKED" "$TARBALL_DIR/fancy-ui-vue.tgz"
 
-cd "$APP"
-# Point the dependency at the tarball (path computed here so CI regenerates it).
+# Install, build and test in a scratch copy OUTSIDE the repo: inside it, a
+# dependency missing from the app's own node_modules would silently resolve
+# from <repo>/node_modules and the tarball's dependency manifest would go
+# untested. Pass CONSUMER_KEEP=1 to keep the scratch dir for debugging.
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/consumer-vue-vite.XXXXXX")"
+[ -n "${CONSUMER_KEEP:-}" ] || trap 'rm -rf "$WORK"' EXIT
+rsync -a --exclude node_modules --exclude dist --exclude .tarball --exclude package-lock.json "$APP/" "$WORK/"
+cp "$TARBALL_DIR/fancy-ui-vue.tgz" "$WORK/fancy-ui-vue.tgz"
+
+cd "$WORK"
+# Point the dependency at the tarball (absolute path computed here so CI regenerates it).
 node -e '
 const fs = require("fs");
-const path = require("path");
 const p = JSON.parse(fs.readFileSync("package.json", "utf8"));
-p.dependencies["fancy-ui-vue"] = "file:" + path.relative(process.cwd(), process.argv[1]);
+p.dependencies["fancy-ui-vue"] = "file:" + process.argv[1];
 fs.writeFileSync("package.json", JSON.stringify(p, null, "\t") + "\n");
-' "$TARBALL_DIR/fancy-ui-vue.tgz"
+' "$WORK/fancy-ui-vue.tgz"
 
-# Fresh install every run: npm would otherwise keep a stale copy of the tarball.
-rm -rf node_modules package-lock.json
 npm install --no-audit --no-fund
 npm run build
 
-# Runner from the repo root; the app itself has no test dependency.
-"$ROOT/node_modules/.bin/playwright" test -c playwright.config.ts
+# Runner, config and spec stay in the repo (they need @playwright/test); the
+# preview server runs from the scratch app via CONSUMER_APP_DIR.
+CONSUMER_APP_DIR="$WORK" "$ROOT/node_modules/.bin/playwright" test -c "$APP/playwright.config.ts"

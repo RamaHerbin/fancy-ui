@@ -19,6 +19,8 @@ export default defineConfig({
 		},
 	],
 	webServer: {
+		// The app is built in a scratch dir outside the repo (see the script).
+		cwd: process.env.CONSUMER_APP_DIR,
 		command: "npx vite preview --port 4179 --strictPort",
 		url: "http://localhost:4179",
 		reuseExistingServer: false,

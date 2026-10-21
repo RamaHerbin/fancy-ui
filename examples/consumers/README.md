@@ -1,6 +1,6 @@
 # Consumer apps
 
-Minimal apps that install a packed fancy-ui package the way an outsider would, to prove the published artifact works rather than the monorepo source. They are deliberately **not** in `pnpm-workspace.yaml`: no workspace link, no source alias, no docs-site CSS.
+Minimal apps that install a packed fancy-ui package the way an outsider would, to prove the published artifact works rather than the monorepo source. Each script installs, builds and tests in a scratch copy outside the repository, so a dependency missing from the tarball's manifest fails the build instead of resolving from the monorepo's `node_modules`. They are deliberately **not** in `pnpm-workspace.yaml`: no workspace link, no source alias, no docs-site CSS.
 
 ## vue-vite
 
@@ -8,8 +8,8 @@ Run it with `scripts/consumers/vue-vite.sh`. The script:
 
 1. builds `fancy-ui-vue` and runs `pnpm pack` into `examples/consumers/vue-vite/.tarball/`,
 2. points the app's `fancy-ui-vue` dependency at that tarball (`file:` path computed by the script, so CI can regenerate it),
-3. reinstalls with `npm install` (outside the workspace), builds with Vite,
-4. runs the Playwright smoke in `tests/smoke.spec.ts` with the runner installed at the repo root.
+3. copies the app (without `node_modules`, `dist`, `.tarball`) to a `mktemp -d` directory outside the repo, installs with `npm install` there and builds with Vite,
+4. runs the Playwright smoke in `tests/smoke.spec.ts` with the runner installed at the repo root, serving the scratch build (`CONSUMER_APP_DIR`).
 
 The CSS is exactly the three imports the package README documents: `tailwindcss`, `fancy-ui-vue/tailwind.css`, `fancy-ui-vue/styles.css`.
 
@@ -18,5 +18,5 @@ The app mounts `Button`, `Input`, `Select`, `Dialog`, `RainbowButton`, `BorderBe
 - the page loads with no console error and no uncaught exception,
 - it is interactive: clicking `RainbowButton` runs the consumer's own `@click` handler (asserted through DOM text),
 - `bg-primary` exists in the consumer's build: a `Button`'s computed background-color equals the `--primary` token and is not transparent,
-- the GPU effect mounts its canvas,
+- the GPU effect binds a GPU context: its canvas refuses a `2d` context because WebGL/WebGPU already owns it (the canvas element alone is always rendered, so it proves nothing),
 - `Dialog` opens from the keyboard (Enter on the trigger) and closes with Escape.

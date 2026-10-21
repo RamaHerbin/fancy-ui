@@ -26,8 +26,12 @@ test("loads clean, hydrates, styles and dialog work from the packed tarball", as
 	expect(primary).not.toBe("rgba(0, 0, 0, 0)");
 	expect(bg).toBe(primary);
 
-	// A GPU effect mounted a canvas.
-	await expect(page.getByTestId("fluid").locator("canvas")).toHaveCount(1);
+	// A GPU effect mounted AND bound a GPU context. The canvas is always in the
+	// template, so counting it proves nothing; instead ask for a 2d context: it
+	// returns null only when another context type (webgl/webgpu) already owns it.
+	const canvas = page.getByTestId("fluid").locator("canvas");
+	await expect(canvas).toHaveCount(1);
+	await expect.poll(() => canvas.evaluate((c) => (c as HTMLCanvasElement).getContext("2d") === null)).toBe(true);
 
 	// Dialog: keyboard open, Escape close.
 	const trigger = page.getByRole("button", { name: "Open dialog" });
