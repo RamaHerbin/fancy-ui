@@ -358,7 +358,7 @@
 	</section>
 
 	<!-- ═══ EXAMPLES ═══ -->
-	<ExamplesSection slug={component.slug} />
+	<ExamplesSection slug={component.slug} showCode={framework === "svelte"} />
 
 	<!-- ═══ PROPS ═══ -->
 	{#if component.props && component.props.length > 0}

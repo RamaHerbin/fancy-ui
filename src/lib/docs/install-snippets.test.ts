@@ -28,6 +28,18 @@ describe("install snippets", () => {
 		expect(INSTALL_SNIPPETS.vue.stylesheet).toContain("fancy-ui-vue/styles.css");
 	});
 
+	it("lists every required peer dependency the packages declare", () => {
+		for (const dir of ["react", "vue"] as const) {
+			const pkg = JSON.parse(readFileSync(`${dir}/package.json`, "utf8"));
+			const optional = Object.entries(pkg.peerDependenciesMeta ?? {})
+				.filter(([, meta]) => (meta as { optional?: boolean }).optional)
+				.map(([name]) => name);
+			const required = Object.keys(pkg.peerDependencies).filter((n) => !optional.includes(n));
+			const listed = INSTALL_SNIPPETS[dir].peers.map((p) => p.name);
+			expect(listed.sort()).toEqual(required.sort());
+		}
+	});
+
 	it("lists the peer ranges the packages declare", () => {
 		for (const [framework, dir] of [
 			["react", "react"],

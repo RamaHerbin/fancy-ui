@@ -70,7 +70,7 @@ export default {
 	"gallery.subtitle":
 		"{count} 个精美的 Svelte 5, React, Vue 动画组件。浏览、搜索，找到你需要的内容。",
 	"gallery.intro":
-		"每个组件都为 Svelte 5、React 和 Vue 构建，使用 Tailwind CSS v4 样式，使用 TypeScript 类型，并附带实时预览和可复制粘贴的示例。只需安装一次包，代码就归你所有。",
+		"组件适用于 Svelte 5、React 和 Vue，使用 Tailwind CSS v4 样式并带有 TypeScript 类型。每个页面都有实时预览和可复制粘贴的 Svelte 示例，并在可用时提供 React 和 Vue 用法。只需安装一次包，代码就归你所有。",
 	"gallery.filterPlaceholder": "筛选组件…",
 	"gallery.all": "全部",
 	"gallery.noMatch": "没有与搜索匹配的组件。",
@@ -212,7 +212,7 @@ export default {
 	"install.pill.node": "Node.js 20.19+",
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "前提条件",
-	"install.prerequisites.body": "FancyUI 面向当前的 Svelte 工具链。安装前请确认以下三点。",
+	"install.prerequisites.body": "FancyUI 面向当前的工具链。安装前请先确认这三项。",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -222,7 +222,7 @@ export default {
 	"install.prerequisites.card2.desc": "样式依赖 Tailwind v4 的工具类和 CSS 自定义属性。",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc": "FancyUI 构建所依赖的 SvelteKit 和 Vite 版本对此有要求。",
+	"install.prerequisites.card3.desc": "FancyUI 所测试的当前构建工具需要它。",
 	"install.steps.heading": "安装",
 	"install.steps.body": "选择你的包管理器，配置样式表，然后渲染你的第一个组件。",
 	"install.step1.title": "安装包",

@@ -8,5 +8,5 @@
 		"baseUrl": ".",
 		"paths": { "fancy-ui-react": ["./src/index.ts"] }
 	},
-	"include": ["docs-examples/**/*.tsx"]
+	"include": ["docs-examples/**/*.tsx", "docs-examples/**/*.ts"]
 }

@@ -8,5 +8,7 @@
 		"baseUrl": ".",
 		"paths": { "fancy-ui-vue": ["./src/index.ts"] }
 	},
+	// Without strict templates a wrong prop or v-model name still type-checks.
+	"vueCompilerOptions": { "strictTemplates": true },
 	"include": ["docs-examples/**/*.vue"]
 }

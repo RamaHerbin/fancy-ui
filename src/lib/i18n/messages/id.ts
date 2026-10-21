@@ -80,7 +80,7 @@ export default {
 	"gallery.subtitle":
 		"{count} komponen beranimasi indah untuk Svelte 5, React, Vue. Jelajahi, cari, dan temukan yang Anda butuhkan.",
 	"gallery.intro":
-		"Setiap komponen dibuat untuk Svelte 5, React, dan Vue, ditata dengan Tailwind CSS v4, diberi tipe dengan TypeScript, dan hadir dengan pratinjau langsung serta contoh siap salin. Instal paketnya sekali dan kodenya jadi milik Anda.",
+		"Komponen tersedia untuk Svelte 5, React, dan Vue, ditata dengan Tailwind CSS v4 dan diberi tipe dengan TypeScript. Setiap halaman memiliki pratinjau langsung dan contoh Svelte siap salin, dengan penggunaan React dan Vue jika tersedia. Instal paketnya sekali dan kodenya jadi milik Anda.",
 	"gallery.filterPlaceholder": "Filter komponen...",
 	"gallery.all": "Semua",
 	"gallery.noMatch": "Tidak ada komponen yang cocok dengan pencarian Anda.",
@@ -230,7 +230,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Prasyarat",
 	"install.prerequisites.body":
-		"FancyUI menargetkan toolchain Svelte terkini. Periksa ketiga hal ini sebelum menginstal.",
+		"FancyUI menargetkan toolchain terkini. Periksa ketiga hal ini sebelum menginstal.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -242,7 +242,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Diperlukan oleh versi SvelteKit dan Vite yang menjadi dasar build FancyUI.",
+		"Dibutuhkan oleh perangkat build terkini yang dipakai untuk menguji FancyUI.",
 	"install.steps.heading": "Instal",
 	"install.steps.body":
 		"Pilih package manager Anda, hubungkan stylesheet-nya, lalu render komponen pertama Anda.",

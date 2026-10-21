@@ -78,7 +78,7 @@ export default {
 	// Components gallery
 	"gallery.title": "コンポーネント",
 	"gallery.intro":
-		"すべてのコンポーネントは Svelte 5、React、Vue 向けに作られ、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされ、ライブプレビューとコピー＆ペーストできる使用例が付属します。パッケージを一度インストールすれば、コードはあなたのものです。",
+		"コンポーネントは Svelte 5、React、Vue で利用でき、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされています。各ページにはライブプレビューとコピー＆ペーストできる Svelte の使用例があり、React と Vue の使い方は用意されている場合に掲載されます。パッケージを一度インストールすれば、コードはあなたのものです。",
 	"gallery.filterPlaceholder": "コンポーネントを絞り込む...",
 	"gallery.all": "すべて",
 	"gallery.noMatch": "検索に一致するコンポーネントがありません。",
@@ -232,7 +232,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "前提条件",
 	"install.prerequisites.body":
-		"FancyUI は現行の Svelte ツールチェーンを対象としています。インストール前に次の 3 点を確認してください。",
+		"FancyUI は現行のツールチェーンを対象としています。インストール前にこの 3 点を確認してください。",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -243,8 +243,7 @@ export default {
 		"スタイリングは Tailwind v4 のユーティリティと CSS カスタムプロパティに依存しています。",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc":
-		"FancyUI がビルド対象とする SvelteKit と Vite のバージョンで必要になります。",
+	"install.prerequisites.card3.desc": "FancyUI がテストされている現行のビルドツールで必要です。",
 	"install.steps.heading": "インストール",
 	"install.steps.body":
 		"パッケージマネージャーを選び、スタイルシートを設定して、最初のコンポーネントをレンダリングしましょう。",

@@ -80,7 +80,7 @@ export default {
 	"gallery.subtitle":
 		"{count} pięknie animowanych komponentów dla Svelte 5, React, Vue. Przeglądaj, wyszukuj i znajdź to, czego potrzebujesz.",
 	"gallery.intro":
-		"Każdy komponent jest zbudowany dla Svelte 5, React i Vue, ostylowany w Tailwind CSS v4, otypowany w TypeScript i zawiera podgląd na żywo oraz przykłady do skopiowania. Zainstaluj pakiet raz, a kod będzie Twój.",
+		"Komponenty są dostępne dla Svelte 5, React i Vue, ostylowane w Tailwind CSS v4 i otypowane w TypeScript. Każda strona ma podgląd na żywo i przykłady Svelte do skopiowania, a tam gdzie są — także użycie w React i Vue. Zainstaluj pakiet raz, a kod będzie Twój.",
 	"gallery.filterPlaceholder": "Filtruj komponenty...",
 	"gallery.all": "Wszystkie",
 	"gallery.noMatch": "Żaden komponent nie pasuje do wyszukiwania.",
@@ -233,7 +233,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Wymagania wstępne",
 	"install.prerequisites.body":
-		"FancyUI celuje w aktualny toolchain Svelte. Sprawdź te trzy rzeczy przed instalacją.",
+		"FancyUI celuje w aktualne narzędzia. Sprawdź te trzy rzeczy przed instalacją.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -245,7 +245,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Wymagany przez wersje SvelteKit i Vite, z którymi budowany jest FancyUI.",
+		"Wymagane przez aktualne narzędzia budowania, z którymi testowane jest FancyUI.",
 	"install.steps.heading": "Instalacja",
 	"install.steps.body":
 		"Wybierz swój menedżer pakietów, podłącz arkusz stylów, a następnie wyrenderuj pierwszy komponent.",

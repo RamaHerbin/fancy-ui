@@ -7,7 +7,9 @@ async function hydrated(page: Page) {
 }
 
 async function pick(page: Page, name: "React" | "Svelte" | "Vue") {
-	await page.getByRole("radio", { name }).first().click();
+	const radio = page.getByRole("radio", { name }).first();
+	await radio.click();
+	await expect(radio).toHaveAttribute("aria-checked", "true");
 }
 
 test.describe("Docs follow the selected framework", () => {
@@ -26,6 +28,8 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(usage).toContainText("fancy-ui-react");
 		await expect(usage).not.toContainText("<script");
 		await expect(usage).not.toContainText("fancy-ui-svelte");
+		// No Svelte source anywhere on the page, examples section included.
+		await expect(page.locator("main")).not.toContainText("<script");
 
 		await pick(page, "Vue");
 		await expect(usage).toContainText("fancy-ui-vue");
@@ -75,5 +79,12 @@ test.describe("Docs follow the selected framework", () => {
 		const usage = page.locator("section:has(h2#usage)");
 		await expect(usage.locator("[data-snippet-missing]")).toBeVisible();
 		await expect(usage).not.toContainText("<script");
+
+		// The example previews stay, their Svelte code does not.
+		await expect(page.locator("main")).not.toContainText("<script");
+		await expect(page.locator("main")).not.toContainText("fancy-ui-svelte");
+		const examples = page.locator("section:has(h2#examples)");
+		await expect(examples.locator("[data-snippet-missing]")).toBeVisible();
+		await expect(examples.getByRole("button", { name: "Code", exact: true })).toHaveCount(0);
 	});
 });

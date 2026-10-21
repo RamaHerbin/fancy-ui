@@ -80,7 +80,7 @@ export default {
 	"gallery.subtitle":
 		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5, React, Vue. تصفّح وابحث واعثر على ما تحتاجه.",
 	"gallery.intro":
-		"كل مكوّن مبني لـ Svelte 5 وReact وVue، ومنسّق بـ Tailwind CSS v4، ومكتوب الأنواع بـ TypeScript، ويأتي مع معاينة حيّة وأمثلة جاهزة للنسخ واللصق. ثبّت الحزمة مرة واحدة ويصبح الكود ملكك.",
+		"المكوّنات متاحة لـ Svelte 5 وReact وVue، ومنسّقة بـ Tailwind CSS v4 ومكتوبة الأنواع بـ TypeScript. لكل صفحة معاينة حيّة وأمثلة Svelte جاهزة للنسخ واللصق، مع استخدام React وVue حيثما توفّر. ثبّت الحزمة مرة واحدة ويصبح الكود ملكك.",
 	"gallery.filterPlaceholder": "تصفية المكوّنات...",
 	"gallery.all": "الكل",
 	"gallery.noMatch": "لا توجد مكوّنات تطابق بحثك.",
@@ -227,7 +227,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "المتطلّبات المسبقة",
 	"install.prerequisites.body":
-		"تستهدف FancyUI سلسلة أدوات Svelte الحالية. تحقّق من هذه النقاط الثلاث قبل التثبيت.",
+		"يستهدف FancyUI سلاسل الأدوات الحالية. تحقّق من هذه الأمور الثلاثة قبل التثبيت.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -238,8 +238,7 @@ export default {
 		"يعتمد التنسيق على أصناف المرافق في Tailwind v4 وخصائص CSS المخصّصة.",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc":
-		"مطلوب من قِبل إصدارات SvelteKit وVite التي تُبنى FancyUI عليها.",
+	"install.prerequisites.card3.desc": "مطلوب لأدوات البناء الحالية التي يُختبر FancyUI عليها.",
 	"install.steps.heading": "التثبيت",
 	"install.steps.body": "اختر مدير الحزم لديك، واربط ملف الأنماط، ثم اعرض مكوّنك الأول.",
 	"install.step1.title": "ثبّت الحزمة",

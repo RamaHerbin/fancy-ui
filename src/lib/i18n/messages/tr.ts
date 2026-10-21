@@ -78,7 +78,7 @@ export default {
 	// Components gallery
 	"gallery.title": "Bileşenler",
 	"gallery.intro":
-		"Her bileşen Svelte 5, React ve Vue için geliştirilmiştir, Tailwind CSS v4 ile stillendirilmiş, TypeScript ile tiplendirilmiştir ve canlı önizleme ile kopyala-yapıştır örneklerle gelir. Paketi bir kez kurun, kod sizin olsun.",
+		"Bileşenler Svelte 5, React ve Vue için sunulur, Tailwind CSS v4 ile stillendirilmiştir ve TypeScript ile tiplendirilmiştir. Her sayfada canlı önizleme ve kopyala-yapıştır Svelte örnekleri bulunur; varsa React ve Vue kullanımı da yer alır. Paketi bir kez kurun, kod sizin olsun.",
 	"gallery.filterPlaceholder": "Bileşenleri filtrele...",
 	"gallery.all": "Tümü",
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
@@ -232,7 +232,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Ön Koşullar",
 	"install.prerequisites.body":
-		"FancyUI, güncel Svelte araç zincirini hedefler. Kurulumdan önce şu üç maddeyi kontrol edin.",
+		"FancyUI güncel araç zincirlerini hedefler. Kurmadan önce bu üç şeyi kontrol edin.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -244,7 +244,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"FancyUI'nin üzerine inşa edildiği SvelteKit ve Vite sürümleri için gereklidir.",
+		"FancyUI'nin test edildiği güncel derleme araçları tarafından gereklidir.",
 	"install.steps.heading": "Kurulum",
 	"install.steps.body":
 		"Paket yöneticinizi seçin, stil dosyasını bağlayın, ardından ilk bileşeninizi render edin.",

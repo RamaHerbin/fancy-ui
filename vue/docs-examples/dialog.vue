@@ -9,7 +9,6 @@ const email = ref("");
 <template>
 	<Dialog
 		v-model:open="open"
-		sound
 		title="Invite a member"
 		description="Send an email invite to join the workspace."
 	>

@@ -31,7 +31,7 @@
 	},
 	"scripts": {
 		"build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/strip-dts-css-imports.mjs && node scripts/check-dist-names.mjs && node scripts/prune-orphan-dts.mjs && node scripts/check-dist-shape.mjs && node scripts/smoke-dist.mjs && node scripts/ensure-styles-css.mjs",
-		"check": "vue-tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.docs-examples.json",
+		"check": "vue-tsc --noEmit -p tsconfig.json && node scripts/check-docs-examples.mjs",
 		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",

@@ -7,7 +7,6 @@ export function DialogExample() {
 
 	return (
 		<Dialog
-			sound
 			open={open}
 			onOpenChange={setOpen}
 			trigger={<Button>Invite member</Button>}

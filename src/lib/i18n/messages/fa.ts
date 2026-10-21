@@ -80,7 +80,7 @@ export default {
 	"gallery.subtitle":
 		"{count} کامپوننت زیبا و متحرک برای Svelte 5, React, Vue. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
 	"gallery.intro":
-		"هر کامپوننت برای Svelte 5، React و Vue ساخته شده، با Tailwind CSS v4 استایل می‌گیرد، با TypeScript تایپ شده و با پیش‌نمایش زنده و مثال‌های قابل کپی همراه است. بسته را یک بار نصب کنید و کد مال شما باشد.",
+		"کامپوننت‌ها برای Svelte 5، React و Vue در دسترس‌اند، با Tailwind CSS v4 استایل می‌گیرند و با TypeScript تایپ شده‌اند. هر صفحه پیش‌نمایش زنده و مثال‌های Svelte قابل کپی دارد و در صورت وجود، نحوه استفاده در React و Vue هم آمده است. بسته را یک بار نصب کنید و کد مال شما باشد.",
 	"gallery.filterPlaceholder": "فیلتر کردن کامپوننت‌ها...",
 	"gallery.all": "همه",
 	"gallery.noMatch": "هیچ کامپوننتی با جستجوی شما مطابقت ندارد.",
@@ -229,7 +229,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "پیش‌نیازها",
 	"install.prerequisites.body":
-		"FancyUI زنجیره‌ابزار فعلی Svelte را هدف می‌گیرد. پیش از نصب این سه مورد را بررسی کنید.",
+		"FancyUI زنجیره‌ابزارهای فعلی را هدف گرفته است. پیش از نصب این سه مورد را بررسی کنید.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -241,7 +241,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"برای نسخه‌های SvelteKit و Vite که FancyUI بر پایه‌ی آن‌ها ساخته می‌شود لازم است.",
+		"مورد نیاز ابزارهای ساخت فعلی که FancyUI روی آن‌ها آزمایش می‌شود.",
 	"install.steps.heading": "نصب",
 	"install.steps.body":
 		"مدیر بسته‌ی خود را انتخاب کنید، استایل‌شیت را متصل کنید و سپس نخستین کامپوننت خود را رندر کنید.",

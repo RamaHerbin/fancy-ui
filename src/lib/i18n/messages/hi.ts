@@ -80,7 +80,7 @@ export default {
 	"gallery.subtitle":
 		"Svelte 5, React, Vue के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
 	"gallery.intro":
-		"हर कॉम्पोनेंट Svelte 5, React और Vue के लिए बनाया गया है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript से टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका हो जाता है।",
+		"कॉम्पोनेंट Svelte 5, React और Vue के लिए उपलब्ध हैं, Tailwind CSS v4 से स्टाइल किए गए हैं और TypeScript से टाइप किए गए हैं। हर पेज में लाइव प्रीव्यू और कॉपी-पेस्ट Svelte उदाहरण हैं, और जहाँ उपलब्ध हो वहाँ React व Vue का उपयोग भी। पैकेज एक बार इंस्टॉल करें और कोड आपका हो जाता है।",
 	"gallery.filterPlaceholder": "कॉम्पोनेंट्स फ़िल्टर करें...",
 	"gallery.all": "सभी",
 	"gallery.noMatch": "आपकी खोज से कोई कॉम्पोनेंट मेल नहीं खाता।",
@@ -229,7 +229,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "पूर्वापेक्षाएँ",
 	"install.prerequisites.body":
-		"FancyUI वर्तमान Svelte टूलचेन को लक्षित करता है। इंस्टॉल करने से पहले ये तीन चीज़ें जाँच लें।",
+		"FancyUI मौजूदा टूलचेन को लक्षित करता है। इंस्टॉल करने से पहले ये तीन बातें जाँच लें।",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -241,7 +241,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"उन SvelteKit और Vite संस्करणों के लिए आवश्यक, जिनके साथ FancyUI बिल्ड होता है।",
+		"उन मौजूदा बिल्ड टूल्स के लिए ज़रूरी, जिनके साथ FancyUI टेस्ट किया जाता है।",
 	"install.steps.heading": "इंस्टॉल करें",
 	"install.steps.body":
 		"अपना पैकेज मैनेजर चुनें, स्टाइलशीट सेट करें, फिर अपना पहला कॉम्पोनेंट रेंडर करें।",
