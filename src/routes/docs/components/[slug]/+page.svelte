@@ -11,14 +11,16 @@
 		defaultProps,
 	} from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
-	import Breadcrumbs from "$lib/components/docs/Breadcrumbs.svelte";
+	import PageActions from "$lib/components/docs/PageActions.svelte";
 	import RelatedComponents from "$lib/components/docs/RelatedComponents.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
 	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
 	import { hasSoundProp } from "$lib/fancy-ui/registry.js";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
-	import { SITE_URL, SITE_NAME } from "$lib/site.js";
+	import { SITE_URL, SITE_NAME, GITHUB_URL, SOURCE_BRANCH, sourceTreeUrl } from "$lib/site.js";
+	import { componentBadges, fillBadge, type BadgeTone } from "$lib/docs/component-badges.js";
+	import { sourcePathForRoute } from "$lib/docs/page-sources.js";
 	import { toConsumerImports } from "$lib/docs/code.js";
 	import { getUsageSnippet } from "$lib/docs/framework-snippets.js";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
@@ -27,7 +29,15 @@
 	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
 
-	const REPO_URL = "https://github.com/RamaHerbin/fancy-ui";
+	const REPO_URL = GITHUB_URL;
+
+	const BADGE_TONE_CLASS: Record<BadgeTone, string> = {
+		success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+		warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+		neutral: "bg-muted text-muted-foreground",
+		info: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+		danger: "bg-red-500/10 text-red-600 dark:text-red-400",
+	};
 
 	let { data }: { data: PageData } = $props();
 
@@ -53,9 +63,11 @@
 	let sourceUrl = $derived(
 		framework !== "svelte" && variant
 			? variant.sourceUrl
-			: `https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
+			: sourceTreeUrl(`src/lib/fancy-ui/${component.slug}`)
 	);
 	let path = $derived(`/docs/components/${component.slug}`);
+	let badges = $derived(componentBadges(component));
+	let sourcePath = $derived(sourcePathForRoute(path));
 	let markdownPath = $derived(`${path}.md`);
 	// The export link carries the framework so it can serve that edition. Until
 	// the Markdown route reads the parameter, every edition is the Svelte one and
@@ -71,7 +83,7 @@
 	let metaDescription = $derived.by(() => {
 		const base = component.description.trim();
 		const sentence = /[.!?]$/.test(base) ? base : `${base}.`;
-		return `${sentence} Svelte 5 component — live preview, props and copy-paste examples.`;
+		return `${sentence} Component for Svelte 5, React and Vue — live preview, props and copy-paste examples.`;
 	});
 
 	let breadcrumbLd = $derived({
@@ -99,11 +111,11 @@
 			"@type": "SoftwareSourceCode",
 			name: component.name,
 			description: component.description,
-			programmingLanguage: ["Svelte", "TypeScript"],
-			runtimePlatform: "Svelte 5",
+			programmingLanguage: ["Svelte", "TypeScript", "React", "Vue"],
+			runtimePlatform: ["Svelte 5", "React", "Vue"],
 			codeRepository: REPO_URL,
 			codeSampleType: "code snippet",
-			license: `${REPO_URL}/blob/main/LICENSE`,
+			license: `${REPO_URL}/blob/${SOURCE_BRANCH}/LICENSE`,
 			keywords: component.tags?.join(", "),
 		},
 		encoding: {
@@ -241,8 +253,6 @@
 <JsonLd data={articleLd} />
 
 <div class="max-w-4xl">
-	<Breadcrumbs current={component.name} />
-
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
 		<span
@@ -258,19 +268,16 @@
 		>
 			{t(`group.${component.group}` as MessageKey)}
 		</span>
-		{#if component.status === "done"}
+		{#each badges as badge (badge.id)}
 			<span
-				class="retro-tag retro-tag-stable rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+				data-badge={badge.id}
+				class="rounded-full px-2.5 py-0.5 text-xs font-medium {badge.id === 'stable'
+					? 'retro-tag retro-tag-stable '
+					: ''}{BADGE_TONE_CLASS[badge.tone]}"
 			>
-				{t("status.stable")}
+				{fillBadge(t(badge.key), badge.vars)}
 			</span>
-		{:else if component.status === "in-progress"}
-			<span
-				class="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
-			>
-				{t("status.inProgress")}
-			</span>
-		{/if}
+		{/each}
 	</div>
 
 	<div class="mb-2 flex flex-wrap items-center justify-between gap-3">
@@ -313,6 +320,16 @@
 			>
 		</div>
 	</div>
+	<div class="mb-4"><PageActions {sourcePath} name={component.name} /></div>
+	{#if component.deprecated}
+		<p
+			role="note"
+			data-deprecated-notice
+			class="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300"
+		>
+			{t("comp.deprecatedNotice")}
+		</p>
+	{/if}
 	<p class="text-muted-foreground mb-6">{component.description}</p>
 
 	<!-- ═══ PREVIEW ═══ -->
@@ -389,7 +406,7 @@
 	<!-- ═══ USAGE ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="usage">{t("comp.usage")}</h2>
-		{@render snippetBlock(basicUsageCode, true)}
+		{@render snippetBlock(previewCode, true)}
 	</section>
 
 	<!-- ═══ EXAMPLES ═══ -->
@@ -402,7 +419,7 @@
 		>
 			{framework === "react" ? t("comp.apiNoticeReact") : t("comp.apiNoticeVue")}
 			<a
-				href="{REPO_URL}/blob/main/{framework}/README.md#divergences-from-the-svelte-api"
+				href="{REPO_URL}/blob/{SOURCE_BRANCH}/{framework}/README.md#divergences-from-the-svelte-api"
 				class="text-foreground underline underline-offset-2"
 				target="_blank"
 				rel="noopener noreferrer">{t("comp.apiNoticeLink")}</a
@@ -525,6 +542,12 @@
 							{t("comp.inspiredBy")}
 							{credit.source}
 						</a>
+					{:else}
+						<span
+							class="border-border text-muted-foreground inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm"
+						>
+							{t("comp.inspiredByNoLink").replace("{name}", credit.source)}
+						</span>
 					{/if}
 				{/each}
 			{/if}

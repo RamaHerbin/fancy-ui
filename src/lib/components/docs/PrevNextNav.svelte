@@ -1,13 +1,13 @@
 <script lang="ts">
 	/**
-	 * Previous / next links across the whole component gallery, in alphabetical
-	 * order by name. The ends of the sequence do not wrap: the first component
+	 * Previous / next links across the whole component gallery, in the order the
+	 * sidebar lists them (core groups, then fancy, by category). The ends of the sequence do not wrap: the first component
 	 * has no previous, the last has no next.
 	 *
 	 * `prev` / `next` override the registry lookup so non-component pages (the
 	 * getting-started sequence) can mount the same control.
 	 */
-	import { getAllComponents } from "$lib/fancy-ui/registry.js";
+	import { neighboursInSidebarOrder } from "$lib/docs/component-order.js";
 	import { t, createSkinState } from "$lib/stores";
 
 	interface NavTarget {
@@ -28,18 +28,17 @@
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 
-	let ordered = $derived(getAllComponents().sort((a, b) => a.name.localeCompare(b.name, "en")));
-	let index = $derived(slug ? ordered.findIndex((c) => c.slug === slug) : -1);
+	let neighbours = $derived(slug ? neighboursInSidebarOrder(slug) : {});
 	let previous = $derived(
 		prevProp ??
-			(index > 0
-				? { name: ordered[index - 1].name, href: `/docs/components/${ordered[index - 1].slug}` }
+			(neighbours.previous
+				? { name: neighbours.previous.name, href: `/docs/components/${neighbours.previous.slug}` }
 				: undefined)
 	);
 	let next = $derived(
 		nextProp ??
-			(index !== -1 && index < ordered.length - 1
-				? { name: ordered[index + 1].name, href: `/docs/components/${ordered[index + 1].slug}` }
+			(neighbours.next
+				? { name: neighbours.next.name, href: `/docs/components/${neighbours.next.slug}` }
 				: undefined)
 	);
 </script>
@@ -47,7 +46,10 @@
 {#if previous || next}
 	<!-- `retro-pager*` are hooks for the retro-os docs skin (docs-skin.css); they carry
 	     no styles of their own, so the default look is unchanged. -->
-	<nav class="retro-pager border-border mt-12 grid grid-cols-2 gap-4 border-t pt-6">
+	<nav
+		aria-label={t("a11y.prevNext")}
+		class="retro-pager border-border mt-12 grid grid-cols-2 gap-4 border-t pt-6"
+	>
 		{#if previous}
 			<a
 				href={previous.href}

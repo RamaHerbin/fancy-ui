@@ -5,7 +5,7 @@
 	 * Gives every component page outbound links to its neighbours, so the deeper
 	 * pages of the gallery are reachable in fewer hops from any entry point.
 	 */
-	import { getAllComponents } from "$lib/fancy-ui/registry.js";
+	import { getListedComponents } from "$lib/fancy-ui/registry.js";
 	import type { ComponentMeta } from "$lib/types.js";
 	import ComponentCard from "./ComponentCard.svelte";
 	import { t } from "$lib/stores";
@@ -20,7 +20,7 @@
 	const MAX_RELATED = 3;
 
 	let related = $derived(
-		getAllComponents()
+		getListedComponents()
 			.filter((c) => c.category === component.category && c.slug !== component.slug)
 			.sort((a, b) => a.name.localeCompare(b.name, "en"))
 			.slice(0, MAX_RELATED)

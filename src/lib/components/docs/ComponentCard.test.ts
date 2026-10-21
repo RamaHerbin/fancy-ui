@@ -50,4 +50,35 @@ describe("ComponentCard", () => {
 		expect(container.querySelector("img")).toBeNull();
 		expect(container.textContent).toContain("RainbowButton");
 	});
+
+	function chips(container: HTMLElement) {
+		return Array.from(container.querySelectorAll("span.rounded-full")).map((b) =>
+			b.textContent?.trim()
+		);
+	}
+
+	it("shows no status chip for a finished component", () => {
+		const { container } = render(ComponentCard, { component });
+		expect(chips(container)).not.toContain("In progress");
+		expect(chips(container)).not.toContain("Planned");
+	});
+
+	it("labels an in-progress component as in progress", () => {
+		const { container } = render(ComponentCard, {
+			component: { ...component, status: "in-progress" },
+		});
+		expect(chips(container)).toContain("In progress");
+		expect(chips(container)).not.toContain("Planned");
+	});
+
+	it("labels a planned component as planned, not in progress", () => {
+		const { container } = render(ComponentCard, { component: { ...component, status: "planned" } });
+		expect(chips(container)).toContain("Planned");
+		expect(chips(container)).not.toContain("In progress");
+	});
+
+	it("renders nothing for a deprecated component", () => {
+		const { container } = render(ComponentCard, { component: { ...component, deprecated: true } });
+		expect(container.querySelector("a")).toBeNull();
+	});
 });

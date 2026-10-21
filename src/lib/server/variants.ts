@@ -16,15 +16,13 @@
 import { getComponent } from "$lib/fancy-ui/registry.js";
 import { FRAMEWORKS, type Framework } from "$lib/inspiration/types.js";
 import {
-	GITHUB_URL,
 	PACKAGE_NAME,
-	REACT_PACKAGE_GITHUB_URL,
 	REACT_PACKAGE_NAME,
 	REACT_PACKAGE_URL,
-	VUE_PACKAGE_GITHUB_URL,
 	VUE_PACKAGE_NAME,
 	VUE_PACKAGE_PUBLISHED,
 	VUE_PACKAGE_URL,
+	sourceTreeUrl,
 } from "$lib/site.js";
 import {
 	portFolderOf,
@@ -73,19 +71,19 @@ const PACKAGES: Record<
 	svelte: {
 		name: PACKAGE_NAME,
 		url: `https://www.npmjs.com/package/${PACKAGE_NAME}`,
-		source: `${GITHUB_URL}/tree/main/src/lib/fancy-ui`,
+		source: sourceTreeUrl("src/lib/fancy-ui"),
 		published: true,
 	},
 	react: {
 		name: REACT_PACKAGE_NAME,
 		url: REACT_PACKAGE_URL,
-		source: REACT_PACKAGE_GITHUB_URL,
+		source: sourceTreeUrl("react"),
 		published: true,
 	},
 	vue: {
 		name: VUE_PACKAGE_NAME,
 		url: VUE_PACKAGE_URL,
-		source: VUE_PACKAGE_GITHUB_URL,
+		source: sourceTreeUrl("vue"),
 		published: VUE_PACKAGE_PUBLISHED,
 	},
 };
