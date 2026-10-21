@@ -36,6 +36,22 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(usage).not.toContainText("fancy-ui-react");
 	});
 
+	for (const slug of ["fluid-cursor", "image-trail-cursor"]) {
+		test(`${slug} usage switches to React, then Vue`, async ({ page }) => {
+			await page.goto(`/docs/components/${slug}`);
+			await hydrated(page);
+
+			const usage = page.locator("section:has(h2#usage)");
+			await pick(page, "React");
+			await expect(usage).toContainText("fancy-ui-react");
+			await expect(usage).not.toContainText("<script");
+
+			await pick(page, "Vue");
+			await expect(usage).toContainText("fancy-ui-vue");
+			await expect(usage).not.toContainText("fancy-ui-react");
+		});
+	}
+
 	test("the Code tab follows the framework and the source link follows the port", async ({
 		page,
 	}) => {
