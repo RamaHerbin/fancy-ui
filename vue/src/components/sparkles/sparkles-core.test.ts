@@ -106,6 +106,38 @@ describe("createSparkles", () => {
 		expect(fillStyles.every((s) => s.startsWith("#abcdef"))).toBe(true);
 	});
 
+	it("resolves a currentColor particleColor from the canvas's computed text colour, every frame", () => {
+		const fakeCtx = makeFakeCtx();
+		const { canvas, container } = makeElements(fakeCtx);
+		stubRect(container, 200, 100);
+		canvas.style.color = "rgb(18, 52, 86)";
+		const fillStyles: string[] = [];
+		Object.defineProperty(fakeCtx, "fillStyle", {
+			set(v: string) {
+				fillStyles.push(v);
+			},
+			get() {
+				return fillStyles[fillStyles.length - 1] ?? "";
+			},
+		});
+
+		const engine = createSparkles(
+			{ canvas, container },
+			{ particleColor: "currentColor", particleDensity: 2 },
+			() => 0.5
+		);
+		expect(engine).not.toBeNull();
+		frames[0]?.(0);
+		expect(fillStyles.length).toBeGreaterThan(0);
+		expect(fillStyles.every((s) => /^#123456[0-9a-f]{2}$/.test(s))).toBe(true);
+
+		// A theme switch changes the inherited colour; the next frame follows.
+		canvas.style.color = "rgb(250, 250, 250)";
+		fillStyles.length = 0;
+		frames[1]?.(16);
+		expect(fillStyles.every((s) => /^#fafafa[0-9a-f]{2}$/.test(s))).toBe(true);
+	});
+
 	it("setOptions updates particleColor used on the next frame", () => {
 		const fakeCtx = makeFakeCtx();
 		const { canvas, container } = makeElements(fakeCtx);
@@ -200,7 +232,11 @@ describe("createSparkles", () => {
 		// random() = 1 pushes the initial x/y to 100 and velocities to their
 		// extreme (still finite) values; running many frames must never send
 		// a coordinate outside the wrap band once divided back to CSS pixels.
-		const engine = createSparkles({ canvas, container }, { speed: 100, particleDensity: 1 }, () => 1);
+		const engine = createSparkles(
+			{ canvas, container },
+			{ speed: 100, particleDensity: 1 },
+			() => 1
+		);
 		expect(engine).not.toBeNull();
 		for (let i = 0; i < 50 && frames[i]; i++) {
 			frames[i]?.(i * 16);

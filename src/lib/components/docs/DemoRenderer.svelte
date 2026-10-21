@@ -22,8 +22,7 @@
 		"container-text-flip": { words: ["better", "faster", "stronger", "beautiful"] },
 		"displacement-text": { text: "Hover Me" },
 		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
-		// White particles need a dark backdrop of their own or the preview is blank in light theme.
-		sparkles: { background: "#0b1020", particleColor: "#ffffff", particleDensity: 60 },
+		sparkles: { background: "transparent", particleColor: "currentColor", particleDensity: 160 },
 		"matrix-rain": { color: "#00ff00" },
 		ripple: {},
 		meteors: { count: 15 },
@@ -292,6 +291,10 @@
 			});
 	});
 
+	// Sample label for the glow-border hero, so the overlay frames something visible
+	// in both themes instead of an empty box.
+	const glowBorderLabel = "Glow Border"; // i18n: demo.glowBorderLabel
+
 	// Component name mapping (slug → export name)
 	const componentNames: Record<string, string> = {
 		// Core / actions. Only the three that preview standalone need a name here —
@@ -462,6 +465,11 @@
 					<Comp href="#" variant="slide">Slide</Comp>
 					<Comp href="#" variant="grow">Grow</Comp>
 					<Comp href="#" variant="sweep">Sweep</Comp>
+				</div>
+			{:else if slug === "glow-border"}
+				<div class="bg-background relative flex h-40 w-64 items-center justify-center rounded-xl p-6">
+					<p data-glow-border-demo class="text-muted-foreground text-center">{glowBorderLabel}</p>
+					<Comp {...props} />
 				</div>
 			{:else}
 				<!-- Default: render with props, no children -->
