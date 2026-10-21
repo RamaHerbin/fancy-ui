@@ -81,10 +81,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "이 페이지에서",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "라이트 모드로 전환",
-	"theme.switchToDark": "다크 모드로 전환",
-
 	// Components gallery
 	"gallery.title": "컴포넌트",
 	"gallery.subtitle":
@@ -96,8 +92,7 @@ export default {
 	"gallery.noMatch": "검색과 일치하는 컴포넌트가 없습니다.",
 	"gallery.meta":
 		"{components}개 컴포넌트 · {categories}개 카테고리 · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "결과 {count}개",
-	"gallery.resultOne": "결과 1개",
+	"gallery.results.other": "결과 {count}개",
 	"gallery.clearFilters": "필터 지우기",
 	"gallery.clearSearch": "검색 지우기",
 	"gallery.searchHint": "/ 를 눌러 검색",
@@ -123,8 +118,7 @@ export default {
 	// Theme-generator page
 	"tg.metaDescription": "FancyUI의 OKLCh 디자인 토큰을 실시간으로 조정하고 CSS를 앱에 복사하세요.",
 	"tg.intro":
-		"FancyUI의 디자인 토큰을 조정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하세요. 마음에 들면 생성된 CSS를 앱의 스타일시트(예: src/app.css)에 복사하세요. 색상은 OKLCh 색 공간을 사용하며, 무지개 팔레트는 HSL을 사용합니다.",
-	"tg.seeTheming": "전체 토큰 참조는 다음을 확인하세요",
+		"FancyUI의 디자인 토큰을 조정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하세요. 마음에 들면 생성된 CSS를 앱의 스타일시트(예: src/app.css)에 복사하세요. 색상은 OKLCh 색 공간을 사용하며, 무지개 팔레트는 HSL을 사용합니다. 전체 토큰 참조는 다음을 확인하세요 <link>테마 설정</link>.",
 	"tg.presets": "프리셋",
 	"tg.base": "기본",
 	"tg.light": "라이트",
@@ -142,7 +136,7 @@ export default {
 	"tg.cardSurfaceDesc": "--card, --foreground, --border 및 --radius를 사용합니다.",
 	"tg.primaryAction": "주요 작업",
 	"tg.accentBadge": "강조 배지",
-	"tg.beamDesc": "빔 색상은 Primary → Accent를 따릅니다.",
+	"tg.beamDesc": "빔 색상은 {primary} → {accent}를 따릅니다.",
 	"tg.generatedCss": "생성된 CSS",
 	"tg.copyCss": "CSS 복사",
 	"tg.copied": "복사됨",
@@ -164,18 +158,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "소개",
 	"intro.metaTitle": "소개",
-	"intro.leadPre": "는 Svelte 5 네이티브로 제작된",
-	"intro.leadHighlight": "{count}개의 애니메이션",
-	"intro.leadHighlight2": "인터랙티브 UI 컴포넌트",
-	"intro.leadPost": "모음입니다.",
-	"intro.pill.svelte": "Svelte 5 네이티브",
 	"intro.pill.animation": "애니메이션 우선",
 	"intro.pill.copyPaste": "복사-붙여넣기 친화적",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "철학",
-	"intro.philosophy.card1.title": "Svelte 5 네이티브",
-	"intro.philosophy.card1.desc": "룬으로 제작되었으며, 레거시 API를 사용하지 않습니다.",
 	"intro.philosophy.card2.title": "애니메이션 우선",
 	"intro.philosophy.card2.desc": "모든 컴포넌트가 다듬어진 애니메이션을 기본으로 제공합니다.",
 	"intro.philosophy.card3.title": "복사-붙여넣기 친화적",
@@ -188,21 +175,12 @@ export default {
 	"intro.quickStart.step1.title": "설치",
 	"intro.quickStart.step1.desc": "프로젝트에 FancyUI를 추가하세요.",
 	"intro.quickStart.step2.title": "가져오기",
-	"intro.quickStart.step2.desc": "필요한 컴포넌트를 가져오세요.",
 	"intro.quickStart.step3.title": "사용",
-	"intro.quickStart.step3.desc": "Svelte 컴포넌트에 추가하세요.",
 	"intro.whatsIncluded.heading": "포함된 내용",
-	"intro.whatsIncluded.body": "{categories}개 카테고리에 걸친 {count}개의 컴포넌트:",
+	"intro.whatsIncluded.body.other": "{categories}개 카테고리에 걸친 {count}개의 컴포넌트:",
 	"intro.category.buttons": "버튼",
 	"intro.category.cards": "카드",
-	"intro.category.text": "텍스트",
-	"intro.category.backgrounds": "배경",
 	"intro.category.effects": "효과",
-	"intro.category.layout": "레이아웃",
-	"intro.category.navigation": "내비게이션",
-	"intro.category.dataDisplay": "데이터 표시",
-	"intro.category.feedback": "피드백",
-	"intro.category.media": "미디어",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer 등. 클릭하고 싶어지는 버튼들.",
 	"intro.stats.cards": "캐러셀, 벤토 그리드, 3D 효과. 지루하지 않게 콘텐츠를 보여주는 방법.",
 	"intro.stats.effects": "커서, 트레일, 애니메이션 텍스트. 차이를 만드는 작은 디테일.",
@@ -215,7 +193,7 @@ export default {
 	"intro.nextSteps.components": "컴포넌트 둘러보기",
 	"intro.cta.title": "FancyUI가 처음이신가요?",
 	"intro.cta.body":
-		"색상을 사용자 지정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하려면 <strong>테마 생성기</strong>를 확인해 보세요.",
+		"색상을 사용자 지정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하려면 <b>테마 생성기</b>를 확인해 보세요.",
 	"intro.cta.button": "테마 생성기 사용해보기",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -376,6 +354,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"컴포넌트는 Vue 3.5 단일 파일 컴포넌트이므로 Vue 3.5.2 이상이 필요합니다.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"각 프레임워크에 맞게 네이티브로 작성되었습니다. Svelte는 runes, React는 hooks, Vue는 Composition API를 사용합니다.",
+	"intro.quickStart.step3.desc": "컴포넌트에 추가하세요.",
+	"install.peerDeps.optional": "선택 사항",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "본문으로 건너뛰기",
 	"a11y.docsBreadcrumb": "문서 이동 경로",
@@ -384,8 +370,6 @@ export default {
 	"search.a11y.close": "검색 닫기",
 	"nav.backToSite": "FancyUI 홈으로 돌아가기",
 	"nav.recipes": "레시피",
-	"toc.show": "목차 표시",
-	"footer.docs": "문서",
 	"footer.contribute": "기여하기",
 	"footer.issues": "이슈",
 	"footer.discussions": "토론",
@@ -398,8 +382,8 @@ export default {
 	"comp.editPage": "이 페이지 편집",
 	"comp.reportIssue": "문제 신고",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 {count}개를 모은 컬렉션이며, 모두 같은 디자인 토큰을 기반으로 합니다.",
+	"intro.lead":
+		"는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 <grad>{count}</grad>개를 모은 컬렉션이며, 모두 같은 디자인 토큰을 기반으로 합니다.",
 	"intro.importHint":
 		"필요한 컴포넌트를 가져옵니다. 가져오기 경로는 사용하는 프레임워크에 따라 달라집니다.",
 	"install.kitOptional":
@@ -430,8 +414,6 @@ export default {
 	"recipes.steps": "단계",
 	"recipes.pitfalls": "흔한 함정",
 	"recipes.componentsUsed": "사용된 컴포넌트",
-	"seo.introduction":
-		"FancyUI는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 라이브러리입니다. 포함된 내용과 시작 방법을 소개합니다.",
 	"seo.installation":
 		"Svelte 5, React, Vue용 FancyUI를 설치합니다. 패키지를 추가하고 스타일시트를 가져온 뒤 첫 컴포넌트를 렌더링합니다.",
 	"seo.theming":

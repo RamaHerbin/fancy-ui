@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { t, tCategory, createSkinState } from "$lib/stores";
+	import { t, tn, tx, tCategory, createSkinState } from "$lib/stores";
+	import RichText from "$lib/components/docs/RichText.svelte";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
 	import { INSTALL_SNIPPETS, INSTALL_VARIANTS } from "$lib/docs/install-snippets.js";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
@@ -18,21 +19,6 @@
 	let mounted = $state(false);
 	onMount(() => (mounted = true));
 	const snippets = $derived(INSTALL_SNIPPETS[mounted ? frameworkState.framework : "svelte"]);
-
-	// Framework names are not translated; these three strings had no neutral
-	// catalog wording yet.
-	// i18n: intro.pill.svelte
-	const FRAMEWORKS_PILL = "Svelte 5, React, Vue";
-	// i18n: intro.philosophy.card1.title
-	const NATIVE_TITLE = "Svelte, React & Vue";
-	// i18n: intro.philosophy.card1.desc
-	const NATIVE_DESC =
-		"Written natively for each framework: runes in Svelte, hooks in React, the Composition API in Vue.";
-	// i18n: intro.quickStart.step3.desc
-	const USE_DESC = "Drop it into your components.";
-
-	// The lead is one message; the count inside it keeps the gradient highlight.
-	const leadParts = $derived(t("intro.leadNeutral").split("{count}"));
 
 	/* Retro "What's included" stat cards — real counts from the registry.
 	   $derived so the labels re-localize on locale switch. */
@@ -73,14 +59,12 @@
 
 	<p class="lead">
 		<strong>FancyUI</strong>
-		{leadParts[0]}<span class="grad">{COMPONENT_COUNT}</span>{leadParts
-			.slice(1)
-			.join(String(COMPONENT_COUNT))}
+		<RichText segments={tx("intro.lead", { count: COMPONENT_COUNT })} />
 	</p>
 
 	<div class="pills">
 		<span class="pill" data-accent="1"
-			><span class="ic" style="color:#ff5d3b">⚡</span>{FRAMEWORKS_PILL}</span
+			><span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.pill.frameworks")}</span
 		>
 		<span class="pill" data-accent="2"
 			><span class="ic" style="color:#c084fc">✦</span>{t("intro.pill.animation")}</span
@@ -98,9 +82,9 @@
 	<div class="cards">
 		<div class="card" data-accent="1" data-initial="S">
 			<div class="card-head">
-				<span class="ic" style="color:#ff5d3b">⚡</span>{NATIVE_TITLE}
+				<span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.philosophy.card1.title")}
 			</div>
-			<p class="card-desc">{NATIVE_DESC}</p>
+			<p class="card-desc">{t("intro.philosophy.card1.desc")}</p>
 		</div>
 		<div class="card" data-accent="2" data-initial="A">
 			<div class="card-head">
@@ -150,7 +134,7 @@
 			<div class="num num-3">3</div>
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step3.title")}</div>
-				<p class="step-desc">{USE_DESC}</p>
+				<p class="step-desc">{t("intro.quickStart.step3.desc")}</p>
 				<CodeBlock lang={snippets.lang} code={snippets.usage} />
 			</div>
 		</div>
@@ -173,9 +157,7 @@
 		</div>
 	{:else}
 		<p class="section-body">
-			{t("intro.whatsIncluded.body")
-				.replace("{count}", String(COMPONENT_COUNT))
-				.replace("{categories}", String(usedCategories.length))}
+			{tn("intro.whatsIncluded.body", COMPONENT_COUNT, { categories: usedCategories.length })}
 		</p>
 		<!-- Every category the registry uses, in registry order, labelled through the catalog. -->
 		<div class="cats">
@@ -206,7 +188,7 @@
 			<div class="cta-ic">✦</div>
 			<div class="cta-text">
 				<div class="cta-title">{t("intro.cta.title")}</div>
-				<div class="cta-body">{@html t("intro.cta.body")}</div>
+				<div class="cta-body"><RichText segments={tx("intro.cta.body")} /></div>
 			</div>
 		</div>
 		<a class="cta-btn" href="/docs/getting-started/theme-generator"
@@ -263,10 +245,10 @@
 		margin-bottom: 28px;
 	}
 
-	/* Brand blue→purple hue gradient (matches the design). The semantic
+	/* <RichText> renders .grad, hence :global. Brand blue→purple hue gradient (matches the design). The semantic
 	   --gradient-primary is a lightness ramp between --primary/--accent, which
 	   fades clipped text into the background instead of reading as a gradient. */
-	.intro .grad {
+	.intro :global(.grad) {
 		background: linear-gradient(90deg, #5b8cff, #a142ff);
 		-webkit-background-clip: text;
 		background-clip: text;

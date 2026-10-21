@@ -11,8 +11,6 @@ const AUDIT_KEYS = [
 	"search.a11y.close",
 	"nav.backToSite",
 	"nav.recipes",
-	"toc.show",
-	"footer.docs",
 	"footer.contribute",
 	"footer.issues",
 	"footer.discussions",
@@ -25,7 +23,7 @@ const AUDIT_KEYS = [
 	"comp.editPage",
 	"comp.reportIssue",
 	"comp.issueTitle",
-	"intro.leadNeutral",
+	"intro.lead",
 	"intro.importHint",
 	"install.kitOptional",
 	"theming.cssPerFramework",
@@ -53,7 +51,6 @@ const AUDIT_KEYS = [
 	"recipes.steps",
 	"recipes.pitfalls",
 	"recipes.componentsUsed",
-	"seo.introduction",
 	"seo.installation",
 	"seo.theming",
 	"seo.themeGenerator",
@@ -72,9 +69,9 @@ const MAY_MATCH_ENGLISH = new Set([
 ]);
 
 describe("docs audit message keys", () => {
-	it("registers all 54 keys in the English source", () => {
+	it("registers all 51 keys in the English source", () => {
 		for (const key of AUDIT_KEYS) expect(en, key).toHaveProperty([key]);
-		expect(AUDIT_KEYS).toHaveLength(54);
+		expect(AUDIT_KEYS).toHaveLength(51);
 	});
 
 	const others = Object.entries(catalogs).filter(([code]) => code !== "en");

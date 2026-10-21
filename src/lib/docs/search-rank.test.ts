@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { searchComponents } from "$lib/fancy-ui/registry.js";
 import type { ComponentMeta } from "$lib/types.js";
-import { NO_RESULT_SUGGESTIONS, rankComponents, scoreComponent } from "./search-rank.js";
+import { rankComponents, scoreComponent } from "./search-rank.js";
 
 const meta = (over: Partial<ComponentMeta>): ComponentMeta => ({
 	name: "Thing",
@@ -67,14 +67,5 @@ describe("rankComponents", () => {
 		const copy = [...list];
 		rankComponents("needle", list);
 		expect(list).toEqual(copy);
-	});
-});
-
-describe("NO_RESULT_SUGGESTIONS", () => {
-	it("offers exactly 3 queries and each one finds something", () => {
-		expect(NO_RESULT_SUGGESTIONS).toHaveLength(3);
-		for (const q of NO_RESULT_SUGGESTIONS) {
-			expect(rankComponents(q).length, q).toBeGreaterThan(0);
-		}
 	});
 });

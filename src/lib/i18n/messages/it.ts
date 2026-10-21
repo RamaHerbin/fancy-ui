@@ -83,10 +83,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "In questa pagina",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "Passa alla modalità chiara",
-	"theme.switchToDark": "Passa alla modalità scura",
-
 	// Components gallery
 	"gallery.title": "Componenti",
 	"gallery.subtitle":
@@ -98,8 +94,8 @@ export default {
 	"gallery.noMatch": "Nessun componente corrisponde alla ricerca.",
 	"gallery.meta":
 		"{components} componenti · {categories} categorie · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} risultati",
-	"gallery.resultOne": "1 risultato",
+	"gallery.results.one": "{count} risultato",
+	"gallery.results.other": "{count} risultati",
 	"gallery.clearFilters": "Cancella filtri",
 	"gallery.clearSearch": "Cancella ricerca",
 	"gallery.searchHint": "Premi / per cercare",
@@ -126,8 +122,7 @@ export default {
 	"tg.metaDescription":
 		"Regola in tempo reale i design token OKLCh di FancyUI e copia il CSS nella tua app.",
 	"tg.intro":
-		"Regola i design token di FancyUI e osserva i componenti reagire in tempo reale. Quando l'aspetto è quello giusto, copia il CSS generato nel foglio di stile della tua app (ad es. src/app.css). I colori usano lo spazio colore OKLCh; la palette arcobaleno usa HSL.",
-	"tg.seeTheming": "Per il riferimento completo dei token, consulta",
+		"Regola i design token di FancyUI e osserva i componenti reagire in tempo reale. Quando l'aspetto è quello giusto, copia il CSS generato nel foglio di stile della tua app (ad es. src/app.css). I colori usano lo spazio colore OKLCh; la palette arcobaleno usa HSL. Per il riferimento completo dei token, consulta <link>Temi</link>.",
 	"tg.presets": "Preset",
 	"tg.base": "Base",
 	"tg.light": "Chiaro",
@@ -145,7 +140,7 @@ export default {
 	"tg.cardSurfaceDesc": "Usa --card, --foreground, --border e --radius.",
 	"tg.primaryAction": "Azione primaria",
 	"tg.accentBadge": "Badge d'accento",
-	"tg.beamDesc": "I colori del beam seguono Primary → Accent.",
+	"tg.beamDesc": "I colori del beam seguono {primary} → {accent}.",
 	"tg.generatedCss": "CSS generato",
 	"tg.copyCss": "Copia CSS",
 	"tg.copied": "Copiato",
@@ -167,18 +162,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Introduzione",
 	"intro.metaTitle": "Introduzione",
-	"intro.leadPre": "è una raccolta di",
-	"intro.leadHighlight": "{count} componenti UI",
-	"intro.leadHighlight2": "animati e interattivi",
-	"intro.leadPost": "creati nativamente per Svelte 5.",
-	"intro.pill.svelte": "Svelte 5 nativo",
 	"intro.pill.animation": "Animazioni al primo posto",
 	"intro.pill.copyPaste": "Facile da copiare e incollare",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Filosofia",
-	"intro.philosophy.card1.title": "Nativo per Svelte 5",
-	"intro.philosophy.card1.desc": "Realizzato con le rune. Nessuna API legacy.",
 	"intro.philosophy.card2.title": "Animazioni al primo posto",
 	"intro.philosophy.card2.desc": "Ogni componente include animazioni curate, pronte all'uso.",
 	"intro.philosophy.card3.title": "Facile da copiare e incollare",
@@ -192,21 +180,13 @@ export default {
 	"intro.quickStart.step1.title": "Installa",
 	"intro.quickStart.step1.desc": "Aggiungi FancyUI al tuo progetto.",
 	"intro.quickStart.step2.title": "Importa",
-	"intro.quickStart.step2.desc": "Importa i componenti di cui hai bisogno.",
 	"intro.quickStart.step3.title": "Usa",
-	"intro.quickStart.step3.desc": "Inseriscilo nei tuoi componenti Svelte.",
 	"intro.whatsIncluded.heading": "Cosa include",
-	"intro.whatsIncluded.body": "{count} componenti suddivisi in {categories} categorie:",
+	"intro.whatsIncluded.body.one": "{count} componenti suddivisi in {categories} categorie:",
+	"intro.whatsIncluded.body.other": "{count} componenti suddivisi in {categories} categorie:",
 	"intro.category.buttons": "Pulsanti",
 	"intro.category.cards": "Schede",
-	"intro.category.text": "Testo",
-	"intro.category.backgrounds": "Sfondi",
 	"intro.category.effects": "Effetti",
-	"intro.category.layout": "Layout",
-	"intro.category.navigation": "Navigazione",
-	"intro.category.dataDisplay": "Visualizzazione dati",
-	"intro.category.feedback": "Feedback",
-	"intro.category.media": "Media",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer e compagnia. Pulsanti che invitano al clic.",
 	"intro.stats.cards":
 		"Caroselli, griglie bento, effetti 3D. Modi per presentare contenuti senza annoiare.",
@@ -220,7 +200,7 @@ export default {
 	"intro.nextSteps.components": "Sfoglia i componenti",
 	"intro.cta.title": "Nuovo su FancyUI?",
 	"intro.cta.body":
-		"Scopri il <strong>Generatore di temi</strong> per personalizzare i colori e vedere i componenti reagire in tempo reale.",
+		"Scopri il <b>Generatore di temi</b> per personalizzare i colori e vedere i componenti reagire in tempo reale.",
 	"intro.cta.button": "Prova il Generatore di temi",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -385,6 +365,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"I componenti sono componenti a file singolo di Vue 3.5, quindi serve Vue 3.5.2 o successivo.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Scritto in modo nativo per ogni framework: rune in Svelte, hook in React, la Composition API in Vue.",
+	"intro.quickStart.step3.desc": "Inseriscilo nei tuoi componenti.",
+	"install.peerDeps.optional": "facoltativo",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "Vai al contenuto",
 	"a11y.docsBreadcrumb": "Breadcrumb della documentazione",
@@ -393,8 +381,6 @@ export default {
 	"search.a11y.close": "Chiudi la ricerca",
 	"nav.backToSite": "Torna alla home di FancyUI",
 	"nav.recipes": "Ricette",
-	"toc.show": "Mostra l'indice",
-	"footer.docs": "Documentazione",
 	"footer.contribute": "Contribuisci",
 	"footer.issues": "Issue",
 	"footer.discussions": "Discussioni",
@@ -407,8 +393,8 @@ export default {
 	"comp.editPage": "Modifica questa pagina",
 	"comp.reportIssue": "Segnala un problema",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"è una raccolta di {count} componenti UI animati e interattivi per Svelte 5, React e Vue, costruiti sugli stessi design token.",
+	"intro.lead":
+		"è una raccolta di <grad>{count}</grad> componenti UI animati e interattivi per Svelte 5, React e Vue, costruiti sugli stessi design token.",
 	"intro.importHint":
 		"Importa i componenti che ti servono. Il percorso di importazione dipende dal tuo framework.",
 	"install.kitOptional":
@@ -442,8 +428,6 @@ export default {
 	"recipes.steps": "Passaggi",
 	"recipes.pitfalls": "Errori comuni",
 	"recipes.componentsUsed": "Componenti utilizzati",
-	"seo.introduction":
-		"FancyUI è una libreria di componenti UI animati e interattivi per Svelte 5, React e Vue. Scopri cosa include e come iniziare.",
 	"seo.installation":
 		"Installa FancyUI per Svelte 5, React o Vue: aggiungi il pacchetto, importa il foglio di stile e visualizza il tuo primo componente.",
 	"seo.theming":

@@ -2,27 +2,24 @@
 	import { onMount } from "svelte";
 	import { replaceState } from "$app/navigation";
 	import { page } from "$app/state";
-	import {
-		categories,
-		getComponentsGroupedByCategory,
-		getAllComponents,
-		getStats,
-		matchesQuery,
-	} from "$lib/fancy-ui/registry.js";
+	import { categories, getListedComponents, matchesQuery } from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
 	import JobsBrowse from "$lib/components/docs/JobsBrowse.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
-	import { t, tCategory, docTitle } from "$lib/stores";
+	import { t, tn, tCategory, docTitle } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
-	import type { ComponentCategory } from "$lib/types.js";
+	import type { ComponentCategory, ComponentMeta } from "$lib/types.js";
 
 	type Group = "all" | "core" | "fancy";
 
-	const grouped = getComponentsGroupedByCategory();
-	const allComponents = getAllComponents();
-	const stats = getStats();
+	// Deprecated aliases are not part of the gallery.
+	const allComponents = getListedComponents();
+	const grouped = Object.fromEntries(
+		categories.map((c) => [c, allComponents.filter((comp) => comp.category === c)])
+	) as Record<ComponentCategory, ComponentMeta[]>;
+	const stats = { done: allComponents.filter((c) => c.status === "done").length };
 
 	// Only categories that actually contain components (empty Core categories
 	// exist in the union until their phase lands).
@@ -155,15 +152,13 @@
 			{t("gallery.title")}
 		</h1>
 		<p class="text-muted-foreground text-base">
-			{t("gallery.subtitle").replace("{count}", String(stats.done))}
+			{t("gallery.subtitle", { count: stats.done })}
 		</p>
 		<p class="text-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
 			{t("gallery.intro")}
 		</p>
 		<p class="text-muted-foreground/80 mt-4 font-mono text-xs">
-			{t("gallery.meta")
-				.replace("{components}", String(stats.done))
-				.replace("{categories}", String(populatedCategories.length))}
+			{t("gallery.meta", { components: stats.done, categories: populatedCategories.length })}
 		</p>
 	</div>
 
@@ -287,9 +282,7 @@
 			{#if isFiltered}
 				<div class="flex shrink-0 items-center gap-2 text-xs" aria-live="polite">
 					<span class="text-muted-foreground tabular-nums">
-						{resultCount === 1
-							? t("gallery.resultOne")
-							: t("gallery.results").replace("{count}", String(resultCount))}
+						{tn("gallery.results", resultCount)}
 					</span>
 					<button
 						type="button"

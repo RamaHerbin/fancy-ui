@@ -81,10 +81,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "इस पेज पर",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "लाइट मोड पर स्विच करें",
-	"theme.switchToDark": "डार्क मोड पर स्विच करें",
-
 	// Components gallery
 	"gallery.title": "कॉम्पोनेंट्स",
 	"gallery.subtitle":
@@ -96,8 +92,8 @@ export default {
 	"gallery.noMatch": "आपकी खोज से कोई कॉम्पोनेंट मेल नहीं खाता।",
 	"gallery.meta":
 		"{components} कॉम्पोनेंट · {categories} श्रेणियाँ · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} परिणाम",
-	"gallery.resultOne": "1 परिणाम",
+	"gallery.results.one": "{count} परिणाम",
+	"gallery.results.other": "{count} परिणाम",
 	"gallery.clearFilters": "फ़िल्टर हटाएँ",
 	"gallery.clearSearch": "खोज साफ़ करें",
 	"gallery.searchHint": "खोजने के लिए / दबाएँ",
@@ -124,8 +120,7 @@ export default {
 	"tg.metaDescription":
 		"FancyUI के OKLCh डिज़ाइन टोकन को लाइव ट्यून करें और CSS को अपने ऐप में कॉपी करें।",
 	"tg.intro":
-		"FancyUI के डिज़ाइन टोकन ट्यून करें और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखें। जब यह सही दिखे, तो जनरेट की गई CSS को अपने ऐप की स्टाइलशीट (उदाहरण के लिए src/app.css) में कॉपी करें। रंग OKLCh कलर स्पेस का उपयोग करते हैं; रेनबो पैलेट HSL का उपयोग करता है।",
-	"tg.seeTheming": "पूर्ण टोकन संदर्भ के लिए, देखें",
+		"FancyUI के डिज़ाइन टोकन ट्यून करें और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखें। जब यह सही दिखे, तो जनरेट की गई CSS को अपने ऐप की स्टाइलशीट (उदाहरण के लिए src/app.css) में कॉपी करें। रंग OKLCh कलर स्पेस का उपयोग करते हैं; रेनबो पैलेट HSL का उपयोग करता है। पूर्ण टोकन संदर्भ के लिए, देखें <link>थीमिंग</link>.",
 	"tg.presets": "प्रीसेट",
 	"tg.base": "बेस",
 	"tg.light": "लाइट",
@@ -143,7 +138,7 @@ export default {
 	"tg.cardSurfaceDesc": "--card, --foreground, --border और --radius का उपयोग करता है।",
 	"tg.primaryAction": "प्राइमरी एक्शन",
 	"tg.accentBadge": "एक्सेंट बैज",
-	"tg.beamDesc": "बीम रंग Primary → Accent का अनुसरण करते हैं।",
+	"tg.beamDesc": "बीम रंग {primary} → {accent} का अनुसरण करते हैं।",
 	"tg.generatedCss": "जनरेट की गई CSS",
 	"tg.copyCss": "CSS कॉपी करें",
 	"tg.copied": "कॉपी हो गया",
@@ -165,18 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "परिचय",
 	"intro.metaTitle": "परिचय",
-	"intro.leadPre": "है",
-	"intro.leadHighlight": "{count} एनिमेटेड",
-	"intro.leadHighlight2": "इंटरैक्टिव UI कॉम्पोनेंट्स का एक संग्रह,",
-	"intro.leadPost": "जो Svelte 5 के लिए मूल रूप से बनाया गया है।",
-	"intro.pill.svelte": "Svelte 5 नेटिव",
 	"intro.pill.animation": "एनिमेशन-फर्स्ट",
 	"intro.pill.copyPaste": "कॉपी-पेस्ट अनुकूल",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "दर्शन",
-	"intro.philosophy.card1.title": "Svelte 5 नेटिव",
-	"intro.philosophy.card1.desc": "रून्स के साथ बनाया गया। कोई लेगेसी API नहीं।",
 	"intro.philosophy.card2.title": "एनिमेशन-फर्स्ट",
 	"intro.philosophy.card2.desc": "हर कॉम्पोनेंट बॉक्स से बाहर ही परिष्कृत एनिमेशन के साथ आता है।",
 	"intro.philosophy.card3.title": "कॉपी-पेस्ट अनुकूल",
@@ -189,21 +177,13 @@ export default {
 	"intro.quickStart.step1.title": "इंस्टॉल करें",
 	"intro.quickStart.step1.desc": "अपने प्रोजेक्ट में FancyUI जोड़ें।",
 	"intro.quickStart.step2.title": "इम्पोर्ट करें",
-	"intro.quickStart.step2.desc": "आपको जिन कॉम्पोनेंट्स की आवश्यकता है उन्हें इम्पोर्ट करें।",
 	"intro.quickStart.step3.title": "उपयोग करें",
-	"intro.quickStart.step3.desc": "इसे अपने Svelte कॉम्पोनेंट्स में जोड़ें।",
 	"intro.whatsIncluded.heading": "इसमें क्या शामिल है",
-	"intro.whatsIncluded.body": "{categories} श्रेणियों में {count} कॉम्पोनेंट्स:",
+	"intro.whatsIncluded.body.one": "{categories} श्रेणियों में {count} कॉम्पोनेंट्स:",
+	"intro.whatsIncluded.body.other": "{categories} श्रेणियों में {count} कॉम्पोनेंट्स:",
 	"intro.category.buttons": "बटन",
 	"intro.category.cards": "कार्ड",
-	"intro.category.text": "टेक्स्ट",
-	"intro.category.backgrounds": "बैकग्राउंड",
 	"intro.category.effects": "इफेक्ट्स",
-	"intro.category.layout": "लेआउट",
-	"intro.category.navigation": "नेविगेशन",
-	"intro.category.dataDisplay": "डेटा डिस्प्ले",
-	"intro.category.feedback": "फ़ीडबैक",
-	"intro.category.media": "मीडिया",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer और साथी। ऐसे बटन जिन पर क्लिक करने का मन करे।",
 	"intro.stats.cards": "कैरोसेल, बेंटो ग्रिड, 3D प्रभाव। कंटेंट दिखाने के दिलचस्प तरीके।",
 	"intro.stats.effects": "कर्सर, ट्रेल, ऐनिमेटेड टेक्स्ट। छोटे स्पर्श जो फ़र्क़ बनाते हैं।",
@@ -216,7 +196,7 @@ export default {
 	"intro.nextSteps.components": "कॉम्पोनेंट्स ब्राउज़ करें",
 	"intro.cta.title": "FancyUI में नए हैं?",
 	"intro.cta.body":
-		"रंगों को कस्टमाइज़ करने और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखने के लिए <strong>थीम जनरेटर</strong> देखें।",
+		"रंगों को कस्टमाइज़ करने और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखने के लिए <b>थीम जनरेटर</b> देखें।",
 	"intro.cta.button": "थीम जनरेटर आज़माएं",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -379,6 +359,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"कॉम्पोनेंट Vue 3.5 के सिंगल-फ़ाइल कॉम्पोनेंट हैं, इसलिए Vue 3.5.2 या उससे नया संस्करण ज़रूरी है।",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"हर फ्रेमवर्क के लिए नेटिव रूप से लिखा गया: Svelte में रून्स, React में hooks, Vue में Composition API।",
+	"intro.quickStart.step3.desc": "इसे अपने कॉम्पोनेंट्स में जोड़ें।",
+	"install.peerDeps.optional": "वैकल्पिक",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "सामग्री पर जाएँ",
 	"a11y.docsBreadcrumb": "दस्तावेज़ीकरण ब्रेडक्रंब",
@@ -387,8 +375,6 @@ export default {
 	"search.a11y.close": "खोज बंद करें",
 	"nav.backToSite": "FancyUI होम पर वापस जाएँ",
 	"nav.recipes": "रेसिपी",
-	"toc.show": "विषय-सूची दिखाएँ",
-	"footer.docs": "दस्तावेज़",
 	"footer.contribute": "योगदान करें",
 	"footer.issues": "Issues",
 	"footer.discussions": "चर्चाएँ",
@@ -401,8 +387,8 @@ export default {
 	"comp.editPage": "इस पृष्ठ को संपादित करें",
 	"comp.reportIssue": "समस्या की रिपोर्ट करें",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"Svelte 5, React और Vue के लिए {count} एनिमेटेड, इंटरैक्टिव UI कंपोनेंट्स का संग्रह है, जो एक ही डिज़ाइन टोकन पर बने हैं।",
+	"intro.lead":
+		"Svelte 5, React और Vue के लिए <grad>{count}</grad> एनिमेटेड, इंटरैक्टिव UI कंपोनेंट्स का संग्रह है, जो एक ही डिज़ाइन टोकन पर बने हैं।",
 	"intro.importHint":
 		"आपको जो कंपोनेंट चाहिए उन्हें इम्पोर्ट करें। इम्पोर्ट पाथ आपके फ़्रेमवर्क पर निर्भर करता है।",
 	"install.kitOptional":
@@ -433,8 +419,6 @@ export default {
 	"recipes.steps": "चरण",
 	"recipes.pitfalls": "आम गलतियाँ",
 	"recipes.componentsUsed": "उपयोग किए गए कंपोनेंट्स",
-	"seo.introduction":
-		"FancyUI, Svelte 5, React और Vue के लिए एनिमेटेड, इंटरैक्टिव UI कंपोनेंट्स की लाइब्रेरी है। जानें इसमें क्या है और शुरुआत कैसे करें।",
 	"seo.installation":
 		"Svelte 5, React या Vue के लिए FancyUI इंस्टॉल करें: पैकेज जोड़ें, स्टाइलशीट इम्पोर्ट करें और अपना पहला कंपोनेंट रेंडर करें।",
 	"seo.theming":

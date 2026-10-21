@@ -1,0 +1,348 @@
+{
+	"$comment": "Reviewed exceptions for src/lib/i18n/catalog-quality.test.ts. Each entry needs a reason. '*' applies to every locale, a locale code to that locale only. Owned by the i18n infrastructure; reviewers ask for additions in their report.",
+	"manifestMode": "warn",
+	"untranslated": {
+		"*": {
+			"a11y.github": "Brand, product or technical term that stays as in English.",
+			"search.esc": "Brand, product or technical term that stays as in English.",
+			"intro.pill.tailwind": "Brand, product or technical term that stays as in English.",
+			"intro.pill.typescript": "Brand, product or technical term that stays as in English.",
+			"intro.philosophy.card4.title": "Brand, product or technical term that stays as in English.",
+			"intro.philosophy.card5.title": "Brand, product or technical term that stays as in English.",
+			"install.pill.svelte": "Brand, product or technical term that stays as in English.",
+			"install.pill.tailwind": "Brand, product or technical term that stays as in English.",
+			"install.pill.node": "Brand, product or technical term that stays as in English.",
+			"install.pill.typescript": "Brand, product or technical term that stays as in English.",
+			"install.prerequisites.card1.title": "Brand, product or technical term that stays as in English.",
+			"install.prerequisites.card1.version": "Brand, product or technical term that stays as in English.",
+			"install.prerequisites.card2.title": "Brand, product or technical term that stays as in English.",
+			"install.prerequisites.card3.title": "Brand, product or technical term that stays as in English.",
+			"install.typescript.heading": "Brand, product or technical term that stays as in English.",
+			"skin.brutal": "Brand, product or technical term that stays as in English.",
+			"skin.retroOs": "Brand, product or technical term that stays as in English.",
+			"install.pill.react": "Brand, product or technical term that stays as in English.",
+			"install.pill.vue": "Brand, product or technical term that stays as in English.",
+			"install.prerequisites.card1.title.react": "Brand, product or technical term that stays as in English.",
+			"install.prerequisites.card1.title.vue": "Brand, product or technical term that stays as in English.",
+			"comp.issueTitle": "Brand, product or technical term that stays as in English.",
+			"group.core": "Brand, product or technical term that stays as in English.",
+			"group.fancy": "Brand, product or technical term that stays as in English."
+		},
+		"cs": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.quickStart.step2.title": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"retro.start": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"de": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"retro.start": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"page.installation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"theme.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"theme.system": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.code": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.installation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.props": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.slots": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.links": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.prop": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.event": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.events": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.chroma": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.radius": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.buttons": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.layout": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.feedback": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.navigation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.category.buttons": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.nextSteps.installation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.overlays": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"install.metaTitle": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"install.title": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"install.peerDeps.colVersion": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.standard": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"retro.explorer": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.changelog": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"es": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.props": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.slots": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.prop": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.changelog": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"nav.docsSuffix": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.base": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"fr": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"page.installation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.code": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.installation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.slots": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.chroma": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.navigation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.nextSteps.installation": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"install.metaTitle": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"install.title": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"install.peerDeps.colVersion": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.standard": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.changelog": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"nav.docsSuffix": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.base": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"page.introduction": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"status.stable": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.type": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.description": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.accent": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.title": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.metaTitle": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.actions": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.discussions": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.versions": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"id": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.props": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.prop": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.event": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.radius": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.changelog": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.media": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"it": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"retro.start": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.props": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.prop": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.layout": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.feedback": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.standard": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.changelog": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.base": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.media": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"nav.home": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"pl": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"intro.quickStart.step2.title": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"retro.start": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.chroma": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.media": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"pt": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.slots": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"comp.links": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.layout": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"category.feedback": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.heading": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.changelog": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"tg.base": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"tr": {
+			"install.framework": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"table.slot": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
+			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review)."
+		},
+		"hi": {},
+		"ja": {},
+		"zh-Hans": {}
+	},
+	"punctuation": {
+		"*": {}
+	},
+	"hygiene": {
+		"*": {}
+	},
+	"length": {
+		"*": {}
+	},
+	"deadKeys": {
+		"pendingConsumers": [
+			"a11y.skipToContent",
+			"a11y.docsBreadcrumb",
+			"a11y.prevNext",
+			"a11y.search",
+			"nav.backToSite",
+			"footer.contribute",
+			"footer.issues",
+			"footer.discussions",
+			"footer.security",
+			"footer.conduct",
+			"footer.changelog",
+			"footer.versions",
+			"footer.install",
+			"footer.license",
+			"comp.editPage",
+			"comp.reportIssue",
+			"comp.issueTitle",
+			"intro.importHint",
+			"install.kitOptional",
+			"theming.cssPerFramework",
+			"status.planned",
+			"status.deprecated",
+			"comp.sinceVersion",
+			"comp.deprecatedNotice",
+			"comp.inspiredByNoLink",
+			"recipes.title",
+			"recipes.lead",
+			"recipes.components",
+			"error.notFoundTitle",
+			"error.genericTitle",
+			"error.notFoundBody",
+			"error.genericBody",
+			"error.unauthorizedTitle",
+			"error.unauthorizedBody",
+			"error.home",
+			"error.browse",
+			"error.search",
+			"error.report",
+			"comp.previewFailed",
+			"seo.themeGenerator"
+		]
+	},
+	"staticChrome": [
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Email address",
+			"reason": "Sample content rendered inside the live demo of the label component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Click for Confetti",
+			"reason": "Sample content rendered inside the live demo of the confetti component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Content fades in from blur as you scroll.",
+			"reason": "Sample content rendered inside the live demo of the blur-reveal component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Mouse-following radial gradient effect.",
+			"reason": "Sample content rendered inside the live demo of the spotlight component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/InstallBlock.svelte",
+			"text": "import",
+			"reason": "Code keyword in the highlighted import line, not prose."
+		},
+		{
+			"file": "src/lib/components/docs/InstallBlock.svelte",
+			"text": "from",
+			"reason": "Code keyword in the highlighted import line, not prose."
+		},
+		{
+			"file": "src/routes/docs/getting-started/theme-generator/+page.svelte",
+			"text": "rem",
+			"reason": "CSS unit shown next to the radius slider."
+		},
+		{
+			"file": "src/routes/docs/recipes/[slug]/+page.svelte",
+			"text": "recipe —",
+			"reason": "Page title: English by design so the result headline matches English search queries (same policy as componentDocTitle). The recipe body stays English."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Rainbow Button",
+			"reason": "Sample content rendered inside the live demo of the rainbow-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Shimmer Button",
+			"reason": "Sample content rendered inside the live demo of the shimmer-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Ripple Button",
+			"reason": "Sample content rendered inside the live demo of the ripple-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Gradient Button",
+			"reason": "Sample content rendered inside the live demo of the gradient-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Button",
+			"reason": "Sample content rendered inside the live demo of the button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Box Reveal",
+			"reason": "Sample content rendered inside the live demo of the box-reveal component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Blur Reveal Effect",
+			"reason": "Sample content rendered inside the live demo of the blur-reveal component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Card Spotlight",
+			"reason": "Sample content rendered inside the live demo of the card-spotlight component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Glare Card",
+			"reason": "Sample content rendered inside the live demo of the glare-card component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Neon Border",
+			"reason": "Sample content rendered inside the live demo of the neon-border component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Slide",
+			"reason": "Sample content rendered inside the live demo of the line-hover-link component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Grow",
+			"reason": "Sample content rendered inside the live demo of the line-hover-link component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Sweep",
+			"reason": "Sample content rendered inside the live demo of the line-hover-link component, not docs chrome."
+		},
+		{
+			"file": "src/routes/docs/getting-started/theme-generator/+page.svelte",
+			"text": "Gradient",
+			"reason": "Sample label on the live gradient-button used to preview the generated palette, not docs chrome."
+		},
+		{
+			"file": "src/routes/docs/getting-started/theme-generator/+page.svelte",
+			"text": "Shimmer",
+			"reason": "Sample label on the live shimmer-button used to preview the generated palette, not docs chrome."
+		}
+	]
+}
