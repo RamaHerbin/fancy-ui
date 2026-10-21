@@ -162,14 +162,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Úvod",
 	"intro.metaTitle": "Úvod",
-	"intro.pill.svelte": "Nativní pro Svelte 5",
 	"intro.pill.animation": "Animace na prvním místě",
 	"intro.pill.copyPaste": "Vhodné pro kopírování",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Filozofie",
-	"intro.philosophy.card1.title": "Nativní pro Svelte 5",
-	"intro.philosophy.card1.desc": "Vytvořeno pomocí runes. Žádná zastaralá API.",
 	"intro.philosophy.card2.title": "Animace na prvním místě",
 	"intro.philosophy.card2.desc": "Každá komponenta je od začátku vybavena vyladěnými animacemi.",
 	"intro.philosophy.card3.title": "Vhodné pro kopírování",
@@ -182,9 +179,7 @@ export default {
 	"intro.quickStart.step1.title": "Instalace",
 	"intro.quickStart.step1.desc": "Přidejte FancyUI do svého projektu.",
 	"intro.quickStart.step2.title": "Import",
-	"intro.quickStart.step2.desc": "Importujte komponenty, které potřebujete.",
 	"intro.quickStart.step3.title": "Použití",
-	"intro.quickStart.step3.desc": "Vložte je do svých Svelte komponent.",
 	"intro.whatsIncluded.heading": "Co je součástí",
 	"intro.whatsIncluded.body.one": "{count} komponent napříč {categories} kategoriemi:",
 	"intro.whatsIncluded.body.few": "{count} komponent napříč {categories} kategoriemi:",
@@ -368,6 +363,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Komponenty jsou jednosouborové komponenty Vue 3.5, proto je vyžadováno Vue 3.5.2 nebo novější.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Napsáno nativně pro každý framework: runes ve Svelte, hooks v Reactu, Composition API ve Vue.",
+	"intro.quickStart.step3.desc": "Vložte je do svých komponent.",
+	"install.peerDeps.optional": "volitelné",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "Přeskočit na obsah",
 	"a11y.docsBreadcrumb": "Drobečková navigace dokumentace",
@@ -376,8 +379,6 @@ export default {
 	"search.a11y.close": "Zavřít vyhledávání",
 	"nav.backToSite": "Zpět na úvodní stránku FancyUI",
 	"nav.recipes": "Recepty",
-	"toc.show": "Zobrazit obsah",
-	"footer.docs": "Dokumentace",
 	"footer.contribute": "Přispívání",
 	"footer.issues": "Issues",
 	"footer.discussions": "Diskuze",
@@ -422,8 +423,6 @@ export default {
 	"recipes.steps": "Kroky",
 	"recipes.pitfalls": "Časté chyby",
 	"recipes.componentsUsed": "Použité komponenty",
-	"seo.introduction":
-		"FancyUI je knihovna animovaných interaktivních komponent rozhraní pro Svelte 5, React a Vue. Zjistěte, co obsahuje a jak začít.",
 	"seo.installation":
 		"Nainstalujte FancyUI pro Svelte 5, React nebo Vue: přidejte balíček, naimportujte stylopis a vykreslete první komponentu.",
 	"seo.theming":

@@ -162,14 +162,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Introduction",
 	"intro.metaTitle": "Introduction",
-	"intro.pill.svelte": "Svelte 5 natif",
 	"intro.pill.animation": "Animation avant tout",
 	"intro.pill.copyPaste": "Facile à copier-coller",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Philosophie",
-	"intro.philosophy.card1.title": "Natif Svelte 5",
-	"intro.philosophy.card1.desc": "Construit avec les runes. Aucune API héritée.",
 	"intro.philosophy.card2.title": "Animation avant tout",
 	"intro.philosophy.card2.desc":
 		"Chaque composant est livré avec des animations soignées prêtes à l'emploi.",
@@ -185,9 +182,7 @@ export default {
 	"intro.quickStart.step1.title": "Installer",
 	"intro.quickStart.step1.desc": "Ajoutez FancyUI à votre projet.",
 	"intro.quickStart.step2.title": "Importer",
-	"intro.quickStart.step2.desc": "Importez les composants dont vous avez besoin.",
 	"intro.quickStart.step3.title": "Utiliser",
-	"intro.quickStart.step3.desc": "Intégrez-le dans vos composants Svelte.",
 	"intro.whatsIncluded.heading": "Ce qui est inclus",
 	"intro.whatsIncluded.body.one": "{count} composants répartis sur {categories} catégories :",
 	"intro.whatsIncluded.body.other": "{count} composants répartis sur {categories} catégories :",
@@ -378,6 +373,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Les composants sont des composants monofichiers Vue 3.5, donc Vue 3.5.2 ou une version ultérieure est requis.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Écrit nativement pour chaque framework : runes dans Svelte, hooks dans React, Composition API dans Vue.",
+	"intro.quickStart.step3.desc": "Intégrez-le dans vos composants.",
+	"install.peerDeps.optional": "facultatif",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "Aller au contenu",
 	"a11y.docsBreadcrumb": "Fil d'Ariane de la documentation",
@@ -386,8 +389,6 @@ export default {
 	"search.a11y.close": "Fermer la recherche",
 	"nav.backToSite": "Retour à l'accueil de FancyUI",
 	"nav.recipes": "Recettes",
-	"toc.show": "Afficher le sommaire",
-	"footer.docs": "Documentation",
 	"footer.contribute": "Contribuer",
 	"footer.issues": "Issues",
 	"footer.discussions": "Discussions",
@@ -435,8 +436,6 @@ export default {
 	"recipes.steps": "Étapes",
 	"recipes.pitfalls": "Pièges à éviter",
 	"recipes.componentsUsed": "Composants utilisés",
-	"seo.introduction":
-		"FancyUI est une bibliothèque de composants d'interface animés et interactifs pour Svelte 5, React et Vue. Découvrez son contenu et comment démarrer.",
 	"seo.installation":
 		"Installez FancyUI pour Svelte 5, React ou Vue : ajoutez le package, importez la feuille de style et affichez votre premier composant.",
 	"seo.theming":

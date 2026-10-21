@@ -3,7 +3,7 @@
 		"en": "Getting Started",
 		"context": null,
 		"maxLen": 27,
-		"render": "src/lib/components/docs/CommandSearch.svelte:54"
+		"render": "src/lib/components/docs/CommandSearch.svelte:53"
 	},
 	"nav.components": {
 		"en": "Components",
@@ -21,7 +21,7 @@
 		"en": "docs",
 		"context": null,
 		"maxLen": 16,
-		"render": "src/lib/components/docs/Sidebar.svelte:83"
+		"render": "src/lib/components/docs/Sidebar.svelte:89"
 	},
 	"a11y.closeSidebar": {
 		"en": "Close sidebar",
@@ -33,7 +33,7 @@
 		"en": "Toggle sidebar",
 		"context": null,
 		"maxLen": 26,
-		"render": "src/lib/components/docs/DocHeader.svelte:38"
+		"render": "src/lib/components/docs/DocHeader.svelte:74"
 	},
 	"a11y.breadcrumb": {
 		"en": "Breadcrumb",
@@ -45,43 +45,43 @@
 		"en": "Introduction",
 		"context": "Title of the Introduction page: sidebar entry, breadcrumb, browser tab and page heading.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/CommandSearch.svelte:23"
+		"render": "src/lib/components/docs/CommandSearch.svelte:22"
 	},
 	"page.installation": {
 		"en": "Installation",
 		"context": "Title of the Installation page: sidebar entry, breadcrumb, browser tab and page heading.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/CommandSearch.svelte:28"
+		"render": "src/lib/components/docs/CommandSearch.svelte:27"
 	},
 	"page.theming": {
 		"en": "Theming",
 		"context": "Title of the Theming page (design tokens, colors, dark mode): sidebar entry, breadcrumb, browser tab and page heading. Also the text of the link in tg.intro.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/CommandSearch.svelte:32"
+		"render": "src/lib/components/docs/CommandSearch.svelte:31"
 	},
 	"page.themeGenerator": {
 		"en": "Theme Generator",
 		"context": "Title of the Theme Generator page, an interactive tool that edits the design tokens and outputs CSS: sidebar entry, breadcrumb, browser tab and page heading.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/CommandSearch.svelte:34"
+		"render": "src/lib/components/docs/CommandSearch.svelte:33"
 	},
 	"page.changelog": {
 		"en": "Changelog",
 		"context": "Title of the Changelog page (release notes): sidebar entry, breadcrumb, browser tab and page heading.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/CommandSearch.svelte:38"
+		"render": "src/lib/components/docs/CommandSearch.svelte:37"
 	},
 	"header.search": {
 		"en": "Search...",
 		"context": null,
 		"maxLen": 21,
-		"render": "src/lib/components/docs/DocHeader.svelte:111"
+		"render": "src/lib/components/docs/DocHeader.svelte:189"
 	},
 	"a11y.github": {
 		"en": "GitHub",
 		"context": null,
 		"maxLen": 18,
-		"render": "src/lib/components/docs/DocHeader.svelte:123"
+		"render": "src/lib/components/docs/DocHeader.svelte:201"
 	},
 	"a11y.changeTheme": {
 		"en": "Change theme",
@@ -153,31 +153,31 @@
 		"en": "Sound",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/DocHeader.svelte:136"
+		"render": "src/lib/components/docs/DocHeader.svelte:215"
 	},
 	"search.placeholder": {
 		"en": "Search components and pages...",
 		"context": null,
 		"maxLen": 48,
-		"render": "src/lib/components/docs/CommandSearch.svelte:203"
+		"render": "src/lib/components/docs/CommandSearch.svelte:202"
 	},
 	"search.noResults": {
 		"en": "No results found",
 		"context": null,
 		"maxLen": 28,
-		"render": "src/lib/components/docs/CommandSearch.svelte:216"
+		"render": "src/lib/components/docs/CommandSearch.svelte:215"
 	},
 	"search.esc": {
 		"en": "ESC",
 		"context": null,
 		"maxLen": 15,
-		"render": "src/lib/components/docs/CommandSearch.svelte:208"
+		"render": "src/lib/components/docs/CommandSearch.svelte:207"
 	},
 	"search.tryInstead": {
 		"en": "Try one of these instead:",
 		"context": "Shown in the empty search state, above a list of suggested searches taken from the jobs.* labels. Ends with a colon in English.",
 		"maxLen": 40,
-		"render": "src/lib/components/docs/CommandSearch.svelte:217"
+		"render": "src/lib/components/docs/CommandSearch.svelte:216"
 	},
 	"jobs.heading": {
 		"en": "Browse by what you need",
@@ -189,37 +189,37 @@
 		"en": "Give feedback",
 		"context": "Browse-by-need label for components that give the user feedback (toasts, tooltips, loaders). Imperative phrase; same vocabulary as category.feedback.",
 		"maxLen": 25,
-		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+		"render": "src/lib/components/docs/CommandSearch.svelte:98"
 	},
 	"jobs.input": {
 		"en": "Collect an input",
 		"context": "Browse-by-need label for components that collect an input from the user (fields, pickers, toggles). Imperative phrase; same vocabulary as category.forms.",
 		"maxLen": 28,
-		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+		"render": "src/lib/components/docs/CommandSearch.svelte:98"
 	},
 	"jobs.attention": {
 		"en": "Guide attention",
 		"context": "Browse-by-need label for components that draw the eye to something (spotlights, highlights, beams). Imperative phrase.",
 		"maxLen": 27,
-		"render": "src/lib/components/docs/CommandSearch.svelte:43"
+		"render": "src/lib/components/docs/CommandSearch.svelte:42"
 	},
 	"jobs.navigate": {
 		"en": "Navigate",
 		"context": "Browse-by-need label for components that move the user around (menus, tabs, breadcrumbs). Imperative phrase; same vocabulary as category.navigation.",
 		"maxLen": 20,
-		"render": "src/lib/components/docs/CommandSearch.svelte:43"
+		"render": "src/lib/components/docs/CommandSearch.svelte:42"
 	},
 	"jobs.progress": {
 		"en": "Show progress",
 		"context": "Browse-by-need label for components that show how far a task has got (bars, steppers, counters). Imperative phrase.",
 		"maxLen": 25,
-		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+		"render": "src/lib/components/docs/CommandSearch.svelte:98"
 	},
 	"jobs.surprise": {
 		"en": "Surprise",
 		"context": "Browse-by-need label for purely decorative, delightful effects. Imperative phrase; same vocabulary as category.effects.",
 		"maxLen": 20,
-		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+		"render": "src/lib/components/docs/CommandSearch.svelte:98"
 	},
 	"comp.preview": {
 		"en": "Preview",
@@ -417,7 +417,7 @@
 		"en": "On this page",
 		"context": null,
 		"maxLen": 24,
-		"render": "src/lib/components/docs/TableOfContents.svelte:109"
+		"render": "src/lib/components/docs/TableOfContents.svelte:123"
 	},
 	"gallery.title": {
 		"en": "Components",
@@ -627,13 +627,13 @@
 		"en": "Light",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:219"
+		"render": "src/lib/components/docs/ThemeSwitcher.svelte:30"
 	},
 	"tg.dark": {
 		"en": "Dark",
 		"context": null,
 		"maxLen": 16,
-		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:219"
+		"render": "src/lib/components/docs/ThemeSwitcher.svelte:31"
 	},
 	"tg.primary": {
 		"en": "Primary",
@@ -741,73 +741,73 @@
 		"en": "Buttons",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/CommandSearch.svelte:43"
+		"render": "src/lib/components/docs/CommandSearch.svelte:42"
 	},
 	"category.cards": {
 		"en": "Cards",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.backgrounds": {
 		"en": "Backgrounds",
 		"context": null,
 		"maxLen": 23,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.text": {
 		"en": "Text & Typography",
 		"context": null,
 		"maxLen": 29,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.layout": {
 		"en": "Layout",
 		"context": null,
 		"maxLen": 18,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.feedback": {
 		"en": "Feedback",
 		"context": null,
 		"maxLen": 20,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.data-display": {
 		"en": "Data Display",
 		"context": null,
 		"maxLen": 24,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.navigation": {
 		"en": "Navigation",
 		"context": null,
 		"maxLen": 22,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.media": {
 		"en": "Media",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.effects": {
 		"en": "Effects",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.ai-chat": {
 		"en": "AI Chat",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.ai-agents": {
 		"en": "AI Agents",
 		"context": null,
 		"maxLen": 21,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"intro.title": {
 		"en": "Introduction",
@@ -820,12 +820,6 @@
 		"context": null,
 		"maxLen": null,
 		"render": "src/routes/docs/getting-started/introduction/+page.svelte:9"
-	},
-	"intro.pill.svelte": {
-		"en": "Svelte 5 Native",
-		"context": null,
-		"maxLen": 27,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:67"
 	},
 	"intro.pill.animation": {
 		"en": "Animation-first",
@@ -856,18 +850,6 @@
 		"context": null,
 		"maxLen": null,
 		"render": "src/lib/components/docs/IntroductionPage.svelte:81"
-	},
-	"intro.philosophy.card1.title": {
-		"en": "Svelte 5 native",
-		"context": null,
-		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:85"
-	},
-	"intro.philosophy.card1.desc": {
-		"en": "Built with runes. No legacy APIs.",
-		"context": null,
-		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:87"
 	},
 	"intro.philosophy.card2.title": {
 		"en": "Animation-first",
@@ -941,23 +923,11 @@
 		"maxLen": null,
 		"render": "src/lib/components/docs/IntroductionPage.svelte:128"
 	},
-	"intro.quickStart.step2.desc": {
-		"en": "Import the components you need.",
-		"context": null,
-		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:129"
-	},
 	"intro.quickStart.step3.title": {
 		"en": "Use",
 		"context": null,
 		"maxLen": null,
 		"render": "src/lib/components/docs/IntroductionPage.svelte:136"
-	},
-	"intro.quickStart.step3.desc": {
-		"en": "Drop it in your Svelte components.",
-		"context": null,
-		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:137"
 	},
 	"intro.whatsIncluded.heading": {
 		"en": "What's Included",
@@ -1017,97 +987,97 @@
 		"en": "Star on GitHub",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/Sidebar.svelte:275"
+		"render": "src/lib/components/docs/Sidebar.svelte:283"
 	},
 	"sidebar.starBody": {
 		"en": "If you like FancyUI, give it a star!",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/Sidebar.svelte:276"
+		"render": "src/lib/components/docs/Sidebar.svelte:284"
 	},
 	"rail.nextPage": {
 		"en": "Next page",
 		"context": null,
 		"maxLen": 21,
-		"render": "src/routes/docs/+layout.svelte:58"
+		"render": "src/routes/docs/+layout.svelte:65"
 	},
 	"intro.nextSteps.heading": {
 		"en": "Next Steps",
 		"context": null,
 		"maxLen": 22,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:171"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:170"
 	},
 	"intro.nextSteps.installation": {
 		"en": "Installation",
 		"context": null,
 		"maxLen": 24,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:174"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:173"
 	},
 	"intro.nextSteps.theming": {
 		"en": "Theming",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:178"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:177"
 	},
 	"intro.nextSteps.components": {
 		"en": "Browse Components",
 		"context": null,
 		"maxLen": 29,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:182"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:181"
 	},
 	"intro.cta.title": {
 		"en": "New to FancyUI?",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:191"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:190"
 	},
 	"intro.cta.body": {
 		"en": "Check out the <b>Theme Generator</b> to customize colors and see components react in real time.",
 		"context": "Call-to-action body on the Introduction page. <b>...</b> wraps the name of the Theme Generator page and renders bold.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:192"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:191"
 	},
 	"intro.cta.button": {
 		"en": "Try Theme Generator",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/IntroductionPage.svelte:196"
+		"render": "src/lib/components/docs/IntroductionPage.svelte:195"
 	},
 	"group.core": {
 		"en": "Core",
 		"context": null,
 		"maxLen": 16,
-		"render": "src/lib/components/docs/Sidebar.svelte:159"
+		"render": "src/lib/components/docs/Sidebar.svelte:167"
 	},
 	"group.fancy": {
 		"en": "Fancy",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/Sidebar.svelte:217"
+		"render": "src/lib/components/docs/Sidebar.svelte:225"
 	},
 	"category.actions": {
 		"en": "Actions",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.forms": {
 		"en": "Forms",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.overlays": {
 		"en": "Overlays",
 		"context": null,
 		"maxLen": 20,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"category.display": {
 		"en": "Display",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+		"render": "src/lib/components/docs/CommandSearch.svelte:91"
 	},
 	"status.inProgress": {
 		"en": "In progress",
@@ -1119,475 +1089,475 @@
 		"en": "Installation",
 		"context": null,
 		"maxLen": null,
-		"render": "src/routes/docs/getting-started/installation/+page.svelte:9"
+		"render": "src/routes/docs/getting-started/installation/+page.svelte:8"
 	},
 	"install.title": {
 		"en": "Installation",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:83"
+		"render": "src/lib/components/docs/InstallationPage.svelte:56"
 	},
 	"install.lead": {
 		"en": "Add FancyUI to a SvelteKit project in three steps: install the package, import the stylesheet, render a component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:57"
+		"render": "src/lib/components/docs/InstallationPage.svelte:29"
 	},
 	"install.pill.svelte": {
 		"en": "Svelte 5",
 		"context": null,
 		"maxLen": 20,
-		"render": "src/lib/components/docs/InstallationPage.svelte:58"
+		"render": "src/lib/components/docs/InstallationPage.svelte:30"
 	},
 	"install.pill.tailwind": {
 		"en": "Tailwind CSS 4",
 		"context": null,
 		"maxLen": 26,
-		"render": "src/lib/components/docs/InstallationPage.svelte:89"
+		"render": "src/lib/components/docs/InstallationPage.svelte:62"
 	},
 	"install.pill.node": {
 		"en": "Node.js 20.19+",
 		"context": null,
 		"maxLen": 26,
-		"render": "src/lib/components/docs/InstallationPage.svelte:91"
+		"render": "src/lib/components/docs/InstallationPage.svelte:64"
 	},
 	"install.pill.typescript": {
 		"en": "TypeScript",
 		"context": null,
 		"maxLen": 22,
-		"render": "src/lib/components/docs/InstallationPage.svelte:94"
+		"render": "src/lib/components/docs/InstallationPage.svelte:67"
 	},
 	"install.prerequisites.heading": {
 		"en": "Prerequisites",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:99"
+		"render": "src/lib/components/docs/InstallationPage.svelte:72"
 	},
 	"install.prerequisites.body": {
 		"en": "FancyUI targets current toolchains. Check these three before installing.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:100"
+		"render": "src/lib/components/docs/InstallationPage.svelte:73"
 	},
 	"install.prerequisites.card1.title": {
 		"en": "SvelteKit",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:59"
+		"render": "src/lib/components/docs/InstallationPage.svelte:31"
 	},
 	"install.prerequisites.card1.version": {
 		"en": "Svelte 5",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:60"
+		"render": "src/lib/components/docs/InstallationPage.svelte:32"
 	},
 	"install.prerequisites.card1.desc": {
 		"en": "Components are written with runes, so Svelte 5 is required. Svelte 4 projects will not compile them.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:61"
+		"render": "src/lib/components/docs/InstallationPage.svelte:33"
 	},
 	"install.prerequisites.card2.title": {
 		"en": "Tailwind CSS",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:111"
+		"render": "src/lib/components/docs/InstallationPage.svelte:84"
 	},
 	"install.prerequisites.card2.version": {
 		"en": "v4",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:112"
+		"render": "src/lib/components/docs/InstallationPage.svelte:85"
 	},
 	"install.prerequisites.card2.desc": {
 		"en": "Styling relies on Tailwind v4 utilities and CSS custom properties.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:114"
+		"render": "src/lib/components/docs/InstallationPage.svelte:87"
 	},
 	"install.prerequisites.card3.title": {
 		"en": "Node.js",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:118"
+		"render": "src/lib/components/docs/InstallationPage.svelte:91"
 	},
 	"install.prerequisites.card3.version": {
 		"en": "20.19+",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:119"
+		"render": "src/lib/components/docs/InstallationPage.svelte:92"
 	},
 	"install.prerequisites.card3.desc": {
 		"en": "Required by the current build tooling FancyUI is tested against.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:121"
+		"render": "src/lib/components/docs/InstallationPage.svelte:94"
 	},
 	"install.steps.heading": {
 		"en": "Install",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:127"
+		"render": "src/lib/components/docs/InstallationPage.svelte:103"
 	},
 	"install.steps.body": {
 		"en": "Pick your package manager, wire up the stylesheet, then render your first component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:128"
+		"render": "src/lib/components/docs/InstallationPage.svelte:104"
 	},
 	"install.step1.title": {
 		"en": "Install the package",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:133"
+		"render": "src/lib/components/docs/InstallationPage.svelte:109"
 	},
 	"install.step1.desc": {
 		"en": "One package for every component. Switch tabs to copy the command for your package manager.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:134"
+		"render": "src/lib/components/docs/InstallationPage.svelte:110"
 	},
 	"install.step2.title": {
 		"en": "Import the stylesheet",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:141"
+		"render": "src/lib/components/docs/InstallationPage.svelte:117"
 	},
 	"install.step2.desc": {
 		"en": "Add the FancyUI stylesheet right after your Tailwind import.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:142"
+		"render": "src/lib/components/docs/InstallationPage.svelte:118"
 	},
 	"install.step2.caption": {
 		"en": "In your global stylesheet, usually src/app.css.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:144"
+		"render": "src/lib/components/docs/InstallationPage.svelte:120"
 	},
 	"install.step3.title": {
 		"en": "Render a component",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:150"
+		"render": "src/lib/components/docs/InstallationPage.svelte:126"
 	},
 	"install.step3.desc": {
 		"en": "Import from the package root and drop it into your markup.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:151"
+		"render": "src/lib/components/docs/InstallationPage.svelte:127"
 	},
 	"install.tailwind.heading": {
 		"en": "Tailwind CSS setup",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:159"
+		"render": "src/lib/components/docs/InstallationPage.svelte:135"
 	},
 	"install.tailwind.body": {
 		"en": "FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:160"
+		"render": "src/lib/components/docs/InstallationPage.svelte:136"
 	},
 	"install.tailwind.order": {
 		"en": "Import order matters: Tailwind first, FancyUI second. Place the FancyUI import before your own @custom-variant dark, otherwise FancyUI's replaces yours.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:161"
+		"render": "src/lib/components/docs/InstallationPage.svelte:137"
 	},
 	"install.tailwind.note": {
 		"en": "The entry provides default colour tokens (background, primary, border and the rest) and a dark variant. Your own :root and .dark blocks override them: redefine the CSS variables and your values win.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:164"
+		"render": "src/lib/components/docs/InstallationPage.svelte:140"
 	},
 	"install.usage.heading": {
 		"en": "Usage",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:169"
+		"render": "src/lib/components/docs/InstallationPage.svelte:145"
 	},
 	"install.usage.body": {
 		"en": "Every component is a named export of the package root, so there are no per-component import paths to remember.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:170"
+		"render": "src/lib/components/docs/InstallationPage.svelte:146"
 	},
 	"install.usage.note": {
 		"en": "Each component's page lists its props, live examples and accessibility notes.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:172"
+		"render": "src/lib/components/docs/InstallationPage.svelte:148"
 	},
 	"install.typescript.heading": {
 		"en": "TypeScript",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:176"
+		"render": "src/lib/components/docs/InstallationPage.svelte:152"
 	},
 	"install.typescript.body": {
 		"en": "Prop types are exported next to each component, so you can type wrappers and shared presets.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:177"
+		"render": "src/lib/components/docs/InstallationPage.svelte:153"
 	},
 	"install.typescript.note": {
 		"en": "Types ship inside the package. There is no separate types package to install.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:179"
+		"render": "src/lib/components/docs/InstallationPage.svelte:155"
 	},
 	"install.peerDeps.heading": {
 		"en": "Peer dependencies",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:183"
+		"render": "src/lib/components/docs/InstallationPage.svelte:159"
 	},
 	"install.peerDeps.body": {
 		"en": "FancyUI expects these to already exist in your project:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:184"
+		"render": "src/lib/components/docs/InstallationPage.svelte:160"
 	},
 	"install.peerDeps.colPackage": {
 		"en": "Package",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:189"
+		"render": "src/lib/components/docs/InstallationPage.svelte:165"
 	},
 	"install.peerDeps.colVersion": {
 		"en": "Version",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:190"
+		"render": "src/lib/components/docs/InstallationPage.svelte:166"
 	},
 	"install.peerDeps.bundled": {
 		"en": "A few components need extra runtime libraries. These ship with the package, so there is nothing more to install:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:204"
+		"render": "src/lib/components/docs/InstallationPage.svelte:188"
 	},
 	"install.peerDeps.bundledNote": {
 		"en": "They are only pulled in by the components that use them.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:212"
+		"render": "src/lib/components/docs/InstallationPage.svelte:196"
 	},
 	"install.nextSteps.heading": {
 		"en": "Next steps",
 		"context": null,
 		"maxLen": 22,
-		"render": "src/lib/components/docs/InstallationPage.svelte:216"
+		"render": "src/lib/components/docs/InstallationPage.svelte:200"
 	},
 	"install.nextSteps.components.title": {
 		"en": "Browse components",
 		"context": null,
 		"maxLen": 29,
-		"render": "src/lib/components/docs/InstallationPage.svelte:220"
+		"render": "src/lib/components/docs/InstallationPage.svelte:204"
 	},
 	"install.nextSteps.components.desc": {
 		"en": "{count} components with live previews, props and copy-paste examples.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:224"
+		"render": "src/lib/components/docs/InstallationPage.svelte:208"
 	},
 	"install.nextSteps.theming.title": {
 		"en": "Theming",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/InstallationPage.svelte:232"
+		"render": "src/lib/components/docs/InstallationPage.svelte:216"
 	},
 	"install.nextSteps.theming.desc": {
 		"en": "Override the design tokens so every component matches your brand in light and dark mode.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:235"
+		"render": "src/lib/components/docs/InstallationPage.svelte:219"
 	},
 	"theming.metaTitle": {
 		"en": "Theming",
 		"context": null,
 		"maxLen": null,
-		"render": "src/routes/docs/getting-started/theming/+page.svelte:9"
+		"render": "src/routes/docs/getting-started/theming/+page.svelte:8"
 	},
 	"theming.title": {
 		"en": "Theming",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:62"
+		"render": "src/lib/components/docs/ThemingPage.svelte:71"
 	},
 	"theming.lead": {
 		"en": "Every FancyUI component reads its colors, radii and timings from CSS custom properties in the OKLCh color space — override a token and the whole library follows.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:63"
+		"render": "src/lib/components/docs/ThemingPage.svelte:72"
 	},
 	"theming.pill.oklch": {
 		"en": "OKLCh color space",
 		"context": null,
 		"maxLen": 29,
-		"render": "src/lib/components/docs/ThemingPage.svelte:67"
+		"render": "src/lib/components/docs/ThemingPage.svelte:76"
 	},
 	"theming.pill.shadcn": {
 		"en": "Standard token names",
 		"context": null,
 		"maxLen": 32,
-		"render": "src/lib/components/docs/ThemingPage.svelte:70"
+		"render": "src/lib/components/docs/ThemingPage.svelte:79"
 	},
 	"theming.pill.dark": {
 		"en": "Dark mode",
 		"context": null,
 		"maxLen": 21,
-		"render": "src/lib/components/docs/ThemingPage.svelte:72"
+		"render": "src/lib/components/docs/ThemingPage.svelte:81"
 	},
 	"theming.pill.tokens": {
 		"en": "Design tokens",
 		"context": null,
 		"maxLen": 25,
-		"render": "src/lib/components/docs/ThemingPage.svelte:75"
+		"render": "src/lib/components/docs/ThemingPage.svelte:84"
 	},
 	"theming.generator.body": {
 		"en": "Prefer to tune it visually? The Theme Generator adjusts these tokens with live sliders and hands you the CSS.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:82"
+		"render": "src/lib/components/docs/ThemingPage.svelte:91"
 	},
 	"theming.generator.cta": {
 		"en": "Open the Theme Generator",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:84"
+		"render": "src/lib/components/docs/ThemingPage.svelte:93"
 	},
 	"theming.cssSetup.heading": {
 		"en": "CSS setup",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:90"
+		"render": "src/lib/components/docs/ThemingPage.svelte:99"
 	},
 	"theming.cssSetup.body": {
 		"en": "Import the FancyUI stylesheet in your app's global CSS, usually src/app.css:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:91"
+		"render": "src/lib/components/docs/ThemingPage.svelte:100"
 	},
 	"theming.colors.heading": {
 		"en": "Color system",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:96"
+		"render": "src/lib/components/docs/ThemingPage.svelte:106"
 	},
 	"theming.colors.body": {
 		"en": "All colors use the OKLCh color space for perceptually uniform gradients:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:97"
+		"render": "src/lib/components/docs/ThemingPage.svelte:107"
 	},
 	"theming.colors.note": {
 		"en": "Token names follow the widely used semantic convention (background, foreground, primary, …), so an existing theme with the same variable names drops in unchanged.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:99"
+		"render": "src/lib/components/docs/ThemingPage.svelte:109"
 	},
 	"theming.dark.heading": {
 		"en": "Dark mode",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:103"
+		"render": "src/lib/components/docs/ThemingPage.svelte:113"
 	},
 	"theming.dark.body": {
 		"en": "Dark mode follows the operating-system preference by default. Put the .dark class on <html> or any ancestor to force dark, or .light to force light; the dark: utilities and every token follow. To customise the dark values, override them under .dark:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:104"
+		"render": "src/lib/components/docs/ThemingPage.svelte:114"
 	},
 	"theming.motion.heading": {
 		"en": "Animation tokens",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:109"
+		"render": "src/lib/components/docs/ThemingPage.svelte:119"
 	},
 	"theming.motion.body": {
 		"en": "Control animation timing globally:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:110"
+		"render": "src/lib/components/docs/ThemingPage.svelte:120"
 	},
 	"theming.easing.heading": {
 		"en": "Easing functions",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:115"
+		"render": "src/lib/components/docs/ThemingPage.svelte:125"
 	},
 	"theming.easing.body": {
 		"en": "Easing curves are tokens too, shared by every component transition:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:116"
+		"render": "src/lib/components/docs/ThemingPage.svelte:126"
 	},
 	"theming.rainbow.heading": {
 		"en": "Rainbow gradients",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:121"
+		"render": "src/lib/components/docs/ThemingPage.svelte:131"
 	},
 	"theming.rainbow.body": {
 		"en": "Used by RainbowButton, GradientButton and other gradient effects:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:122"
+		"render": "src/lib/components/docs/ThemingPage.svelte:132"
 	},
 	"theming.customizing.heading": {
 		"en": "Customizing",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:127"
+		"render": "src/lib/components/docs/ThemingPage.svelte:137"
 	},
 	"theming.customizing.body": {
 		"en": "Override any token in your own CSS to change the look:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:128"
+		"render": "src/lib/components/docs/ThemingPage.svelte:138"
 	},
 	"theming.customizing.note": {
 		"en": "Tokens cascade: override them globally in :root, or scope them to a wrapper element to theme a single section.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:130"
+		"render": "src/lib/components/docs/ThemingPage.svelte:140"
 	},
 	"theming.nextSteps.heading": {
 		"en": "Next steps",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:134"
+		"render": "src/lib/components/docs/ThemingPage.svelte:144"
 	},
 	"theming.nextSteps.generator.title": {
 		"en": "Theme Generator",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:138"
+		"render": "src/lib/components/docs/ThemingPage.svelte:148"
 	},
 	"theming.nextSteps.generator.desc": {
 		"en": "Tune every token with live sliders and copy the finished CSS.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:141"
+		"render": "src/lib/components/docs/ThemingPage.svelte:151"
 	},
 	"theming.nextSteps.components.title": {
 		"en": "Browse components",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:145"
+		"render": "src/lib/components/docs/ThemingPage.svelte:155"
 	},
 	"theming.nextSteps.components.desc": {
 		"en": "See the tokens at work across the full component gallery.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/ThemingPage.svelte:148"
+		"render": "src/lib/components/docs/ThemingPage.svelte:158"
 	},
 	"changelog.metaTitle": {
 		"en": "Changelog",
 		"context": null,
 		"maxLen": null,
-		"render": "src/routes/docs/getting-started/changelog/+page.svelte:11"
+		"render": "src/routes/docs/getting-started/changelog/+page.svelte:10"
 	},
 	"changelog.title": {
 		"en": "Changelog",
@@ -1683,73 +1653,73 @@
 		"en": "Add FancyUI to a React project in three steps: install the package, import the stylesheet, render a component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:64"
+		"render": "src/lib/components/docs/InstallationPage.svelte:36"
 	},
 	"install.lead.vue": {
 		"en": "Add FancyUI to a Vue project in three steps: install the package, import the stylesheet, render a component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:71"
+		"render": "src/lib/components/docs/InstallationPage.svelte:43"
 	},
 	"install.pill.react": {
 		"en": "React 18+",
 		"context": null,
 		"maxLen": 21,
-		"render": "src/lib/components/docs/InstallationPage.svelte:65"
+		"render": "src/lib/components/docs/InstallationPage.svelte:37"
 	},
 	"install.pill.vue": {
 		"en": "Vue 3.5+",
 		"context": null,
 		"maxLen": 20,
-		"render": "src/lib/components/docs/InstallationPage.svelte:72"
+		"render": "src/lib/components/docs/InstallationPage.svelte:44"
 	},
 	"install.prerequisites.card1.title.react": {
 		"en": "React",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:66"
+		"render": "src/lib/components/docs/InstallationPage.svelte:38"
 	},
 	"install.prerequisites.card1.version.react": {
 		"en": "18 / 19",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:67"
+		"render": "src/lib/components/docs/InstallationPage.svelte:39"
 	},
 	"install.prerequisites.card1.desc.react": {
 		"en": "Supports React 18 and 19. Components ship as client modules, so Server Components can import them directly.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:68"
+		"render": "src/lib/components/docs/InstallationPage.svelte:40"
 	},
 	"install.prerequisites.card1.title.vue": {
 		"en": "Vue",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:73"
+		"render": "src/lib/components/docs/InstallationPage.svelte:45"
 	},
 	"install.prerequisites.card1.version.vue": {
 		"en": "3.5+",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:74"
+		"render": "src/lib/components/docs/InstallationPage.svelte:46"
 	},
 	"install.prerequisites.card1.desc.vue": {
 		"en": "Components are Vue 3.5 single-file components, so Vue 3.5.2 or later is required.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:75"
+		"render": "src/lib/components/docs/InstallationPage.svelte:47"
 	},
 	"a11y.skipToContent": {
 		"en": "Skip to content",
 		"context": "Skip link, first focusable element of every docs page; jumps to the main content.",
 		"maxLen": 27,
-		"render": null
+		"render": "src/routes/docs/+layout.svelte:94"
 	},
 	"a11y.docsBreadcrumb": {
 		"en": "Documentation breadcrumb",
 		"context": "aria-label of the breadcrumb nav in the docs header.",
 		"maxLen": 39,
-		"render": null
+		"render": "src/lib/components/docs/DocHeader.svelte:121"
 	},
 	"a11y.prevNext": {
 		"en": "Previous and next pages",
@@ -1761,37 +1731,25 @@
 		"en": "Search",
 		"context": "aria-label of the icon-only search button shown on narrow screens.",
 		"maxLen": 18,
-		"render": null
+		"render": "src/lib/components/docs/DocHeader.svelte:150"
 	},
 	"search.a11y.close": {
 		"en": "Close search",
 		"context": "aria-label of the close button in the command search dialog.",
 		"maxLen": 24,
-		"render": "src/lib/components/docs/CommandSearch.svelte:174"
+		"render": "src/lib/components/docs/CommandSearch.svelte:173"
 	},
 	"nav.backToSite": {
 		"en": "Back to FancyUI home",
 		"context": "aria-label / title of the wordmark link in the docs sidebar that returns to the landing page.",
 		"maxLen": 32,
-		"render": null
+		"render": "src/lib/components/docs/DocHeader.svelte:95"
 	},
 	"nav.recipes": {
 		"en": "Recipes",
 		"context": "Sidebar entry and breadcrumb label for the recipes index.",
 		"maxLen": 19,
-		"render": "src/routes/docs/recipes/[slug]/+page.svelte:83"
-	},
-	"toc.show": {
-		"en": "Show contents",
-		"context": "Summary of the collapsible on-this-page outline shown on screens too narrow for the side table of contents.",
-		"maxLen": 25,
-		"render": null
-	},
-	"footer.docs": {
-		"en": "Docs",
-		"context": "Docs footer: label of the documentation link group, and the first breadcrumb item in the docs header.",
-		"maxLen": 16,
-		"render": "src/lib/components/docs/DocHeader.svelte:72"
+		"render": "src/lib/components/docs/DocHeader.svelte:41"
 	},
 	"footer.contribute": {
 		"en": "Contribute",
@@ -1875,19 +1833,49 @@
 		"en": "Import the components you need. The import path follows your framework.",
 		"context": "Introduction quick-start step 2 text; the code sample below it changes with the selected framework.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/docs/IntroductionPage.svelte:129"
 	},
 	"install.kitOptional": {
 		"en": "SvelteKit is optional: FancyUI works in any Svelte 5 project built with Vite.",
 		"context": "Installation prerequisites note about the optional SvelteKit peer dependency.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/docs/InstallationPage.svelte:98"
 	},
 	"theming.cssPerFramework": {
 		"en": "Import the stylesheet for your framework: each package ships its own.",
 		"context": "Theming page instruction above the per-framework stylesheet import snippet.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/docs/ThemingPage.svelte:101"
+	},
+	"intro.pill.frameworks": {
+		"en": "Svelte 5, React, Vue",
+		"context": "Introduction pill listing the supported frameworks. Framework names stay as written.",
+		"maxLen": 32,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:67"
+	},
+	"intro.philosophy.card1.title": {
+		"en": "Svelte, React & Vue",
+		"context": "Introduction philosophy card 1 title: the three frameworks. Names stay as written.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:85"
+	},
+	"intro.philosophy.card1.desc": {
+		"en": "Written natively for each framework: runes in Svelte, hooks in React, the Composition API in Vue.",
+		"context": "Introduction philosophy card 1 body: how the components are written per framework. Keep the API names (runes, hooks, Composition API) as written.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:87"
+	},
+	"intro.quickStart.step3.desc": {
+		"en": "Drop it into your components.",
+		"context": "Introduction quick-start step 3 description, shown above a usage code sample.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:137"
+	},
+	"install.peerDeps.optional": {
+		"en": "optional",
+		"context": "Small tag after a peer dependency that is optional, in the Installation peer table.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:181"
 	},
 	"status.planned": {
 		"en": "Planned",
@@ -1941,61 +1929,61 @@
 		"en": "Page not found",
 		"context": "Heading of the 404 error page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:22"
 	},
 	"error.genericTitle": {
 		"en": "Something went wrong",
 		"context": "Heading of the generic error page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:25"
 	},
 	"error.notFoundBody": {
 		"en": "The page you are looking for does not exist or has moved.",
 		"context": "Body text of the 404 error page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:29"
 	},
 	"error.genericBody": {
 		"en": "An unexpected error occurred. Try again, or head back to the docs.",
 		"context": "Body text of the generic error page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:32"
 	},
 	"error.unauthorizedTitle": {
 		"en": "Sign in required",
 		"context": "Heading of the 401 error page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:24"
 	},
 	"error.unauthorizedBody": {
 		"en": "You need to be signed in to use this page.",
 		"context": "Body text of the 401 error page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:31"
 	},
 	"error.home": {
 		"en": "Back to home",
 		"context": "Error page action: go to the landing page.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:80"
 	},
 	"error.browse": {
 		"en": "Browse components",
 		"context": "Error page action: go to the components gallery.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:82"
 	},
 	"error.search": {
 		"en": "Search the docs",
 		"context": "Error page action: open the command search.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:84"
 	},
 	"error.report": {
 		"en": "Report a broken link",
 		"context": "Error page action: open a pre-filled GitHub issue about this URL.",
 		"maxLen": null,
-		"render": null
+		"render": "src/lib/components/site/ErrorBody.svelte:95"
 	},
 	"comp.previewFailed": {
 		"en": "This preview could not be loaded.",
@@ -2007,49 +1995,43 @@
 		"en": "No preview is available for this component yet.",
 		"context": "Standalone demo page, component without a preview.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/DemoRenderer.svelte:380"
+		"render": "src/lib/components/docs/DemoRenderer.svelte:404"
 	},
 	"demo.notFound": {
 		"en": "Component not found.",
 		"context": "Standalone demo page, unknown component slug.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/DemoRenderer.svelte:448"
+		"render": "src/lib/components/docs/DemoRenderer.svelte:490"
 	},
 	"recipes.steps": {
 		"en": "Steps",
 		"context": "Heading of the numbered steps section of a recipe.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:10"
+		"render": "src/routes/docs/recipes/[slug]/+page.svelte:151"
 	},
 	"recipes.pitfalls": {
 		"en": "Pitfalls",
 		"context": "Heading of the common-mistakes section of a recipe.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:11"
+		"render": "src/routes/docs/recipes/[slug]/+page.svelte:161"
 	},
 	"recipes.componentsUsed": {
 		"en": "Components used",
 		"context": "Heading of the section listing the components a recipe uses.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:12"
-	},
-	"seo.introduction": {
-		"en": "FancyUI is a library of animated, interactive UI components for Svelte 5, React and Vue. See what is included and how to get started.",
-		"context": "Meta description of the Introduction page (about 150 characters).",
-		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:14"
+		"render": "src/routes/docs/recipes/[slug]/+page.svelte:172"
 	},
 	"seo.installation": {
 		"en": "Install FancyUI for Svelte 5, React or Vue: add the package, import the stylesheet and render your first component.",
 		"context": "Meta description of the Installation page.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:17"
+		"render": "src/routes/docs/getting-started/installation/+page.svelte:9"
 	},
 	"seo.theming": {
 		"en": "Customize FancyUI with design tokens: OKLCh colors, radius, motion and dark mode, for Svelte 5, React and Vue.",
 		"context": "Meta description of the Theming page.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:20"
+		"render": "src/routes/docs/getting-started/theming/+page.svelte:9"
 	},
 	"seo.themeGenerator": {
 		"en": "Tune FancyUI's OKLCh design tokens live and copy the generated CSS into your app.",
@@ -2061,6 +2043,6 @@
 		"en": "Release notes for the FancyUI packages for Svelte 5, React and Vue.",
 		"context": "Meta description of the Changelog page.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/chrome-i18n.ts:23"
+		"render": "src/routes/docs/getting-started/changelog/+page.svelte:11"
 	}
 }

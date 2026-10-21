@@ -163,14 +163,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "مقدّمة",
 	"intro.metaTitle": "مقدّمة",
-	"intro.pill.svelte": "أصلي لـ Svelte 5",
 	"intro.pill.animation": "الحركة أولاً",
 	"intro.pill.copyPaste": "سهلة النسخ واللصق",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "الفلسفة",
-	"intro.philosophy.card1.title": "أصلي لـ Svelte 5",
-	"intro.philosophy.card1.desc": "مبنية باستخدام الـ runes، دون أي واجهات برمجية قديمة.",
 	"intro.philosophy.card2.title": "الحركة أولاً",
 	"intro.philosophy.card2.desc": "كل مكوّن يأتي بحركات متقنة جاهزة للاستخدام مباشرة.",
 	"intro.philosophy.card3.title": "سهلة النسخ واللصق",
@@ -183,9 +180,7 @@ export default {
 	"intro.quickStart.step1.title": "التثبيت",
 	"intro.quickStart.step1.desc": "أضف FancyUI إلى مشروعك.",
 	"intro.quickStart.step2.title": "استيراد",
-	"intro.quickStart.step2.desc": "استورد المكوّنات التي تحتاجها.",
 	"intro.quickStart.step3.title": "الاستخدام",
-	"intro.quickStart.step3.desc": "أضِفها إلى مكوّنات Svelte الخاصة بك.",
 	"intro.whatsIncluded.heading": "ما الذي تتضمّنه",
 	"intro.whatsIncluded.body.zero": "{count} مكوّناً موزّعة على {categories} فئات:",
 	"intro.whatsIncluded.body.one": "{count} مكوّناً موزّعة على {categories} فئات:",
@@ -365,6 +360,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"المكوّنات هي مكوّنات Vue 3.5 أحادية الملف، لذا يلزم Vue 3.5.2 أو أحدث.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"نصوص مكتوبة أصلاً لكل إطار عمل: runes في Svelte وhooks في React وComposition API في Vue.",
+	"intro.quickStart.step3.desc": "أضِفها إلى مكوّناتك.",
+	"install.peerDeps.optional": "اختياري",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "تخطَّ إلى المحتوى",
 	"a11y.docsBreadcrumb": "مسار التنقل في التوثيق",
@@ -373,8 +376,6 @@ export default {
 	"search.a11y.close": "إغلاق البحث",
 	"nav.backToSite": "العودة إلى الصفحة الرئيسية لـ FancyUI",
 	"nav.recipes": "وصفات",
-	"toc.show": "عرض جدول المحتويات",
-	"footer.docs": "التوثيق",
 	"footer.contribute": "المساهمة",
 	"footer.issues": "المشكلات",
 	"footer.discussions": "النقاشات",
@@ -419,8 +420,6 @@ export default {
 	"recipes.steps": "الخطوات",
 	"recipes.pitfalls": "أخطاء شائعة",
 	"recipes.componentsUsed": "المكوّنات المستخدمة",
-	"seo.introduction":
-		"FancyUI مكتبة من مكوّنات الواجهة المتحركة والتفاعلية لـ Svelte 5 وReact وVue. تعرّف على محتوياتها وكيفية البدء.",
 	"seo.installation":
 		"ثبّت FancyUI لـ Svelte 5 أو React أو Vue: أضف الحزمة، واستورد ورقة الأنماط، ثم اعرض أول مكوّن لديك.",
 	"seo.theming":

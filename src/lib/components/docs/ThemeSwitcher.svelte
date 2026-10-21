@@ -27,8 +27,8 @@
 
 	const entries = $derived<Entry[]>([
 		{ name: "system", label: t("theme.system"), swatch: systemSwatch },
-		{ name: "light", label: "Light", swatch: lightSwatch },
-		{ name: "dark", label: "Dark", swatch: darkSwatch },
+		{ name: "light", label: t("tg.light"), swatch: lightSwatch },
+		{ name: "dark", label: t("tg.dark"), swatch: darkSwatch },
 	]);
 
 	const activeName = $derived(themeState.theme);

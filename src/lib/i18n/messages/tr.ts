@@ -161,14 +161,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Giriş",
 	"intro.metaTitle": "Giriş",
-	"intro.pill.svelte": "Svelte 5 Doğal",
 	"intro.pill.animation": "Önce Animasyon",
 	"intro.pill.copyPaste": "Kopyala-Yapıştır Dostu",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Felsefe",
-	"intro.philosophy.card1.title": "Svelte 5 doğal",
-	"intro.philosophy.card1.desc": "Runes ile geliştirilmiştir. Eski API yok.",
 	"intro.philosophy.card2.title": "Önce animasyon",
 	"intro.philosophy.card2.desc":
 		"Her bileşen, kutudan çıktığı haliyle özenle hazırlanmış animasyonlarla birlikte gelir.",
@@ -183,9 +180,7 @@ export default {
 	"intro.quickStart.step1.title": "Kur",
 	"intro.quickStart.step1.desc": "FancyUI'yi projenize ekleyin.",
 	"intro.quickStart.step2.title": "İçe Aktar",
-	"intro.quickStart.step2.desc": "İhtiyacınız olan bileşenleri içe aktarın.",
 	"intro.quickStart.step3.title": "Kullan",
-	"intro.quickStart.step3.desc": "Svelte bileşenlerinize ekleyin.",
 	"intro.whatsIncluded.heading": "Neler İçerir",
 	"intro.whatsIncluded.body.one": "{categories} kategoride {count} bileşen:",
 	"intro.whatsIncluded.body.other": "{categories} kategoride {count} bileşen:",
@@ -371,6 +366,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Bileşenler Vue 3.5 tek dosyalı bileşenleridir, bu nedenle Vue 3.5.2 veya üzeri gerekir.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Her framework için yerel olarak yazılmıştır: Svelte'te runes, React'te hooks, Vue'da Composition API.",
+	"intro.quickStart.step3.desc": "Bileşenlerinize ekleyin.",
+	"install.peerDeps.optional": "isteğe bağlı",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "İçeriğe geç",
 	"a11y.docsBreadcrumb": "Dokümantasyon gezinti yolu",
@@ -379,8 +382,6 @@ export default {
 	"search.a11y.close": "Aramayı kapat",
 	"nav.backToSite": "FancyUI ana sayfasına dön",
 	"nav.recipes": "Tarifler",
-	"toc.show": "İçindekileri göster",
-	"footer.docs": "Dokümantasyon",
 	"footer.contribute": "Katkıda bulunun",
 	"footer.issues": "Issues",
 	"footer.discussions": "Tartışmalar",
@@ -427,8 +428,6 @@ export default {
 	"recipes.steps": "Adımlar",
 	"recipes.pitfalls": "Sık yapılan hatalar",
 	"recipes.componentsUsed": "Kullanılan bileşenler",
-	"seo.introduction":
-		"FancyUI, Svelte 5, React ve Vue için animasyonlu ve etkileşimli arayüz bileşenleri kütüphanesidir. İçeriğini ve nasıl başlayacağınızı öğrenin.",
 	"seo.installation":
 		"FancyUI'ı Svelte 5, React veya Vue için kurun: paketi ekleyin, stil dosyasını içe aktarın ve ilk bileşeninizi oluşturun.",
 	"seo.theming":

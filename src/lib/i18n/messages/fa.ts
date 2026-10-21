@@ -160,14 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "معرفی",
 	"intro.metaTitle": "معرفی",
-	"intro.pill.svelte": "بومیِ Svelte 5",
 	"intro.pill.animation": "اولویت با انیمیشن",
 	"intro.pill.copyPaste": "سازگار با کپی‌وچسباندن",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "فلسفه",
-	"intro.philosophy.card1.title": "بومیِ Svelte 5",
-	"intro.philosophy.card1.desc": "ساخته‌شده با runes. بدون APIهای قدیمی.",
 	"intro.philosophy.card2.title": "اولویت با انیمیشن",
 	"intro.philosophy.card2.desc": "هر کامپوننت به‌صورت آماده با انیمیشن‌های صیقل‌خورده عرضه می‌شود.",
 	"intro.philosophy.card3.title": "سازگار با کپی‌وچسباندن",
@@ -180,9 +177,7 @@ export default {
 	"intro.quickStart.step1.title": "نصب",
 	"intro.quickStart.step1.desc": "FancyUI را به پروژه‌ی خود اضافه کنید.",
 	"intro.quickStart.step2.title": "وارد کردن",
-	"intro.quickStart.step2.desc": "کامپوننت‌های مورد نیاز خود را وارد کنید.",
 	"intro.quickStart.step3.title": "استفاده",
-	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های Svelte خود قرار دهید.",
 	"intro.whatsIncluded.heading": "آنچه شامل می‌شود",
 	"intro.whatsIncluded.body.one": "{count} کامپوننت در {categories} دسته:",
 	"intro.whatsIncluded.body.other": "{count} کامپوننت در {categories} دسته:",
@@ -367,6 +362,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"کامپوننت‌ها کامپوننت‌های تک‌فایلی Vue 3.5 هستند، بنابراین Vue 3.5.2 یا بالاتر لازم است.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"برای هر فریم‌ورک به‌صورت بومی نوشته شده است: runes در Svelte، hooks در React و Composition API در Vue.",
+	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های خود قرار دهید.",
+	"install.peerDeps.optional": "اختیاری",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "پرش به محتوا",
 	"a11y.docsBreadcrumb": "مسیر راهبری مستندات",
@@ -375,8 +378,6 @@ export default {
 	"search.a11y.close": "بستن جستجو",
 	"nav.backToSite": "بازگشت به صفحه اصلی FancyUI",
 	"nav.recipes": "دستورکارها",
-	"toc.show": "نمایش فهرست مطالب",
-	"footer.docs": "مستندات",
 	"footer.contribute": "مشارکت",
 	"footer.issues": "مسائل",
 	"footer.discussions": "گفت‌وگوها",
@@ -421,8 +422,6 @@ export default {
 	"recipes.steps": "گام‌ها",
 	"recipes.pitfalls": "دام‌های رایج",
 	"recipes.componentsUsed": "مؤلفه‌های استفاده‌شده",
-	"seo.introduction":
-		"FancyUI کتابخانه‌ای از مؤلفه‌های رابط کاربری پویا و تعاملی برای Svelte 5، React و Vue است. با محتوای آن و نحوه شروع آشنا شوید.",
 	"seo.installation":
 		"FancyUI را برای Svelte 5، React یا Vue نصب کنید: بسته را اضافه کنید، شیوه‌نامه را وارد کنید و نخستین مؤلفه خود را رندر کنید.",
 	"seo.theming":

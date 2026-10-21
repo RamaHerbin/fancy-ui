@@ -160,14 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "परिचय",
 	"intro.metaTitle": "परिचय",
-	"intro.pill.svelte": "Svelte 5 नेटिव",
 	"intro.pill.animation": "एनिमेशन-फर्स्ट",
 	"intro.pill.copyPaste": "कॉपी-पेस्ट अनुकूल",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "दर्शन",
-	"intro.philosophy.card1.title": "Svelte 5 नेटिव",
-	"intro.philosophy.card1.desc": "रून्स के साथ बनाया गया। कोई लेगेसी API नहीं।",
 	"intro.philosophy.card2.title": "एनिमेशन-फर्स्ट",
 	"intro.philosophy.card2.desc": "हर कॉम्पोनेंट बॉक्स से बाहर ही परिष्कृत एनिमेशन के साथ आता है।",
 	"intro.philosophy.card3.title": "कॉपी-पेस्ट अनुकूल",
@@ -180,9 +177,7 @@ export default {
 	"intro.quickStart.step1.title": "इंस्टॉल करें",
 	"intro.quickStart.step1.desc": "अपने प्रोजेक्ट में FancyUI जोड़ें।",
 	"intro.quickStart.step2.title": "इम्पोर्ट करें",
-	"intro.quickStart.step2.desc": "आपको जिन कॉम्पोनेंट्स की आवश्यकता है उन्हें इम्पोर्ट करें।",
 	"intro.quickStart.step3.title": "उपयोग करें",
-	"intro.quickStart.step3.desc": "इसे अपने Svelte कॉम्पोनेंट्स में जोड़ें।",
 	"intro.whatsIncluded.heading": "इसमें क्या शामिल है",
 	"intro.whatsIncluded.body.one": "{categories} श्रेणियों में {count} कॉम्पोनेंट्स:",
 	"intro.whatsIncluded.body.other": "{categories} श्रेणियों में {count} कॉम्पोनेंट्स:",
@@ -364,6 +359,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"कॉम्पोनेंट Vue 3.5 के सिंगल-फ़ाइल कॉम्पोनेंट हैं, इसलिए Vue 3.5.2 या उससे नया संस्करण ज़रूरी है।",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"हर फ्रेमवर्क के लिए नेटिव रूप से लिखा गया: Svelte में रून्स, React में hooks, Vue में Composition API।",
+	"intro.quickStart.step3.desc": "इसे अपने कॉम्पोनेंट्स में जोड़ें।",
+	"install.peerDeps.optional": "वैकल्पिक",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "सामग्री पर जाएँ",
 	"a11y.docsBreadcrumb": "दस्तावेज़ीकरण ब्रेडक्रंब",
@@ -372,8 +375,6 @@ export default {
 	"search.a11y.close": "खोज बंद करें",
 	"nav.backToSite": "FancyUI होम पर वापस जाएँ",
 	"nav.recipes": "रेसिपी",
-	"toc.show": "विषय-सूची दिखाएँ",
-	"footer.docs": "दस्तावेज़",
 	"footer.contribute": "योगदान करें",
 	"footer.issues": "Issues",
 	"footer.discussions": "चर्चाएँ",
@@ -418,8 +419,6 @@ export default {
 	"recipes.steps": "चरण",
 	"recipes.pitfalls": "आम गलतियाँ",
 	"recipes.componentsUsed": "उपयोग किए गए कंपोनेंट्स",
-	"seo.introduction":
-		"FancyUI, Svelte 5, React और Vue के लिए एनिमेटेड, इंटरैक्टिव UI कंपोनेंट्स की लाइब्रेरी है। जानें इसमें क्या है और शुरुआत कैसे करें।",
 	"seo.installation":
 		"Svelte 5, React या Vue के लिए FancyUI इंस्टॉल करें: पैकेज जोड़ें, स्टाइलशीट इम्पोर्ट करें और अपना पहला कंपोनेंट रेंडर करें।",
 	"seo.theming":

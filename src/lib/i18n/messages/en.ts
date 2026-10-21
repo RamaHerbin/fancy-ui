@@ -210,14 +210,11 @@ export const en = {
 	// Introduction page
 	"intro.title": "Introduction",
 	"intro.metaTitle": "Introduction",
-	"intro.pill.svelte": "Svelte 5 Native",
 	"intro.pill.animation": "Animation-first",
 	"intro.pill.copyPaste": "Copy-paste friendly",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Philosophy",
-	"intro.philosophy.card1.title": "Svelte 5 native",
-	"intro.philosophy.card1.desc": "Built with runes. No legacy APIs.",
 	"intro.philosophy.card2.title": "Animation-first",
 	"intro.philosophy.card2.desc": "Every component ships with polished animations out of the box.",
 	"intro.philosophy.card3.title": "Copy-paste friendly",
@@ -230,9 +227,7 @@ export const en = {
 	"intro.quickStart.step1.title": "Install",
 	"intro.quickStart.step1.desc": "Add FancyUI to your project.",
 	"intro.quickStart.step2.title": "Import",
-	"intro.quickStart.step2.desc": "Import the components you need.",
 	"intro.quickStart.step3.title": "Use",
-	"intro.quickStart.step3.desc": "Drop it in your Svelte components.",
 	"intro.whatsIncluded.heading": "What's Included",
 	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example "in categories: {categories}", so that no inflected noun depends on it. */
 	"intro.whatsIncluded.body.one": "{count} component across {categories} categories:",
@@ -426,10 +421,6 @@ export const en = {
 	"nav.backToSite": "Back to FancyUI home",
 	/** @context Sidebar entry and breadcrumb label for the recipes index. */
 	"nav.recipes": "Recipes",
-	/** @context Summary of the collapsible on-this-page outline shown on screens too narrow for the side table of contents. */
-	"toc.show": "Show contents",
-	/** @context Docs footer: label of the documentation link group, and the first breadcrumb item in the docs header. */
-	"footer.docs": "Docs",
 	/** @context Docs footer link to the contributing guide. */
 	"footer.contribute": "Contribute",
 	/** @context Docs footer link to the GitHub issue tracker. Product term, often kept as is. */
@@ -465,6 +456,17 @@ export const en = {
 	/** @context Theming page instruction above the per-framework stylesheet import snippet. */
 	"theming.cssPerFramework":
 		"Import the stylesheet for your framework: each package ships its own.",
+	/** @context Introduction pill listing the supported frameworks. Framework names stay as written. */
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	/** @context Introduction philosophy card 1 title: the three frameworks. Names stay as written. */
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	/** @context Introduction philosophy card 1 body: how the components are written per framework. Keep the API names (runes, hooks, Composition API) as written. */
+	"intro.philosophy.card1.desc":
+		"Written natively for each framework: runes in Svelte, hooks in React, the Composition API in Vue.",
+	/** @context Introduction quick-start step 3 description, shown above a usage code sample. */
+	"intro.quickStart.step3.desc": "Drop it into your components.",
+	/** @context Small tag after a peer dependency that is optional, in the Installation peer table. */
+	"install.peerDeps.optional": "optional",
 	/** @context Status chip for a component announced but not built yet. */
 	"status.planned": "Planned",
 	/** @context Status chip for a component that is scheduled for removal. */
@@ -514,9 +516,6 @@ export const en = {
 	"recipes.pitfalls": "Pitfalls",
 	/** @context Heading of the section listing the components a recipe uses. */
 	"recipes.componentsUsed": "Components used",
-	/** @context Meta description of the Introduction page (about 150 characters). */
-	"seo.introduction":
-		"FancyUI is a library of animated, interactive UI components for Svelte 5, React and Vue. See what is included and how to get started.",
 	/** @context Meta description of the Installation page. */
 	"seo.installation":
 		"Install FancyUI for Svelte 5, React or Vue: add the package, import the stylesheet and render your first component.",

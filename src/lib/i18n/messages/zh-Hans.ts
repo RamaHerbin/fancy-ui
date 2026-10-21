@@ -146,14 +146,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "简介",
 	"intro.metaTitle": "简介",
-	"intro.pill.svelte": "Svelte 5 原生",
 	"intro.pill.animation": "动画优先",
 	"intro.pill.copyPaste": "便于复制粘贴",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "设计理念",
-	"intro.philosophy.card1.title": "Svelte 5 原生",
-	"intro.philosophy.card1.desc": "使用 runes 构建，不依赖任何旧版 API。",
 	"intro.philosophy.card2.title": "动画优先",
 	"intro.philosophy.card2.desc": "每个组件开箱即带精致的动画。",
 	"intro.philosophy.card3.title": "便于复制粘贴",
@@ -166,9 +163,7 @@ export default {
 	"intro.quickStart.step1.title": "安装",
 	"intro.quickStart.step1.desc": "将 FancyUI 添加到你的项目中。",
 	"intro.quickStart.step2.title": "导入",
-	"intro.quickStart.step2.desc": "导入你需要的组件。",
 	"intro.quickStart.step3.title": "使用",
-	"intro.quickStart.step3.desc": "将其放入你的 Svelte 组件中。",
 	"intro.whatsIncluded.heading": "包含内容",
 	"intro.whatsIncluded.body.other": "{count} 个组件，涵盖 {categories} 个分类：",
 	"intro.category.buttons": "按钮",
@@ -328,6 +323,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"组件是 Vue 3.5 单文件组件，因此需要 Vue 3.5.2 或更高版本。",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"为每个框架原生编写：Svelte 使用 runes，React 使用 hooks，Vue 使用 Composition API。",
+	"intro.quickStart.step3.desc": "将其放入你的组件中。",
+	"install.peerDeps.optional": "可选",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "跳到正文",
 	"a11y.docsBreadcrumb": "文档面包屑导航",
@@ -336,8 +339,6 @@ export default {
 	"search.a11y.close": "关闭搜索",
 	"nav.backToSite": "返回 FancyUI 首页",
 	"nav.recipes": "配方",
-	"toc.show": "显示目录",
-	"footer.docs": "文档",
 	"footer.contribute": "参与贡献",
 	"footer.issues": "Issues",
 	"footer.discussions": "讨论区",
@@ -379,8 +380,6 @@ export default {
 	"recipes.steps": "步骤",
 	"recipes.pitfalls": "常见陷阱",
 	"recipes.componentsUsed": "使用的组件",
-	"seo.introduction":
-		"FancyUI 是一个适用于 Svelte 5、React 和 Vue 的动画交互式 UI 组件库。了解它包含什么以及如何开始。",
 	"seo.installation":
 		"为 Svelte 5、React 或 Vue 安装 FancyUI：添加包、导入样式表，渲染你的第一个组件。",
 	"seo.theming":

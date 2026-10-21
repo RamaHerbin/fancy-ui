@@ -9,9 +9,6 @@ import type { ComponentMeta } from "$lib/types.js";
  * Ties go core before fancy, then alphabetical.
  */
 
-/** Three queries offered when a search comes back empty; each is tested to hit. */
-export const NO_RESULT_SUGGESTIONS = ["button", "scroll", "glow"] as const;
-
 const norm = (s: string) => s.trim().toLowerCase();
 
 /** Lower is better; Infinity when the component does not match at all. */

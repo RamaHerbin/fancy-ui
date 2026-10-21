@@ -158,14 +158,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "소개",
 	"intro.metaTitle": "소개",
-	"intro.pill.svelte": "Svelte 5 네이티브",
 	"intro.pill.animation": "애니메이션 우선",
 	"intro.pill.copyPaste": "복사-붙여넣기 친화적",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "철학",
-	"intro.philosophy.card1.title": "Svelte 5 네이티브",
-	"intro.philosophy.card1.desc": "룬으로 제작되었으며, 레거시 API를 사용하지 않습니다.",
 	"intro.philosophy.card2.title": "애니메이션 우선",
 	"intro.philosophy.card2.desc": "모든 컴포넌트가 다듬어진 애니메이션을 기본으로 제공합니다.",
 	"intro.philosophy.card3.title": "복사-붙여넣기 친화적",
@@ -178,9 +175,7 @@ export default {
 	"intro.quickStart.step1.title": "설치",
 	"intro.quickStart.step1.desc": "프로젝트에 FancyUI를 추가하세요.",
 	"intro.quickStart.step2.title": "가져오기",
-	"intro.quickStart.step2.desc": "필요한 컴포넌트를 가져오세요.",
 	"intro.quickStart.step3.title": "사용",
-	"intro.quickStart.step3.desc": "Svelte 컴포넌트에 추가하세요.",
 	"intro.whatsIncluded.heading": "포함된 내용",
 	"intro.whatsIncluded.body.other": "{categories}개 카테고리에 걸친 {count}개의 컴포넌트:",
 	"intro.category.buttons": "버튼",
@@ -359,6 +354,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"컴포넌트는 Vue 3.5 단일 파일 컴포넌트이므로 Vue 3.5.2 이상이 필요합니다.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"각 프레임워크에 맞게 네이티브로 작성되었습니다. Svelte는 runes, React는 hooks, Vue는 Composition API를 사용합니다.",
+	"intro.quickStart.step3.desc": "컴포넌트에 추가하세요.",
+	"install.peerDeps.optional": "선택 사항",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "본문으로 건너뛰기",
 	"a11y.docsBreadcrumb": "문서 이동 경로",
@@ -367,8 +370,6 @@ export default {
 	"search.a11y.close": "검색 닫기",
 	"nav.backToSite": "FancyUI 홈으로 돌아가기",
 	"nav.recipes": "레시피",
-	"toc.show": "목차 표시",
-	"footer.docs": "문서",
 	"footer.contribute": "기여하기",
 	"footer.issues": "이슈",
 	"footer.discussions": "토론",
@@ -413,8 +414,6 @@ export default {
 	"recipes.steps": "단계",
 	"recipes.pitfalls": "흔한 함정",
 	"recipes.componentsUsed": "사용된 컴포넌트",
-	"seo.introduction":
-		"FancyUI는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 라이브러리입니다. 포함된 내용과 시작 방법을 소개합니다.",
 	"seo.installation":
 		"Svelte 5, React, Vue용 FancyUI를 설치합니다. 패키지를 추가하고 스타일시트를 가져온 뒤 첫 컴포넌트를 렌더링합니다.",
 	"seo.theming":

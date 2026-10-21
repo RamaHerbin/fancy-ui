@@ -160,14 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "はじめに",
 	"intro.metaTitle": "はじめに",
-	"intro.pill.svelte": "Svelte 5 ネイティブ",
 	"intro.pill.animation": "アニメーション優先",
 	"intro.pill.copyPaste": "コピー＆ペーストに対応",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "設計思想",
-	"intro.philosophy.card1.title": "Svelte 5 ネイティブ",
-	"intro.philosophy.card1.desc": "runes で構築。レガシー API は不使用。",
 	"intro.philosophy.card2.title": "アニメーション優先",
 	"intro.philosophy.card2.desc":
 		"すべてのコンポーネントに、洗練されたアニメーションが標準で付属しています。",
@@ -183,9 +180,7 @@ export default {
 	"intro.quickStart.step1.title": "インストール",
 	"intro.quickStart.step1.desc": "FancyUI をプロジェクトに追加します。",
 	"intro.quickStart.step2.title": "インポート",
-	"intro.quickStart.step2.desc": "必要なコンポーネントをインポートします。",
 	"intro.quickStart.step3.title": "使用",
-	"intro.quickStart.step3.desc": "Svelte コンポーネント内に配置するだけです。",
 	"intro.whatsIncluded.heading": "収録内容",
 	"intro.whatsIncluded.body.other": "{categories} のカテゴリーにわたる {count} 個のコンポーネント:",
 	"intro.category.buttons": "ボタン",
@@ -368,6 +363,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"コンポーネントは Vue 3.5 のシングルファイルコンポーネントのため、Vue 3.5.2 以降が必要です。",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"各フレームワーク向けにネイティブに記述。Svelte では runes、React では hooks、Vue では Composition API を使用。",
+	"intro.quickStart.step3.desc": "コンポーネント内に配置するだけです。",
+	"install.peerDeps.optional": "任意",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "コンテンツへスキップ",
 	"a11y.docsBreadcrumb": "ドキュメントのパンくずリスト",
@@ -376,8 +379,6 @@ export default {
 	"search.a11y.close": "検索を閉じる",
 	"nav.backToSite": "FancyUIのホームに戻る",
 	"nav.recipes": "レシピ",
-	"toc.show": "目次を表示",
-	"footer.docs": "ドキュメント",
 	"footer.contribute": "コントリビュート",
 	"footer.issues": "Issues",
 	"footer.discussions": "ディスカッション",
@@ -425,8 +426,6 @@ export default {
 	"recipes.steps": "手順",
 	"recipes.pitfalls": "よくある落とし穴",
 	"recipes.componentsUsed": "使用しているコンポーネント",
-	"seo.introduction":
-		"FancyUIは、Svelte 5、React、Vue向けのアニメーション付きインタラクティブUIコンポーネントのライブラリです。内容と始め方をご紹介します。",
 	"seo.installation":
 		"Svelte 5、React、Vue向けにFancyUIをインストールします。パッケージを追加し、スタイルシートをインポートして、最初のコンポーネントを表示しましょう。",
 	"seo.theming":

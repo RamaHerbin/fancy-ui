@@ -160,14 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Pengantar",
 	"intro.metaTitle": "Pengantar",
-	"intro.pill.svelte": "Svelte 5 Native",
 	"intro.pill.animation": "Mengutamakan Animasi",
 	"intro.pill.copyPaste": "Ramah Salin-Tempel",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Filosofi",
-	"intro.philosophy.card1.title": "Svelte 5 native",
-	"intro.philosophy.card1.desc": "Dibangun dengan runes. Tanpa API lawas.",
 	"intro.philosophy.card2.title": "Mengutamakan animasi",
 	"intro.philosophy.card2.desc": "Setiap komponen hadir dengan animasi yang halus secara langsung.",
 	"intro.philosophy.card3.title": "Ramah salin-tempel",
@@ -180,9 +177,7 @@ export default {
 	"intro.quickStart.step1.title": "Instal",
 	"intro.quickStart.step1.desc": "Tambahkan FancyUI ke proyek Anda.",
 	"intro.quickStart.step2.title": "Impor",
-	"intro.quickStart.step2.desc": "Impor komponen yang Anda butuhkan.",
 	"intro.quickStart.step3.title": "Gunakan",
-	"intro.quickStart.step3.desc": "Tempatkan di komponen Svelte Anda.",
 	"intro.whatsIncluded.heading": "Apa yang Disertakan",
 	"intro.whatsIncluded.body.other": "{count} komponen di {categories} kategori:",
 	"intro.category.buttons": "Tombol",
@@ -365,6 +360,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Komponen adalah single-file component Vue 3.5, jadi Vue 3.5.2 atau lebih baru diperlukan.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Ditulis secara native untuk setiap framework: runes di Svelte, hooks di React, Composition API di Vue.",
+	"intro.quickStart.step3.desc": "Tempatkan di komponen Anda.",
+	"install.peerDeps.optional": "opsional",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "Langsung ke konten",
 	"a11y.docsBreadcrumb": "Breadcrumb dokumentasi",
@@ -373,8 +376,6 @@ export default {
 	"search.a11y.close": "Tutup pencarian",
 	"nav.backToSite": "Kembali ke beranda FancyUI",
 	"nav.recipes": "Resep",
-	"toc.show": "Tampilkan daftar isi",
-	"footer.docs": "Dokumentasi",
 	"footer.contribute": "Berkontribusi",
 	"footer.issues": "Issue",
 	"footer.discussions": "Diskusi",
@@ -419,8 +420,6 @@ export default {
 	"recipes.steps": "Langkah",
 	"recipes.pitfalls": "Jebakan umum",
 	"recipes.componentsUsed": "Komponen yang digunakan",
-	"seo.introduction":
-		"FancyUI adalah pustaka komponen UI animasi dan interaktif untuk Svelte 5, React, dan Vue. Pelajari isinya dan cara memulai.",
 	"seo.installation":
 		"Instal FancyUI untuk Svelte 5, React, atau Vue: tambahkan paket, impor stylesheet, lalu render komponen pertama Anda.",
 	"seo.theming":
