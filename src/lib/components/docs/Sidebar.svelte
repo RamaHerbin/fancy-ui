@@ -8,6 +8,7 @@
 	// `MessageKey` went with develop's `tCategory`, which now owns category labels.
 	import { t, tCategory, createSkinState } from "$lib/stores";
 	import { GITHUB_URL, PACKAGE_VERSION } from "$lib/site.js";
+	import { DOCS_SECTION_LINKS } from "$lib/components/docs/docs-nav.js";
 	import Logo from "$lib/components/Logo.svelte";
 
 	const skinState = createSkinState();
@@ -130,6 +131,23 @@
 							</li>
 						{/each}
 					</ul>
+				</div>
+
+				<!-- Recipes -->
+				<div class="mb-2">
+					{#each DOCS_SECTION_LINKS as link}
+						<a
+							href={link.href}
+							onclick={onclose}
+							class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isActive(
+								link.href
+							)
+								? 'text-sidebar-accent-foreground'
+								: 'text-sidebar-foreground/50 hover:text-sidebar-foreground/70'}"
+						>
+							{t(link.key)}
+						</a>
+					{/each}
 				</div>
 
 				<!-- Components link -->
