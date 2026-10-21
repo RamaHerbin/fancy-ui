@@ -25,6 +25,8 @@ export {
 	getLocale,
 	getDir,
 	t,
+	tn,
+	tx,
 	tCategory,
 	docTitle,
 	componentDocTitle,

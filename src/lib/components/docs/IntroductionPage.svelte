@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { t, createSkinState } from "$lib/stores";
+	import { t, tn, tx, createSkinState } from "$lib/stores";
+	import RichText from "$lib/components/docs/RichText.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
@@ -58,11 +59,7 @@
 
 	<p class="lead">
 		<strong>FancyUI</strong>
-		{t("intro.leadPre")}
-		<span class="grad">{t("intro.leadHighlight").replace("{count}", String(COMPONENT_COUNT))}</span
-		>,
-		<span class="solid">{t("intro.leadHighlight2")}</span>
-		{t("intro.leadPost")}
+		<RichText segments={tx("intro.lead", { count: COMPONENT_COUNT })} />
 	</p>
 
 	<div class="pills">
@@ -160,9 +157,7 @@
 		</div>
 	{:else}
 		<p class="section-body">
-			{t("intro.whatsIncluded.body")
-				.replace("{count}", String(COMPONENT_COUNT))
-				.replace("{categories}", String(usedCategories.length))}
+			{tn("intro.whatsIncluded.body", COMPONENT_COUNT, { categories: usedCategories.length })}
 		</p>
 		<!-- Every category the registry uses, in registry order; the labels stay
 		     English on purpose (they are the machine-facing names). -->
@@ -194,7 +189,7 @@
 			<div class="cta-ic">✦</div>
 			<div class="cta-text">
 				<div class="cta-title">{t("intro.cta.title")}</div>
-				<div class="cta-body">{@html t("intro.cta.body")}</div>
+				<div class="cta-body"><RichText segments={tx("intro.cta.body")} /></div>
 			</div>
 		</div>
 		<a class="cta-btn" href="/docs/getting-started/theme-generator"
@@ -251,10 +246,10 @@
 		margin-bottom: 28px;
 	}
 
-	/* Brand blue→purple hue gradient (matches the design). The semantic
+	/* <RichText> renders .grad/.solid, hence :global. Brand blue→purple hue gradient (matches the design). The semantic
 	   --gradient-primary is a lightness ramp between --primary/--accent, which
 	   fades clipped text into the background instead of reading as a gradient. */
-	.intro .grad {
+	.intro :global(.grad) {
 		background: linear-gradient(90deg, #5b8cff, #a142ff);
 		-webkit-background-clip: text;
 		background-clip: text;
@@ -263,7 +258,7 @@
 		font-weight: 600;
 	}
 
-	.intro .solid {
+	.intro :global(.solid) {
 		color: #b07aff;
 		font-weight: 600;
 	}

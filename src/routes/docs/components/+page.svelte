@@ -14,7 +14,7 @@
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
-	import { t, tCategory, docTitle } from "$lib/stores";
+	import { t, tn, tCategory, docTitle } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import type { ComponentCategory } from "$lib/types.js";
 
@@ -155,15 +155,13 @@
 			{t("gallery.title")}
 		</h1>
 		<p class="text-muted-foreground text-base">
-			{t("gallery.subtitle").replace("{count}", String(stats.done))}
+			{t("gallery.subtitle", { count: stats.done })}
 		</p>
 		<p class="text-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
 			{t("gallery.intro")}
 		</p>
 		<p class="text-muted-foreground/80 mt-4 font-mono text-xs">
-			{t("gallery.meta")
-				.replace("{components}", String(stats.done))
-				.replace("{categories}", String(populatedCategories.length))}
+			{t("gallery.meta", { components: stats.done, categories: populatedCategories.length })}
 		</p>
 	</div>
 
@@ -287,9 +285,7 @@
 			{#if isFiltered}
 				<div class="flex shrink-0 items-center gap-2 text-xs" aria-live="polite">
 					<span class="text-muted-foreground tabular-nums">
-						{resultCount === 1
-							? t("gallery.resultOne")
-							: t("gallery.results").replace("{count}", String(resultCount))}
+						{tn("gallery.results", resultCount)}
 					</span>
 					<button
 						type="button"
