@@ -18,12 +18,13 @@ async function swipeUp(page: Page, x: number, y: number, distance: number) {
 	});
 }
 
-// On a cold dev server the docs page arrives long before its client modules
-// have been compiled, so the demo is attached and laid out while hydration and
-// the web fonts are still in flight. A fixed sleep then measures a box that
-// moves (or a component without its listeners) and swipes from a stale point.
-// Wait for the actual signals instead: every module fetched, fonts loaded, and
-// the element's box unchanged across two animation frames.
+// On a cold dev server the docs page probably arrives long before its client
+// modules have been compiled, so the demo may be attached and laid out while
+// hydration and the web fonts are still in flight (likely cause of the early
+// flakes, not confirmed). A fixed sleep could then measure a box that moves, or
+// a component without its listeners, and swipe from a stale point. Wait for
+// real readiness signals instead: every module fetched, fonts loaded, and the
+// element's box unchanged across two animation frames.
 async function settled(page: Page, el?: Locator) {
 	await page.waitForLoadState("networkidle");
 	await page.evaluate(async () => {
