@@ -43,6 +43,52 @@
 		skeleton: { variant: "text", lines: 3, class: "w-72 text-base" },
 	};
 
+	// Stage around every directly rendered component. Library roots such as Sparkles and
+	// StarsBackground are `size-full` over an absolutely positioned layer, so they collapse
+	// to 0 in a parent without a definite height; the stage gives them one without touching
+	// the components. i18n-free: classes only.
+	export const DEFAULT_STAGE = "relative h-[300px] w-full";
+	const CONTENT_STAGE = "relative w-full";
+
+	// Per-slug override of the stage classes. Content-sized components (buttons, text,
+	// form fields) keep their natural height instead of floating in a 300px box.
+	export const previewBox: Record<string, string> = {
+		button: CONTENT_STAGE,
+		toggle: CONTENT_STAGE,
+		"copy-button": CONTENT_STAGE,
+		label: CONTENT_STAGE,
+		input: CONTENT_STAGE,
+		textarea: CONTENT_STAGE,
+		slider: CONTENT_STAGE,
+		"number-input": CONTENT_STAGE,
+		"search-input": CONTENT_STAGE,
+		"password-input": CONTENT_STAGE,
+		"date-picker": CONTENT_STAGE,
+		"time-picker": CONTENT_STAGE,
+		skeleton: CONTENT_STAGE,
+		"rainbow-button": CONTENT_STAGE,
+		"ripple-button": CONTENT_STAGE,
+		"shimmer-button": CONTENT_STAGE,
+		"gradient-button": CONTENT_STAGE,
+		"interactive-hover-button": CONTENT_STAGE,
+		confetti: CONTENT_STAGE,
+		"line-hover-link": CONTENT_STAGE,
+		"colourful-text": CONTENT_STAGE,
+		"flip-words": CONTENT_STAGE,
+		"hyper-text": CONTENT_STAGE,
+		"letter-pullup": CONTENT_STAGE,
+		"number-ticker": CONTENT_STAGE,
+		"sparkles-text": CONTENT_STAGE,
+		"text-generate-effect": CONTENT_STAGE,
+		"line-shadow-text": CONTENT_STAGE,
+		"displacement-text": CONTENT_STAGE,
+		"terminal-text": CONTENT_STAGE,
+		"container-text-flip": CONTENT_STAGE,
+		"box-reveal": CONTENT_STAGE,
+		"blur-reveal": CONTENT_STAGE,
+		focus: CONTENT_STAGE,
+	};
+
 	// Components that we skip direct render (need too much setup). Exported so the
 	// component page knows when to source the Code tab from BasicUsage.svelte instead
 	// of the generic single-tag usage.
@@ -383,65 +429,69 @@
 	{@const Comp = getComponent()}
 	{@const props = defaultProps[slug] || {}}
 	{#if Comp}
-		<!-- Simple or needs-props: render with defaults -->
-		{#if slug === "rainbow-button"}
-			<Comp {...props}>Rainbow Button</Comp>
-		{:else if slug === "shimmer-button"}
-			<Comp {...props}>Shimmer Button</Comp>
-		{:else if slug === "ripple-button"}
-			<Comp {...props}>Ripple Button</Comp>
-		{:else if slug === "gradient-button"}
-			<Comp {...props}>Gradient Button</Comp>
-		{:else if slug === "button"}
-			<Comp {...props}>Button</Comp>
-		{:else if slug === "toggle"}
-			<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
-		{:else if slug === "label"}
-			<Comp {...props}>Email address</Comp>
-		{:else if slug === "confetti"}
-			<Comp {...props}
-				><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
-					>Click for Confetti</button
-				></Comp
-			>
-		{:else if slug === "box-reveal"}
-			<Comp color="var(--primary)" duration={0.5}>
-				<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
-			</Comp>
-		{:else if slug === "blur-reveal"}
-			<Comp>
-				<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>
-				<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
-			</Comp>
-		{:else if slug === "card-spotlight"}
-			<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
-				<div class="relative z-20 p-6">
-					<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
-					<p class="text-muted-foreground mt-2 text-sm">Mouse-following radial gradient effect.</p>
+		<div data-demo-stage class={previewBox[slug] ?? DEFAULT_STAGE}>
+			<!-- Simple or needs-props: render with defaults -->
+			{#if slug === "rainbow-button"}
+				<Comp {...props}>Rainbow Button</Comp>
+			{:else if slug === "shimmer-button"}
+				<Comp {...props}>Shimmer Button</Comp>
+			{:else if slug === "ripple-button"}
+				<Comp {...props}>Ripple Button</Comp>
+			{:else if slug === "gradient-button"}
+				<Comp {...props}>Gradient Button</Comp>
+			{:else if slug === "button"}
+				<Comp {...props}>Button</Comp>
+			{:else if slug === "toggle"}
+				<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
+			{:else if slug === "label"}
+				<Comp {...props}>Email address</Comp>
+			{:else if slug === "confetti"}
+				<Comp {...props}
+					><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
+						>Click for Confetti</button
+					></Comp
+				>
+			{:else if slug === "box-reveal"}
+				<Comp color="var(--primary)" duration={0.5}>
+					<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
+				</Comp>
+			{:else if slug === "blur-reveal"}
+				<Comp>
+					<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>
+					<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
+				</Comp>
+			{:else if slug === "card-spotlight"}
+				<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
+					<div class="relative z-20 p-6">
+						<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
+						<p class="text-muted-foreground mt-2 text-sm">
+							Mouse-following radial gradient effect.
+						</p>
+					</div>
+				</Comp>
+			{:else if slug === "glare-card"}
+				<Comp>
+					<div class="flex h-full items-center justify-center p-6">
+						<p class="text-foreground text-lg font-bold">Glare Card</p>
+					</div>
+				</Comp>
+			{:else if slug === "neon-border"}
+				<Comp {...props}>
+					<div class="rounded-xl p-8 text-center">
+						<p class="text-foreground font-semibold">Neon Border</p>
+					</div>
+				</Comp>
+			{:else if slug === "line-hover-link"}
+				<div class="flex flex-col gap-4">
+					<Comp href="#" variant="slide">Slide</Comp>
+					<Comp href="#" variant="grow">Grow</Comp>
+					<Comp href="#" variant="sweep">Sweep</Comp>
 				</div>
-			</Comp>
-		{:else if slug === "glare-card"}
-			<Comp>
-				<div class="flex h-full items-center justify-center p-6">
-					<p class="text-foreground text-lg font-bold">Glare Card</p>
-				</div>
-			</Comp>
-		{:else if slug === "neon-border"}
-			<Comp {...props}>
-				<div class="rounded-xl p-8 text-center">
-					<p class="text-foreground font-semibold">Neon Border</p>
-				</div>
-			</Comp>
-		{:else if slug === "line-hover-link"}
-			<div class="flex flex-col gap-4">
-				<Comp href="#" variant="slide">Slide</Comp>
-				<Comp href="#" variant="grow">Grow</Comp>
-				<Comp href="#" variant="sweep">Sweep</Comp>
-			</div>
-		{:else}
-			<!-- Default: render with props, no children -->
-			<Comp {...props} />
-		{/if}
+			{:else}
+				<!-- Default: render with props, no children -->
+				<Comp {...props} />
+			{/if}
+		</div>
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			Component not found in module
