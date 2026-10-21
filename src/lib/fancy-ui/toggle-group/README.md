@@ -105,6 +105,15 @@ component.
   keyed `{#each}` moves to a new position after the fact, is correct on the
   very next key press.
 
+## Native attributes
+
+`ToggleGroupItem` forwards native `<button>` attributes and listeners (`id`,
+`data-*`, `aria-describedby`, `onblur`, ...) to its button. `aria-pressed`,
+`disabled`, the roving `tabindex` and the `data-*` state attributes stay the
+component's; a consumer `aria-label` is used when no `label` prop is given.
+`onclick`, `onfocus` and `onkeydown` run once after the component's own
+handling, and not at all while the item is disabled.
+
 ## Props
 
 ### ToggleGroup

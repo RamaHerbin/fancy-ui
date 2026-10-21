@@ -6,18 +6,30 @@ export interface DropdownMenuTriggerProps {
 	disabled?: boolean;
 	/** Additional CSS classes, merged onto the trigger. */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onKeydown?: ((event: KeyboardEvent) => void) | ((event: KeyboardEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, useAttrs, useTemplateRef, watch } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { DROPDOWN_MENU_KEY } from "./types.js";
 
 defineOptions({ name: "DropdownMenuTrigger", inheritAttrs: false });
 
-const { disabled = false, class: className } = defineProps<DropdownMenuTriggerProps>();
+const attrs = useAttrs();
+
+const {
+	disabled = false,
+	class: className,
+	onClick,
+	onKeydown,
+} = defineProps<DropdownMenuTriggerProps>();
 
 /** The trigger's content. */
 defineSlots<{ default?: () => unknown }>();
@@ -45,7 +57,7 @@ watch(
 	{ flush: "post" }
 );
 
-function handleClick(): void {
+function handleClick(event: MouseEvent): void {
 	if (disabled) return;
 	if (ctx.open) {
 		// Focus is already here — it's the element that was just clicked — so
@@ -54,10 +66,16 @@ function handleClick(): void {
 	} else {
 		ctx.openWithFocus("first");
 	}
+	callListener(onClick, event);
 }
 
 function handleKeydown(event: KeyboardEvent): void {
 	if (disabled) return;
+	handleNavigationKey(event);
+	callListener(onKeydown, event);
+}
+
+function handleNavigationKey(event: KeyboardEvent): void {
 	switch (event.key) {
 		case "Enter":
 		case " ":
@@ -83,6 +101,9 @@ const classes = computed(() =>
 <template>
 	<button
 		ref="trigger"
+		@click="handleClick"
+		@keydown="handleKeydown"
+		v-bind="attrs"
 		:id="ctx.triggerId"
 		type="button"
 		:disabled="disabled"
@@ -90,8 +111,6 @@ const classes = computed(() =>
 		aria-haspopup="menu"
 		:aria-expanded="ctx.open"
 		:aria-controls="ctx.open ? ctx.contentId : undefined"
-		@click="handleClick"
-		@keydown="handleKeydown"
 	>
 		<slot />
 	</button>

@@ -22,16 +22,21 @@ export interface ToggleProps {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 
 defineOptions({ name: "Toggle", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const props = withDefaults(defineProps<ToggleProps>(), {
 	disabled: false,
@@ -77,24 +82,26 @@ const classes = computed(() =>
 // The only place `pressed` changes. Never inside a watcher — that would mean
 // reading and writing the same state in one pass and would fight a caller's
 // own v-model write.
-function toggle() {
+function toggle(event: MouseEvent) {
 	if (props.disabled) return;
 	const next = !pressed.value;
 	pressed.value = next;
 	if (props.sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 	props.onPressedChange?.(next);
+	callListener(props.onClick, event);
 }
 </script>
 
 <template>
 	<button
 		ref="ref"
+		@click="toggle"
+		v-bind="attrs"
 		type="button"
 		:class="classes"
 		:aria-pressed="pressed"
-		:aria-label="label"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
 		:disabled="disabled"
-		@click="toggle"
 	>
 		<slot />
 	</button>

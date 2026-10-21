@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import { useMenuItemRef } from "../../internals/menu.js";
@@ -7,7 +7,7 @@ import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useMenuContext } from "./types.js";
 
-export interface DropdownMenuItemProps {
+interface DropdownMenuItemOwnProps {
 	/** Called when the item is selected, by click or (in a real browser) by Enter/Space while it holds focus. */
 	onSelect?: () => void;
 	/** Disables the item: skipped by keyboard navigation and typeahead, inert to click. */
@@ -27,6 +27,15 @@ export interface DropdownMenuItemProps {
 }
 
 /**
+ * Native `<button>` attributes and listeners are forwarded to the button; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface DropdownMenuItemProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof DropdownMenuItemOwnProps>,
+		DropdownMenuItemOwnProps {}
+
+/**
  * One selectable row.
  *
  * No `forwardRef`: the source exposes no `ref` binding for an item, and the
@@ -41,6 +50,9 @@ export function DropdownMenuItem({
 	icon,
 	children,
 	className,
+	onClick,
+	onMouseEnter,
+	...rest
 }: DropdownMenuItemProps) {
 	// `DropdownMenuContent`/`DropdownMenuSubContent` always provide this
 	// before mounting their children, so there is no standalone-usage
@@ -70,7 +82,7 @@ export function DropdownMenuItem({
 	// A native `disabled` attribute already blocks a real click, and React
 	// additionally refuses to deliver `onClick` to a disabled button; the
 	// handler guards again rather than trusting either.
-	function handleClick(): void {
+	function handleClick(event: MouseEvent<HTMLButtonElement>): void {
 		if (disabled) return;
 		playCue("select");
 		// Mouse hover already syncs the menu core's tracked focus position
@@ -87,6 +99,7 @@ export function DropdownMenuItem({
 		// the menu on top of it must never also play `close`, or one item
 		// activation would yield two cues instead of one.
 		if (closeOnSelect) ctx.closeAll({ silent: true });
+		onClick?.(event);
 	}
 
 	// Real DOM focus IS the highlight in a `role="menu"` built on the menu
@@ -94,9 +107,10 @@ export function DropdownMenuItem({
 	// focus onto it is correct here. There is nothing to cancel: this is the
 	// behaviour a mouse user needs to stay in sync with a keyboard user's own
 	// arrow-key highlight.
-	function handleMouseEnter(): void {
+	function handleMouseEnter(event: MouseEvent<HTMLButtonElement>): void {
 		if (disabled || !itemRef.current) return;
 		ctx.focus.focusItem(itemRef.current);
+		onMouseEnter?.(event);
 	}
 
 	// No font-size here: it inherits from whichever panel renders this item
@@ -114,6 +128,7 @@ export function DropdownMenuItem({
 
 	return (
 		<button
+			{...rest}
 			ref={ref}
 			type="button"
 			role="menuitem"

@@ -16,12 +16,13 @@
 	and taken back on close.
 -->
 <script lang="ts" module>
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import type { ModelOptionData } from "../_internals/ai-types.js";
 
 	/**
 	 * Props for ComposerModelPicker
 	 */
-	export interface ComposerModelPickerProps {
+	export interface ComposerModelPickerOwnProps {
 		/** The models on offer. An empty list leaves the picker inert. */
 		models: ModelOptionData[];
 		/** The selected model's id, bindable. Falls back to the first model. */
@@ -33,6 +34,10 @@
 		/** Additional CSS classes */
 		class?: string;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the trigger button; `type`, `disabled`, `aria-haspopup`, `aria-expanded`, `aria-controls` and `aria-label` stay the component's. */
+	export type ComposerModelPickerProps = ComposerModelPickerOwnProps &
+		Omit<HTMLButtonAttributes, keyof ComposerModelPickerOwnProps>;
 </script>
 
 <script lang="ts">
@@ -48,6 +53,9 @@
 		onChange,
 		label = "Model",
 		class: className,
+		onclick,
+		onkeydown,
+		...rest
 	}: ComposerModelPickerProps = $props();
 
 	// Undefined when the picker is used outside a Composer: it then behaves as a
@@ -123,7 +131,22 @@
 		if (changed) onChange?.(model.id);
 	}
 
-	function handleTriggerKeydown(event: KeyboardEvent) {
+	function handleTriggerClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (isDisabled) return;
+		if (open) closeMenu(true);
+		else openMenu();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleTriggerKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		if (isDisabled) return;
+		handleTriggerKeydownCore(event);
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleTriggerKeydownCore(event: KeyboardEvent) {
 		if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 		// Both arrows open. The menu sits above the composer, which is where "up"
 		// expects to find it, and "down" is the habit every native select taught.
@@ -194,6 +217,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={triggerEl}
 	type="button"
 	class={cn(
@@ -206,7 +230,7 @@
 	aria-expanded={open}
 	aria-controls={open ? menuId : undefined}
 	aria-label={selected ? `${label}: ${selected.label}` : label}
-	onclick={() => (open ? closeMenu(true) : openMenu())}
+	onclick={handleTriggerClick}
 	onkeydown={handleTriggerKeydown}
 >
 	<span class="truncate">{selected?.label ?? label}</span>
