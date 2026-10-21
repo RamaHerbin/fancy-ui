@@ -27,7 +27,7 @@ Inspired by the pretext
 
 ```svelte
 <script lang="ts">
-	import { EditorialEngine } from "$lib/fancy-ui/editorial-engine";
+	import { EditorialEngine } from "fancy-ui-svelte";
 </script>
 
 <div class="h-[85vh]">

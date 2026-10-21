@@ -263,7 +263,41 @@ describe("createFlickeringGrid", () => {
 		tick(16);
 		const dpr = window.devicePixelRatio || 1;
 		expect(draws.lastRect).toEqual([9 * 10 * dpr, 7 * 10 * dpr, 4 * dpr, 4 * dpr]);
-		// default color #000000, maxOpacity 0.3 with random() === 1 -> opacity 0.3
-		expect(draws.fillStyles[0]).toBe("rgba(0, 0, 0,0.30000001192092896)");
+		// default maxOpacity 0.3 with random() === 1 -> opacity 0.3
+		expect(draws.fillStyles[0]).toMatch(/,0\.3000000/);
+	});
+
+	it("defaults the colour to currentColor: the square colour is the container's computed text colour", () => {
+		const { container, canvas, draws } = makeElements();
+		container.style.color = "rgb(10, 20, 30)";
+		document.body.append(container);
+		const engine = createFlickeringGrid({ container, canvas }, {}, () => 1);
+		engine!.setInView(true);
+		tick(16);
+		expect(draws.fillStyles[0]).toMatch(/^rgba\(10, 20, 30,/);
+		container.remove();
+	});
+
+	it("follows a theme change of currentColor on the next frame", () => {
+		const { container, canvas, draws } = makeElements();
+		container.style.color = "rgb(0, 0, 0)";
+		document.body.append(container);
+		const engine = createFlickeringGrid({ container, canvas }, {}, () => 1);
+		engine!.setInView(true);
+		tick(16);
+		expect(draws.fillStyles[0]).toMatch(/^rgba\(0, 0, 0,/);
+		container.style.color = "rgb(250, 250, 250)";
+		tick(32);
+		expect(draws.fillStyles[draws.fillStyles.length - 1]).toMatch(/^rgba\(250, 250, 250,/);
+		container.remove();
+	});
+
+	it("still honours an explicit hex colour", () => {
+		const { container, canvas, draws } = makeElements();
+		container.style.color = "rgb(10, 20, 30)";
+		const engine = createFlickeringGrid({ container, canvas }, { color: "#ff0000" }, () => 1);
+		engine!.setInView(true);
+		tick(16);
+		expect(draws.fillStyles[0]).toMatch(/^rgba\(255, 0, 0,/);
 	});
 });

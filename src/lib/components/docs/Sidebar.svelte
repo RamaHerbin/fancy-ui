@@ -76,7 +76,13 @@
 				<!-- Brutal brand block: ink tile carrying the mark + stacked mono
 				     sub-line. The halo is off here: the tile is only 34px, so the
 				     glow would spill past its edges instead of reading as light. -->
-				<a href="/" data-docs-brand class="docs-brand" onclick={onclose}>
+				<a
+					href="/"
+					data-docs-brand
+					class="docs-brand"
+					aria-label={t("nav.backToSite")}
+					onclick={onclose}
+				>
 					<span class="docs-brand-logo" aria-hidden="true"><Logo size={20} glow={false} /></span>
 					<span class="docs-brand-text">
 						<span class="docs-brand-name">FancyUI</span>
@@ -90,6 +96,7 @@
 					<a
 						href="/"
 						data-docs-brand
+						aria-label={t("nav.backToSite")}
 						class="flex items-center gap-2 text-lg font-semibold tracking-tight"
 						onclick={onclose}
 					>

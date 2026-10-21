@@ -143,3 +143,34 @@
 		margin-inline-start: 0;
 	}
 }
+/* Retro below the sidebar breakpoint: the wordmark, the search field and the
+   control group cannot all keep their full width inside the window frame. Drop
+   the `DOCS.EXE` suffix and collapse the field to its keycap so the breadcrumb
+   can shrink to an ellipsis instead of pushing the controls past the frame. */
+@media (max-width: 1023.98px) {
+	.docs-skin[data-skin="retro-os"] .retro-brand-ext {
+		display: none;
+	}
+	.docs-skin[data-skin="retro-os"] .retro-search {
+		width: auto;
+		padding-inline-start: 6px;
+	}
+	.docs-skin[data-skin="retro-os"] .retro-search-label {
+		display: none;
+	}
+	.docs-skin[data-skin="retro-os"] header {
+		gap: 8px;
+	}
+	.docs-skin[data-skin="retro-os"] header > [data-docs-controls] {
+		gap: 8px;
+	}
+	.docs-skin[data-skin="retro-os"] .retro-menubar-tools {
+		gap: 4px;
+	}
+	.docs-skin[data-skin="retro-os"] header [data-language-switcher] > button,
+	.docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button,
+	.docs-skin[data-skin="retro-os"] header [data-sound-toggle],
+	.docs-skin[data-skin="retro-os"] header .docs-theme-btn {
+		padding-inline: 6px;
+	}
+}

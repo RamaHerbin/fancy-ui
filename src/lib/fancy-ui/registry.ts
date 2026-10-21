@@ -319,7 +319,12 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		tags: ["background", "stars", "canvas", "animation", "3d", "space"],
 		props: [
-			{ name: "color", type: "string", default: '"#FFF"', description: "Star color as hex string" },
+			{
+				name: "color",
+				type: "string",
+				default: '"currentColor"',
+				description: "Star color: a hex string, or currentColor to follow the text colour",
+			},
 			{ name: "count", type: "number", default: "200", description: "Number of stars" },
 		],
 	},
@@ -1736,8 +1741,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "color",
 				type: "string",
-				default: '"#000000"',
-				description: "Color of the squares (hex format)",
+				default: '"currentColor"',
+				description:
+					"Color of the squares: a hex string, or currentColor to follow the text colour",
 			},
 			{
 				name: "maxOpacity",
@@ -3102,7 +3108,8 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "particleColor",
 				type: "string",
 				default: '"#ffffff"',
-				description: "Color of the particles",
+				description:
+					"Color of the particles: a hex string, or currentColor to follow the text colour",
 			},
 			{
 				name: "minSize",

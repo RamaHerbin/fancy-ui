@@ -18,7 +18,7 @@ export interface FallingStarsInitOptions {
 
 /** Props the Svelte wrapper reacts to after mount today. */
 export interface FallingStarsLiveOptions {
-	/** Star color as hex string. */
+	/** Star color: a hex string, or `currentColor` (default) to follow the text colour. */
 	color?: string;
 }
 
@@ -41,8 +41,10 @@ interface Rgb {
 	b: number;
 }
 
-function hexToRgb(hex: string): Rgb {
-	let h = (hex || "#000").replace(/^#/, "");
+const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
+
+function parseHex(hex: string): Rgb {
+	let h = (hex || "#000").trim().replace(/^#/, "");
 	if (h.length === 3) {
 		h = h
 			.split("")
@@ -50,10 +52,59 @@ function hexToRgb(hex: string): Rgb {
 			.join("");
 	}
 	const bigint = parseInt(h, 16) || 0;
-	return {
-		r: (bigint >> 16) & 255,
-		g: (bigint >> 8) & 255,
-		b: bigint & 255,
+	return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+
+/**
+ * Turn the browser's computed `color` into 0-255 channels. The common
+ * `rgb()`/`rgba()` serialisation is parsed directly; newer spaces (oklch,
+ * color-mix, ...) are rasterised through a 1x1 canvas, which converts them to
+ * sRGB for free. Falls back to black when neither works (no canvas backend).
+ */
+function computedToRgb(computed: string): Rgb {
+	const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(computed);
+	if (m) return { r: Math.round(+m[1]!), g: Math.round(+m[2]!), b: Math.round(+m[3]!) };
+	if (!computed) return { r: 0, g: 0, b: 0 };
+	try {
+		const probe = document.createElement("canvas");
+		probe.width = probe.height = 1;
+		const pctx = probe.getContext("2d", { willReadFrequently: true });
+		if (pctx) {
+			pctx.fillStyle = computed;
+			pctx.fillRect(0, 0, 1, 1);
+			const [r = 0, g = 0, b = 0] = pctx.getImageData(0, 0, 1, 1).data;
+			return { r, g, b };
+		}
+	} catch {
+		// fall through to the black fallback
+	}
+	return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * Colour resolver: a hex string is parsed once per value, `currentColor` is
+ * re-read from `el`'s computed style on every call (so a light/dark switch
+ * lands on the next frame) and re-parsed only when that string changes.
+ */
+function createColorResolver(el: Element) {
+	let lastComputed = "";
+	let lastRgb: Rgb = { r: 0, g: 0, b: 0 };
+	let lastHex = "";
+	let lastHexRgb: Rgb = { r: 0, g: 0, b: 0 };
+	return (color: string): Rgb => {
+		if (CURRENT_COLOR.test(color)) {
+			const computed = getComputedStyle(el).color;
+			if (computed !== lastComputed) {
+				lastComputed = computed;
+				lastRgb = computedToRgb(computed);
+			}
+			return lastRgb;
+		}
+		if (color !== lastHex) {
+			lastHex = color;
+			lastHexRgb = parseHex(color);
+		}
+		return lastHexRgb;
 	};
 }
 
@@ -72,8 +123,8 @@ export function createFallingStars(
 	if (!ctx) return null;
 
 	const count = options.count ?? 200;
-	let color = options.color ?? "#FFF";
-	let cachedRgb = hexToRgb(color);
+	let color = options.color ?? "currentColor";
+	const resolveColor = createColorResolver(canvas);
 
 	let dpr = 1;
 	let perspective = 0;
@@ -101,7 +152,7 @@ export function createFallingStars(
 		perspective = width / 2;
 	}
 
-	function drawStar(star: Star, width: number, height: number): void {
+	function drawStar(star: Star, width: number, height: number, rgb: Rgb): void {
 		if (!ctx) return;
 
 		const scale = perspective / (perspective + star.z);
@@ -112,8 +163,6 @@ export function createFallingStars(
 		const prevScale = perspective / (perspective + star.z + star.speed * 15);
 		const xPrev = width / 2 + star.x * prevScale;
 		const yPrev = height / 2 + star.y * prevScale;
-
-		const rgb = cachedRgb;
 
 		// Layered strokes from wide+faint to narrow+brighter to fake blur
 		const layerAlphas = [0.08, 0.14, 0.22];
@@ -150,11 +199,12 @@ export function createFallingStars(
 		const height = canvas.clientHeight;
 
 		ctx.clearRect(0, 0, width, height);
+		const rgb = resolveColor(color);
 
 		for (let i = 0; i < stars.length; i++) {
 			const star = stars[i];
 			if (!star) continue;
-			drawStar(star, width, height);
+			drawStar(star, width, height, rgb);
 
 			star.z -= star.speed;
 
@@ -188,7 +238,6 @@ export function createFallingStars(
 		setOptions(next) {
 			if (next.color !== undefined) {
 				color = next.color;
-				cachedRgb = hexToRgb(color);
 			}
 		},
 		resize,

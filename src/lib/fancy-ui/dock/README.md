@@ -15,7 +15,7 @@ under it.
 
 ```svelte
 <script>
-	import { Dock, DockIcon, DockSeparator } from "$lib/fancy-ui/dock";
+	import { Dock, DockIcon, DockSeparator } from "fancy-ui-svelte";
 </script>
 
 <Dock ariaLabel="Applications">

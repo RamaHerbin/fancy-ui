@@ -10,4 +10,5 @@
 	description={SITE_DESCRIPTION}
 	path="/docs/getting-started/introduction"
 />
+
 <IntroductionPage />

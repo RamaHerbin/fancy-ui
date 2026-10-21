@@ -3,8 +3,9 @@
  * README count gate.
  *
  * The component count quoted in README.md, react/README.md, vue/README.md and
- * the root package.json description must equal the number of entries in
- * src/lib/fancy-ui/registry.ts. Counts that describe a sub-kit (for example
+ * the root package.json description must equal the number of registry entries in
+ * src/lib/fancy-ui/registry.ts that are component folders (the `sound` family
+ * is excluded, as in the parity matrices). Counts that describe a sub-kit (for example
  * "18 components" of one subpath) do not match the patterns below and are
  * left alone.
  *
@@ -29,15 +30,30 @@ const PATTERNS = [
 	/"description":\s*"(\d+) UI components/g,
 ];
 
-/** Number of top-level entries of the `registry` object in registry.ts. */
-export function registrySize() {
-	const src = readFileSync(join(repoRoot, "src/lib/fancy-ui/registry.ts"), "utf8");
+/**
+ * Registry slugs that are not component folders. Mirrors `isComponentDir` in
+ * react/scripts/check-matrix.mjs: `sound` is a family shipped from src/sound/.
+ */
+const NON_COMPONENT = new Set(["sound"]);
+
+/** Slugs of the top-level entries of the `registry` object in `src`. */
+export function registrySlugs(src) {
 	const start = src.search(/export\s+const\s+registry\s*:/);
 	if (start === -1) throw new Error("Could not locate `export const registry` in registry.ts");
 	const body = src.slice(start);
 	const end = body.search(/^\};/m);
 	const entries = body.slice(0, end === -1 ? undefined : end).match(/^\t"?[A-Za-z0-9_-]+"?: \{$/gm);
-	return entries ? entries.length : 0;
+	return (entries ?? []).map((e) => e.trim().replace(/^"|"?: \{$/g, ""));
+}
+
+/** Components counted the way the parity matrices count them. */
+export function countComponents(slugs) {
+	return slugs.filter((s) => !NON_COMPONENT.has(s)).length;
+}
+
+export function registrySize() {
+	const src = readFileSync(join(repoRoot, "src/lib/fancy-ui/registry.ts"), "utf8");
+	return countComponents(registrySlugs(src));
 }
 
 /** Every quoted total in `text`, with its 1-based line. */
@@ -63,7 +79,11 @@ function selfTest() {
 	const ok = checkText("a", "**3 components**\nComponents-3-x", 3).length === 0;
 	const bad = checkText("a", "**4 components**", 3).length === 1;
 	const sub = findCounts("a subpath (18 components, kit)").length === 0;
-	if (!(ok && bad && sub)) {
+	const fake =
+		'export const registry: R = {\n\t"a-b": {\n\t},\n\tsound: {\n\t},\n\tc: {\n\t},\n};\n';
+	const slugs = registrySlugs(fake);
+	const excl = slugs.join() === "a-b,sound,c" && countComponents(slugs) === 2;
+	if (!(ok && bad && sub && excl)) {
 		console.error("check-readme-count: self-test failed");
 		process.exit(1);
 	}
