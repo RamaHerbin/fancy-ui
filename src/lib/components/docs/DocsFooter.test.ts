@@ -7,6 +7,7 @@ vi.mock("$app/state", () => ({ page: { url: new URL("http://localhost/docs") } }
 
 import DocsFooter from "./DocsFooter.svelte";
 import { setFramework } from "$lib/stores/framework.svelte.js";
+import { t } from "$lib/stores";
 import {
 	CODE_OF_CONDUCT_URL,
 	CONTRIBUTING_URL,
@@ -53,6 +54,11 @@ describe("DocsFooter", () => {
 		for (const [name, href] of Object.entries(hrefs)) {
 			expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
 		}
+	});
+
+	it("names the links nav with an existing message key", () => {
+		render(DocsFooter);
+		expect(screen.getByRole("navigation", { name: t("footer.contribute") })).toBeInTheDocument();
 	});
 
 	it("shows the license and the repository link", () => {
