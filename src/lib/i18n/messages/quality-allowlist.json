@@ -171,15 +171,9 @@
 			"skin.beta": "Loanword or cognate that reads the same in this language (baseline before the native review).",
 			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review)."
 		},
-		"hi": {
-			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review)."
-		},
-		"ja": {
-			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review)."
-		},
-		"zh-Hans": {
-			"footer.issues": "Loanword or cognate that reads the same in this language (baseline before the native review)."
-		}
+		"hi": {},
+		"ja": {},
+		"zh-Hans": {}
 	},
 	"punctuation": {
 		"*": {}
@@ -277,6 +271,81 @@
 			"file": "src/routes/docs/recipes/[slug]/+page.svelte",
 			"text": "recipe —",
 			"reason": "Page title: English by design so the result headline matches English search queries (same policy as componentDocTitle). The recipe body stays English."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Rainbow Button",
+			"reason": "Sample content rendered inside the live demo of the rainbow-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Shimmer Button",
+			"reason": "Sample content rendered inside the live demo of the shimmer-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Ripple Button",
+			"reason": "Sample content rendered inside the live demo of the ripple-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Gradient Button",
+			"reason": "Sample content rendered inside the live demo of the gradient-button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Button",
+			"reason": "Sample content rendered inside the live demo of the button component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Box Reveal",
+			"reason": "Sample content rendered inside the live demo of the box-reveal component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Blur Reveal Effect",
+			"reason": "Sample content rendered inside the live demo of the blur-reveal component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Card Spotlight",
+			"reason": "Sample content rendered inside the live demo of the card-spotlight component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Glare Card",
+			"reason": "Sample content rendered inside the live demo of the glare-card component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Neon Border",
+			"reason": "Sample content rendered inside the live demo of the neon-border component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Slide",
+			"reason": "Sample content rendered inside the live demo of the line-hover-link component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Grow",
+			"reason": "Sample content rendered inside the live demo of the line-hover-link component, not docs chrome."
+		},
+		{
+			"file": "src/lib/components/docs/DemoRenderer.svelte",
+			"text": "Sweep",
+			"reason": "Sample content rendered inside the live demo of the line-hover-link component, not docs chrome."
+		},
+		{
+			"file": "src/routes/docs/getting-started/theme-generator/+page.svelte",
+			"text": "Gradient",
+			"reason": "Sample label on the live gradient-button used to preview the generated palette, not docs chrome."
+		},
+		{
+			"file": "src/routes/docs/getting-started/theme-generator/+page.svelte",
+			"text": "Shimmer",
+			"reason": "Sample label on the live shimmer-button used to preview the generated palette, not docs chrome."
 		}
 	]
 }

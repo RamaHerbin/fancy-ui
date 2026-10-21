@@ -342,6 +342,32 @@ describe("quality checks: each one can fail", () => {
 		).toEqual([]);
 	});
 
+	it("static chrome: single words and Title Case labels are English too; brands and identifiers are not", () => {
+		const svelte = `<button aria-label="Previous" title="Copy"><span>Preview</span></button>
+<p>Code</p>
+<h2>Browse Components</h2>
+<a href="/docs">Docs</a>
+<ol><li>Recipes</li></ol>
+<b>FancyUI</b> <i>FluidCursor</i> <i>CLI</i> <i>npm</i> <i>GitHub</i> <i>OKLCh</i>
+<span>12</span> <span>→</span> <span>{count}</span> <span>à</span>`;
+		const hits = (P.scanSvelteSource(svelte) as { kind: string; text: string }[]).map(
+			(h) => `${h.kind}:${h.text}`
+		);
+		expect(hits).toEqual([
+			"aria-label:Previous",
+			"title:Copy",
+			"text:Preview",
+			"text:Code",
+			"text:Browse Components",
+			"text:Docs",
+			"text:Recipes",
+		]);
+		expect(P.looksLikeEnglish("Settings")).toBe(true);
+		expect(P.looksLikeEnglish("copy")).toBe(true);
+		expect(P.looksLikeEnglish("FancyUI")).toBe(false);
+		expect(P.looksLikeEnglish("v1.2")).toBe(false);
+	});
+
 	it("parser: reads keys, values, @context comments and refuses anything else", () => {
 		const src = `// header\nexport const en = {\n\t// section\n\t/** @context First. */\n\t"a.b": "One",\n\t"c.d":\n\t\t"Two {x}",\n} as const;`;
 		const { entries, header } = P.parseCatalogSource(src);

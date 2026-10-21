@@ -98,7 +98,9 @@ export const en = {
 	"comp.inspiredBy": "Inspired by",
 	"comp.examples": "Examples",
 	"comp.related": "Related components",
+	/** @context Eyebrow above the previous page link in the pager, and the accessible name of the "scroll to previous items" arrow in carousel previews. A short direction word. */
 	"comp.previous": "Previous",
+	/** @context Eyebrow above the next page link in the pager, and the accessible name of the "scroll to next items" arrow in carousel previews. A short direction word. */
 	"comp.next": "Next",
 	/** @context Status chip on a component page and card: the component API is settled. */
 	"status.stable": "Stable",
@@ -185,7 +187,7 @@ export const en = {
 	"tg.cardSurfaceDesc": "Uses --card, --foreground, --border and --radius.",
 	"tg.primaryAction": "Primary action",
 	"tg.accentBadge": "Accent badge",
-	/** @context Caption of a preview card whose animated border follows the two tuned colors. {primary} and {accent} are the translated labels of tg.primary and tg.accent. */
+	/** @context Caption of a preview card whose animated border follows the two tuned colors. {primary} and {accent} are the translated labels of tg.primary and tg.accent. The arrow shows direction from the first colour to the second and is not mirrored in right-to-left text: in Arabic and Persian use the left-pointing arrow, or reword without one. */
 	"tg.beamDesc": "Beam colors follow {primary} → {accent}.",
 	"tg.generatedCss": "Generated CSS",
 	"tg.copyCss": "Copy CSS",
@@ -232,9 +234,9 @@ export const en = {
 	"intro.quickStart.step3.title": "Use",
 	"intro.quickStart.step3.desc": "Drop it in your Svelte components.",
 	"intro.whatsIncluded.heading": "What's Included",
-	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. */
+	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example "in categories: {categories}", so that no inflected noun depends on it. */
 	"intro.whatsIncluded.body.one": "{count} component across {categories} categories:",
-	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. */
+	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example "in categories: {categories}", so that no inflected noun depends on it. */
 	"intro.whatsIncluded.body.other": "{count} components across {categories} categories:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Cards",
@@ -426,7 +428,7 @@ export const en = {
 	"nav.recipes": "Recipes",
 	/** @context Summary of the collapsible on-this-page outline shown on screens too narrow for the side table of contents. */
 	"toc.show": "Show contents",
-	/** @context Docs footer: label of the documentation link group. */
+	/** @context Docs footer: label of the documentation link group, and the first breadcrumb item in the docs header. */
 	"footer.docs": "Docs",
 	/** @context Docs footer link to the contributing guide. */
 	"footer.contribute": "Contribute",

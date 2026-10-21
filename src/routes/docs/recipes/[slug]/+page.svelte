@@ -80,7 +80,7 @@
 		<ol class="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
 			<li><a href="/" class="hover:text-foreground transition-colors">{t("nav.home")}</a></li>
 			<li aria-hidden="true" class="opacity-40 select-none">/</li>
-			<li>Recipes</li>
+			<li>{t("nav.recipes")}</li>
 			<li aria-hidden="true" class="opacity-40 select-none">/</li>
 			<li class="text-foreground font-medium" aria-current="page">{recipe.title}</li>
 		</ol>

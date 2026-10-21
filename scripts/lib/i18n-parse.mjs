@@ -384,11 +384,52 @@ function maskSvelte(src) {
 	return out;
 }
 
-/** Does this look like a human sentence or label in English (vs. a code token or a brand)? */
+/**
+ * Names that are the same in every language: the product, the platforms it
+ * ships for and the tools it names. Matched whole-word, case-sensitively.
+ */
+export const CHROME_BRAND_WORDS = new Set([
+	"FancyUI",
+	"GitHub",
+	"Svelte",
+	"SvelteKit",
+	"React",
+	"Vue",
+	"Tailwind",
+	"TypeScript",
+	"JavaScript",
+	"npm",
+	"pnpm",
+	"npx",
+	"OKLCh",
+	"Node",
+]);
+
+/**
+ * Is this word exempt from the English check? Brand names, acronyms and
+ * identifiers (ALLCAPS, PascalCase component names such as `FluidCursor`, camelCase,
+ * anything with a digit, underscore or hyphen-joined code token) are not prose.
+ * A plain lowercase or Capitalised word (`Previous`, `copy`, `Browse`) is.
+ */
+function isExemptWord(word) {
+	if (CHROME_BRAND_WORDS.has(word)) return true;
+	if (/^[A-Z]{2,}$/.test(word)) return true; // CLI, API, CSS
+	if (/^[A-Z][a-z0-9]+(?:[A-Z][A-Za-z0-9]*)+$/.test(word)) return true; // PascalCase
+	if (/^[a-z]+[A-Z][A-Za-z0-9]*$/.test(word)) return true; // camelCase
+	return false;
+}
+
+/**
+ * Does this look like a human word or label in English (vs. a code token, a
+ * brand or an identifier)? Any Latin word of 3 or more letters, lower or
+ * upper case, that is not exempt makes the text count: single words such as
+ * "Previous", "Copy" and Title Case labels are literal English too.
+ */
 export function looksLikeEnglish(text) {
 	const t = text.replace(/&[a-z#0-9]+;/gi, " ").trim();
 	if (t.length < 3) return false;
-	return /\b[a-z]{3,}\b/.test(t);
+	const words = t.match(/[A-Za-z][A-Za-z0-9]*/g) ?? [];
+	return words.some((w) => /^[A-Za-z]{3,}$/.test(w) && !isExemptWord(w));
 }
 
 /**

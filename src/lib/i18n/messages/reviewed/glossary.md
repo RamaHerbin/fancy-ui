@@ -34,19 +34,19 @@ in `ja`/`zh-Hans`, an ordinary space elsewhere).
 | registry             | registre              | Registry           | registro                | registro                 | registro              |
 | framework            | framework             | Framework          | framework               | framework                | framework             |
 
-| English              | pl                   | cs                      | ja               | ko          | zh-Hans    |
-| -------------------- | -------------------- | ----------------------- | ---------------- | ----------- | ---------- |
-| component            | komponent            | komponenta              | コンポーネント   | 컴포넌트    | 组件       |
-| prop                 | właściwość           | vlastnost               | プロパティ       | 속성        | 属性       |
-| slot                 | slot                 | slot                    | スロット         | 슬롯        | 插槽       |
-| event                | zdarzenie            | událost                 | イベント         | 이벤트      | 事件       |
-| design token / token | token projektowy     | design token            | デザイントークン | 디자인 토큰 | 设计令牌   |
-| theme                | motyw                | motiv                   | テーマ           | 테마        | 主题       |
-| skin                 | skórka               | vzhled                  | スキン           | 스킨        | 皮肤       |
-| preview              | podgląd              | náhled                  | プレビュー       | 미리보기    | 预览       |
-| copy source          | skopiuj kod źródłowy | zkopírovat zdrojový kód | ソースをコピー   | 소스 복사   | 复制源代码 |
-| registry             | rejestr              | registr                 | レジストリ       | 레지스트리  | 注册表     |
-| framework            | framework            | framework               | フレームワーク   | 프레임워크  | 框架       |
+| English              | pl                   | cs                      | ja               | ko          | zh-Hans      |
+| -------------------- | -------------------- | ----------------------- | ---------------- | ----------- | ------------ |
+| component            | komponent            | komponenta              | コンポーネント   | 컴포넌트    | 组件         |
+| prop                 | właściwość           | vlastnost               | プロパティ       | 속성        | 属性         |
+| slot                 | slot                 | slot                    | スロット         | 슬롯        | 插槽         |
+| event                | zdarzenie            | událost                 | イベント         | 이벤트      | 事件         |
+| design token / token | token projektowy     | design token            | デザイントークン | 디자인 토큰 | 设计令牌     |
+| theme                | motyw                | motiv                   | テーマ           | 테마        | 主题         |
+| skin                 | skórka               | skin                    | スキン           | 스킨        | 皮肤         |
+| preview              | podgląd              | náhled                  | プレビュー       | 미리보기    | 预览         |
+| copy source          | skopiuj kod źródłowy | zkopírovat zdrojový kód | ソースをコピー   | 소스 복사   | 复制源代码   |
+| registry             | rejestr              | registr                 | レジストリ       | 레지스트리  | 组件注册中心 |
+| framework            | framework            | framework               | フレームワーク   | 프레임워크  | 框架         |
 
 | English              | hi                  | id                | tr                    | ar                   | fa          |
 | -------------------- | ------------------- | ----------------- | --------------------- | -------------------- | ----------- |
@@ -59,7 +59,7 @@ in `ja`/`zh-Hans`, an ordinary space elsewhere).
 | skin                 | स्किन               | skin              | görünüm               | مظهر                 | پوسته       |
 | preview              | प्रीव्यू            | pratinjau         | önizleme              | معاينة               | پیش‌نمایش   |
 | copy source          | सोर्स कोड कॉपी करें | salin kode sumber | kaynak kodunu kopyala | نسخ الشيفرة المصدرية | کپی کد منبع |
-| registry             | रजिस्ट्री           | registri          | kayıt defteri         | السجلّ               | رجیستری     |
+| registry             | रजिस्ट्री           | registri          | registry              | السجلّ               | رجیستری     |
 | framework            | फ़्रेमवर्क          | framework         | framework             | إطار العمل           | فریم‌ورک    |
 
 Notes on the table:
@@ -74,14 +74,22 @@ Notes on the table:
   a radius, a duration). Do not use the same word for a text or security token.
 - **theme** is the set of tokens (light, dark, brand); **skin** is the visual style of
   the docs site chrome (standard, brutal, retro). They must never share a word in one
-  language (`fa`: theme `تم`, skin `پوسته`).
+  language (`fa`: theme `تم`, skin `پوسته`; `cs`: theme `motiv`, skin `skin`).
+  The drafts do not follow this yet: `cs` `page.theming` and `skin.heading` are both
+  `Vzhled`, and `fa` `page.theming` and the link in `tg.intro` use `پوسته‌بندی` (the skin
+  word) for the theming page. The cs and fa reviewers align them with the table.
 - **copy source** is the action that copies the component's source code into the
   reader's project; the reader then owns the code. Never render it as "copy and
   paste the page" or as a package install.
 - **registry** is the catalog the copy-source tools read from; it is not an operating-system
-  registry, a notary's register or a package index.
+  registry, a notary's register or a package index. For this reason `zh-Hans` uses
+  `组件注册中心` (the bare `注册表` is the Windows Registry) and `tr` keeps `registry` (the
+  literal `kayıt defteri` reads as an accounting ledger).
 - The `jobs.*` labels (browse by what you need) and the `category.*` labels must share
   their vocabulary: if the category is "Feedback", the job "Give feedback" uses the
   same noun or verb family in that language.
+- **Arrows and bidi.** An arrow that carries a direction (`{primary} → {accent}`) is not
+  mirrored in a right-to-left paragraph; in `ar` and `fa` write `←` so it still reads
+  from the first colour to the second.
 - A credit line ("Inspired by …") is a courtesy credit. Never render it as "ported
   from", "copied from" or "based on the code of".

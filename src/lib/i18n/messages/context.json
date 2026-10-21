@@ -319,13 +319,13 @@
 	},
 	"comp.previous": {
 		"en": "Previous",
-		"context": null,
+		"context": "Eyebrow above the previous page link in the pager, and the accessible name of the \"scroll to previous items\" arrow in carousel previews. A short direction word.",
 		"maxLen": 20,
 		"render": "src/lib/components/docs/PrevNextNav.svelte:59"
 	},
 	"comp.next": {
 		"en": "Next",
-		"context": null,
+		"context": "Eyebrow above the next page link in the pager, and the accessible name of the \"scroll to next items\" arrow in carousel previews. A short direction word.",
 		"maxLen": 16,
 		"render": "src/lib/components/docs/PrevNextNav.svelte:72"
 	},
@@ -715,7 +715,7 @@
 	},
 	"tg.beamDesc": {
 		"en": "Beam colors follow {primary} → {accent}.",
-		"context": "Caption of a preview card whose animated border follows the two tuned colors. {primary} and {accent} are the translated labels of tg.primary and tg.accent.",
+		"context": "Caption of a preview card whose animated border follows the two tuned colors. {primary} and {accent} are the translated labels of tg.primary and tg.accent. The arrow shows direction from the first colour to the second and is not mirrored in right-to-left text: in Arabic and Persian use the left-pointing arrow, or reword without one.",
 		"maxLen": 64,
 		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:393"
 	},
@@ -967,13 +967,13 @@
 	},
 	"intro.whatsIncluded.body.one": {
 		"en": "{count} component across {categories} categories:",
-		"context": "Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories.",
+		"context": "Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example \"in categories: {categories}\", so that no inflected noun depends on it.",
 		"maxLen": null,
 		"render": "src/lib/components/docs/IntroductionPage.svelte:160"
 	},
 	"intro.whatsIncluded.body.other": {
 		"en": "{count} components across {categories} categories:",
-		"context": "Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories.",
+		"context": "Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example \"in categories: {categories}\", so that no inflected noun depends on it.",
 		"maxLen": null,
 		"render": "src/lib/components/docs/IntroductionPage.svelte:160"
 	},
@@ -1779,7 +1779,7 @@
 		"en": "Recipes",
 		"context": "Sidebar entry and breadcrumb label for the recipes index.",
 		"maxLen": 19,
-		"render": null
+		"render": "src/routes/docs/recipes/[slug]/+page.svelte:83"
 	},
 	"toc.show": {
 		"en": "Show contents",
@@ -1789,9 +1789,9 @@
 	},
 	"footer.docs": {
 		"en": "Docs",
-		"context": "Docs footer: label of the documentation link group.",
+		"context": "Docs footer: label of the documentation link group, and the first breadcrumb item in the docs header.",
 		"maxLen": 16,
-		"render": null
+		"render": "src/lib/components/docs/DocHeader.svelte:72"
 	},
 	"footer.contribute": {
 		"en": "Contribute",

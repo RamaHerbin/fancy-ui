@@ -35,6 +35,32 @@ group together, so editing any of them marks all of the locale's variants stale.
 A reviewer's pull request touches exactly two files: `messages/<code>.ts` and
 `messages/reviewed/<code>.json`.
 
+## Known draft defects (reviewer seeds)
+
+The drafts are mechanical: a fragment-keyed sentence was merged into one message and the
+old word order was kept. These are known and must be fixed by the reviewer of the
+locale, on top of the checklist above.
+
+- `tg.intro` (`see <link>…</link>.`) keeps the English order, which is wrong in `ko`
+(should read `<link>테마 설정</link>을 확인하세요.`), `fa` (`به <link>…</link> مراجعه
+کنید.`) and `hi` (`<link>थीमिंग</link> देखें।`). The link text is also in the wrong
+case in `cs` (`v <link>Vzhled</link>`, needs the locative) and `pl` (`w
+  <link>Motywy</link>`). In `ja` and `zh-Hans` there is a space after `。` and the final
+  `.` is half-width (the script hygiene check flags it).
+- `tg.beamDesc` (`{primary} → {accent}`): in `ar` and `fa` use `←`; the arrow is not
+  mirrored in a right-to-left paragraph.
+- `intro.whatsIncluded.body.*` is plural on `{count}` only, but the noun after
+  `{categories}` also agrees with the number in `ar`, `pl` and `cs`. Rephrase freely
+  (`… in categories: {categories}`) so no inflected noun is needed.
+- `intro.lead`: in `ko` and `ja` the message starts with a particle (`는 …`, `は、…`),
+  and the page renders `<strong>FancyUI</strong>` followed by a space before it, so `ko`
+  shows `FancyUI 는`. The page or the message must close that gap (the Introduction page
+  is owned by the docs-content mission).
+- `cs`/`fa` terminology: see the notes under the glossary table (`page.theming`,
+  `skin.heading`).
+- `zh-Hans`: `注册表` is the Windows Registry; use the glossary's `组件注册中心`.
+  `tr`: replace `kayıt defteri` by `registry` wherever the catalog uses it.
+
 ## When the English changes
 
 Changing the English text of a key makes it stale in every locale's manifest, which is

@@ -69,7 +69,8 @@
 		<!-- Phone widths keep only the current page; the sidebar holds the rest. -->
 		<a
 			href="/docs"
-			class="text-muted-foreground hover:text-foreground hidden transition-colors sm:inline">Docs</a
+			class="text-muted-foreground hover:text-foreground hidden transition-colors sm:inline"
+			>{t("footer.docs")}</a
 		>
 		{#each breadcrumbs as crumb}
 			<span class="retro-crumb-sep text-muted-foreground/50 hidden sm:inline">/</span>
