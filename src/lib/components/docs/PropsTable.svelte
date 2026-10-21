@@ -1,12 +1,22 @@
 <script lang="ts">
 	import type { PropDef } from "$lib/types.js";
 	import { t } from "$lib/stores";
+	import type { Framework } from "$lib/inspiration/types.js";
+	import { portPropName, type PortOptions } from "$lib/docs/port-names.js";
+	import PortName from "./PortName.svelte";
 
 	interface Props {
 		props: PropDef[];
+		/** Shows the React or Vue name next to each Svelte name. */
+		framework?: Framework;
+		/**
+		 * What the ports declare (Vue models, React and Vue callbacks), as
+		 * registry prop names, so each name is the one the port exports.
+		 */
+		ports?: PortOptions;
 	}
 
-	let { props }: Props = $props();
+	let { props, framework = "svelte", ports = {} }: Props = $props();
 </script>
 
 {#if props.length > 0}
@@ -29,6 +39,13 @@
 							>
 								{prop.name}
 							</code>
+							{#if framework !== "svelte"}
+								<PortName
+									{framework}
+									name={prop.name}
+									port={portPropName(prop, framework, ports)}
+								/>
+							{/if}
 							{#if prop.required}
 								<span class="ml-1 text-xs text-red-500">*</span>
 							{/if}

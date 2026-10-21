@@ -62,6 +62,8 @@ export default {
 	"table.slot": "スロット",
 	"table.event": "イベント",
 	"table.payload": "ペイロード",
+	"table.portName": "{framework} での名前",
+	"table.portNameUnknown": "命名規則からは導けません。Svelte API との違いを参照してください。",
 	"comp.events": "イベント",
 	"comp.copyMarkdown": "Markdown としてコピー",
 

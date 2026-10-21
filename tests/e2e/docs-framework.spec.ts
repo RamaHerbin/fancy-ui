@@ -148,6 +148,134 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(notice.getByRole("link")).toHaveAttribute("href", /vue\/README\.md#/);
 	});
 
+	test("a shared ?framework=react link opens on React without a click", async ({ page }) => {
+		// A saved Vue preference loses to the link.
+		await page.addInitScript(() => localStorage.setItem("fancy-ui-framework", "vue"));
+		await page.goto("/docs/components/button?framework=react");
+		await hydrated(page);
+
+		await expect(page.getByRole("radio", { name: "React" }).first()).toHaveAttribute(
+			"aria-checked",
+			"true"
+		);
+		const usage = page.locator("section:has(h2#usage)");
+		await expect(usage).toContainText("fancy-ui-react");
+		await expect(usage).not.toContainText("fancy-ui-svelte");
+		expect(await page.evaluate(() => localStorage.getItem("fancy-ui-framework"))).toBe("react");
+	});
+
+	test("switching writes the framework to the URL in place", async ({ page }) => {
+		await page.goto("/docs/components/button");
+		await hydrated(page);
+		const entries = await page.evaluate(() => history.length);
+
+		await pick(page, "Vue");
+		await expect(page).toHaveURL(/\/docs\/components\/button\?framework=vue$/);
+		await pick(page, "React");
+		await expect(page).toHaveURL(/\/docs\/components\/button\?framework=react$/);
+		expect(await page.evaluate(() => history.length)).toBe(entries);
+
+		// The address is now a link that reopens the page the same way.
+		await page.reload();
+		await hydrated(page);
+		await expect(page.locator("section:has(h2#usage)")).toContainText("fancy-ui-react");
+	});
+
+	test("the API tables show the port names next to the Svelte names", async ({ page }) => {
+		await page.goto("/docs/components/button?framework=react");
+		await hydrated(page);
+
+		const props = page.locator("section:has(h2#props)");
+		const classRow = props.locator("tbody tr", {
+			has: page.locator("code", { hasText: /^class$/ }),
+		});
+		await expect(classRow.locator('[data-port-name="react"]')).toHaveText("className");
+		const clickRow = props.locator("tbody tr", {
+			has: page.locator("code", { hasText: /^onclick$/ }),
+		});
+		await expect(clickRow.locator('[data-port-name="react"]')).toHaveText("onClick");
+		// The notice pointing at the written differences stays.
+		await expect(page.locator("[data-api-notice]")).toBeVisible();
+
+		await pick(page, "Vue");
+		const slots = page.locator("section:has(h2#slots)");
+		const childrenRow = slots.locator("tbody tr", {
+			has: page.locator("code", { hasText: /^children$/ }),
+		});
+		await expect(childrenRow.locator('[data-port-name="vue"]')).toHaveText("#default");
+		await expect(classRow.locator("[data-port-name]")).toHaveCount(0);
+
+		await pick(page, "Svelte");
+		await expect(page.locator("[data-port-name]")).toHaveCount(0);
+	});
+
+	test("the framework stays in the address after an in-app link", async ({ page }) => {
+		await page.goto("/docs/components/button");
+		await hydrated(page);
+		await pick(page, "Vue");
+		await expect(page).toHaveURL(/\/docs\/components\/button\?framework=vue$/);
+
+		// Sidebar links carry no parameter; the store writes it back after the navigation.
+		await page.locator('a[href="/docs/components/compare"]').first().click();
+		await expect(page).toHaveURL(/\/docs\/components\/compare\?framework=vue$/);
+		await expect(page.locator("section:has(h2#usage)")).toContainText("fancy-ui-vue");
+	});
+
+	test("callback names are the ones each port exports", async ({ page }) => {
+		const row = (name: string) =>
+			page.locator("section:has(h2#props) tbody tr", {
+				has: page.locator("code", { hasText: new RegExp(`^${name}$`) }),
+			});
+
+		// The React Compare keeps its callbacks lowercase; the Vue one declares camel case.
+		await page.goto("/docs/components/compare?framework=react");
+		await hydrated(page);
+		await expect(row("onpercentagechange").locator("[data-port-name]")).toHaveCount(0);
+		await expect(row("onpercentagechange").locator("[data-port-name-unknown]")).toHaveCount(0);
+		await pick(page, "Vue");
+		await expect(row("onpercentagechange").locator('[data-port-name="vue"]')).toHaveText(
+			"@percentage-change"
+		);
+
+		// A native listener RippleButton only forwards keeps its DOM name in Vue.
+		await page.goto("/docs/components/ripple-button?framework=vue");
+		await hydrated(page);
+		await expect(row("onpointermove").locator('[data-port-name="vue"]')).toHaveText("@pointermove");
+		await pick(page, "React");
+		await expect(row("onpointermove").locator('[data-port-name="react"]')).toHaveText(
+			"onPointerMove"
+		);
+	});
+
+	test("the gallery's own ?framework= filter is neither read nor written", async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem("fancy-ui-framework", "react"));
+		await page.goto("/inspiration?framework=vue");
+		await hydrated(page);
+		// Opening a filtered gallery link leaves the saved docs choice alone.
+		expect(await page.evaluate(() => localStorage.getItem("fancy-ui-framework"))).toBe("react");
+
+		// Switching in the footer saves the choice without touching the gallery URL.
+		const footerSvelte = page.locator("footer").getByRole("radio", { name: "Svelte" });
+		await footerSvelte.click();
+		await expect(footerSvelte).toHaveAttribute("aria-checked", "true");
+		expect(await page.evaluate(() => localStorage.getItem("fancy-ui-framework"))).toBe("svelte");
+		await expect(page).toHaveURL(/\/inspiration\?framework=vue$/);
+	});
+
+	test("the Markdown export link carries the framework", async ({ page }) => {
+		await page.goto("/docs/components/button?framework=react");
+		await hydrated(page);
+		await expect(page.locator("[data-markdown-link]")).toHaveAttribute(
+			"href",
+			"/docs/components/button.md?framework=react"
+		);
+		await pick(page, "Vue");
+		await expect(page.locator("[data-markdown-link]")).toHaveAttribute(
+			"href",
+			"/docs/components/button.md?framework=vue"
+		);
+	});
+
 	test("an open Code tab falls back to the preview when switching to React", async ({ page }) => {
 		await page.goto("/docs/components/rainbow-button");
 		await hydrated(page);
