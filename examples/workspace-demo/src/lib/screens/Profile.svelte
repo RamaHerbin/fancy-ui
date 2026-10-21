@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from "svelte";
 	import { Button, FormField, Input, Select, Skeleton, Textarea, toast } from "fancy-ui-svelte";
 	import { ApiError, api as sharedApi, type Profile, type WorkspaceApi } from "$lib/data/api.js";
 	import { strings } from "$lib/strings.js";
@@ -34,6 +35,13 @@
 	type Form = { name: string; handle: string; bio: string; location: string; timezone: string };
 
 	let started = $state(false);
+	let root = $state<HTMLElement>();
+	// The first-launch action unmounts itself: hand focus to the form it reveals.
+	async function start() {
+		started = true;
+		await tick();
+		root?.querySelector<HTMLElement>("form input, form textarea")?.focus();
+	}
 	let saving = $state(false);
 	let form = $state<Form>({ name: "", handle: "", bio: "", location: "", timezone: "" });
 	let baseline = $state<Form>({ name: "", handle: "", bio: "", location: "", timezone: "" });
@@ -90,6 +98,7 @@
 </script>
 
 <div
+	bind:this={root}
 	data-screen="profile"
 	data-state={loader.state.status}
 	aria-busy={loader.state.status === "loading"}
@@ -138,7 +147,7 @@
 
 			{#if loader.state.status === "empty" && !started}
 				<EmptyState title={text.emptyTitle} description={text.emptyBody}>
-					<Button onclick={() => (started = true)}>{text.emptyAction}</Button>
+					<Button onclick={start}>{text.emptyAction}</Button>
 				</EmptyState>
 			{:else}
 				<Card title={text.details} description={text.detailsHint}>

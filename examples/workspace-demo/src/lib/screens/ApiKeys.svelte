@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy } from "svelte";
+	import { onDestroy, onMount, tick } from "svelte";
 	import {
 		Button,
 		Checkbox,
@@ -54,8 +54,22 @@
 			(key) => !removed.includes(key.id)
 		)
 	);
-	// Empty only until the first key exists, then the list takes over.
-	const showEmpty = $derived(loader.state.status === "empty" && keys.length === 0 && !creating());
+	// Empty whenever no key is left and none is being made, however the screen
+	// got there: a first launch, or every key revoked here.
+	const showEmpty = $derived(
+		(loader.state.status === "ready" || loader.state.status === "empty") &&
+			keys.length === 0 &&
+			!creating()
+	);
+
+	let root = $state<HTMLElement>();
+	// Moves focus once the DOM has caught up with a state change, so removing
+	// the element that held it never drops the user on <body>.
+	async function focusAfterUpdate(selector: string) {
+		await tick();
+		root?.querySelector<HTMLElement>(selector)?.focus();
+	}
+	const rowButton = (id: string) => `[data-key-id="${id}"] button`;
 
 	let formOpen = $state(false);
 	let name = $state("");
@@ -73,6 +87,12 @@
 		scopes = [];
 		errors = {};
 		formOpen = true;
+		void focusAfterUpdate("[data-create-form] input");
+	}
+
+	function closeSecret() {
+		secret = null;
+		void focusAfterUpdate("[data-create-key] button");
 	}
 
 	function toggleScope(scope: ApiKeyScope, on: boolean) {
@@ -103,15 +123,82 @@
 
 	// Revoking is optimistic and reversible for a few seconds: the row leaves
 	// at once, the call is only made when the window closes without an Undo.
+	// The window is ours, not the toast's: the toast stays until we close it,
+	// and the countdown stops while the pointer or focus is on that toast, so
+	// nobody loses the chance to press Undo to the clock.
 	interface Pending {
 		key: ApiKey;
-		timer: ReturnType<typeof setTimeout>;
 		toastId: string;
+		timer: ReturnType<typeof setTimeout> | undefined;
+		remaining: number;
+		startedAt: number | null;
+		hovering: boolean;
+		focused: boolean;
 	}
 	const pending = new Map<string, Pending>();
 
+	function arm(entry: Pending) {
+		entry.startedAt = Date.now();
+		entry.timer = setTimeout(() => void commit(entry.key, true), entry.remaining);
+	}
+
+	function hold(entry: Pending) {
+		if (entry.startedAt === null) return;
+		clearTimeout(entry.timer);
+		entry.remaining -= Date.now() - entry.startedAt;
+		entry.startedAt = null;
+	}
+
+	function sync(entry: Pending) {
+		if (entry.hovering || entry.focused) hold(entry);
+		else if (entry.startedAt === null) arm(entry);
+	}
+
+	// Which pending revoke a toast belongs to, read from the toast's own text.
+	function entryOf(target: EventTarget | null): Pending | undefined {
+		const toastEl = target instanceof Element ? target.closest(".ft-toast") : null;
+		if (!toastEl) return undefined;
+		let found: Pending | undefined;
+		for (const entry of pending.values()) {
+			if (!toastEl.textContent?.includes(`${text.revoked} ${entry.key.name}`)) continue;
+			if (!found || entry.key.name.length > found.key.name.length) found = entry;
+		}
+		return found;
+	}
+
+	function track(flag: "hovering" | "focused", on: boolean) {
+		return (event: Event) => {
+			const entry = entryOf(event.target);
+			if (!entry) return;
+			const to = (event as PointerEvent | FocusEvent).relatedTarget;
+			// Moving between two parts of the same toast is not leaving it.
+			if (!on && to instanceof Node && (event.target as Element).closest(".ft-toast")?.contains(to))
+				return;
+			entry[flag] = on;
+			sync(entry);
+		};
+	}
+
+	onMount(() => {
+		const handlers: [string, (event: Event) => void][] = [
+			["pointerover", track("hovering", true)],
+			["pointerout", track("hovering", false)],
+			["focusin", track("focused", true)],
+			["focusout", track("focused", false)],
+		];
+		for (const [type, handler] of handlers) document.addEventListener(type, handler);
+		return () => {
+			for (const [type, handler] of handlers) document.removeEventListener(type, handler);
+		};
+	});
+
 	async function commit(key: ApiKey, notify: boolean) {
-		pending.delete(key.id);
+		const entry = pending.get(key.id);
+		if (entry) {
+			clearTimeout(entry.timer);
+			dismissToast(entry.toastId);
+			pending.delete(key.id);
+		}
 		try {
 			await api.revokeApiKey(key.id);
 		} catch (error) {
@@ -128,15 +215,32 @@
 	}
 
 	function revoke(key: ApiKey) {
+		const before = keys;
+		const index = before.findIndex((k) => k.id === key.id);
 		removed = [...removed, key.id];
 		const toastId = toast({
 			title: `${text.revoked} ${key.name}`,
 			description: text.revokedBody,
-			duration: UNDO_WINDOW_MS,
+			duration: Infinity,
 			action: { label: text.undo, onClick: () => undo(key.id) },
 		});
-		const timer = setTimeout(() => void commit(key, true), UNDO_WINDOW_MS);
-		pending.set(key.id, { key, timer, toastId });
+		const entry: Pending = {
+			key,
+			toastId,
+			timer: undefined,
+			remaining: UNDO_WINDOW_MS,
+			startedAt: null,
+			hovering: false,
+			focused: false,
+		};
+		pending.set(key.id, entry);
+		arm(entry);
+		// The row that held focus is gone: hand it to its neighbour, or to the
+		// way of making a key when none is left.
+		const next = before[index + 1] ?? before[index - 1];
+		void focusAfterUpdate(
+			next ? rowButton(next.id) : "[data-empty-state] button, [data-create-key] button"
+		);
 	}
 
 	function undo(id: string) {
@@ -146,26 +250,27 @@
 		pending.delete(id);
 		dismissToast(entry.toastId);
 		removed = removed.filter((removedId) => removedId !== id);
+		void focusAfterUpdate(rowButton(id));
 	}
 
 	// Leaving the screen is not an undo: what was revoked stays revoked.
 	onDestroy(() => {
-		for (const entry of pending.values()) {
-			clearTimeout(entry.timer);
-			void commit(entry.key, false);
-		}
+		for (const entry of [...pending.values()]) void commit(entry.key, false);
 	});
 </script>
 
 <div
+	bind:this={root}
 	data-screen="api-keys"
 	data-state={loader.state.status}
 	aria-busy={loader.state.status === "loading"}
 >
 	<ScreenHeader screen="apiKeys">
 		{#snippet actions()}
-			{#if loader.state.status !== "loading" && loader.state.status !== "error" && !creating() && keys.length > 0}
-				<Button onclick={openForm}>{text.create}</Button>
+			{#if loader.state.status !== "loading" && loader.state.status !== "error" && !creating()}
+				<span class="contents" data-create-key
+					><Button onclick={openForm}>{text.create}</Button></span
+				>
 			{/if}
 		{/snippet}
 	</ScreenHeader>
@@ -203,14 +308,14 @@
 						<CopyButton value={secret} variant="outline" />
 					</div>
 					<div class="mt-4 flex justify-end">
-						<Button onclick={() => (secret = null)}>{text.secretDone}</Button>
+						<Button onclick={closeSecret}>{text.secretDone}</Button>
 					</div>
 				</Card>
 			{/if}
 
 			{#if formOpen}
 				<Card title={text.createHeading}>
-					<form class="flex flex-col gap-4" onsubmit={create} novalidate>
+					<form class="flex flex-col gap-4" data-create-form onsubmit={create} novalidate>
 						<FormField label={text.keyName} error={errors.name} required>
 							<Input bind:value={name} placeholder={text.keyNamePlaceholder} />
 						</FormField>
@@ -246,7 +351,10 @@
 					class="border-border bg-card divide-border divide-y rounded-xl border"
 				>
 					{#each keys as key (key.id)}
-						<li class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+						<li
+							data-key-id={key.id}
+							class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+						>
 							<div class="min-w-0">
 								<p class="truncate text-sm font-medium">{key.name}</p>
 								<p class="text-muted-foreground mt-0.5 font-mono text-xs break-all">

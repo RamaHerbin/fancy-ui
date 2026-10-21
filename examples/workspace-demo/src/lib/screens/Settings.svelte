@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from "svelte";
 	import {
 		Accordion,
 		AccordionContent,
@@ -53,6 +54,13 @@
 	];
 
 	let started = $state(false);
+	let root = $state<HTMLElement>();
+	// The first-launch action unmounts itself: hand focus to the form it reveals.
+	async function start() {
+		started = true;
+		await tick();
+		root?.querySelector<HTMLElement>("form button")?.focus();
+	}
 	let saving = $state(false);
 	let openSections = $state<string[]>(["general"]);
 	let form = $state<Settings | null>(null);
@@ -104,6 +112,7 @@
 </script>
 
 <div
+	bind:this={root}
 	data-screen="settings"
 	data-state={loader.state.status}
 	aria-busy={loader.state.status === "loading"}
@@ -128,7 +137,7 @@
 		/>
 	{:else if loader.state.status === "empty" && !started}
 		<EmptyState title={text.emptyTitle} description={text.emptyBody}>
-			<Button onclick={() => (started = true)}>{text.emptyAction}</Button>
+			<Button onclick={start}>{text.emptyAction}</Button>
 		</EmptyState>
 	{:else if showForm && form}
 		<form class="flex flex-col gap-4" onsubmit={save} novalidate>
@@ -138,7 +147,7 @@
 				class="border-border bg-card divide-border divide-y rounded-xl border px-4 md:px-5"
 			>
 				<AccordionItem value="general">
-					<AccordionTrigger>{text.general}</AccordionTrigger>
+					<AccordionTrigger headingLevel={2}>{text.general}</AccordionTrigger>
 					<AccordionContent>
 						<div class="flex flex-col gap-4 pb-4">
 							<FormField label={text.workspaceName} description={text.generalHint}>
@@ -157,7 +166,7 @@
 				</AccordionItem>
 
 				<AccordionItem value="notifications">
-					<AccordionTrigger>{text.notifications}</AccordionTrigger>
+					<AccordionTrigger headingLevel={2}>{text.notifications}</AccordionTrigger>
 					<AccordionContent>
 						<div class="flex flex-col gap-4 pb-4">
 							<FormField label={text.emailDigest}>
@@ -170,7 +179,7 @@
 				</AccordionItem>
 
 				<AccordionItem value="privacy">
-					<AccordionTrigger>{text.privacy}</AccordionTrigger>
+					<AccordionTrigger headingLevel={2}>{text.privacy}</AccordionTrigger>
 					<AccordionContent>
 						<div class="flex flex-col gap-4 pb-4">
 							<Switch bind:checked={form.publicProfile}>{text.publicProfile}</Switch>
@@ -180,7 +189,7 @@
 				</AccordionItem>
 
 				<AccordionItem value="security">
-					<AccordionTrigger>{text.security}</AccordionTrigger>
+					<AccordionTrigger headingLevel={2}>{text.security}</AccordionTrigger>
 					<AccordionContent>
 						<div class="flex flex-col gap-4 pb-4">
 							<Switch bind:checked={form.twoFactor}>{text.twoFactor}</Switch>

@@ -126,7 +126,7 @@
 				{#each items as item (item.id)}
 					<li class="flex flex-wrap items-start gap-3 p-4 sm:flex-nowrap" data-read={item.read}>
 						<Avatar initials={item.actor?.initials ?? "•"} class="mt-0.5" />
-						<div class="min-w-0 flex-1">
+						<div class="min-w-0 basis-[calc(100%-3.5rem)] sm:flex-1 sm:basis-0">
 							<div class="flex flex-wrap items-center gap-2">
 								<p class="text-sm {item.read ? 'font-normal' : 'font-semibold'}">{item.title}</p>
 								{#if !item.read}

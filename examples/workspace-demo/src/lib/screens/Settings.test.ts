@@ -47,6 +47,19 @@ describe("Settings screen states", () => {
 		expect(screen.getByRole("heading", { name: "Set up your workspace" })).toBeInTheDocument();
 		await fireEvent.click(screen.getByRole("button", { name: "Start with the basics" }));
 		expect(screen.getByRole("button", { name: "General" })).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByRole("button", { name: "General" })).toHaveFocus());
+	});
+
+	it("ready: section titles are level-2 headings under the page title", async () => {
+		mount(makeApi());
+		await waitForState("settings", "ready");
+		expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent?.trim())).toEqual([
+			"General",
+			"Notifications",
+			"Privacy",
+			"Security",
+		]);
+		expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0);
 	});
 
 	it("error: retry recovers", async () => {

@@ -40,6 +40,7 @@ describe("Profile screen states", () => {
 		expect(screen.getByRole("heading", { name: "Finish your profile" })).toBeInTheDocument();
 		await fireEvent.click(screen.getByRole("button", { name: "Add details" }));
 		expect(screen.getByRole("textbox", { name: "Name" })).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByRole("textbox", { name: "Name" })).toHaveFocus());
 	});
 
 	it("error: an alert with a retry that recovers", async () => {
