@@ -78,13 +78,13 @@ export default {
 	// Components gallery
 	"gallery.title": "کامپوننت‌ها",
 	"gallery.subtitle":
-		"{count} کامپوننت زیبا و متحرک برای Svelte 5. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
+		"{count} کامپوننت زیبا و متحرک برای Svelte 5, React, Vue. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
 	"gallery.intro":
-		"هر کامپوننت به‌صورت بومی برای Svelte 5 با runes ساخته شده، با Tailwind CSS v4 استایل‌دهی شده، با TypeScript تایپ شده و همراه با پیش‌نمایش زنده و نمونه‌های آمادهٔ کپی و جای‌گذاری ارائه می‌شود. بسته را یک بار نصب کنید و کد از آنِ شماست.",
+		"کامپوننت‌ها برای Svelte 5، React و Vue در دسترس‌اند، با Tailwind CSS v4 استایل می‌گیرند و با TypeScript تایپ شده‌اند. هر صفحه پیش‌نمایش زنده و مثال‌های Svelte قابل کپی دارد و در صورت وجود، نحوه استفاده در React و Vue هم آمده است. بسته را یک بار نصب کنید و کد مال شما باشد.",
 	"gallery.filterPlaceholder": "فیلتر کردن کامپوننت‌ها...",
 	"gallery.all": "همه",
 	"gallery.noMatch": "هیچ کامپوننتی با جستجوی شما مطابقت ندارد.",
-	"gallery.meta": "{components} کامپوننت · {categories} دسته · Svelte 5 · TypeScript",
+	"gallery.meta": "{components} کامپوننت · {categories} دسته · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} نتیجه",
 	"gallery.resultOne": "۱ نتیجه",
 	"gallery.clearFilters": "پاک کردن فیلترها",
@@ -229,7 +229,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "پیش‌نیازها",
 	"install.prerequisites.body":
-		"FancyUI زنجیره‌ابزار فعلی Svelte را هدف می‌گیرد. پیش از نصب این سه مورد را بررسی کنید.",
+		"FancyUI زنجیره‌ابزارهای فعلی را هدف گرفته است. پیش از نصب این سه مورد را بررسی کنید.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -241,7 +241,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"برای نسخه‌های SvelteKit و Vite که FancyUI بر پایه‌ی آن‌ها ساخته می‌شود لازم است.",
+		"مورد نیاز ابزارهای ساخت فعلی که FancyUI روی آن‌ها آزمایش می‌شود.",
 	"install.steps.heading": "نصب",
 	"install.steps.body":
 		"مدیر بسته‌ی خود را انتخاب کنید، استایل‌شیت را متصل کنید و سپس نخستین کامپوننت خود را رندر کنید.",
@@ -347,4 +347,27 @@ export default {
 	"retro.explorer": "کاوشگر",
 	"retro.start": "شروع",
 	"retro.tagline": "کامپوننت‌های متحرک برای Svelte 5 — آماده کپی و چسباندن.",
+	"comp.snippetSvelteOnly":
+		"هنوز مثال کاملی برای این فریم‌ورک نوشته نشده است؛ فعلاً فقط نسخه Svelte یکی دارد.",
+	"comp.copyMarkdownSvelte": "کپی به‌صورت Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "خروجی Markdown فقط نسخهٔ Svelte را توصیف می‌کند.",
+	"comp.apiNoticeReact":
+		"این مرجع API از نام‌های Svelte استفاده می‌کند. در React، class به className تبدیل می‌شود، هندلرهای on* با camelCase نوشته می‌شوند (onclick به onClick تبدیل می‌شود) و snippetها به propهای ReactNode یا توابع رندر تبدیل می‌شوند.",
+	"comp.apiNoticeVue":
+		"این مرجع API از نام‌های Svelte استفاده می‌کند. در Vue، snippetها به slot تبدیل می‌شوند و propهای قابل اتصال به v-model:نام تبدیل می‌شوند.",
+	"comp.apiNoticeLink": "تفاوت‌ها با API نسخهٔ Svelte",
+	"install.lead.react":
+		"FancyUI را در سه گام به یک پروژه‌ی React اضافه کنید: بسته را نصب کنید، استایل‌شیت را وارد کنید و یک کامپوننت رندر کنید.",
+	"install.lead.vue":
+		"FancyUI را در سه گام به یک پروژه‌ی Vue اضافه کنید: بسته را نصب کنید، استایل‌شیت را وارد کنید و یک کامپوننت رندر کنید.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"از React 18 و 19 پشتیبانی می‌کند. کامپوننت‌ها به‌صورت ماژول کلاینت منتشر می‌شوند، پس Server Components می‌توانند آن‌ها را مستقیم وارد کنند.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"کامپوننت‌ها کامپوننت‌های تک‌فایلی Vue 3.5 هستند، بنابراین Vue 3.5.2 یا بالاتر لازم است.",
 } satisfies Catalog;

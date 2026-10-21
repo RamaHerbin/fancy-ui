@@ -78,11 +78,12 @@ export default {
 	// Components gallery
 	"gallery.title": "コンポーネント",
 	"gallery.intro":
-		"すべてのコンポーネントは runes を使って Svelte 5 向けにネイティブに作られ、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされ、ライブプレビューとコピー＆ペーストできる使用例が付属します。パッケージを一度インストールすれば、コードはあなたのものです。",
+		"コンポーネントは Svelte 5、React、Vue で利用でき、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされています。各ページにはライブプレビューとコピー＆ペーストできる Svelte の使用例があり、React と Vue の使い方は用意されている場合に掲載されます。パッケージを一度インストールすれば、コードはあなたのものです。",
 	"gallery.filterPlaceholder": "コンポーネントを絞り込む...",
 	"gallery.all": "すべて",
 	"gallery.noMatch": "検索に一致するコンポーネントがありません。",
-	"gallery.meta": "{components} コンポーネント · {categories} カテゴリ · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} コンポーネント · {categories} カテゴリ · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} 件の結果",
 	"gallery.resultOne": "1 件の結果",
 	"gallery.clearFilters": "フィルターをクリア",
@@ -107,7 +108,7 @@ export default {
 	"gallery.desc.overlays": "ダイアログ、ポップオーバー、メニュー、シート",
 	"gallery.desc.display": "バッジ、アバター、ステータス表示",
 	"gallery.subtitle":
-		"Svelte 5 向けの美しくアニメーションする {count} 個のコンポーネント。閲覧・検索して、必要なものを見つけましょう。",
+		"Svelte 5, React, Vue 向けの美しくアニメーションする {count} 個のコンポーネント。閲覧・検索して、必要なものを見つけましょう。",
 
 	// Theme-generator page
 	"tg.metaDescription":
@@ -231,7 +232,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "前提条件",
 	"install.prerequisites.body":
-		"FancyUI は現行の Svelte ツールチェーンを対象としています。インストール前に次の 3 点を確認してください。",
+		"FancyUI は現行のツールチェーンを対象としています。インストール前にこの 3 点を確認してください。",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -242,8 +243,7 @@ export default {
 		"スタイリングは Tailwind v4 のユーティリティと CSS カスタムプロパティに依存しています。",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc":
-		"FancyUI がビルド対象とする SvelteKit と Vite のバージョンで必要になります。",
+	"install.prerequisites.card3.desc": "FancyUI がテストされている現行のビルドツールで必要です。",
 	"install.steps.heading": "インストール",
 	"install.steps.body":
 		"パッケージマネージャーを選び、スタイルシートを設定して、最初のコンポーネントをレンダリングしましょう。",
@@ -350,4 +350,27 @@ export default {
 	"retro.explorer": "エクスプローラー",
 	"retro.start": "スタート",
 	"retro.tagline": "Svelte 5 のためのアニメーションコンポーネント — コピペしてすぐ使えます。",
+	"comp.snippetSvelteOnly":
+		"このフレームワーク向けの完全な使用例はまだありません。現時点では Svelte 版のみ用意されています。",
+	"comp.copyMarkdownSvelte": "Markdown としてコピー（Svelte）",
+	"comp.markdownSvelteOnly": "Markdown エクスポートは Svelte 版のみを対象としています。",
+	"comp.apiNoticeReact":
+		"この API リファレンスは Svelte の名前を使っています。React では class は className に、on* ハンドラーはキャメルケース（onclick は onClick）に、スニペットは ReactNode のプロパティまたはレンダー関数になります。",
+	"comp.apiNoticeVue":
+		"この API リファレンスは Svelte の名前を使っています。Vue では、スニペットはスロットに、バインド可能なプロパティは v-model:名前 になります。",
+	"comp.apiNoticeLink": "Svelte API との違い",
+	"install.lead.react":
+		"FancyUI は 3 つのステップで React プロジェクトに追加できます: パッケージをインストールし、スタイルシートをインポートし、コンポーネントをレンダリングするだけです。",
+	"install.lead.vue":
+		"FancyUI は 3 つのステップで Vue プロジェクトに追加できます: パッケージをインストールし、スタイルシートをインポートし、コンポーネントをレンダリングするだけです。",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18 と 19 に対応しています。コンポーネントはクライアントモジュールとして配布されるため、Server Components から直接インポートできます。",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"コンポーネントは Vue 3.5 のシングルファイルコンポーネントのため、Vue 3.5.2 以降が必要です。",
 } satisfies Catalog;

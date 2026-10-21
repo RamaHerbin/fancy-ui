@@ -30,7 +30,7 @@
 	},
 	"scripts": {
 		"build": "vite build && tsc -p tsconfig.build.json && node scripts/strip-dts-css-imports.mjs && node scripts/check-dist-names.mjs && node scripts/check-dist-shape.mjs && node scripts/smoke-dist.mjs",
-		"check": "tsc --noEmit",
+		"check": "tsc --noEmit && tsc --noEmit -p tsconfig.docs-examples.json",
 		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",

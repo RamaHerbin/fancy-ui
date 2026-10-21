@@ -6,9 +6,11 @@
 
 	interface Props {
 		slug: string;
+		/** False for React/Vue: the example sources are Svelte, so only the live previews show. */
+		showCode?: boolean;
 	}
 
-	let { slug }: Props = $props();
+	let { slug, showCode = true }: Props = $props();
 
 	let soundCapable = $derived(hasSoundProp(slug));
 
@@ -77,6 +79,12 @@
 	<section class="mb-10">
 		<h2 class="text-foreground mb-6 text-xl font-semibold" id="examples">{t("comp.examples")}</h2>
 
+		{#if !showCode}
+			<p class="text-muted-foreground mb-6 text-sm" data-snippet-missing>
+				{t("comp.snippetSvelteOnly")}
+			</p>
+		{/if}
+
 		<div class="space-y-8">
 			{#each examples as example (example.path)}
 				<div>
@@ -89,7 +97,7 @@
 					{#if example.description}
 						<p class="text-muted-foreground mb-3 text-sm">{example.description}</p>
 					{/if}
-					<ComponentPreview code={example.code} sound={soundCapable}>
+					<ComponentPreview code={showCode ? example.code : ""} sound={soundCapable}>
 						{#snippet preview()}
 							{@const Live = liveComponents[example.path] as any}
 							{#if Live}

@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "컴포넌트",
 	"gallery.subtitle":
-		"Svelte 5를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
+		"Svelte 5, React, Vue를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
 	"gallery.intro":
-		"모든 컴포넌트는 runes를 사용해 Svelte 5용으로 네이티브하게 만들어졌고, Tailwind CSS v4로 스타일링되었으며, TypeScript로 타입이 지정되어 있고, 라이브 미리보기와 복사해 붙여넣는 예제를 함께 제공합니다. 패키지를 한 번만 설치하면 코드는 여러분의 것입니다.",
+		"컴포넌트는 Svelte 5, React, Vue용으로 제공되며 Tailwind CSS v4로 스타일링되고 TypeScript로 타입이 지정됩니다. 각 페이지에는 라이브 미리보기와 복사해 붙여넣을 수 있는 Svelte 예제가 있고, React와 Vue 사용법은 제공되는 경우에 함께 표시됩니다. 패키지를 한 번 설치하면 코드는 여러분의 것입니다.",
 	"gallery.filterPlaceholder": "컴포넌트 필터링...",
 	"gallery.all": "전체",
 	"gallery.noMatch": "검색과 일치하는 컴포넌트가 없습니다.",
-	"gallery.meta": "{components}개 컴포넌트 · {categories}개 카테고리 · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components}개 컴포넌트 · {categories}개 카테고리 · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "결과 {count}개",
 	"gallery.resultOne": "결과 1개",
 	"gallery.clearFilters": "필터 지우기",
@@ -227,7 +228,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "사전 요구 사항",
 	"install.prerequisites.body":
-		"FancyUI는 최신 Svelte 툴체인을 대상으로 합니다. 설치 전에 다음 세 가지를 확인하세요.",
+		"FancyUI는 최신 툴체인을 대상으로 합니다. 설치하기 전에 이 세 가지를 확인하세요.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -238,8 +239,7 @@ export default {
 		"스타일링은 Tailwind v4 유틸리티와 CSS 사용자 정의 속성에 의존합니다.",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc":
-		"FancyUI가 빌드 대상으로 삼는 SvelteKit 및 Vite 버전에서 필요합니다.",
+	"install.prerequisites.card3.desc": "FancyUI를 테스트하는 최신 빌드 도구에서 필요합니다.",
 	"install.steps.heading": "설치",
 	"install.steps.body":
 		"패키지 매니저를 선택하고, 스타일시트를 연결한 다음, 첫 컴포넌트를 렌더링하세요.",
@@ -342,4 +342,27 @@ export default {
 	"retro.explorer": "탐색기",
 	"retro.start": "시작",
 	"retro.tagline": "Svelte 5를 위한 애니메이션 컴포넌트 — 복사해서 바로 사용하세요.",
+	"comp.snippetSvelteOnly":
+		"이 프레임워크용 전체 예제는 아직 없으며, 현재는 Svelte 버전에만 있습니다.",
+	"comp.copyMarkdownSvelte": "Markdown으로 복사 (Svelte)",
+	"comp.markdownSvelteOnly": "Markdown 내보내기는 Svelte 버전만 설명합니다.",
+	"comp.apiNoticeReact":
+		"이 API 레퍼런스는 Svelte 이름을 사용합니다. React에서는 class가 className이 되고, on* 핸들러는 카멜 케이스(onclick은 onClick)로 쓰며, 스니펫은 ReactNode prop이나 렌더 함수가 됩니다.",
+	"comp.apiNoticeVue":
+		"이 API 레퍼런스는 Svelte 이름을 사용합니다. Vue에서는 스니펫이 슬롯이 되고 바인딩 가능한 prop은 v-model:이름이 됩니다.",
+	"comp.apiNoticeLink": "Svelte API와의 차이점",
+	"install.lead.react":
+		"세 단계로 FancyUI를 React 프로젝트에 추가하세요: 패키지를 설치하고, 스타일시트를 가져오고, 컴포넌트를 렌더링하면 됩니다.",
+	"install.lead.vue":
+		"세 단계로 FancyUI를 Vue 프로젝트에 추가하세요: 패키지를 설치하고, 스타일시트를 가져오고, 컴포넌트를 렌더링하면 됩니다.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18과 19를 지원합니다. 컴포넌트는 클라이언트 모듈로 배포되므로 Server Components에서 바로 가져올 수 있습니다.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"컴포넌트는 Vue 3.5 단일 파일 컴포넌트이므로 Vue 3.5.2 이상이 필요합니다.",
 } satisfies Catalog;

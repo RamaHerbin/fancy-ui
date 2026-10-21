@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Komponen",
 	"gallery.subtitle":
-		"{count} komponen beranimasi indah untuk Svelte 5. Jelajahi, cari, dan temukan yang Anda butuhkan.",
+		"{count} komponen beranimasi indah untuk Svelte 5, React, Vue. Jelajahi, cari, dan temukan yang Anda butuhkan.",
 	"gallery.intro":
-		"Setiap komponen dibangun secara native untuk Svelte 5 dengan runes, ditata dengan Tailwind CSS v4, diketik dengan TypeScript, dan dilengkapi pratinjau langsung serta contoh siap salin-tempel. Instal paketnya sekali dan kodenya menjadi milik Anda.",
+		"Komponen tersedia untuk Svelte 5, React, dan Vue, ditata dengan Tailwind CSS v4 dan diberi tipe dengan TypeScript. Setiap halaman memiliki pratinjau langsung dan contoh Svelte siap salin, dengan penggunaan React dan Vue jika tersedia. Instal paketnya sekali dan kodenya jadi milik Anda.",
 	"gallery.filterPlaceholder": "Filter komponen...",
 	"gallery.all": "Semua",
 	"gallery.noMatch": "Tidak ada komponen yang cocok dengan pencarian Anda.",
-	"gallery.meta": "{components} komponen · {categories} kategori · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} komponen · {categories} kategori · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} hasil",
 	"gallery.resultOne": "1 hasil",
 	"gallery.clearFilters": "Hapus filter",
@@ -229,7 +230,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Prasyarat",
 	"install.prerequisites.body":
-		"FancyUI menargetkan toolchain Svelte terkini. Periksa ketiga hal ini sebelum menginstal.",
+		"FancyUI menargetkan toolchain terkini. Periksa ketiga hal ini sebelum menginstal.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -241,7 +242,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Diperlukan oleh versi SvelteKit dan Vite yang menjadi dasar build FancyUI.",
+		"Dibutuhkan oleh perangkat build terkini yang dipakai untuk menguji FancyUI.",
 	"install.steps.heading": "Instal",
 	"install.steps.body":
 		"Pilih package manager Anda, hubungkan stylesheet-nya, lalu render komponen pertama Anda.",
@@ -346,4 +347,27 @@ export default {
 	"retro.explorer": "Penjelajah",
 	"retro.start": "Mulai",
 	"retro.tagline": "Komponen beranimasi untuk Svelte 5 — siap disalin-tempel.",
+	"comp.snippetSvelteOnly":
+		"Contoh lengkap untuk framework ini belum ditulis; untuk saat ini hanya versi Svelte yang memilikinya.",
+	"comp.copyMarkdownSvelte": "Salin sebagai Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "Ekspor Markdown hanya menjelaskan versi Svelte.",
+	"comp.apiNoticeReact":
+		"Referensi API ini memakai nama Svelte. Di React, class menjadi className, handler on* ditulis dengan camelCase (onclick menjadi onClick), dan snippet menjadi prop ReactNode atau fungsi render.",
+	"comp.apiNoticeVue":
+		"Referensi API ini memakai nama Svelte. Di Vue, snippet menjadi slot dan prop yang bisa di-bind menjadi v-model:nama.",
+	"comp.apiNoticeLink": "Perbedaan dengan API Svelte",
+	"install.lead.react":
+		"Tambahkan FancyUI ke proyek React dalam tiga langkah: instal paketnya, impor stylesheet-nya, lalu render sebuah komponen.",
+	"install.lead.vue":
+		"Tambahkan FancyUI ke proyek Vue dalam tiga langkah: instal paketnya, impor stylesheet-nya, lalu render sebuah komponen.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Mendukung React 18 dan 19. Komponen dikirim sebagai modul klien, sehingga Server Components dapat mengimpornya langsung.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Komponen adalah single-file component Vue 3.5, jadi Vue 3.5.2 atau lebih baru diperlukan.",
 } satisfies Catalog;

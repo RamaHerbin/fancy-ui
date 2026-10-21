@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Componentes",
 	"gallery.subtitle":
-		"{count} componentes lindamente animados para o Svelte 5. Navegue, pesquise e encontre o que precisa.",
+		"{count} componentes lindamente animados para o Svelte 5, React, Vue. Navegue, pesquise e encontre o que precisa.",
 	"gallery.intro":
-		"Cada componente é criado nativamente para Svelte 5 com runes, estilizado com Tailwind CSS v4, tipado com TypeScript e vem com pré-visualização ao vivo e exemplos para copiar e colar. Instale o pacote uma vez e o código é seu.",
+		"Os componentes estão disponíveis para Svelte 5, React e Vue, estilizados com Tailwind CSS v4 e tipados com TypeScript. Cada página tem pré-visualização ao vivo e exemplos Svelte para copiar e colar, com o uso em React e Vue quando disponível. Instale o pacote uma vez e o código é seu.",
 	"gallery.filterPlaceholder": "Filtrar componentes...",
 	"gallery.all": "Todos",
 	"gallery.noMatch": "Nenhum componente corresponde à sua pesquisa.",
-	"gallery.meta": "{components} componentes · {categories} categorias · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} componentes · {categories} categorias · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} resultados",
 	"gallery.resultOne": "1 resultado",
 	"gallery.clearFilters": "Limpar filtros",
@@ -233,7 +234,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Pré-requisitos",
 	"install.prerequisites.body":
-		"O FancyUI é feito para a toolchain atual do Svelte. Verifique estes três pontos antes de instalar.",
+		"O FancyUI mira as ferramentas atuais. Confira estes três itens antes de instalar.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -245,7 +246,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Exigido pelas versões do SvelteKit e do Vite com as quais o FancyUI é compilado.",
+		"Exigido pelas ferramentas de build atuais com as quais o FancyUI é testado.",
 	"install.steps.heading": "Instalação",
 	"install.steps.body":
 		"Escolha seu gerenciador de pacotes, conecte a folha de estilos e depois renderize seu primeiro componente.",
@@ -350,4 +351,27 @@ export default {
 	"retro.explorer": "Explorador",
 	"retro.start": "Iniciar",
 	"retro.tagline": "Componentes animados para Svelte 5 — prontos para copiar e colar.",
+	"comp.snippetSvelteOnly":
+		"Ainda não há um exemplo completo para este framework; por enquanto só a versão Svelte tem um.",
+	"comp.copyMarkdownSvelte": "Copiar como Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "A exportação em Markdown descreve apenas a versão Svelte.",
+	"comp.apiNoticeReact":
+		"Esta referência de API usa os nomes do Svelte. No React, class vira className, os manipuladores on* são escritos em camelCase (onclick vira onClick) e os snippets viram props ReactNode ou funções de renderização.",
+	"comp.apiNoticeVue":
+		"Esta referência de API usa os nomes do Svelte. No Vue, os snippets viram slots e as props vinculáveis viram v-model:nome.",
+	"comp.apiNoticeLink": "Diferenças em relação à API do Svelte",
+	"install.lead.react":
+		"Adicione o FancyUI a um projeto React em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+	"install.lead.vue":
+		"Adicione o FancyUI a um projeto Vue em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Compatível com React 18 e 19. Os componentes são publicados como módulos de cliente, então os Server Components podem importá-los diretamente.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Os componentes são componentes de arquivo único do Vue 3.5, portanto é necessário o Vue 3.5.2 ou posterior.",
 } satisfies Catalog;

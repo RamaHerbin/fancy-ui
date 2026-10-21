@@ -78,11 +78,12 @@ export default {
 	// Components gallery
 	"gallery.title": "Bileşenler",
 	"gallery.intro":
-		"Her bileşen runes ile Svelte 5 için yerel olarak geliştirildi, Tailwind CSS v4 ile biçimlendirildi, TypeScript ile tiplendirildi ve canlı önizleme ile kopyala-yapıştır örnekleriyle geliyor. Paketi bir kez kurun, kod sizin olsun.",
+		"Bileşenler Svelte 5, React ve Vue için sunulur, Tailwind CSS v4 ile stillendirilmiştir ve TypeScript ile tiplendirilmiştir. Her sayfada canlı önizleme ve kopyala-yapıştır Svelte örnekleri bulunur; varsa React ve Vue kullanımı da yer alır. Paketi bir kez kurun, kod sizin olsun.",
 	"gallery.filterPlaceholder": "Bileşenleri filtrele...",
 	"gallery.all": "Tümü",
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
-	"gallery.meta": "{components} bileşen · {categories} kategori · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} bileşen · {categories} kategori · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} sonuç",
 	"gallery.resultOne": "1 sonuç",
 	"gallery.clearFilters": "Filtreleri temizle",
@@ -107,7 +108,7 @@ export default {
 	"gallery.desc.overlays": "İletişim kutuları, açılır pencereler, menüler ve paneller",
 	"gallery.desc.display": "Rozetler, avatarlar ve durum gösterimi",
 	"gallery.subtitle":
-		"Svelte 5 için güzelce animasyonlu {count} bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
+		"Svelte 5, React, Vue için güzelce animasyonlu {count} bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
 
 	// Theme-generator page
 	"tg.metaDescription":
@@ -231,7 +232,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Ön Koşullar",
 	"install.prerequisites.body":
-		"FancyUI, güncel Svelte araç zincirini hedefler. Kurulumdan önce şu üç maddeyi kontrol edin.",
+		"FancyUI güncel araç zincirlerini hedefler. Kurmadan önce bu üç şeyi kontrol edin.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -243,7 +244,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"FancyUI'nin üzerine inşa edildiği SvelteKit ve Vite sürümleri için gereklidir.",
+		"FancyUI'nin test edildiği güncel derleme araçları tarafından gereklidir.",
 	"install.steps.heading": "Kurulum",
 	"install.steps.body":
 		"Paket yöneticinizi seçin, stil dosyasını bağlayın, ardından ilk bileşeninizi render edin.",
@@ -350,4 +351,27 @@ export default {
 	"retro.explorer": "Gezgin",
 	"retro.start": "Başlat",
 	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyalayıp yapıştırmaya hazır.",
+	"comp.snippetSvelteOnly":
+		"Bu framework için tam bir örnek henüz yazılmadı; şimdilik yalnızca Svelte sürümünde var.",
+	"comp.copyMarkdownSvelte": "Markdown olarak kopyala (Svelte)",
+	"comp.markdownSvelteOnly": "Markdown dışa aktarımı yalnızca Svelte sürümünü anlatır.",
+	"comp.apiNoticeReact":
+		"Bu API başvurusu Svelte adlarını kullanır. React'te class className olur, on* işleyicileri camelCase yazılır (onclick onClick olur) ve snippet'ler ReactNode prop'larına ya da render fonksiyonlarına dönüşür.",
+	"comp.apiNoticeVue":
+		"Bu API başvurusu Svelte adlarını kullanır. Vue'da snippet'ler slot'a, bağlanabilir prop'lar ise v-model:ad biçimine dönüşür.",
+	"comp.apiNoticeLink": "Svelte API'sinden farklar",
+	"install.lead.react":
+		"FancyUI'yi üç adımda bir React projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+	"install.lead.vue":
+		"FancyUI'yi üç adımda bir Vue projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18 ve 19'u destekler. Bileşenler istemci modülleri olarak gönderilir, bu yüzden Server Components bunları doğrudan içe aktarabilir.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Bileşenler Vue 3.5 tek dosyalı bileşenleridir, bu nedenle Vue 3.5.2 veya üzeri gerekir.",
 } satisfies Catalog;
