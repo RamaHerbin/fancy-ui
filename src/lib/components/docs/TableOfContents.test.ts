@@ -65,4 +65,15 @@ describe("TableOfContents", () => {
 			vi.unstubAllGlobals();
 		}
 	});
+
+	it("renders a compact details variant below xl", async () => {
+		const { container } = render(TableOfContents, { props: { compact: true } });
+		await screen.findByRole("link", { name: "One" });
+		const details = container.querySelector("details[data-toc-compact]");
+		expect(details).not.toBeNull();
+		expect(details?.className).toContain("xl:hidden");
+		expect(details?.querySelector("summary")).toHaveTextContent("Show contents");
+		expect(details?.querySelector('a[href="#one"]')).not.toBeNull();
+		expect(container.querySelector("nav.hidden")).toBeNull();
+	});
 });

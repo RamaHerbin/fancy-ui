@@ -9,6 +9,7 @@ vi.mock("$app/stores", () => ({
 }));
 
 import Sidebar from "./Sidebar.svelte";
+import { setSkin } from "$lib/stores";
 
 describe("Sidebar", () => {
 	afterEach(cleanup);
@@ -64,4 +65,19 @@ describe("Sidebar", () => {
 			expect(label.className).toContain(cls);
 		}
 	});
+
+	it.each(["standard", "brutal", "retro-os"] as const)(
+		"points the %s brand link at the landing page",
+		(skin) => {
+			setSkin(skin);
+			try {
+				const { container } = render(Sidebar);
+				const brand = getAside(container).querySelector("a[data-docs-brand]");
+				expect(brand).not.toBeNull();
+				expect(brand).toHaveAttribute("href", "/");
+			} finally {
+				setSkin("standard");
+			}
+		}
+	);
 });

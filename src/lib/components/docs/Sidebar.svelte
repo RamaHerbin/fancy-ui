@@ -70,13 +70,15 @@
 			{#if isRetro}
 				<div class="retro-explorer-bar shrink-0">
 					<span class="retro-explorer-chip" aria-hidden="true">NAV</span>
-					<a href="/docs" class="retro-explorer-title" onclick={onclose}>{t("retro.explorer")}</a>
+					<a href="/" data-docs-brand class="retro-explorer-title" onclick={onclose}
+						>{t("retro.explorer")}</a
+					>
 				</div>
 			{:else if isBrutal}
 				<!-- Brutal brand block: ink tile carrying the mark + stacked mono
 				     sub-line. The halo is off here: the tile is only 34px, so the
 				     glow would spill past its edges instead of reading as light. -->
-				<a href="/docs" class="docs-brand" onclick={onclose}>
+				<a href="/" data-docs-brand class="docs-brand" onclick={onclose}>
 					<span class="docs-brand-logo" aria-hidden="true"><Logo size={20} glow={false} /></span>
 					<span class="docs-brand-text">
 						<span class="docs-brand-name">FancyUI</span>
@@ -88,7 +90,8 @@
 					class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4"
 				>
 					<a
-						href="/docs"
+						href="/"
+						data-docs-brand
 						class="flex items-center gap-2 text-lg font-semibold tracking-tight"
 						onclick={onclose}
 					>
