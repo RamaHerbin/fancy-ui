@@ -26,8 +26,13 @@ import {
 	VUE_PACKAGE_PUBLISHED,
 	VUE_PACKAGE_URL,
 } from "$lib/site.js";
-import { reactExportsBySlug, svelteExportsBySlug, vueExportsBySlug } from "./barrels.js";
-import { copyCommandFor, copyImportFor } from "./registry/constants.js";
+import {
+	portFolderOf,
+	reactExportsBySlug,
+	svelteExportsBySlug,
+	vueExportsBySlug,
+} from "./barrels.js";
+import { copySourceFor } from "./copy-availability.js";
 
 export type Availability =
 	/** On npm, importable today. */
@@ -46,7 +51,7 @@ export interface FrameworkVariant {
 	importLine: string | null;
 	/** One-line install command, or null when the package cannot be installed yet. */
 	installLine: string | null;
-	/** One-line command that copies the component source into a project, or null when not offered. */
+	/** One-line command that copies the component source into a project, or null when that stack's registry ships no item. */
 	copyLine: string | null;
 	/** The import to write after copying (path under the project's ui alias), or null. */
 	copyImportLine: string | null;
@@ -104,7 +109,9 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 	const exports = namesFor(framework, slug);
 	const docsUrl = `/docs/components/${slug}`;
 	const sourceUrl =
-		framework === "svelte" ? `${pkg.source}/${slug}` : `${pkg.source}/src/components/${slug}`;
+		framework === "svelte"
+			? `${pkg.source}/${slug}`
+			: `${pkg.source}/src/${portFolderOf(framework, slug)}`;
 	if (exports.length === 0) {
 		return {
 			framework,
@@ -122,6 +129,14 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 		};
 	}
 	const importLine = `import { ${exports.join(", ")} } from "${pkg.name}";`;
+	// The copy tab follows the registries the site serves, independent of npm:
+	// offered only where that stack ships the item, importing from where the CLI
+	// writes it.
+	const copy = copySourceFor(slug, framework);
+	const copyLine = copy?.command ?? null;
+	const copyImportLine = copy
+		? `import { ${exports.join(", ")} } from "${copy.importPath}";`
+		: null;
 	if (!pkg.published) {
 		return {
 			framework,
@@ -129,8 +144,8 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 			exports,
 			importLine,
 			installLine: null,
-			copyLine: null,
-			copyImportLine: null,
+			copyLine,
+			copyImportLine,
 			docsUrl,
 			sourceUrl,
 			packageUrl: pkg.url,
@@ -144,8 +159,8 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 		exports,
 		importLine,
 		installLine: `pnpm add ${pkg.name}`,
-		copyLine: copyCommandFor(slug, framework),
-		copyImportLine: copyImportFor(slug, exports, framework),
+		copyLine,
+		copyImportLine,
 		docsUrl,
 		sourceUrl,
 		packageUrl: pkg.url,

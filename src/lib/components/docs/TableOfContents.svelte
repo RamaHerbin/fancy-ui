@@ -16,6 +16,50 @@
 
 	let observer: IntersectionObserver | null = null;
 
+	const SELECTOR =
+		"[data-doc-content] h2:not([data-toc-ignore]), [data-doc-content] h3:not([data-toc-ignore])";
+
+	let scannedKey = "";
+
+	function headingId(el: HTMLElement) {
+		return el.id || el.textContent?.toLowerCase().replace(/\s+/g, "-") || "";
+	}
+
+	function currentKey() {
+		return Array.from(document.querySelectorAll<HTMLElement>(SELECTOR), headingId).join("\n");
+	}
+
+	function scan() {
+		observer?.disconnect();
+		const elements = document.querySelectorAll<HTMLElement>(SELECTOR);
+
+		headings = Array.from(elements).map((el) => ({
+			id: headingId(el),
+			text: el.textContent || "",
+			level: parseInt(el.tagName[1]),
+		}));
+		scannedKey = headings.map((h) => h.id).join("\n");
+
+		// Ensure IDs exist
+		elements.forEach((el, i) => {
+			if (!el.id) el.id = headings[i].id;
+		});
+
+		observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						activeId = entry.target.id;
+						break;
+					}
+				}
+			},
+			{ rootMargin: "-80px 0px -60% 0px" }
+		);
+
+		elements.forEach((el) => observer!.observe(el));
+	}
+
 	$effect(() => {
 		// Re-run when the route OR the locale changes (localized prose swaps in place).
 		void $page.url.pathname;
@@ -25,40 +69,34 @@
 		observer?.disconnect();
 		observer = null;
 
+		let rescan: ReturnType<typeof setTimeout> | undefined;
+		let mutations: MutationObserver | undefined;
+
 		// Tick delay so new page content is rendered
 		const timeout = setTimeout(() => {
-			const elements = document.querySelectorAll<HTMLElement>(
-				"[data-doc-content] h2:not([data-toc-ignore]), [data-doc-content] h3:not([data-toc-ignore])"
-			);
+			scan();
 
-			headings = Array.from(elements).map((el) => ({
-				id: el.id || el.textContent?.toLowerCase().replace(/\s+/g, "-") || "",
-				text: el.textContent || "",
-				level: parseInt(el.tagName[1]),
-			}));
-
-			// Ensure IDs exist
-			elements.forEach((el, i) => {
-				if (!el.id) el.id = headings[i].id;
-			});
-
-			observer = new IntersectionObserver(
-				(entries) => {
-					for (const entry of entries) {
-						if (entry.isIntersecting) {
-							activeId = entry.target.id;
-							break;
-						}
-					}
-				},
-				{ rootMargin: "-80px 0px -60% 0px" }
-			);
-
-			elements.forEach((el) => observer!.observe(el));
+			// A page can replace its own headings without a navigation (the changelog
+			// swaps its whole release list when the package tab changes): follow them.
+			// Only child changes count; giving a heading an id is an attribute change.
+			const root = document.querySelector("[data-doc-content]");
+			if (root && typeof MutationObserver !== "undefined") {
+				mutations = new MutationObserver(() => {
+					clearTimeout(rescan);
+					// Demo content churns the subtree all the time: only a different
+					// set of headings is worth recreating the observers.
+					rescan = setTimeout(() => {
+						if (currentKey() !== scannedKey) scan();
+					}, 50);
+				});
+				mutations.observe(root, { childList: true, subtree: true });
+			}
 		}, 100);
 
 		return () => {
 			clearTimeout(timeout);
+			clearTimeout(rescan);
+			mutations?.disconnect();
 			observer?.disconnect();
 		};
 	});
