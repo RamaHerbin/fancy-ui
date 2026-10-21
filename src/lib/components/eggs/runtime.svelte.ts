@@ -4,7 +4,7 @@
  * payload on demand. Nothing touches window/document until `start()`.
  */
 
-import type { Component } from "svelte";
+import { untrack, type Component } from "svelte";
 import { createMotionState } from "$lib/stores";
 import { markFound, isFound } from "./discovery.svelte.js";
 import { createKeySequenceMatcher, type KeySequenceMatcher } from "./sequence.js";
@@ -53,8 +53,13 @@ export function createEggRuntime(
 	let note = $state<{ id: EggId; title: string } | null>(null);
 	let dismissTimer: ReturnType<typeof setTimeout> | undefined;
 	let noteTimer: ReturnType<typeof setTimeout> | undefined;
-	/** Bumped on every overlay fire, so a slow load never overrides a newer one. */
+	/**
+	 * Bumped on every overlay fire and on every public dismiss, so a slow load
+	 * never overrides a newer egg nor mounts one the visitor already dismissed.
+	 */
 	let generation = 0;
+	/** Stops observing the motion preference for the mounted overlay. */
+	let stopMotionWatch: (() => void) | undefined;
 	/** dom-trigger hit timestamps per egg; lives as long as the runtime (root layout). */
 	const hits = new Map<EggId, number[]>();
 	let stopFn: (() => void) | null = null;
@@ -68,11 +73,28 @@ export function createEggRuntime(
 
 	function dismissOverlay() {
 		clearDismissTimer();
+		stopMotionWatch?.();
+		stopMotionWatch = undefined;
 		active = null;
 	}
 
-	/** Public dismiss: the overlay and any quiet note. */
+	/**
+	 * Keeps watching the motion preference while a motion-sensitive overlay is
+	 * up: pausing decorative motion, or the OS switching to reduced motion
+	 * (both surface through `isPaused()`, which reads the reactive motion
+	 * store), ends the effect now instead of at its auto-dismiss timeout.
+	 */
+	function watchMotion(ctx: EggContext) {
+		stopMotionWatch = $effect.root(() => {
+			$effect(() => {
+				if (isPaused()) untrack(() => ctx.dismiss());
+			});
+		});
+	}
+
+	/** Public dismiss: the overlay, any quiet note, and any overlay still loading. */
 	function dismiss() {
+		generation++;
 		dismissOverlay();
 		if (noteTimer !== undefined) clearTimeout(noteTimer);
 		noteTimer = undefined;
@@ -133,6 +155,7 @@ export function createEggRuntime(
 			if (gen !== generation) return;
 			dismissOverlay();
 			active = { id, component: mod.default, ctx };
+			if (def.motionSensitive !== false) watchMotion(ctx);
 			if (def.autoDismissMs && def.autoDismissMs > 0) {
 				dismissTimer = setTimeout(() => ctx.dismiss(), def.autoDismissMs);
 			}
@@ -165,9 +188,10 @@ export function createEggRuntime(
 		function onKeydown(e: KeyboardEvent) {
 			if (hasModifier(e)) return;
 			// Escape first: an overlay must close even while focus sits in a field.
-			// No preventDefault, so the field's own Escape still works.
+			// No preventDefault, so the field's own Escape still works. Always
+			// dismiss: an overlay chunk still loading must not mount afterwards.
 			if (e.key === "Escape") {
-				if (active || note) dismiss();
+				dismiss();
 				words.reset();
 				return;
 			}

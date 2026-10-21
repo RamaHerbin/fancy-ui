@@ -106,6 +106,24 @@ describe("egg runtime", () => {
 		input.remove();
 	});
 
+	it("Escape while the overlay chunk is still loading cancels it", async () => {
+		let resolve!: (mod: EggPayloadModule) => void;
+		const load = vi.fn(
+			() =>
+				new Promise<EggPayloadModule>((r) => {
+					resolve = r;
+				})
+		);
+		const env = setup([overlay(load)]);
+		stop = env.stop;
+		const pending = env.runtime.trigger("cheatcode");
+		expect(load).toHaveBeenCalledOnce();
+		press("Escape");
+		resolve({ default: ProbePayload });
+		await pending;
+		expect(env.runtime.active).toBeNull();
+	});
+
 	it("diverts to the quiet note when paused, without loading", async () => {
 		vi.useFakeTimers();
 		const def = overlay();
@@ -275,5 +293,78 @@ describe("egg runtime", () => {
 		expect(run).not.toHaveBeenCalled();
 		over("z", "out"); // second entry
 		await vi.waitFor(() => expect(run).toHaveBeenCalledOnce());
+	});
+});
+
+describe("egg runtime under a live motion preference", () => {
+	let changeListeners: ((e: MediaQueryListEvent) => void)[] = [];
+	let stop: (() => void) | undefined;
+
+	async function load() {
+		changeListeners = [];
+		vi.spyOn(window, "matchMedia").mockImplementation(
+			(query: string) =>
+				({
+					matches: false,
+					media: query,
+					onchange: null,
+					addEventListener: (_: string, fn: (e: MediaQueryListEvent) => void) =>
+						changeListeners.push(fn),
+					removeEventListener: () => {},
+					dispatchEvent: () => false,
+					addListener: () => {},
+					removeListener: () => {},
+				}) as unknown as MediaQueryList
+		);
+		vi.resetModules();
+		// Fresh module graph: the runtime, the store and svelte itself (flushSync must
+		// drive the same scheduler the runtime registered its effect on).
+		const { flushSync } = await import("svelte");
+		const stores = await import("$lib/stores");
+		const { createEggRuntime } = await import("./runtime.svelte.js");
+		// The real motion store: no isPaused override.
+		const runtime = createEggRuntime([{ ...overlay(), autoDismissMs: 8000 }]);
+		stop = runtime.start();
+		return { runtime, stores, flushSync };
+	}
+
+	beforeEach(() => {
+		localStorage.clear();
+		delete document.documentElement.dataset.motion;
+	});
+	afterEach(() => {
+		stop?.();
+		stop = undefined;
+		vi.restoreAllMocks();
+	});
+
+	it("ends party mode when the OS switches to reduced motion mid-effect", async () => {
+		const { runtime, flushSync } = await load();
+		await runtime.trigger("cheatcode");
+		expect(runtime.active?.id).toBe("cheatcode");
+		expect(changeListeners.length).toBeGreaterThan(0);
+		for (const fn of changeListeners) fn({ matches: true } as MediaQueryListEvent);
+		flushSync();
+		expect(runtime.active).toBeNull();
+	});
+
+	it("ends party mode when the visitor pauses decorative motion mid-effect", async () => {
+		const { runtime, stores, flushSync } = await load();
+		await runtime.trigger("cheatcode");
+		expect(runtime.active?.id).toBe("cheatcode");
+		stores.setMotion("paused");
+		flushSync();
+		expect(runtime.active).toBeNull();
+	});
+
+	it("stops watching once the effect is dismissed", async () => {
+		const { runtime, stores, flushSync } = await load();
+		await runtime.trigger("cheatcode");
+		const ctx = runtime.active!.ctx;
+		const spy = vi.spyOn(ctx, "dismiss");
+		runtime.dismiss();
+		stores.setMotion("paused");
+		flushSync();
+		expect(spy).not.toHaveBeenCalled();
 	});
 });

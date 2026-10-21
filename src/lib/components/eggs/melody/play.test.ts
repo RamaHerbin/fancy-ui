@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EggContext } from "../types.js";
 
-const mocked = vi.hoisted(() => ({ sound: { enabled: true, play: vi.fn() } }));
+const mocked = vi.hoisted(() => ({
+	sound: {
+		enabled: true,
+		play: vi.fn(),
+		status: { engine: "ready" as string },
+		unlock: vi.fn(async () => false),
+	},
+}));
 vi.mock("$lib/fancy-ui/sound/index.js", () => mocked);
 
 import { MELODY, MIN_NOTE_GAP_MS, cancel, run } from "./play.js";
@@ -22,6 +29,8 @@ describe("melody phrase", () => {
 		vi.useFakeTimers();
 		mocked.sound.enabled = true;
 		mocked.sound.play.mockClear();
+		mocked.sound.status.engine = "ready";
+		mocked.sound.unlock.mockReset().mockResolvedValue(false);
 	});
 
 	afterEach(() => {
@@ -68,6 +77,33 @@ describe("melody phrase", () => {
 		await vi.runAllTimersAsync();
 		expect(mocked.sound.play).not.toHaveBeenCalled();
 		expect(ctx.found).not.toHaveBeenCalled();
+	});
+
+	it("is not recorded while the audio context stays locked (sound restored on, no gesture yet)", async () => {
+		mocked.sound.status.engine = "suspended";
+		const ctx = makeCtx();
+		await run(ctx);
+		await vi.runAllTimersAsync();
+		expect(mocked.sound.unlock).toHaveBeenCalledOnce();
+		expect(ctx.found).not.toHaveBeenCalled();
+		expect(mocked.sound.play).toHaveBeenCalledTimes(1);
+	});
+
+	it("is recorded once a locked context resumes", async () => {
+		mocked.sound.status.engine = "idle";
+		mocked.sound.unlock.mockResolvedValue(true);
+		const ctx = makeCtx();
+		await run(ctx);
+		expect(ctx.found).toHaveBeenCalledOnce();
+		await vi.runAllTimersAsync();
+		expect(mocked.sound.play).toHaveBeenCalledTimes(8);
+	});
+
+	it("does not try to unlock a context that is already running", async () => {
+		const ctx = makeCtx();
+		await run(ctx);
+		expect(mocked.sound.unlock).not.toHaveBeenCalled();
+		expect(ctx.found).toHaveBeenCalledOnce();
 	});
 
 	it("cancel() stops the rest of the phrase", async () => {

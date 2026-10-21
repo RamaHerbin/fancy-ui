@@ -33,6 +33,11 @@ export async function run(ctx: EggContext): Promise<void> {
 	const [first, ...rest] = MELODY;
 	if (!first) return;
 	sound.play("tick", { pitch: first.pitch, volume: MELODY_VOLUME });
+	// Sound left on across a reload starts with a context the browser has not
+	// unlocked yet, and a hover is no user activation: play() then only queues
+	// the cue. Count the egg as heard only once the context actually runs.
+	if (sound.status.engine !== "ready" && !(await sound.unlock())) return;
+	if (!sound.enabled) return;
 	ctx.found();
 	for (const note of rest) {
 		timers.push(
