@@ -6,6 +6,12 @@ import {
 	expectKeyboardDialog,
 	expectPrimaryBackground,
 } from "../../smoke-helpers";
+import {
+	expectDarkViaClass,
+	expectDialogSlots,
+	expectDocumentedStylesOnly,
+	expectVueEvents,
+} from "../../vue-smoke";
 
 // fancy-ui-vue installed from the packed tarball, in a Vue + Vite app built outside the repo.
 test("loads clean, mounts, styles resolve, effects run, dialog is keyboard-operable", async ({
@@ -32,4 +38,23 @@ test("loads clean, mounts, styles resolve, effects run, dialog is keyboard-opera
 	await expectKeyboardDialog(page, "Open dialog");
 
 	expect(errors).toEqual([]);
+});
+
+test("events reach the consumer's handlers and the dialog's named slots render", async ({
+	page,
+}) => {
+	const errors = collectErrors(page);
+	await page.goto("/");
+	await expectVueEvents(page);
+	await expectDialogSlots(page);
+	expect(errors).toEqual([]);
+});
+
+test("dark mode is the .dark class on <html>", async ({ page }) => {
+	await page.goto("/");
+	await expectDarkViaClass(page);
+});
+
+test("the app's CSS is the two documented imports and nothing else from the package", () => {
+	expectDocumentedStylesOnly("../src/style.css", import.meta.url);
 });
