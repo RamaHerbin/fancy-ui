@@ -14,7 +14,7 @@
 	 */
 	export interface SelectProps extends Omit<
 		HTMLButtonAttributes,
-		"class" | "id" | "name" | "value" | "disabled" | "type" | "children"
+		"class" | "id" | "name" | "value" | "disabled" | "type" | "role" | "children"
 	> {
 		/** The options to choose from, in order. */
 		options: SelectOption[];

@@ -36,6 +36,7 @@ export interface SelectProps extends Omit<
 	| "value"
 	| "disabled"
 	| "type"
+	| "role"
 	| "children"
 	| "placeholder"
 	| "onChange"
