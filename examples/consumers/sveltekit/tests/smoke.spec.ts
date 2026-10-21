@@ -18,7 +18,7 @@ test("loads and hydrates without console errors", async ({ page }) => {
 test("bg-primary exists: Button background equals the --primary token", async ({ page }) => {
 	await page.goto("/");
 	const { bg, token } = await page.evaluate(() => {
-		const btn = document.querySelector<HTMLElement>('[data-testid="button"] button')!;
+		const btn = document.querySelector<HTMLElement>('[data-testid="button"]')!;
 		const probe = document.createElement("div");
 		probe.style.backgroundColor = "var(--primary)";
 		document.body.append(probe);
@@ -33,7 +33,7 @@ test("bg-primary exists: Button background equals the --primary token", async ({
 test("Dialog opens and closes from the keyboard", async ({ page }) => {
 	await page.goto("/");
 	await page.waitForLoadState("networkidle");
-	await page.locator('[data-testid="open-dialog"] button').focus();
+	await page.locator('[data-testid="open-dialog"]').focus();
 	await page.keyboard.press("Enter");
 	const dialog = page.getByRole("dialog");
 	await expect(dialog).toBeVisible();

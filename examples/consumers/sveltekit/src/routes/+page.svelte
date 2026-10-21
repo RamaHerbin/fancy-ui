@@ -11,7 +11,7 @@
 	<h1 class="text-2xl font-semibold">fancy-ui-svelte consumer</h1>
 
 	<div class="flex flex-wrap items-center gap-3">
-		<span data-testid="button"><Button>Primary</Button></span>
+		<Button data-testid="button">Primary</Button>
 		<RainbowButton data-testid="rainbow" onclick={() => clicks++}>Rainbow</RainbowButton>
 		<span data-testid="clicks">clicks: {clicks}</span>
 	</div>
@@ -30,7 +30,7 @@
 
 	<Dialog bind:open={dialogOpen} title="Hello" description="A dialog from the packed tarball.">
 		{#snippet trigger()}
-			<span data-testid="open-dialog"><Button variant="outline">Open dialog</Button></span>
+			<Button data-testid="open-dialog" variant="outline">Open dialog</Button>
 		{/snippet}
 		<p>Dialog body</p>
 	</Dialog>

@@ -1,12 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Run from the monorepo root: the consumer itself installs nothing but the
-// tarball and its framework deps, so the test runner comes from the repo.
+// Run from the monorepo root (the runner comes from the repo). The app under
+// test is a copy outside the repo tree, given by CONSUMER_DIR, so it resolves
+// packages the way an outsider does.
+const appDir = process.env.CONSUMER_DIR ?? import.meta.dirname;
+
 export default defineConfig({
 	testDir: "./tests",
 	reporter: "list",
 	use: { baseURL: "http://localhost:4173" },
-	projects: [{ name: "chromium", use: {
+	projects: [
+		{
+			name: "chromium",
+			use: {
 				...devices["Desktop Chrome"],
 				// Software GL so the contained FluidCursor can create a context headless.
 				launchOptions: {
@@ -17,7 +23,7 @@ export default defineConfig({
 	],
 	webServer: {
 		command: "npm run preview",
-		cwd: import.meta.dirname,
+		cwd: appDir,
 		port: 4173,
 		reuseExistingServer: false,
 	},

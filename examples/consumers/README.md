@@ -1,6 +1,6 @@
 # Consumer apps
 
-Minimal apps that use a published-shaped build of a fancy-ui package the way an outsider does: from a packed tarball, outside the pnpm workspace, with no monorepo alias and no docs-site CSS. They catch what the in-repo apps cannot: a missing file in the `files` list, a broken `exports` entry, a Tailwind utility that is not generated downstream.
+Minimal apps that use a published-shaped build of a fancy-ui package the way an outsider does: from a packed tarball, outside the pnpm workspace, with no monorepo alias and no docs-site CSS. The build runs in a copy placed outside the repo tree, so module resolution cannot fall back to the monorepo's `node_modules`. They catch what the in-repo apps cannot: a dependency the package imports but does not declare, a missing file in the `files` list, a broken `exports` entry, a Tailwind utility that is not generated downstream.
 
 None of them is listed in `pnpm-workspace.yaml`, and each installs with `npm install`.
 
@@ -10,7 +10,7 @@ None of them is listed in `pnpm-workspace.yaml`, and each installs with `npm ins
 scripts/consumers/sveltekit.sh
 ```
 
-The script builds the package (`pnpm package`), runs `pnpm pack` into a scratch folder, copies the tarball to `examples/consumers/sveltekit/.tarball/`, points the app's `fancy-ui-svelte` dependency at it with a `file:` path, runs `npm install` and `npm run build` inside the app, then runs the Playwright smoke (Chromium, using the repo's `@playwright/test`, config inside the app).
+The script builds the package (`pnpm package`), runs `pnpm pack` into a scratch folder, copies the app (without its tests) and the tarball into that scratch folder, points the app's `fancy-ui-svelte` dependency at it with a `file:` path, runs `npm install` and `npm run build` inside the copy, then runs the Playwright smoke from the repo (Chromium, the repo's `@playwright/test`, config inside the app folder, preview server started in the copy).
 
 The app's CSS is exactly the two imports the README documents:
 
