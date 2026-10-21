@@ -139,7 +139,7 @@ export function AnimatedTestimonials({
 							<div
 								key={index}
 								className={cn(
-									"absolute inset-0 h-full w-full origin-bottom rounded-3xl transition-all ease-in-out",
+									"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all",
 									index === activeIndex
 										? "z-20 translate-y-0 scale-100 rotate-0 opacity-100"
 										: "z-10 translate-y-4 scale-95 opacity-0",
@@ -207,7 +207,7 @@ export function AnimatedTestimonials({
 									strokeWidth="2"
 									strokeLinecap="round"
 									strokeLinejoin="round"
-									className="text-gray-800 transition-transform group-hover/button:-translate-x-0.5 dark:text-neutral-200"
+									className="text-gray-800 group-hover/button:-translate-x-0.5 motion-safe:transition-transform dark:text-neutral-200"
 								>
 									<path d="m15 18-6-6 6-6" />
 								</svg>
@@ -228,7 +228,7 @@ export function AnimatedTestimonials({
 									strokeWidth="2"
 									strokeLinecap="round"
 									strokeLinejoin="round"
-									className="text-gray-800 transition-transform group-hover/button:translate-x-0.5 dark:text-neutral-200"
+									className="text-gray-800 group-hover/button:translate-x-0.5 motion-safe:transition-transform dark:text-neutral-200"
 								>
 									<path d="m9 18 6-6-6-6" />
 								</svg>

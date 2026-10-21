@@ -60,7 +60,7 @@
 			{width}
 			{height}
 			class={cn(
-				"interactive-grid-square transition-all duration-100 ease-in-out",
+				"interactive-grid-square duration-100 ease-in-out motion-safe:transition-all",
 				strokeClassName,
 				hoveredSquare === index ? "fill-gray-300/30" : "fill-transparent",
 				squaresClassName

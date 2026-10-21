@@ -173,7 +173,7 @@ function handleTouchEnd() {
 
 const containerClass = computed(() =>
 	cn(
-		"group/card relative overflow-hidden rounded-lg bg-transparent transition-all duration-300",
+		"group/card relative overflow-hidden rounded-lg bg-transparent motion-safe:transition-all duration-300",
 		"h-48 w-48",
 		"sm:h-64 sm:w-64",
 		"md:h-80 md:w-80",
@@ -188,7 +188,7 @@ const containerClass = computed(() =>
 
 const imageClass = computed(() =>
 	cn(
-		"h-full w-full object-cover transition-transform duration-300",
+		"h-full w-full object-cover motion-safe:transition-transform duration-300",
 		"scale-125",
 		"sm:scale-[1.35]",
 		"md:scale-150",
@@ -198,7 +198,7 @@ const imageClass = computed(() =>
 
 const childrenClass = computed(() =>
 	cn(
-		"absolute z-40 text-white transition-opacity duration-300",
+		"absolute z-40 text-white motion-safe:transition-opacity duration-300",
 		"bottom-2 left-2 text-sm",
 		"sm:bottom-3 sm:left-3 sm:text-base",
 		"md:bottom-4 md:left-4 md:text-lg",
@@ -211,7 +211,7 @@ const childrenClass = computed(() =>
 const overlayDirection = computed(() => direction.value ?? lastDirection.value);
 
 const overlayClass = computed(() => {
-	const baseClasses = "absolute inset-0 z-10 transition-all duration-300";
+	const baseClasses = "absolute inset-0 z-10 motion-safe:transition-all duration-300";
 	const backgroundClasses = "bg-black/40 dark:bg-black/60";
 
 	let transformClasses = "";
@@ -236,7 +236,7 @@ const overlayClass = computed(() => {
 });
 
 const imageContainerClass = computed(() =>
-	cn("relative size-full bg-gray-50 transition-transform duration-300 dark:bg-black", {
+	cn("relative size-full bg-gray-50 motion-safe:transition-transform duration-300 dark:bg-black", {
 		"translate-y-2 md:translate-y-5": direction.value === "top",
 		"-translate-y-2 md:-translate-y-5": direction.value === "bottom",
 		"translate-x-2 md:translate-x-5": direction.value === "left",

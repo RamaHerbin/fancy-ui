@@ -129,7 +129,7 @@ export const RippleButton = forwardRef<HTMLButtonElement, RippleButtonProps>(
 					"ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden",
 					"bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium",
 					"shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]",
-					"transition-[transform,border-color,background-color] duration-300 ease-out",
+					"duration-300 ease-out motion-safe:transition-[transform,border-color,background-color]",
 					"hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
 					className
 				)}

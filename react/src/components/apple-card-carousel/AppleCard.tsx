@@ -183,7 +183,7 @@ export function AppleCard({
 				<img
 					src={card.src}
 					alt={card.title}
-					className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+					className="absolute inset-0 h-full w-full object-cover duration-500 hover:scale-105 motion-safe:transition-transform"
 					draggable={false}
 				/>
 				<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>

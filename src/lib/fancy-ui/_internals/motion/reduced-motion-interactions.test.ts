@@ -6,9 +6,12 @@
  * behind `motion-safe:` (Tailwind) or `@media (prefers-reduced-motion:
  * no-preference)` (CSS), with the resting state as the ungated fallback.
  *
- * jsdom cannot evaluate media queries, so the three framework sources are
- * checked directly; the JS-driven case (Focus) is also covered by a real
- * matchMedia-mocked render in each framework's own test file.
+ * jsdom cannot evaluate media queries, so the CSS side is checked on the three
+ * framework sources directly (this file). The behavioural side lives in render
+ * tests that mock `matchMedia` to `reduce`: `focus/Focus.reduced-motion.test.*`
+ * (state still advances, frame still positioned) and the GlowingEffect angle
+ * snap (`glowing-effect-core.reduced-motion.test.ts` in Svelte and Vue,
+ * `GlowingEffect.reduced-motion.test.tsx` in React).
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -35,6 +38,36 @@ const SOURCES: Record<string, string[]> = {
 		"react/src/components/glowing-effect/GlowingEffect.tsx",
 		"vue/src/components/glowing-effect/GlowingEffect.vue",
 	],
+	"apple-card-carousel": [
+		"src/lib/fancy-ui/apple-card-carousel/AppleCard.svelte",
+		"react/src/components/apple-card-carousel/AppleCard.tsx",
+		"vue/src/components/apple-card-carousel/AppleCard.vue",
+	],
+	"animated-testimonials": [
+		"src/lib/fancy-ui/animated-testimonials/AnimatedTestimonials.svelte",
+		"react/src/components/animated-testimonials/AnimatedTestimonials.tsx",
+		"vue/src/components/animated-testimonials/AnimatedTestimonials.vue",
+	],
+	"direction-aware-hover": [
+		"src/lib/fancy-ui/direction-aware-hover/DirectionAwareHover.svelte",
+		"react/src/components/direction-aware-hover/DirectionAwareHover.tsx",
+		"vue/src/components/direction-aware-hover/DirectionAwareHover.vue",
+	],
+	"interactive-grid-pattern": [
+		"src/lib/fancy-ui/interactive-grid-pattern/InteractiveGridPattern.svelte",
+		"react/src/components/interactive-grid-pattern/InteractiveGridPattern.tsx",
+		"vue/src/components/interactive-grid-pattern/InteractiveGridPattern.vue",
+	],
+	"shimmer-button": [
+		"src/lib/fancy-ui/shimmer-button/ShimmerButton.svelte",
+		"react/src/components/shimmer-button/ShimmerButton.tsx",
+		"vue/src/components/shimmer-button/ShimmerButton.vue",
+	],
+	"ripple-button": [
+		"src/lib/fancy-ui/ripple-button/RippleButton.svelte",
+		"react/src/components/ripple-button/RippleButton.tsx",
+		"vue/src/components/ripple-button/RippleButton.vue",
+	],
 	"glare-card": [
 		"src/lib/fancy-ui/glare-card/GlareCard.svelte",
 		"react/src/components/glare-card/GlareCard.tsx",
@@ -44,16 +77,22 @@ const SOURCES: Record<string, string[]> = {
 
 // A Tailwind transition utility not carried by the motion-safe variant.
 const UNGATED_TRANSITION =
-	/(?<!motion-safe:)(?<![\w-])transition(?:-(?:all|transform|opacity|filter))?(?![\w-])(?=[\s"'`\\])/g;
+	/(?<!motion-safe:)(?<![\w-])transition(?:-(?:all|transform|opacity|filter|\[[^\]]*\]))?(?![\w-])(?=[\s"'`\\])/g;
 
 describe("reduced motion snap: Tailwind transitions are motion-safe", () => {
 	for (const [name, files] of Object.entries(SOURCES)) {
 		for (const file of files) {
 			it(`${name}: ${file} has no ungated transition utility`, () => {
 				const src = readFileSync(resolve(ROOT, file), "utf8");
-				const classLines = src.split("\n").filter((l) => /transition/.test(l));
-				const offenders = classLines.filter((l) => {
-					// Svelte `transition:` directives and comments are not utilities.
+				// Drop block comments (HTML and JS/CSS) and import lines first, so only
+				// code and class strings are inspected.
+				const code = src
+					.replace(/<!--[\s\S]*?-->/g, "")
+					.replace(/\/\*[\s\S]*?\*\//g, "")
+					.split("\n")
+					.filter((l) => !/^\s*import /.test(l));
+				const offenders = code.filter((l) => {
+					// Svelte `transition:` directives and line comments are not utilities.
 					const stripped = l.replace(/transition:[a-z]+/g, "").replace(/\/\/.*$/, "");
 					UNGATED_TRANSITION.lastIndex = 0;
 					return UNGATED_TRANSITION.test(stripped);

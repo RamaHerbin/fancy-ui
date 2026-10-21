@@ -26,6 +26,15 @@ export interface GlowingEffectProps {
 	borderWidth?: number;
 }
 
+/** Read live on every tween step; missing `matchMedia` means "no preference". */
+function prefersReducedMotion(): boolean {
+	return (
+		typeof window !== "undefined" &&
+		typeof window.matchMedia === "function" &&
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches
+	);
+}
+
 interface MotionState {
 	lastPosition: { x: number; y: number };
 	animationFrameId: number;
@@ -85,8 +94,12 @@ export function GlowingEffect({
 		const state = motionRef.current;
 
 		function animateAngle() {
-			// Lerp speed inversely proportional to movementDuration
-			const speed = 0.08 / Math.max(liveRef.current.movementDuration, 0.1);
+			// Reduced motion: the arc snaps to the target (a duration of 0). The
+			// state is still produced, only the glide is dropped.
+			// Otherwise lerp speed is inversely proportional to movementDuration.
+			const speed = prefersReducedMotion()
+				? 1
+				: 0.08 / Math.max(liveRef.current.movementDuration, 0.1);
 			state.currentAngle = state.currentAngle + (state.targetAngle - state.currentAngle) * speed;
 
 			if (containerRef.current) {

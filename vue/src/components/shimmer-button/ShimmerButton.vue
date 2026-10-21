@@ -93,7 +93,7 @@ function handlePointerMove(event: PointerEvent) {
 		:class="
 			cn(
 				'shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90',
-				'transform-gpu transition-[transform,color] duration-300 ease-out hover:text-white active:scale-[0.98]',
+				'transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]',
 				className
 			)
 		"
