@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "../app.css";
 	import { onMount } from "svelte";
+	import { browser } from "$app/environment";
 	import Menu from "@lucide/svelte/icons/menu";
 	import { afterNavigate } from "$app/navigation";
 	import { page } from "$app/state";
@@ -20,10 +21,14 @@
 		navOpen = false;
 	});
 
+	// The simulation switches (?fail=once, ?latency=slow, ?scenario=empty…)
+	// are read in the browser (the prerendered HTML has no query string), and
+	// here in the script rather than on mount: Svelte runs a parent's mount
+	// hooks after its children's, so a screen loading on mount would otherwise
+	// make its first call against the defaults. src/routes/layout.test.ts.
+	if (browser) api.configure(parseApiConfig(window.location.search));
+
 	onMount(() => {
-		// The simulation switches (?fail=once, ?latency=slow, ?scenario=empty…)
-		// are read in the browser: the prerendered HTML has no query string.
-		api.configure(parseApiConfig(window.location.search));
 		// The e2e spec waits for this before it clicks anything.
 		document.documentElement.dataset.hydrated = "true";
 	});

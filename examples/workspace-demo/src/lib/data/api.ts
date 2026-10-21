@@ -377,7 +377,8 @@ export async function settle<T>(
 }
 
 /**
- * The app's one instance. The shell applies the query-string switches to it
- * on mount, so a shared link reproduces the same run.
+ * The app's one instance. The root layout applies the query-string switches
+ * to it before any screen is created, so a shared link reproduces the same
+ * run from the first call.
  */
 export const api: WorkspaceApi = createApi();

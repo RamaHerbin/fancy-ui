@@ -1,8 +1,10 @@
 # Workspace demo
 
-A small account-settings app built only with `fancy-ui-svelte`: profile, settings, API keys and notifications, each with its loading, empty, error and ready states. It is a consumer of the package, not part of the docs site: it imports `fancy-ui-svelte` and `fancy-ui-svelte/tailwind.css` (any other subpath must be one the package's `exports` map declares, such as `cameleon`), never the library's source, `_internals` or the docs site's components. `src/imports.test.ts` fails on anything else.
+A small account-settings app built only with `fancy-ui-svelte`: profile, settings, API keys and notifications. It is a consumer of the package, not part of the docs site: it imports `fancy-ui-svelte` and `fancy-ui-svelte/tailwind.css` (any other subpath must be one the package's `exports` map declares, such as `cameleon`), never the library's source, `_internals` or the docs site's components. `src/imports.test.ts` fails on anything else.
 
 Started from `develop` at `17b783152cc3de03a5bb3fd852c3cb4961a2b0e1`.
+
+**Status: shell and data contract only.** This stage ships the shell, the routes, the in-memory API and its tests. Each route still renders a placeholder outline of its sections; the screens themselves, with their loading, empty, error and ready states, are planned for the next stages, which build them against the contract below and then compose them into these routes. The screen map and journeys describe that target.
 
 ## Running it
 
@@ -13,7 +15,7 @@ pnpm install
 pnpm package                                  # builds fancy-ui-svelte into dist/
 pnpm -C examples/workspace-demo dev           # http://localhost:5295
 pnpm -C examples/workspace-demo check         # svelte-check
-pnpm -C examples/workspace-demo test          # unit tests (data layer, import boundary)
+pnpm -C examples/workspace-demo test          # unit tests (data layer, import boundary, switch timing)
 pnpm -C examples/workspace-demo build         # static site in examples/workspace-demo/build
 pnpm exec playwright test -c examples/workspace-demo/playwright.config.ts   # browser spec, on the preview at 5295
 ```
@@ -38,7 +40,7 @@ The shell around them:
 - **Theme**: the toggle puts `dark` or `light` on `<html>` and remembers it in `localStorage`; an inline script in `app.html` applies it before the first paint. With nothing stored, the system preference decides.
 - A skip link, one `main` landmark per page, a document title per screen (`Profile · Workspace demo`), and a toaster mounted once in the layout.
 
-Journeys the screens are built to show:
+Journeys the screens are to show once composed (planned; the switches below already drive the API):
 
 1. **First launch**: `?scenario=empty`. A profile with only a name and email, no keys, no notifications. Each screen shows its empty state with the one action that fills it.
 2. **Loading**: every call waits a seeded delay; screens show skeletons shaped like their content. `?latency=slow` makes it obvious.
@@ -47,7 +49,7 @@ Journeys the screens are built to show:
 
 ## Simulation switches
 
-Read from the query string on the first page load (`parseApiConfig`), applied to the shared `api` instance:
+Read from the query string when the app starts in the browser (`parseApiConfig`) and applied to the shared `api` instance by the root layout's script, before any screen is created, so a screen's first call (in its script, on mount or in an effect) already sees them. Client-side navigation does not re-read them:
 
 | Parameter  | Values                                   | Default    | Effect                                                         |
 | ---------- | ---------------------------------------- | ---------- | -------------------------------------------------------------- |
@@ -91,8 +93,10 @@ Interface copy lives in `src/lib/strings.ts`; mock content is data and stays in 
 src/
   app.html, app.css          theme script, Tailwind and the package's tailwind.css
   routes/                    shell layout, one route per screen, / redirect
+  routes/layout.test.ts      the switches reach a screen's first call
   lib/shell/                 navigation, theme toggle, screen header, placeholder outline
   lib/data/                  mock data, API, their tests
+  lib/test/                  test doubles: the layout around a probe screen
   lib/strings.ts             interface copy
   imports.test.ts            the public-surface boundary
 playwright.config.ts         runs tests/e2e/workspace-demo.spec.ts against the preview
