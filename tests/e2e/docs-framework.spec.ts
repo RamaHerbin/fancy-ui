@@ -36,6 +36,42 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(usage).not.toContainText("fancy-ui-react");
 	});
 
+	// Each priority page ships compiled React and Vue usage, with text taken from
+	// the real example so a fallback or a Svelte leak cannot pass.
+	for (const [slug, realText] of [
+		["gradient-button", "Click me"],
+		["border-beam", "Deploy in progress"],
+		["fluid-cursor", "Move your cursor here"],
+		["image-trail-cursor", "Move your cursor here"],
+		["liquid-glass", "Liquid Glass"],
+		["thinking-indicator", "Reading files"],
+		["glow-border", "Content goes here"],
+		["reveal", "Fast setup"],
+		["composer", "Ask anything"],
+		["chat-panel", "Why does my transcript jump around?"],
+	] as const) {
+		test(`${slug} usage has compiled React and Vue snippets`, async ({ page }) => {
+			await page.goto(`/docs/components/${slug}`);
+			await hydrated(page);
+			const usage = page.locator("section:has(h2#usage)");
+
+			await pick(page, "React");
+			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
+			await expect(usage).toContainText("fancy-ui-react");
+			await expect(usage).toContainText(realText);
+			await expect(usage).not.toContainText("<script");
+			await expect(usage).not.toContainText("fancy-ui-svelte");
+
+			await pick(page, "Vue");
+			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
+			await expect(usage).toContainText("fancy-ui-vue");
+			await expect(usage).toContainText(realText);
+			await expect(usage).toContainText("<template>");
+			await expect(usage).not.toContainText("fancy-ui-react");
+			await expect(usage).not.toContainText("fancy-ui-svelte");
+		});
+	}
+
 	test("the Code tab follows the framework and the source link follows the port", async ({
 		page,
 	}) => {
@@ -72,7 +108,7 @@ test.describe("Docs follow the selected framework", () => {
 	test("a component without a full example says so instead of showing other code", async ({
 		page,
 	}) => {
-		await page.goto("/docs/components/border-beam");
+		await page.goto("/docs/components/animated-beam");
 		await hydrated(page);
 		await pick(page, "React");
 
