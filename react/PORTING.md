@@ -124,8 +124,61 @@ The Svelte package is the reference; open it first and this port follows.
    component's `.css` would fight itself. The package stylesheet maps them
    with `@theme inline` and ships defaults in `@layer base`, which serves the
    same goal rule 4 exists for (zero app-side setup) while still letting an
-   app with its own shadcn tokens win. Adding a new semantic name to a ported
-   component means adding it there too.
+   app with its own token set win. Adding a new semantic name to a ported
+   component means adding it to all three entries (see
+   [What a consumer imports](#what-a-consumer-imports)).
+
+## What a consumer imports
+
+The distribution contract. It is the same for the three packages, so a porter
+who adds a file, a stylesheet or a module-scope statement knows which promise
+it touches. `pnpm check:dist-env` (after the builds), `pnpm check:tailwind` and
+publint enforce the mechanical half.
+
+| Specifier | Svelte | React | Vue |
+| --- | --- | --- | --- |
+| `<pkg>` | every component, hook, `sound`, `toast` | same | same |
+| `<pkg>/cameleon` | `FancyProvider`, primitives, skins; plus `cameleon/retro-kit` and a `cameleon/*` wildcard | barrel only | barrel only |
+| `<pkg>/tailwind.css` | `@source` + dark variant + 18 tokens | same body | same body |
+| `<pkg>/styles.css` | none: each component's styles compile with it | required, once | required, once |
+| `<pkg>/package.json` | yes | yes | yes |
+
+- **CSS entry.** `tailwind.css` is the only file a consumer's Tailwind reads.
+  Below their `@source` lines the three entries are one body, byte for byte
+  (`pnpm check:tailwind` fails on drift), so a token, a variant or a comment
+  changes in all three in the same commit. No comment in a shipped file names a
+  third-party product: describe the behaviour instead.
+- **`styles.css`.** React component CSS is aggregated into `dist/styles.css` at
+  build time; no shipped JavaScript module imports CSS, which is why
+  `sideEffects` lists `**/*.css` and nothing else. Keep it that way: a CSS
+  import inside a component module would land in the consumer's graph twice.
+- **Cameleon subpath.** `fancy-ui-react/cameleon` is a barrel: engine,
+  primitives and the five skins. It must run in any React app, with or without
+  a meta-framework, so it imports nothing framework-private (`pnpm
+  check:dist-env` rejects `$app/*` and `$env/*` in the Svelte tarball, where
+  that bug happened once).
+- **No environment reads.** No raw `import.meta.env` in shipped code: dev-only
+  branches read the literal `process.env.NODE_ENV` inside a `try`, as
+  `components/fluid-cursor/dev.ts` does.
+- **SSR: nothing at module or setup time touches the browser.** Importing any
+  module, and running a component's render body, must not read `window`,
+  `document`, `navigator`, `matchMedia` or storage, nor register a listener.
+  Browser work starts in `useEffect` / `useLayoutEffect`.
+  `scripts/smoke-dist.mjs` imports the server modules in a bare Node process
+  and server-renders every export after each build; the `examples/next-app`
+  Server Component imports the whole barrel in CI.
+- **Import cost: the barrel is the API.** There are no per-component subpaths,
+  on purpose. Measured on 2026-10-21 against packed tarballs in a bare Vite
+  app, `import { Button } from "<pkg>"` and an import of the component's own
+  dist file emit the same JavaScript to within 0.1 kB gzip in all three
+  packages (Svelte 30.8 vs 30.7, React 82.1 vs 82.1, Vue 42.6 vs 42.6 kB gzip,
+  framework runtime included), and a WebGL component pulls `three` only when it
+  is imported. That holds only while component modules have no module-scope
+  side effects: a top-level registration, a global listener or a polyfill in
+  one component would be paid by every barrel import. The Svelte manifest also
+  lists `**/*.svelte` in `sideEffects`, so no bundler drops a used component's
+  style request; the same measurement with CSS alone listed gives identical
+  output, so that entry costs nothing.
 
 ## Tests
 
