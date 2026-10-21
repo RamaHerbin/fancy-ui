@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import { variantMap, type ImageTrailVariant, type VariantType } from "./trail-variants.js";
 
@@ -45,15 +46,20 @@ export function ImageTrailCursor({
 }: ImageTrailCursorProps) {
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const instanceRef = useRef<ImageTrailVariant | null>(null);
+	// Live, not just read at mount: flipping the OS setting mid-session starts
+	// or stops the trail without remounting the component.
+	const reduced = useReducedMotion();
 
-	// `variant` is the only dependency, exactly as on the Svelte side: the
-	// effect there tracks `variant` and nothing else, so a changed `images`
-	// array adds or removes trail elements without rebuilding the running
-	// instance (which keeps the element list it captured at construction).
-	// Reproduced rather than corrected — the Svelte behaviour is the contract.
+	// `variant` and the reduced-motion preference are the only dependencies,
+	// exactly as on the Svelte side: a changed `images` array adds or removes
+	// trail elements without rebuilding the running instance (which keeps the
+	// element list it captured at construction). Reproduced rather than
+	// corrected — the Svelte behaviour is the contract. Under reduced motion no
+	// instance exists at all: no pointer listeners, no rAF loop, no timelines,
+	// and the trail images stay hidden.
 	useEffect(() => {
 		const container = containerRef.current;
-		if (!container) return;
+		if (!container || reduced) return;
 
 		if (instanceRef.current) {
 			instanceRef.current.destroy();
@@ -70,8 +76,11 @@ export function ImageTrailCursor({
 				instanceRef.current.destroy();
 				instanceRef.current = null;
 			}
+			// Wipe what the instance wrote, so a trail stopped by the
+			// preference leaves no frozen image on screen.
+			resetImageStyles(container);
 		};
-	}, [variant]);
+	}, [variant, reduced]);
 
 	return (
 		<div
