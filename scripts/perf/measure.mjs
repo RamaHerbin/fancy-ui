@@ -715,10 +715,17 @@ function runReport() {
 		"",
 		markdownTable(["key", "value"], environment({ sizes, imports, effects, lifecycle: life })),
 		"",
-		'Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when the worse of its 1- and 5-minute loads is below half the core count (the 15-minute window includes the builds of the tool itself and is stored but not used); a section whose wait for a quiet machine timed out is labelled loaded whatever its load at the end; the others are labelled loaded and their timing numbers are indicative only. A record filled in after the measurement (`stamp`) is marked "(backfilled)" on everything it supplies: machine, os, node, package versions, library commit and tool commit.',
+		'Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when the worse of its 1- and 5-minute loads is below half the core count (the 15-minute window includes the builds of the tool itself and is stored but not used); a section whose wait for a quiet machine timed out is labelled loaded whatever its load at the end; the others are labelled loaded and their timing numbers are indicative only. The "wait for quiet" column is how the pre-measurement wait of a section ended (1-minute load per core under 0.5 before the group starts); the load at the end includes the work of the tool itself (the browser, the builds), so a group can start quiet and still end labelled loaded. A record filled in after the measurement (`stamp`) is marked "(backfilled)" on everything it supplies: machine, os, node, package versions, library commit and tool commit.',
 		"",
 		markdownTable(
-			["section", "library commit", "tool commit", "load at end (1/5/15 min)", "state"],
+			[
+				"section",
+				"library commit",
+				"tool commit",
+				"load at end (1/5/15 min)",
+				"state",
+				"wait for quiet",
+			],
 			runRows({ sizes, imports, effects, lifecycle: life })
 		),
 		""

@@ -283,12 +283,12 @@ test("runRows labels a section loaded when its quiet wait timed out, whatever th
 			{
 				framework: "svelte",
 				rows: [],
-				run: { ...base, quietWait: { quiet: true, waitedMs: 5000 } },
+				run: { ...base, quietWait: { quiet: true, waitedMs: 5000, load1: 4.2 } },
 			},
 			{
 				framework: "react",
 				rows: [],
-				run: { ...base, quietWait: { quiet: false, waitedMs: 600000 } },
+				run: { ...base, quietWait: { quiet: false, waitedMs: 600000, load1: 9 } },
 			},
 		],
 		lifecycle: [],
@@ -296,6 +296,8 @@ test("runRows labels a section loaded when its quiet wait timed out, whatever th
 	const byName = Object.fromEntries(rows.map((r) => [r[0], r]));
 	assert.equal(byName["effects (svelte)"][4], "quiet");
 	assert.equal(byName["effects (react)"][4], "loaded");
+	assert.equal(byName["effects (svelte)"][5], "quiet after 5 s, 1-minute load 4.2");
+	assert.equal(byName["effects (react)"][5], "timed out after 600 s, 1-minute load 9.0");
 });
 
 test("backfillMark and groupLoad", () => {
@@ -347,7 +349,7 @@ test("runRows prints each section's own commits and load, and labels the loaded 
 		lifecycle: [{ framework: "svelte", run: run([2.5, 3.4, 4.1]) }],
 	});
 	const byName = Object.fromEntries(rows.map((r) => [r[0], r]));
-	assert.deepEqual(byName.sizes.slice(1), ["lib1", "tool1", "2.0 / 3.0 / 4.0", "quiet"]);
+	assert.deepEqual(byName.sizes.slice(1), ["lib1", "tool1", "2.0 / 3.0 / 4.0", "quiet", "not run"]);
 	assert.equal(byName["effects (svelte)"][3], "8.2 / 16.6 / 25.4");
 	assert.equal(byName["effects (svelte)"][4], "loaded");
 	assert.equal(byName["effects (react)"][4], "loaded");

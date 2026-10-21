@@ -190,6 +190,14 @@ export function groupVerdict(g) {
 	return loadVerdict(groupLoad(g), g?.run?.cores);
 }
 
+/** How the wait for a quiet machine ended, for the report: "not run" when the section did not wait. */
+export function quietWaitCell(w) {
+	if (!w) return "not run";
+	const secs = Math.round(w.waitedMs / 1000);
+	const load = Number.isFinite(w.load1) ? `, 1-minute load ${w.load1.toFixed(1)}` : "";
+	return `${w.quiet ? "quiet after" : "timed out after"} ${secs} s${load}`;
+}
+
 /**
  * Attach a run record (measured commit, tool commit, load, machine) to a stored
  * section: the object itself, or each group of a list. A record already there
@@ -219,6 +227,7 @@ export function runRows({ sizes, imports, effects, lifecycle }) {
 			g?.run?.toolCommit ? backfillMark(g.run.toolCommit, g.run) : "unrecorded",
 			load ? load.map((n) => n.toFixed(1)).join(" / ") : "unrecorded",
 			groupVerdict(g),
+			quietWaitCell(g?.run?.quietWait),
 		]);
 	};
 	if (sizes) row("sizes", sizes);
