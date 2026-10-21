@@ -44,6 +44,14 @@ export const en = {
 	"search.placeholder": "Search components and pages...",
 	"search.noResults": "No results found",
 	"search.esc": "ESC",
+	"search.tryInstead": "Try one of these instead:",
+	"jobs.heading": "Browse by what you need",
+	"jobs.feedback": "Give feedback",
+	"jobs.input": "Collect an input",
+	"jobs.attention": "Guide attention",
+	"jobs.navigate": "Navigate",
+	"jobs.progress": "Show progress",
+	"jobs.surprise": "Surprise",
 
 	// Component page
 	"comp.preview": "Preview",

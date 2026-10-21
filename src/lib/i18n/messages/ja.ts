@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "コンポーネントとページを検索...",
 	"search.noResults": "結果が見つかりません",
 	"search.esc": "ESC",
+	"search.tryInstead": "代わりにこちらを試してください：",
+	"jobs.heading": "必要なことから探す",
+	"jobs.feedback": "フィードバックを返す",
+	"jobs.input": "入力を集める",
+	"jobs.attention": "注目を誘導する",
+	"jobs.navigate": "ナビゲーション",
+	"jobs.progress": "進捗を見せる",
+	"jobs.surprise": "驚きを与える",
 
 	// Component page
 	"comp.preview": "プレビュー",

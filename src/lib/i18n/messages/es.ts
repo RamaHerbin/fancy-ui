@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "Buscar componentes y páginas...",
 	"search.noResults": "No se encontraron resultados",
 	"search.esc": "ESC",
+	"search.tryInstead": "Prueba una de estas búsquedas:",
+	"jobs.heading": "Explora según lo que necesites",
+	"jobs.feedback": "Dar feedback",
+	"jobs.input": "Recoger una entrada",
+	"jobs.attention": "Guiar la atención",
+	"jobs.navigate": "Navegar",
+	"jobs.progress": "Mostrar el progreso",
+	"jobs.surprise": "Sorprender",
 
 	// Component page
 	"comp.preview": "Vista previa",

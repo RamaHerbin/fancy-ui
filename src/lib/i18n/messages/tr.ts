@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "Bileşenlerde ve sayfalarda ara...",
 	"search.noResults": "Sonuç bulunamadı",
 	"search.esc": "ESC",
+	"search.tryInstead": "Bunun yerine şunlardan birini deneyin:",
+	"jobs.heading": "İhtiyacınıza göre göz atın",
+	"jobs.feedback": "Geri bildirim ver",
+	"jobs.input": "Girdi topla",
+	"jobs.attention": "Dikkati yönlendir",
+	"jobs.navigate": "Gezin",
+	"jobs.progress": "İlerlemeyi göster",
+	"jobs.surprise": "Şaşırt",
 
 	// Component page
 	"comp.preview": "Önizleme",

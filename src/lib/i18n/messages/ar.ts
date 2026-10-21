@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "ابحث في المكوّنات والصفحات...",
 	"search.noResults": "لا توجد نتائج",
 	"search.esc": "ESC",
+	"search.tryInstead": "جرّب بدلاً من ذلك إحدى عمليات البحث هذه:",
+	"jobs.heading": "تصفّح حسب ما تحتاجه",
+	"jobs.feedback": "تقديم ملاحظات",
+	"jobs.input": "جمع مدخلات",
+	"jobs.attention": "توجيه الانتباه",
+	"jobs.navigate": "التنقّل",
+	"jobs.progress": "عرض التقدّم",
+	"jobs.surprise": "إثارة الدهشة",
 
 	// Component page
 	"comp.preview": "معاينة",

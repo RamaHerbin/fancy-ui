@@ -31,6 +31,14 @@ export default {
 	"search.placeholder": "Hledat komponenty a stránky...",
 	"search.noResults": "Nebyly nalezeny žádné výsledky",
 	"search.esc": "ESC",
+	"search.tryInstead": "Zkuste raději některý z těchto dotazů:",
+	"jobs.heading": "Procházet podle toho, co potřebujete",
+	"jobs.feedback": "Zpětná vazba",
+	"jobs.input": "Sběr vstupu",
+	"jobs.attention": "Nasměrování pozornosti",
+	"jobs.navigate": "Navigace",
+	"jobs.progress": "Zobrazení průběhu",
+	"jobs.surprise": "Překvapení",
 
 	// Component page
 	"comp.preview": "Náhled",

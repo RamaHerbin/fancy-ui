@@ -10,6 +10,7 @@
 		matchesQuery,
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
+	import JobsBrowse from "$lib/components/docs/JobsBrowse.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
@@ -165,6 +166,8 @@
 				.replace("{categories}", String(populatedCategories.length))}
 		</p>
 	</div>
+
+	<JobsBrowse />
 
 	<!-- Toolbar: sticks under the doc header so the lens stays in reach while browsing. -->
 	<div

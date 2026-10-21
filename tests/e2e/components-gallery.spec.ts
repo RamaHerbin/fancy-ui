@@ -77,3 +77,68 @@ test.describe("Components gallery", () => {
 		await expect(page.locator("section#buttons")).toBeVisible();
 	});
 });
+
+test.describe("Components gallery: discovery", () => {
+	test("browse by job lists six jobs above the categories and no link is dead", async ({
+		page,
+		request,
+	}) => {
+		test.setTimeout(180000);
+		await page.goto("/docs/components");
+		await hydrated(page);
+
+		await expect(page.locator("[data-jobs] [data-job]")).toHaveCount(6);
+		const jobsBox = await page.locator("[data-jobs]").boundingBox();
+		const firstSection = await page.locator("section#buttons").boundingBox();
+		expect(jobsBox!.y).toBeLessThan(firstSection!.y);
+
+		const hrefs = await page
+			.locator("[data-jobs] a")
+			.evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!));
+		expect(hrefs.length).toBeGreaterThanOrEqual(36);
+		for (const href of hrefs) {
+			const res = await request.get(href);
+			expect(res.status(), href).toBe(200);
+		}
+	});
+
+	test("the jobs section fits a phone", async ({ page }) => {
+		await page.setViewportSize({ width: 375, height: 700 });
+		await page.goto("/docs/components");
+		await hydrated(page);
+		await expect(page.locator("[data-jobs]")).toBeVisible();
+		// Scoped to the section: the docs header has its own width on a phone.
+		const widest = await page.evaluate(() =>
+			Math.max(
+				...Array.from(document.querySelectorAll("[data-jobs], [data-jobs] *")).map(
+					(el) => el.getBoundingClientRect().right
+				)
+			)
+		);
+		expect(widest).toBeLessThanOrEqual(375);
+	});
+
+	test("the command search ranks the exact name first", async ({ page }) => {
+		await page.goto("/docs/components");
+		await hydrated(page);
+		await page.keyboard.press("Control+k");
+		const input = page.getByPlaceholder(/search components/i);
+		await input.fill("button");
+		await expect(page.locator("[data-result]").first()).toContainText("Button");
+		await expect(page.locator("[data-result]").first()).not.toContainText("Rainbow");
+	});
+
+	test("the command search offers three suggestions when nothing matches, and they work", async ({
+		page,
+	}) => {
+		await page.goto("/docs/components");
+		await hydrated(page);
+		await page.keyboard.press("Control+k");
+		await page.getByPlaceholder(/search components/i).fill("zzzzqq");
+		const box = page.locator("[data-testid=search-no-results]");
+		await expect(box).toBeVisible();
+		await expect(box.getByRole("button")).toHaveCount(3);
+		await box.getByRole("button").first().click();
+		await expect(page.locator("[data-result]").first()).toBeVisible();
+	});
+});
