@@ -16,6 +16,8 @@
 
 	let { context, groupAttrs = {} }: Props = $props();
 
+	// Test rig: the field context is published once from the initial prop.
+	// svelte-ignore state_referenced_locally
 	setContext(FIELD_KEY, context);
 </script>
 
