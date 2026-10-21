@@ -39,7 +39,7 @@ Scroll handling is `rafThrottle`d: one layout read per frame, and the only write
 
 ```svelte
 <script>
-	import { Timeline } from "$lib/fancy-ui/timeline";
+	import { Timeline } from "fancy-ui-svelte";
 
 	const items = [
 		{ id: "v2", label: "v2.0" },

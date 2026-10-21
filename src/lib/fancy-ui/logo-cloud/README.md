@@ -6,7 +6,7 @@ Logo display components in three variants: animated marquee, static grid, and co
 
 ```svelte
 <script lang="ts">
-	import { AnimatedLogoCloud, StaticLogoCloud, IconLogoCloud } from "$lib/fancy-ui/logo-cloud";
+	import { AnimatedLogoCloud, StaticLogoCloud, IconLogoCloud } from "fancy-ui-svelte";
 
 	const logos = [
 		{ name: "Vercel", path: "/logos/vercel.svg" },
@@ -42,8 +42,8 @@ Pass `wordmarks` instead of `logos` to render brand names as styled text rather 
 
 ```svelte
 <script lang="ts">
-	import { StaticLogoCloud } from "$lib/fancy-ui/logo-cloud";
-	import type { Wordmark } from "$lib/fancy-ui/logo-cloud";
+	import { StaticLogoCloud } from "fancy-ui-svelte";
+	import type { Wordmark } from "fancy-ui-svelte";
 
 	const wordmarks: Wordmark[] = [
 		{ name: "Acme Corp", size: 22, weight: 700 },
