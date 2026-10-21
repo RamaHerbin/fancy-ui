@@ -49,6 +49,7 @@
 	import { onDestroy } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 
@@ -88,9 +89,7 @@
 	const effectiveRequired = $derived(field?.required ?? required);
 	const effectiveInvalid = $derived(field?.invalid ?? invalid);
 
-	const describedBy = $derived(
-		[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined
-	);
+	const describedBy = $derived(mergeIds(field?.describedBy, consumerDescribedBy));
 
 	// `type="number"`'s own value-sanitization silently reports "" for ANY
 	// syntactically incomplete number — "9.", "-", "1e" all read back as the

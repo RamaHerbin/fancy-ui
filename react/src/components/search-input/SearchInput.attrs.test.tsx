@@ -99,9 +99,17 @@ describe("SearchInput native attribute forwarding", () => {
 		expect(onChange).not.toHaveBeenCalled();
 	});
 
-	it("native React-cased attributes (autoComplete, readOnly) are honoured next to the lowercase props", () => {
-		const { container } = render(<SearchInput readOnly />);
+	it("native React-cased attributes: autoComplete reaches the element and readOnly blocks clearing", () => {
+		const onValueChange = vi.fn();
+		const { container } = render(
+			<SearchInput autoComplete="off" readOnly value="abc" onValueChange={onValueChange} />
+		);
+		expect(el(container).getAttribute("autocomplete")).toBe("off");
 		expect(el(container).readOnly).toBe(true);
+		expect(container.querySelector(".ft-search-input-clear")).toBeNull();
+		fireEvent.keyDown(el(container), { key: "Escape" });
+		expect(onValueChange).not.toHaveBeenCalled();
+		expect(el(container).value).toBe("abc");
 	});
 
 	it("a consumer cannot turn off aria-invalid while the field is invalid", () => {
@@ -139,5 +147,14 @@ describe("SearchInput native attribute forwarding", () => {
 		expect(parts).toContain("ext-hint");
 		expect(parts).toContain("custom-field-error");
 		expect(node.getAttribute("data-testid")).toBe("control");
+	});
+
+	it("does not repeat an id in aria-describedby when the consumer passes the FormField's own error id", () => {
+		const { container } = render(
+			<FormField label="Field label" error="Something is wrong" id="custom-field">
+				<SearchInput aria-describedby="custom-field-error" />
+			</FormField>
+		);
+		expect(el(container).getAttribute("aria-describedby")).toBe("custom-field-error");
 	});
 });

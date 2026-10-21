@@ -53,6 +53,7 @@ import { computed, useAttrs, useTemplateRef } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 
 defineOptions({ name: "Input", inheritAttrs: false });
 
@@ -98,24 +99,21 @@ const effectiveInvalid = computed(() => field?.invalid ?? props.invalid ?? false
 // (so internal handlers run first) and before its invariants (so a consumer
 // can add attributes but never break them).
 const attrs = useAttrs();
-const ariaLabelResolved = computed(() => {
+const ariaLabelResolved = () => {
 	const own = props.label;
 	return own ?? (attrs["aria-label"] as string | undefined);
-});
-const ariaInvalidResolved = computed(() =>
+};
+const ariaInvalidResolved = () =>
 	effectiveInvalid.value
 		? "true"
-		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined)
-);
-const consumerDescribedBy = computed(() => attrs["aria-describedby"] as string | undefined);
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined);
+const consumerDescribedBy = () => attrs["aria-describedby"] as string | undefined;
 
 // Exactly where the source declares its bindable `ref`.
 const el = useTemplateRef<HTMLInputElement>("el");
 defineExpose({ ref: el });
 
-const describedBy = computed(
-	() => [field?.describedBy, consumerDescribedBy.value].filter(Boolean).join(" ") || undefined
-);
+const describedBy = () => mergeIds(field?.describedBy, consumerDescribedBy());
 
 const classes = computed(() =>
 	cn(
@@ -154,9 +152,9 @@ function handleInput(event: Event) {
 		:disabled="effectiveDisabled"
 		:readonly="props.readonly ?? false"
 		:required="effectiveRequired"
-		:aria-invalid="ariaInvalidResolved"
-		:aria-describedby="describedBy"
-		:aria-label="ariaLabelResolved"
+		:aria-invalid="ariaInvalidResolved()"
+		:aria-describedby="describedBy()"
+		:aria-label="ariaLabelResolved()"
 		:class="classes"
 	/>
 </template>

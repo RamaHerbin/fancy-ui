@@ -162,10 +162,12 @@ Anything NumberInput does not declare as its own prop is forwarded to the inner 
 - Inside a `FormField` the field's `controlId` is the element's id and the label's
   `for` follows it; set `id` on the `FormField` to choose it.
 - Forms: form libraries that register fields through spread props (`name`, a change
-  handler, a blur handler and a ref) work as is. In React, `onChange` from the spread
-  is called after the component's own change handling and `onValueChange`, and the
-  forwarded ref points at the native element; leave `value` unset to keep the field
-  uncontrolled and let the library read the element.
+  handler, a blur handler and a ref) can read an uncontrolled field as is. In React,
+  `onChange` from the spread is called after the component's own change handling and
+  `onValueChange`, and the forwarded ref points at the native element. Initial values
+  go through `defaultValue`. Anything the library writes into the element (a reset or
+  a set-value call) is overwritten on the next render, because the React field is
+  internally controlled: use `value` + `onValueChange` (the controller pattern) for that.
 
 ## Theming
 

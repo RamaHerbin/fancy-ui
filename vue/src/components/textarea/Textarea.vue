@@ -59,6 +59,7 @@ import { computed, onMounted, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { useFancyId } from "../../internals/use-id.js";
 
 defineOptions({ name: "Textarea", inheritAttrs: false });
@@ -110,16 +111,15 @@ const effectiveInvalid = computed(() => field?.invalid ?? invalid);
 // (so internal handlers run first) and before its invariants (so a consumer
 // can add attributes but never break them).
 const attrs = useAttrs();
-const ariaLabelResolved = computed(() => {
+const ariaLabelResolved = () => {
 	const own = label;
 	return own ?? (attrs["aria-label"] as string | undefined);
-});
-const ariaInvalidResolved = computed(() =>
+};
+const ariaInvalidResolved = () =>
 	effectiveInvalid.value
 		? "true"
-		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined)
-);
-const consumerDescribedBy = computed(() => attrs["aria-describedby"] as string | undefined);
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined);
+const consumerDescribedBy = () => attrs["aria-describedby"] as string | undefined;
 
 const uid = useFancyId();
 const countId = `${uid}-count`;
@@ -133,12 +133,8 @@ const atLimit = computed(() => maxlength != null && count.value >= maxlength);
 // the way a polite live region would while the user is still typing. The
 // visible counter span below *is* the description target, so there is no
 // separate hidden node to keep in sync with it.
-const describedBy = computed(
-	() =>
-		[field?.describedBy, consumerDescribedBy.value, showCount ? countId : undefined]
-			.filter(Boolean)
-			.join(" ") || undefined
-);
+const describedBy = () =>
+	mergeIds(field?.describedBy, consumerDescribedBy(), showCount ? countId : undefined);
 
 const classes = computed(() =>
 	cn(
@@ -251,9 +247,9 @@ watch(
 			:disabled="effectiveDisabled"
 			:readonly="readonly"
 			:required="effectiveRequired"
-			:aria-invalid="ariaInvalidResolved"
-			:aria-describedby="describedBy"
-			:aria-label="ariaLabelResolved"
+			:aria-invalid="ariaInvalidResolved()"
+			:aria-describedby="describedBy()"
+			:aria-label="ariaLabelResolved()"
 			:class="classes"
 			:value="value"
 		></textarea>

@@ -12,20 +12,28 @@
 	import SearchInput from "../search-input/SearchInput.svelte";
 	import NumberInput from "../number-input/NumberInput.svelte";
 
-	let { kind }: { kind: "Input" | "Textarea" | "PasswordInput" | "SearchInput" | "NumberInput" } =
-		$props();
+	let {
+		kind,
+		dup = false,
+	}: {
+		kind: "Input" | "Textarea" | "PasswordInput" | "SearchInput" | "NumberInput";
+		dup?: boolean;
+	} = $props();
 </script>
 
 <FormField label="Field label" error="Something is wrong" id="custom-field">
 	{#if kind === "Input"}
-		<Input aria-describedby="ext-hint" data-testid="control" />
+		<Input aria-describedby={dup ? "custom-field-error" : "ext-hint"} data-testid="control" />
 	{:else if kind === "Textarea"}
-		<Textarea aria-describedby="ext-hint" data-testid="control" />
+		<Textarea aria-describedby={dup ? "custom-field-error" : "ext-hint"} data-testid="control" />
 	{:else if kind === "PasswordInput"}
-		<PasswordInput aria-describedby="ext-hint" data-testid="control" />
+		<PasswordInput
+			aria-describedby={dup ? "custom-field-error" : "ext-hint"}
+			data-testid="control"
+		/>
 	{:else if kind === "SearchInput"}
-		<SearchInput aria-describedby="ext-hint" data-testid="control" />
+		<SearchInput aria-describedby={dup ? "custom-field-error" : "ext-hint"} data-testid="control" />
 	{:else}
-		<NumberInput aria-describedby="ext-hint" data-testid="control" />
+		<NumberInput aria-describedby={dup ? "custom-field-error" : "ext-hint"} data-testid="control" />
 	{/if}
 </FormField>

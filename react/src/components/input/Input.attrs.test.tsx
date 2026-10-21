@@ -99,8 +99,9 @@ describe("Input native attribute forwarding", () => {
 		expect(onChange).not.toHaveBeenCalled();
 	});
 
-	it("native React-cased attributes (autoComplete, readOnly) are honoured next to the lowercase props", () => {
-		const { container } = render(<Input readOnly />);
+	it("native React-cased attributes (autoComplete, readOnly) reach the element", () => {
+		const { container } = render(<Input autoComplete="email" readOnly />);
+		expect(el(container).getAttribute("autocomplete")).toBe("email");
 		expect(el(container).readOnly).toBe(true);
 	});
 
@@ -128,5 +129,14 @@ describe("Input native attribute forwarding", () => {
 		expect(parts).toContain("ext-hint");
 		expect(parts).toContain("custom-field-error");
 		expect(node.getAttribute("data-testid")).toBe("control");
+	});
+
+	it("does not repeat an id in aria-describedby when the consumer passes the FormField's own error id", () => {
+		const { container } = render(
+			<FormField label="Field label" error="Something is wrong" id="custom-field">
+				<Input aria-describedby="custom-field-error" />
+			</FormField>
+		);
+		expect(el(container).getAttribute("aria-describedby")).toBe("custom-field-error");
 	});
 });

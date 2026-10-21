@@ -99,9 +99,18 @@ describe("NumberInput native attribute forwarding", () => {
 		expect(onChange).not.toHaveBeenCalled();
 	});
 
-	it("native React-cased attributes (autoComplete, readOnly) are honoured next to the lowercase props", () => {
-		const { container } = render(<NumberInput readOnly />);
+	it("native React-cased attributes: autoComplete reaches the element and readOnly disables the steppers", () => {
+		const onValueChange = vi.fn();
+		const { container } = render(
+			<NumberInput autoComplete="off" readOnly value={5} onValueChange={onValueChange} />
+		);
+		expect(el(container).getAttribute("autocomplete")).toBe("off");
 		expect(el(container).readOnly).toBe(true);
+		const buttons = container.querySelectorAll("button");
+		expect(buttons[0]?.disabled).toBe(true);
+		expect(buttons[1]?.disabled).toBe(true);
+		fireEvent.keyDown(el(container), { key: "ArrowUp" });
+		expect(onValueChange).not.toHaveBeenCalled();
 	});
 
 	it("a consumer cannot turn off aria-invalid while the field is invalid", () => {
@@ -160,5 +169,14 @@ describe("NumberInput native attribute forwarding", () => {
 		expect(parts).toContain("ext-hint");
 		expect(parts).toContain("custom-field-error");
 		expect(node.getAttribute("data-testid")).toBe("control");
+	});
+
+	it("does not repeat an id in aria-describedby when the consumer passes the FormField's own error id", () => {
+		const { container } = render(
+			<FormField label="Field label" error="Something is wrong" id="custom-field">
+				<NumberInput aria-describedby="custom-field-error" />
+			</FormField>
+		);
+		expect(el(container).getAttribute("aria-describedby")).toBe("custom-field-error");
 	});
 });

@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from "@testing-library/vue";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Textarea from "./Textarea.vue";
 import FormField from "../form-field/FormField.vue";
@@ -123,5 +123,30 @@ describe("Textarea native attribute forwarding", () => {
 		expect(parts).toContain("ext-hint");
 		expect(parts).toContain("custom-field-error");
 		expect(node.getAttribute("data-testid")).toBe("control");
+	});
+
+	it("does not repeat an id in aria-describedby when the consumer passes the FormField's own error id", () => {
+		const Harness = defineComponent({
+			setup: () => () =>
+				h(
+					FormField,
+					{ label: "Field label", error: "Something is wrong", id: "custom-field" },
+					{ default: () => h(Textarea, { "aria-describedby": "custom-field-error" }) }
+				),
+		});
+		const { container } = render(Harness);
+		expect(el(container).getAttribute("aria-describedby")).toBe("custom-field-error");
+	});
+
+	it("reads a changed consumer aria-describedby on the next render", async () => {
+		const described = ref("first");
+		const Harness = defineComponent({
+			setup: () => () => h(Textarea, { "aria-describedby": described.value }),
+		});
+		const { container } = render(Harness);
+		expect(el(container).getAttribute("aria-describedby")).toBe("first");
+		described.value = "second";
+		await nextTick();
+		expect(el(container).getAttribute("aria-describedby")).toBe("second");
 	});
 });

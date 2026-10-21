@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, ComponentPropsWithoutRef, FocusEvent, KeyboardEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./number-input.css";
@@ -142,8 +143,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		const effectiveDisabled = field?.disabled ?? disabled;
 		const effectiveRequired = field?.required ?? required;
 		const effectiveInvalid = field?.invalid ?? invalid;
-		const describedBy =
-			[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined;
+		const isReadonly = readonly || !!readOnlyAttr;
+		const describedBy = mergeIds(field?.describedBy, consumerDescribedBy);
 
 		const playCue = useSoundCue(sound);
 
@@ -199,9 +200,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		// the attribute alone — and reused to actually disable the buttons, so
 		// the bound is communicated visually and not just enforced silently.
 		const decrementDisabled =
-			effectiveDisabled || readonly || (value !== null && min !== undefined && value <= min);
+			effectiveDisabled || isReadonly || (value !== null && min !== undefined && value <= min);
 		const incrementDisabled =
-			effectiveDisabled || readonly || (value !== null && max !== undefined && value >= max);
+			effectiveDisabled || isReadonly || (value !== null && max !== undefined && value >= max);
 
 		// Which stepper just fired, for `DURATIONS.micro` (80ms) afterwards, or
 		// `null` between steps. A pointer gets its press feedback from `:active`
@@ -262,7 +263,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		// routed through the same `nextStepValue` the buttons use rather than a
 		// second copy of the rounding/clamping logic.
 		function handleKeydown(event: KeyboardEvent<HTMLInputElement>) {
-			if (!effectiveDisabled && !(readonly || readOnlyAttr)) handleOwnKey(event);
+			if (!effectiveDisabled && !isReadonly) handleOwnKey(event);
 			onKeyDown?.(event);
 		}
 
@@ -279,7 +280,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		}
 
 		function handleInput(event: ChangeEvent<HTMLInputElement>) {
-			if (effectiveDisabled || readonly || readOnlyAttr) return;
+			if (effectiveDisabled || isReadonly) return;
 			applyTyped(event.currentTarget.value);
 			onChange?.(event);
 		}
@@ -364,7 +365,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 					name={name}
 					value={rawText}
 					disabled={effectiveDisabled}
-					readOnly={readonly || readOnlyAttr}
+					readOnly={isReadonly}
 					required={effectiveRequired}
 					aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
 					aria-describedby={describedBy}

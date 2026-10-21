@@ -41,6 +41,7 @@ import { computed, onBeforeUnmount, ref, useAttrs, useTemplateRef, watch } from 
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 
@@ -86,19 +87,16 @@ const effectiveInvalid = computed(() => field?.invalid ?? invalid);
 // (so internal handlers run first) and before its invariants (so a consumer
 // can add attributes but never break them).
 const attrs = useAttrs();
-const ariaLabelResolved = computed(() => {
+const ariaLabelResolved = () => {
 	const own = label;
 	return own ?? (attrs["aria-label"] as string | undefined);
-});
-const ariaInvalidResolved = computed(() =>
+};
+const ariaInvalidResolved = () =>
 	effectiveInvalid.value
 		? "true"
-		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined)
-);
-const consumerDescribedBy = computed(() => attrs["aria-describedby"] as string | undefined);
-const describedBy = computed(
-	() => [field?.describedBy, consumerDescribedBy.value].filter(Boolean).join(" ") || undefined
-);
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined);
+const consumerDescribedBy = () => attrs["aria-describedby"] as string | undefined;
+const describedBy = () => mergeIds(field?.describedBy, consumerDescribedBy());
 
 // `type="number"`'s own value-sanitization silently reports "" for ANY
 // syntactically incomplete number — "9.", "-", "1e" all read back as the
@@ -376,9 +374,9 @@ const classes = computed(() =>
 			:disabled="effectiveDisabled"
 			:readonly="readonly"
 			:required="effectiveRequired"
-			:aria-invalid="ariaInvalidResolved"
-			:aria-describedby="describedBy"
-			:aria-label="ariaLabelResolved"
+			:aria-invalid="ariaInvalidResolved()"
+			:aria-describedby="describedBy()"
+			:aria-label="ariaLabelResolved()"
 		/>
 		<button
 			type="button"

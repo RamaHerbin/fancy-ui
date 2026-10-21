@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, ComponentPropsWithoutRef, KeyboardEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { preset } from "../../internals/motion/transitions.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
@@ -161,7 +162,8 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 		// is available at all right now. Kept as one value so the button's
 		// presence and Escape's behaviour never disagree about when clearing is
 		// actually possible.
-		const canClear = clearable && !effectiveDisabled && !readonly && value !== "";
+		const isReadonly = readonly || !!readOnlyAttr;
+		const canClear = clearable && !effectiveDisabled && !isReadonly && value !== "";
 
 		const inputRef = useRef<HTMLInputElement | null>(null);
 		const composedRef = useComposedRefs(forwardedRef, inputRef);
@@ -225,8 +227,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 			introRun.current = run;
 		}, []);
 
-		const describedBy =
-			[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined;
+		const describedBy = mergeIds(field?.describedBy, consumerDescribedBy);
 
 		const classes = cn(
 			"ft-search-input flex w-full items-center gap-2 rounded-full border border-input bg-background px-[14px] py-[9px] text-[13px] transition-colors",
@@ -288,7 +289,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 		}
 
 		function clearValue() {
-			if (effectiveDisabled || readonly) return;
+			if (effectiveDisabled || isReadonly) return;
 			if (!isControlled) setUncontrolledValue("");
 			playCue("press");
 			onValueChange?.("");
@@ -314,7 +315,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 					id={effectiveId}
 					value={value}
 					disabled={effectiveDisabled}
-					readOnly={readonly || readOnlyAttr}
+					readOnly={isReadonly}
 					required={effectiveRequired}
 					aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
 					aria-describedby={describedBy}

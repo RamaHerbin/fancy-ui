@@ -2,6 +2,7 @@ import { forwardRef, useRef, useState } from "react";
 import type { ChangeEvent, ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
@@ -248,10 +249,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 		// that span's text when the string actually changes, so a screen reader
 		// that does treat aria-describedby text as live content still would not
 		// hear it churn on every character.
-		const describedBy =
-			[field?.describedBy, consumerDescribedBy, result ? strengthId : undefined]
-				.filter(Boolean)
-				.join(" ") || undefined;
+		const describedBy = mergeIds(
+			field?.describedBy,
+			consumerDescribedBy,
+			result ? strengthId : undefined
+		);
 
 		const tierClass = !result
 			? ""

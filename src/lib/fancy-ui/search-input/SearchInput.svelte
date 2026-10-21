@@ -58,6 +58,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 	import { preset } from "../_internals/motion/transitions.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
@@ -140,9 +141,7 @@
 		return () => clearDebounce();
 	});
 
-	const describedBy = $derived(
-		[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined
-	);
+	const describedBy = $derived(mergeIds(field?.describedBy, consumerDescribedBy));
 
 	const classes = $derived(
 		cn(

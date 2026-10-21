@@ -49,6 +49,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 
 	let {
 		value = $bindable(""),
@@ -98,9 +99,7 @@
 	// visible counter span below *is* the description target, so there is no
 	// separate hidden node to keep in sync with it.
 	const describedBy = $derived(
-		[field?.describedBy, consumerDescribedBy, showCount ? countId : undefined]
-			.filter(Boolean)
-			.join(" ") || undefined
+		mergeIds(field?.describedBy, consumerDescribedBy, showCount ? countId : undefined)
 	);
 
 	const classes = $derived(

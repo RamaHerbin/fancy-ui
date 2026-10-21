@@ -42,6 +42,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 
 	let {
 		value = $bindable(""),
@@ -77,9 +78,7 @@
 
 	// A consumer's own description id rides along with the FormField's, never
 	// replacing it.
-	const describedBy = $derived(
-		[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined
-	);
+	const describedBy = $derived(mergeIds(field?.describedBy, consumerDescribedBy));
 
 	const classes = $derived(
 		cn(

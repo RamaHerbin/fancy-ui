@@ -116,4 +116,11 @@ describe("SearchInput native attribute forwarding", () => {
 		expect(parts).toContain("custom-field-error");
 		expect(node.getAttribute("data-testid")).toBe("control");
 	});
+
+	it("does not repeat an id in aria-describedby when the consumer passes the FormField's own error id", () => {
+		const { container } = render(ForwardFieldHarness, {
+			props: { kind: "SearchInput", dup: true },
+		});
+		expect(el(container).getAttribute("aria-describedby")).toBe("custom-field-error");
+	});
 });

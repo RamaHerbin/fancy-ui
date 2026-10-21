@@ -61,6 +61,7 @@
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 	import { preset } from "../_internals/motion/transitions.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
@@ -172,9 +173,7 @@
 	// that does treat aria-describedby text as live content still would not
 	// hear it churn on every character.
 	const describedBy = $derived(
-		[field?.describedBy, consumerDescribedBy, result ? strengthId : undefined]
-			.filter(Boolean)
-			.join(" ") || undefined
+		mergeIds(field?.describedBy, consumerDescribedBy, result ? strengthId : undefined)
 	);
 
 	const tierClass = $derived.by(() => {

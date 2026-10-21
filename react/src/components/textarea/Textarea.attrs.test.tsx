@@ -99,9 +99,27 @@ describe("Textarea native attribute forwarding", () => {
 		expect(onChange).not.toHaveBeenCalled();
 	});
 
-	it("native React-cased attributes (autoComplete, readOnly) are honoured next to the lowercase props", () => {
-		const { container } = render(<Textarea readOnly />);
+	it("native React-cased attributes (autoComplete, readOnly, maxLength) reach the element and drive the counter", () => {
+		const { container } = render(
+			<Textarea
+				autoComplete="off"
+				readOnly
+				maxLength={10}
+				showCount
+				value="abc"
+				onValueChange={() => {}}
+			/>
+		);
+		expect(el(container).getAttribute("autocomplete")).toBe("off");
 		expect(el(container).readOnly).toBe(true);
+		expect(el(container).maxLength).toBe(10);
+		expect(
+			container.querySelector(".ft-textarea-count")?.textContent?.replace(/\s+/g, " ").trim()
+		).toBe("3 / 10");
+		const full = render(<Textarea maxLength={3} showCount value="abc" onValueChange={() => {}} />);
+		expect(
+			full.container.querySelector(".ft-textarea-count")?.getAttribute("data-limit-reached")
+		).toBe("true");
 	});
 
 	it("a consumer cannot turn off aria-invalid while the field is invalid", () => {
@@ -135,5 +153,14 @@ describe("Textarea native attribute forwarding", () => {
 		expect(parts).toContain("ext-hint");
 		expect(parts).toContain("custom-field-error");
 		expect(node.getAttribute("data-testid")).toBe("control");
+	});
+
+	it("does not repeat an id in aria-describedby when the consumer passes the FormField's own error id", () => {
+		const { container } = render(
+			<FormField label="Field label" error="Something is wrong" id="custom-field">
+				<Textarea aria-describedby="custom-field-error" />
+			</FormField>
+		);
+		expect(el(container).getAttribute("aria-describedby")).toBe("custom-field-error");
 	});
 });

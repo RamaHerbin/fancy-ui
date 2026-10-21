@@ -2,6 +2,7 @@ import { forwardRef, useState } from "react";
 import type { ChangeEvent, ComponentPropsWithoutRef, HTMLInputAutoCompleteAttribute } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 import "./input.css";
 
 export interface InputOwnProps {
@@ -97,8 +98,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
 		// A consumer's own description id rides along with the FormField's, never
 		// replacing it.
-		const describedBy =
-			[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined;
+		const describedBy = mergeIds(field?.describedBy, consumerDescribedBy);
 
 		const classes = cn(
 			"ft-input w-full rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-[13px] text-foreground transition-colors",
