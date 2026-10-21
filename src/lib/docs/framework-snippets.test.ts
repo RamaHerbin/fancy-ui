@@ -17,6 +17,8 @@ const PRIORITY = [
 	"reveal",
 	"composer",
 	"chat-panel",
+	"accordion",
+	"collapsible",
 ];
 
 describe("framework snippets", () => {
