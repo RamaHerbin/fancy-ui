@@ -58,7 +58,17 @@ test("toast defines an action state and a long-description state", () => {
 	validateStates("toast", hint.states);
 	assert.equal(hint.states.action.variant, "action");
 	assert.equal(hint.states.long.variant, "long");
-	assert.equal(hint.states.action.expect[0].name, "Undo");
+	assert.ok(hint.states.action.expect.some((c) => c.name === "Undo"));
+	assert.ok(hint.states.long.expect.some((c) => c.name === "Download"));
+});
+
+test("every toast expectation lies inside the stage, so a toast off the shot fails", () => {
+	const hint = readHint("toast");
+	for (const [name, spec] of Object.entries(hint.states)) {
+		assert.ok(spec.expect.length >= 2, `toast@${name} checks the panel and its action`);
+		for (const check of spec.expect)
+			assert.equal(check.inStage, true, `toast@${name} expects ${JSON.stringify(check)} inStage`);
+	}
 });
 
 test("state shot names round-trip and stay apart from the rest and hover passes", () => {

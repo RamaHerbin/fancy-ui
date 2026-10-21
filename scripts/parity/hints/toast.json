@@ -3,13 +3,53 @@
 	"states": {
 		"action": {
 			"variant": "action",
-			"steps": [{ "click": { "role": "button", "name": "Show toast" } }],
-			"expect": [{ "role": "button", "name": "Undo", "in": "page" }]
+			"steps": [
+				{
+					"click": {
+						"role": "button",
+						"name": "Show toast"
+					}
+				}
+			],
+			"expect": [
+				{
+					"css": "[data-variant][data-state='open']",
+					"in": "page",
+					"nth": 0,
+					"inStage": true
+				},
+				{
+					"role": "button",
+					"name": "Undo",
+					"in": "page",
+					"inStage": true
+				}
+			]
 		},
 		"long": {
 			"variant": "long",
-			"steps": [{ "click": { "role": "button", "name": "Show toast" } }],
-			"expect": [{ "css": "[data-variant][data-state='open']", "in": "page", "nth": 0 }]
+			"steps": [
+				{
+					"click": {
+						"role": "button",
+						"name": "Show toast"
+					}
+				}
+			],
+			"expect": [
+				{
+					"css": "[data-variant][data-state='open']",
+					"in": "page",
+					"nth": 0,
+					"inStage": true
+				},
+				{
+					"role": "button",
+					"name": "Download",
+					"in": "page",
+					"inStage": true
+				}
+			]
 		}
 	}
 }

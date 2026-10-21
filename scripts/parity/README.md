@@ -71,7 +71,7 @@ Create `examples/parity-react/src/scenarios/<slug>.tsx` (default export, no prop
 
 ## Interaction states
 
-A hint can also declare `states`: the component photographed open, with keyboard focus on its primary control, or holding content too long for it. Dialog, Select, Input, Tabs and Tooltip have all three.
+A hint can also declare `states`: the component photographed open, with keyboard focus on its primary control, or holding content too long for it (`open`, `focus`, `long`), or in a named outcome (`idle`, `copied`, `failed`, `action`). Dialog, Select, Input, Tabs and Tooltip have the first three, the copy button has `idle`, `copied` and `failed`, and the toast has `action` and `long`, each checked to lie inside the stage box.
 
 ```json
 "states": {
@@ -83,12 +83,12 @@ A hint can also declare `states`: the component photographed open, with keyboard
 }
 ```
 
-- Steps (`click`, `hover`, `focus`, `press`, `type`, `wait`) find their target by accessible role and exact name, or by `css`, inside the stage box (`"in": "page"` for a panel portalled out of it). Every wait runs on the frozen clock.
+- Steps (`click`, `hover`, `focus`, `press`, `type`, `wait`, `clipboard`) find their target by accessible role and exact name, or by `css`, inside the stage box (`"in": "page"` for a panel portalled out of it). Every wait runs on the frozen clock.
 - After the steps the state settles: the clock moves until no finite animation is left running, so `moments` (default `[0]`) count from a still frame on every stage.
 - `expect` is checked before every shot: `visible` (default), `focusVisible`, `overflow`, `inStage`.
 - `variant: "long"` renders `<slug>--long` instead of the base demo: `examples/parity-react/src/scenarios/<slug>--long.tsx`, `examples/parity-vue/src/scenarios/<slug>--long.vue` and `src/routes/_parity/[slug]/variants/<slug>--long.svelte` (`?variant=long` on every stage).
 
-Shots are `shots/<fw>/<slug>/<theme>-<t>@<state>.png`. `--states all|none|open,focus,long` picks them (default `all`).
+Shots are `shots/<fw>/<slug>/<theme>-<t>@<state>.png`. `--states all|none|<names>` picks them (default `all`; names are `open`, `focus`, `long`, `idle`, `copied`, `failed`, `action`).
 
 A state never passes by default. A missing scenario, a stage that is down, a target that does not resolve to one element, an expectation that does not hold or a shot that was not written is an error naming `<slug>@<state>`, and the capture exits non-zero. The diff exits non-zero too when one framework has a state shot another lacks.
 

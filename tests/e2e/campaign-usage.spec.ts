@@ -26,6 +26,35 @@ async function setDark(page: Page, dark: boolean) {
 	await page.evaluate((d) => document.documentElement.classList.toggle("dark", d), dark);
 }
 
+// WCAG contrast ratio of an element's text colour over its own background
+// (composited on white when the background is translucent). The colours are
+// resolved through a canvas, so any CSS colour syntax reads back as sRGB.
+function contrastOf(el: Element): number {
+	const ctx = document.createElement("canvas").getContext("2d")!;
+	const rgba = (css: string): [number, number, number, number] => {
+		ctx.clearRect(0, 0, 1, 1);
+		ctx.fillStyle = "#000";
+		ctx.fillStyle = css;
+		ctx.fillRect(0, 0, 1, 1);
+		const d = ctx.getImageData(0, 0, 1, 1).data;
+		return [d[0], d[1], d[2], d[3] / 255];
+	};
+	const lum = ([r, g, b]: number[]) => {
+		const f = (c: number) => {
+			const v = c / 255;
+			return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+		};
+		return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+	};
+	const style = getComputedStyle(el);
+	const [br, bg, bb, ba] = rgba(style.backgroundColor);
+	const back = [br, bg, bb].map((c) => c * ba + 255 * (1 - ba));
+	const [fr, fg, fb, fa] = rgba(style.color);
+	const front = [fr, fg, fb].map((c, i) => c * fa + back[i] * (1 - fa));
+	const [hi, lo] = [lum(front), lum(back)].sort((x, y) => y - x);
+	return (hi + 0.05) / (lo + 0.05);
+}
+
 test.describe("CopyButton usage", () => {
 	test("keyboard: Tab focuses it, Enter copies, the label reverts", async ({ page }) => {
 		await stubClipboard(page, "ok");
@@ -103,26 +132,47 @@ test.describe("Toast usage", () => {
 		await expect(undo).toBeHidden();
 	});
 
-	test("light and dark: the toast text stays readable against its panel", async ({ page }) => {
+	test("light and dark: the toast text keeps a readable contrast against its panel", async ({
+		page,
+	}) => {
 		await openStage(page, "toast", "&variant=action");
 		await page.getByRole("button", { name: "Show toast" }).click();
 		const panel = page.locator("[data-variant][data-state='open']").first();
 		await expect(panel).toBeVisible();
 		for (const dark of [false, true]) {
 			await setDark(page, dark);
-			const [fg, bg] = await panel.evaluate((el) => [
-				getComputedStyle(el).color,
-				getComputedStyle(el).backgroundColor,
-			]);
-			expect(fg, `dark=${dark}`).not.toBe(bg);
+			const ratio = await panel.evaluate(contrastOf);
+			expect(ratio, `dark=${dark}: contrast ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
 		}
 	});
 
-	test("reduced motion: the toast is shown immediately", async ({ page }) => {
+	test("reduced motion: the toast enters with no running animation, unlike full motion", async ({
+		page,
+	}) => {
+		const running = () =>
+			page.evaluate(
+				() =>
+					document
+						.getAnimations()
+						.filter((a) => a.playState === "running" && Number(a.effect?.getTiming().duration) > 0)
+						.length
+			);
+		const show = async () => {
+			await openStage(page, "toast", "&variant=action");
+			await page.getByRole("button", { name: "Show toast" }).click();
+			await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+		};
+		// Control: with full motion the entrance is animated, so the probe can see it.
+		await page.emulateMedia({ reducedMotion: "no-preference" });
+		await show();
+		const full = await running();
 		await page.emulateMedia({ reducedMotion: "reduce" });
-		await openStage(page, "toast", "&variant=action");
-		await page.getByRole("button", { name: "Show toast" }).click();
-		await expect(page.getByRole("button", { name: "Undo" })).toBeVisible({ timeout: 1000 });
+		await show();
+		const reduced = await running();
+		expect(full, "the probe sees no entrance animation under full motion").toBeGreaterThan(0);
+		expect(reduced, "animations still running under reduce").toBe(0);
+		const panel = page.locator("[data-variant][data-state='open']").first();
+		expect(await panel.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
 	});
 });
 
@@ -140,25 +190,35 @@ test.describe("on a phone", () => {
 		await expect(preview.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
 	});
 
-	test("a long toast stays inside the viewport and keeps its action reachable", async ({
+	test("a long toast stays inside the phone viewport and its action can be tapped", async ({
 		page,
 	}) => {
-		await openStage(page, "toast", "&variant=long");
-		// The parity stage is wider than a phone, so its trigger sits off screen:
-		// the click is dispatched, the toast itself is what is measured.
-		await page.getByRole("button", { name: "Show toast" }).dispatchEvent("click");
+		// ?frame=fill: the stage is the whole page, so the layout viewport is the
+		// phone's and the toaster sits in the phone's own corner.
+		await openStage(page, "toast", "&variant=long&frame=fill");
+		await page.getByRole("button", { name: "Show toast" }).tap();
 		const panel = page.locator("[data-variant][data-state='open']").first();
 		await expect(panel).toBeVisible();
 		await page.waitForTimeout(500);
-		// The parity route is 800 px wide, so the layout viewport is wider than the
-		// phone and the toast's fixed corner is not the phone's: the panel is
-		// measured against the phone's width and against its own action instead.
-		const box = (await panel.boundingBox())!;
 		const vw = page.viewportSize()!.width;
-		expect(box.width, "the panel is wider than the phone").toBeLessThanOrEqual(vw);
-		const ab = (await page.getByRole("button", { name: "Download" }).boundingBox())!;
+		expect(vw, "not a phone-width page").toBeLessThan(500);
+		const box = (await panel.boundingBox())!;
+		expect(box.x, "the panel starts left of the viewport").toBeGreaterThanOrEqual(0);
+		expect(box.x + box.width, "the panel ends right of the viewport").toBeLessThanOrEqual(vw);
+		const action = page.getByRole("button", { name: "Download" });
+		const ab = (await action.boundingBox())!;
 		expect(ab.x).toBeGreaterThanOrEqual(box.x - 1);
 		expect(ab.x + ab.width).toBeLessThanOrEqual(box.x + box.width + 1);
 		expect(ab.y + ab.height).toBeLessThanOrEqual(box.y + box.height + 1);
+		expect(ab.y + ab.height, "the action is below the fold").toBeLessThanOrEqual(
+			page.viewportSize()!.height
+		);
+		// A tap on its centre lands on it, not on something drawn over it.
+		const hit = await page.evaluate(
+			([x, y]) => document.elementFromPoint(x, y)?.closest("button")?.textContent?.trim(),
+			[ab.x + ab.width / 2, ab.y + ab.height / 2]
+		);
+		expect(hit).toBe("Download");
+		await action.tap();
 	});
 });

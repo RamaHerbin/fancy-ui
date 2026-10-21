@@ -1,7 +1,8 @@
 /**
  * Interaction states for the parity bench: a component photographed open,
- * with keyboard focus on its primary control, or holding content too long for
- * it, on all three stages.
+ * with keyboard focus on its primary control, holding content too long for
+ * it, or in a named outcome (idle, copied, failed, action), on all three
+ * stages.
  *
  * A state is declared in scripts/parity/hints/<slug>.json:
  *
