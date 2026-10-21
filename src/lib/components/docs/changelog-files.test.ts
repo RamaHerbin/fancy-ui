@@ -31,6 +31,23 @@ describe("the three real changelog files", () => {
 		expect(parseChangelog(svelteRaw)[0].anchor.startsWith("v")).toBe(true);
 	});
 
+	it("renders the release preamble as an unlabeled first section above the bump groups", () => {
+		for (const [raw, prefix, version] of [
+			[svelteRaw, "", "0.17.0"],
+			[reactRaw, "react", "0.6.0"],
+			[vueRaw, "vue", "0.3.0"],
+		] as const) {
+			const entry = parseChangelog(raw, prefix).find((v) => v.version === version);
+			expect(entry, `${prefix || "svelte"} ${version}`).toBeDefined();
+			const [preamble, next] = entry!.sections;
+			expect(preamble.kind).toBe("");
+			expect(preamble.html).toContain("<em>The night-shift release.</em>");
+			expect(preamble.html).toContain("Then the sun came up, and we shipped.");
+			expect(preamble.html).not.toContain("<li>");
+			expect(next.kind).toBe("Minor Changes");
+		}
+	});
+
 	it("builds the three tabs in a fixed order from the raw files", () => {
 		expect(CHANGELOG_PACKAGES.map((p) => p.id)).toEqual(["svelte", "react", "vue"]);
 		const pkgs = buildChangelogPackages({ svelte: svelteRaw, react: reactRaw, vue: vueRaw });
