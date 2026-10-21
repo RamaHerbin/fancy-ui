@@ -232,6 +232,46 @@ test.describe("detail → related", () => {
 	});
 });
 
+test.describe("gooey action bar (prototype)", () => {
+	const bar = (page: Page) => page.locator("[data-gooey-bar]");
+
+	test("keeps real buttons in the sharp layer, in focus order", async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: "no-preference" });
+		await page.goto("/inspiration/gooey-action-bar");
+		await expect(bar(page)).toBeVisible();
+		// Nothing readable or focusable lives under the filter.
+		await expect(bar(page).locator(".goo")).toHaveAttribute("aria-hidden", "true");
+		await expect(bar(page).locator(".goo button, .goo [tabindex]")).toHaveCount(0);
+		const labels = bar(page).locator(".sharp button");
+		await expect(labels).toHaveText(["Copy", "Share", "Save", "Delete"]);
+		await labels.first().focus();
+		for (const name of ["Share", "Save", "Delete"]) {
+			await page.keyboard.press("Tab");
+			await expect(bar(page).getByRole("button", { name })).toBeFocused();
+		}
+		// The focus ring is drawn by the real button, not by a blob.
+		const outline = await bar(page)
+			.getByRole("button", { name: "Delete" })
+			.evaluate((el) => getComputedStyle(el).outlineStyle);
+		expect(outline).toBe("solid");
+	});
+
+	test("reduced motion snaps: no blob transition", async ({ page }) => {
+		// The site pauses live demos under reduced motion, so mount the demo alone
+		// on the dev-only capture route to inspect its own reduced-motion branch.
+		await page.emulateMedia({ reducedMotion: "reduce" });
+		await page.goto("/_capture/gooey-action-bar");
+		await expect(bar(page)).toBeVisible();
+		const durations = await bar(page)
+			.locator(".blob, .hl")
+			.evaluateAll((nodes) => nodes.map((n) => getComputedStyle(n).transitionDuration));
+		expect(durations.length).toBeGreaterThan(0);
+		for (const d of durations) expect(d.split(",").every((x) => parseFloat(x) === 0)).toBe(true);
+		await bar(page).getByRole("button", { name: "Save" }).hover();
+		await expect(bar(page).locator(".hl")).toHaveClass(/on/);
+	});
+});
+
 test("/finds redirects permanently to /inspiration", async ({ request }) => {
 	const response = await request.get("/finds", { maxRedirects: 0 });
 	expect(response.status()).toBe(301);
