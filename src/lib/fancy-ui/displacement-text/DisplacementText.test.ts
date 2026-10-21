@@ -2,6 +2,7 @@ import { render, cleanup, screen } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { tick } from "svelte";
 import DisplacementText from "./DisplacementText.svelte";
+import { STATIC_LAYER_STYLE } from "./displacement-text-core.js";
 
 // Holds the last renderer instance created by the mock
 const lastMock = { renderer: null as any };
@@ -258,6 +259,16 @@ describe("DisplacementText", () => {
 			expect(textNode.style.fontFamily).toBe("Georgia, serif");
 			expect(textNode.style.fontWeight).toBe("bold");
 			expect(textNode.style.color).toBe("rgb(18, 52, 86)");
+		});
+
+		it("lays out the static layer from the shared STATIC_LAYER_STYLE", () => {
+			motion = stubReducedMotion(true);
+			render(DisplacementText, { props: { text: "Layer" } });
+			const layer = screen.getByText("Layer").parentElement as HTMLElement;
+			for (const [key, value] of Object.entries(STATIC_LAYER_STYLE)) {
+				const prop = key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+				expect(layer.style.getPropertyValue(prop)).toBe(value);
+			}
 		});
 
 		it("stops on a change to reduce and starts again on a change back, without remounting", async () => {

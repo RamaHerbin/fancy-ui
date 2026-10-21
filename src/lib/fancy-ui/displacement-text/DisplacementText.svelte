@@ -24,6 +24,7 @@
 	import { cn } from "$lib/utils.js";
 	import {
 		DEFAULT_MAX_DPR,
+		STATIC_LAYER_STYLE,
 		mountDisplacementText,
 		staticTextStyle,
 		type DisplacementTextController,
@@ -84,13 +85,13 @@
 >
 	{#if mode === "static"}
 		<div
-			style:position="absolute"
-			style:inset="0"
-			style:display="flex"
-			style:align-items="center"
-			style:justify-content="center"
-			style:container-type="size"
-			style:overflow="hidden"
+			style:position={STATIC_LAYER_STYLE.position}
+			style:inset={STATIC_LAYER_STYLE.inset}
+			style:display={STATIC_LAYER_STYLE.display}
+			style:align-items={STATIC_LAYER_STYLE.alignItems}
+			style:justify-content={STATIC_LAYER_STYLE.justifyContent}
+			style:container-type={STATIC_LAYER_STYLE.containerType}
+			style:overflow={STATIC_LAYER_STYLE.overflow}
 		>
 			<span
 				style:font-family={staticStyle.fontFamily}

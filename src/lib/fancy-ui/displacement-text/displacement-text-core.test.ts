@@ -29,6 +29,8 @@ const made = {
 	hit: null as null | { point: unknown },
 	/** When set, the mocked `WebGLRenderer` constructor throws like three does without a context. */
 	failRenderer: false,
+	/** When set, the mocked `ShaderMaterial` constructor throws, after the renderer exists. */
+	failMaterial: false,
 };
 
 function resetMade() {
@@ -42,6 +44,7 @@ function resetMade() {
 	made.raycasters = [];
 	made.hit = null;
 	made.failRenderer = false;
+	made.failMaterial = false;
 }
 
 // Three.js needs WebGL, which jsdom does not have — mock the module.
@@ -58,6 +61,7 @@ vi.mock("three", () => {
 		return tex;
 	}
 	function ShaderMaterial(this: any, params: any) {
+		if (made.failMaterial) throw new Error("Material construction failed.");
 		const mat = { ...params, dispose: vi.fn() };
 		made.materials.push(mat);
 		return mat;
@@ -367,6 +371,19 @@ describe("createDisplacementText", () => {
 			const engine = createDisplacementText({ container: host }, {});
 
 			expect(engine).toBeNull();
+			expect(host.querySelector("canvas")).toBeNull();
+			expect(rafSpy).not.toHaveBeenCalled();
+		});
+
+		it("releases the renderer and leaves the host untouched when the scene build throws", () => {
+			made.failMaterial = true;
+			const host = makeHost();
+			const engine = createDisplacementText({ container: host }, {});
+
+			expect(engine).toBeNull();
+			expect(made.renderers).toHaveLength(1);
+			expect(made.renderers[0].dispose).toHaveBeenCalledTimes(1);
+			expect(made.textures[0].dispose).toHaveBeenCalledTimes(1);
 			expect(host.querySelector("canvas")).toBeNull();
 			expect(rafSpy).not.toHaveBeenCalled();
 		});
@@ -757,6 +774,22 @@ describe("mountDisplacementText", () => {
 		const controller = mountDisplacementText({ container: makeHost() }, { onChange });
 		expect(last()?.mode).toBe("static");
 		controller.destroy();
+	});
+
+	it("never throws when the scene build fails, and still drops its listener on destroy", () => {
+		motion = stubReducedMotion(false);
+		stubWebGL(true);
+		made.failMaterial = true;
+		const host = makeHost();
+		const controller = mountDisplacementText({ container: host }, { onChange });
+
+		expect(last()?.mode).toBe("static");
+		expect(host.querySelector("canvas")).toBeNull();
+		expect(made.renderers[0].dispose).toHaveBeenCalledTimes(1);
+		expect(motion.listeners.size).toBe(1);
+
+		controller.destroy();
+		expect(motion.listeners.size).toBe(0);
 	});
 
 	it("falls back to static for the rest of the mount after a context loss", () => {

@@ -276,8 +276,9 @@ const LIVE_KEYS = [
 /**
  * Build the three.js scene inside `container` and drive it.
  *
- * Returns `null` when the host reports a zero height, or when the renderer
- * cannot get a WebGL context (three throws; nothing has been appended yet).
+ * Returns `null` when the host reports a zero height, when the renderer
+ * cannot get a WebGL context (three throws), or when building the scene throws;
+ * in every case nothing is left appended to the host and nothing stays allocated.
  */
 function createDisplacementText(
 	elements: DisplacementTextElements,
@@ -303,53 +304,77 @@ function createDisplacementText(
 		return null;
 	}
 
-	const scene = new THREE.Scene();
-	scene.background = null;
+	// Everything the scene needs is built before the canvas joins the host, and
+	// a throw part-way (a shader or texture the platform rejects) releases what
+	// was already made, so a failed build leaves no canvas and no GPU objects.
+	const built: { dispose(): void }[] = [renderer];
+	let scene: THREE.Scene;
+	let camera: THREE.OrthographicCamera;
+	let geometry: THREE.PlaneGeometry;
+	let currentColor: string;
+	let textTexture: THREE.Texture;
+	let shaderMaterial: THREE.ShaderMaterial;
+	let hitGeometry: THREE.PlaneGeometry;
+	let hitMaterial: THREE.MeshBasicMaterial;
+	let hitPlane: THREE.Mesh;
+	try {
+		scene = new THREE.Scene();
+		scene.background = null;
 
-	const aspect = width / height;
-	const camera = new THREE.OrthographicCamera(
-		-CAMERA_DISTANCE * aspect,
-		CAMERA_DISTANCE * aspect,
-		CAMERA_DISTANCE,
-		-CAMERA_DISTANCE,
-		0.01,
-		1000
-	);
-	camera.position.set(0, -10, 5);
-	camera.lookAt(0, 0, 0);
+		const aspect = width / height;
+		camera = new THREE.OrthographicCamera(
+			-CAMERA_DISTANCE * aspect,
+			CAMERA_DISTANCE * aspect,
+			CAMERA_DISTANCE,
+			-CAMERA_DISTANCE,
+			0.01,
+			1000
+		);
+		camera.position.set(0, -10, 5);
+		camera.lookAt(0, 0, 0);
 
-	renderer.setClearColor(0x000000, 0);
-	renderer.setPixelRatio(resolvePixelRatio(window.devicePixelRatio, opts.maxDpr));
-	renderer.setSize(width, height, false);
-	renderer.domElement.style.width = "100%";
-	renderer.domElement.style.height = "100%";
+		renderer.setClearColor(0x000000, 0);
+		renderer.setPixelRatio(resolvePixelRatio(window.devicePixelRatio, opts.maxDpr));
+		renderer.setSize(width, height, false);
+		renderer.domElement.style.width = "100%";
+		renderer.domElement.style.height = "100%";
+
+		geometry = new THREE.PlaneGeometry(PLANE_SIZE, PLANE_SIZE, PLANE_SEGMENTS, PLANE_SEGMENTS);
+		built.push(geometry);
+
+		currentColor = resolveTextColor(opts);
+		textTexture = createTextTexture(opts.text, opts.fontSize, opts.font, currentColor);
+		built.push(textTexture);
+
+		shaderMaterial = new THREE.ShaderMaterial({
+			uniforms: {
+				uTexture: { value: textTexture },
+				uDisplacement: { value: new THREE.Vector3(0, 0, 0) },
+			},
+			vertexShader,
+			fragmentShader,
+			transparent: true,
+			depthWrite: false,
+			side: THREE.DoubleSide,
+		});
+		built.push(shaderMaterial);
+
+		const plane = new THREE.Mesh(geometry, shaderMaterial);
+		plane.rotation.z = Math.PI / 4;
+		scene.add(plane);
+
+		hitGeometry = new THREE.PlaneGeometry(HIT_PLANE_SIZE, HIT_PLANE_SIZE);
+		built.push(hitGeometry);
+		hitMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
+		built.push(hitMaterial);
+		hitPlane = new THREE.Mesh(hitGeometry, hitMaterial);
+		scene.add(hitPlane);
+	} catch {
+		for (const item of built) item.dispose();
+		return null;
+	}
+
 	container.appendChild(renderer.domElement);
-
-	const geometry = new THREE.PlaneGeometry(PLANE_SIZE, PLANE_SIZE, PLANE_SEGMENTS, PLANE_SEGMENTS);
-
-	let currentColor = resolveTextColor(opts);
-	let textTexture = createTextTexture(opts.text, opts.fontSize, opts.font, currentColor);
-
-	const shaderMaterial = new THREE.ShaderMaterial({
-		uniforms: {
-			uTexture: { value: textTexture },
-			uDisplacement: { value: new THREE.Vector3(0, 0, 0) },
-		},
-		vertexShader,
-		fragmentShader,
-		transparent: true,
-		depthWrite: false,
-		side: THREE.DoubleSide,
-	});
-
-	const plane = new THREE.Mesh(geometry, shaderMaterial);
-	plane.rotation.z = Math.PI / 4;
-	scene.add(plane);
-
-	const hitGeometry = new THREE.PlaneGeometry(HIT_PLANE_SIZE, HIT_PLANE_SIZE);
-	const hitMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
-	const hitPlane = new THREE.Mesh(hitGeometry, hitMaterial);
-	scene.add(hitPlane);
 
 	const raycaster = new THREE.Raycaster();
 	const pointer = new THREE.Vector2();
@@ -540,14 +565,21 @@ function mountDisplacementText(
 	function start() {
 		if (engine || contextLost || destroyed || mql?.matches) return;
 		if (!canCreateWebGLContext()) return;
-		engine = createDisplacementText(elements, {
-			...opts,
-			onContextLost() {
-				engine = null;
-				contextLost = true;
-				publish({ ...state, mode: "static" });
-			},
-		});
+		// The engine already cleans up after a failed build; the guard keeps any
+		// other throw from escaping into the wrapper's mount hook, so the
+		// controller always exists and `destroy()` always drops its listeners.
+		try {
+			engine = createDisplacementText(elements, {
+				...opts,
+				onContextLost() {
+					engine = null;
+					contextLost = true;
+					publish({ ...state, mode: "static" });
+				},
+			});
+		} catch {
+			engine = null;
+		}
 		if (engine) publish({ ...state, mode: "webgl" });
 	}
 

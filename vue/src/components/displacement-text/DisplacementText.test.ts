@@ -4,7 +4,7 @@ import { nextTick } from "vue";
 import DisplacementText from "./DisplacementText.vue";
 
 // Holds the last renderer instance created by the mock
-const lastMock = { renderer: null as any };
+const lastMock = { renderer: null as any, failMaterial: false };
 
 // Three.js uses WebGL which is not available in jsdom — mock the module
 vi.mock("three", () => {
@@ -18,6 +18,7 @@ vi.mock("three", () => {
 		return { needsUpdate: false, dispose: vi.fn() };
 	}
 	function ShaderMaterial() {
+		if (lastMock.failMaterial) throw new Error("Material construction failed.");
 		return {
 			uniforms: { uTexture: { value: null }, uDisplacement: { value: { copy: vi.fn() } } },
 			dispose: vi.fn(),
@@ -141,6 +142,7 @@ describe("DisplacementText", () => {
 
 	beforeEach(() => {
 		lastMock.renderer = null;
+		lastMock.failMaterial = false;
 		restoreWebGL = stubWebGL();
 	});
 
@@ -293,6 +295,22 @@ describe("DisplacementText", () => {
 			motion = stubReducedMotion(false);
 			const { unmount } = render(DisplacementText);
 			expect(motion.listeners.size).toBe(1);
+			unmount();
+			expect(motion.listeners.size).toBe(0);
+		});
+
+		it("releases a half-built scene and still drops its listener on unmount", () => {
+			motion = stubReducedMotion(false);
+			lastMock.failMaterial = true;
+			const { container, unmount } = render(DisplacementText, { props: { text: "Broken" } });
+			const renderer = lastMock.renderer;
+
+			expect(renderer).not.toBeNull();
+			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(container.querySelector("canvas")).toBeNull();
+			expect(screen.getByText("Broken")).toBeInTheDocument();
+			expect(motion.listeners.size).toBe(1);
+
 			unmount();
 			expect(motion.listeners.size).toBe(0);
 		});

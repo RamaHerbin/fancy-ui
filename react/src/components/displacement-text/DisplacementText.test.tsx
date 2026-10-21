@@ -4,7 +4,7 @@ import { act } from "react";
 import { DisplacementText } from "./DisplacementText.js";
 
 // Holds the last renderer instance created by the mock
-const lastMock = { renderer: null as any };
+const lastMock = { renderer: null as any, failMaterial: false };
 
 // Three.js uses WebGL which is not available in jsdom — mock the module
 vi.mock("three", () => {
@@ -18,6 +18,7 @@ vi.mock("three", () => {
 		return { needsUpdate: false, dispose: vi.fn() };
 	}
 	function ShaderMaterial() {
+		if (lastMock.failMaterial) throw new Error("Material construction failed.");
 		return {
 			uniforms: { uTexture: { value: null }, uDisplacement: { value: { copy: vi.fn() } } },
 			dispose: vi.fn(),
@@ -141,6 +142,7 @@ describe("DisplacementText", () => {
 
 	beforeEach(() => {
 		lastMock.renderer = null;
+		lastMock.failMaterial = false;
 		restoreWebGL = stubWebGL();
 	});
 
@@ -336,6 +338,22 @@ describe("DisplacementText", () => {
 			rerender(<DisplacementText text="Two" />);
 			expect(lastMock.renderer).toBe(renderer);
 			expect(renderer.dispose).not.toHaveBeenCalled();
+		});
+
+		it("shows the static text and leaves nothing behind when the scene build throws", () => {
+			const motion = stubReducedMotion(false);
+			lastMock.failMaterial = true;
+			const { container, unmount } = render(<DisplacementText text="Broken" />);
+			const renderer = lastMock.renderer;
+
+			expect(renderer).not.toBeNull();
+			expect(renderer.dispose).toHaveBeenCalledTimes(1);
+			expect(container.querySelector("canvas")).toBeNull();
+			expect(screen.getByText("Broken")).toBeInTheDocument();
+
+			unmount();
+			expect(motion.listeners.size).toBe(0);
+			motion.restore();
 		});
 
 		it("falls back to the static text when the GPU context is lost", () => {

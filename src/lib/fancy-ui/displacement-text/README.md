@@ -34,7 +34,7 @@ Large text rendered as a Three.js plane whose surface bulges toward the viewer n
 
 - With `prefers-reduced-motion: reduce`, no scene is built: no render loop, no WebGL context, no pointer tracking. The component shows the real text as selectable DOM text, in the same font, bold weight and color as the canvas, sized and turned (45°, seen at the camera's tilt) like the resting frame.
 - The preference is followed live. Turning it on while the effect runs stops the loop and releases the renderer, textures and listeners; turning it off builds the scene again. The component is not remounted either way.
-- The same static text is used when WebGL2 is unavailable (a throwaway context is created and released before the renderer is built, and a renderer that still fails to start is caught), and after the GPU drops the context: the loop stops, every resource is released, and the static text stays for the rest of the mount.
+- The same static text is used when WebGL2 is unavailable (a throwaway context is created and released before the renderer is built, and a renderer or scene build that still fails is caught, releasing whatever it had already created), and after the GPU drops the context: the loop stops, every resource is released, and the static text stays for the rest of the mount.
 - The server render and the first client render show the static text; the canvas replaces it once the component has mounted and the checks above pass.
 
 ## Implementation notes
