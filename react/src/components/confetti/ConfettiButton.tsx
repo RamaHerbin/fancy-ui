@@ -2,6 +2,7 @@ import type { MouseEvent, ReactNode } from "react";
 import confetti from "canvas-confetti";
 import type { Options as ConfettiOptions } from "canvas-confetti";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { ConfettiReactContext } from "./context.js";
 
 export interface ConfettiButtonProps {
@@ -10,8 +11,8 @@ export interface ConfettiButtonProps {
 	/** Button content. */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
@@ -28,6 +29,9 @@ export interface ConfettiButtonProps {
 export function ConfettiButton({ options = {}, children, sound = false }: ConfettiButtonProps) {
 	const confettiContext = ConfettiReactContext.useOptional();
 	const playCue = useSoundCue(sound);
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const soundRef = useSoundFeedback({ on: sound ? { pointerenter: "hover" } : {} });
 
 	function handleClick(event: MouseEvent<HTMLButtonElement>) {
 		// The cue fires before the burst, matching the Svelte source: the click
@@ -53,5 +57,9 @@ export function ConfettiButton({ options = {}, children, sound = false }: Confet
 		}
 	}
 
-	return <button onClick={handleClick}>{children}</button>;
+	return (
+		<button ref={soundRef} onClick={handleClick}>
+			{children}
+		</button>
+	);
 }

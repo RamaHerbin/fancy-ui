@@ -17,8 +17,8 @@ export interface GradientButtonProps {
 	/** Custom CSS class */
 	class?: HTMLAttributes["class"];
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Native `disabled`, read to guard the sound cue. */
@@ -50,9 +50,10 @@ export function beamGradient(colors: string[]): string {
 
 <script setup lang="ts">
 import { callListener } from "../../internals/call-listener.js";
-import { computed, useAttrs } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 
 defineOptions({ name: "GradientButton", inheritAttrs: false });
 
@@ -69,6 +70,14 @@ const {
 	sound = false,
 	disabled = false,
 } = defineProps<GradientButtonProps>();
+const el = useTemplateRef<HTMLButtonElement>("el");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled,
+}));
 
 defineSlots<{ default?: () => unknown }>();
 
@@ -97,6 +106,7 @@ function handleClick(event: MouseEvent) {
 
 <template>
 	<button
+		ref="el"
 		:class="
 			cn(
 				'gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white',
