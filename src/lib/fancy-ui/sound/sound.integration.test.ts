@@ -109,16 +109,15 @@ describe("enable → unlock → play", () => {
 		expect(getSoundStatus().lastPlayedAt).toBe(nowMs);
 	});
 
-	it("uses noise sources and biquad filters somewhere in the cue palette", async () => {
+	it("uses oscillators and biquad filters somewhere in the cue palette", async () => {
 		const context = await enableAndUnlock();
 		for (const cue of SOUND_CUES) {
 			nowMs += 500;
 			sound.play(cue);
 			context.advance(LONGEST_CUE_SECONDS);
 		}
-		expect(context.created.sources.length).toBeGreaterThan(0);
+		expect(context.created.oscillators.length).toBeGreaterThan(0);
 		expect(context.created.filters.length).toBeGreaterThan(0);
-		expect(context.created.buffers.length).toBe(1);
 	});
 
 	it("shapes every voice with an envelope that starts and ends at silence", async () => {
@@ -180,7 +179,7 @@ describe("enable → unlock → play", () => {
 });
 
 describe("rate limiting", () => {
-	it("drops a second hover inside the 60 ms window and lets the next one through", async () => {
+	it("drops a second hover inside the 30 ms window and lets the next one through", async () => {
 		const context = await enableAndUnlock();
 		nowMs += 1_000;
 
@@ -188,11 +187,11 @@ describe("rate limiting", () => {
 		const afterFirst = context.created.oscillators.length;
 		expect(afterFirst).toBeGreaterThan(0);
 
-		nowMs += 30;
+		nowMs += 20;
 		sound.play("hover");
 		expect(context.created.oscillators.length).toBe(afterFirst);
 
-		nowMs += 40; // 70 ms since the first hover
+		nowMs += 15; // 35 ms since the first hover
 		sound.play("hover");
 		expect(context.created.oscillators.length).toBeGreaterThan(afterFirst);
 	});
@@ -208,21 +207,21 @@ describe("rate limiting", () => {
 		expect(context.created.oscillators.length).toBeGreaterThan(afterHover);
 	});
 
-	it("absorbs a burst of ticks down to the 40 ms grid", async () => {
+	it("absorbs a burst of ticks down to the 15 ms grid", async () => {
 		const context = await enableAndUnlock();
 		nowMs += 1_000;
 		const before = context.created.gains.length;
 
-		// 20 ticks, 10 ms apart: 200 ms of wall clock, 40 ms minimum interval.
+		// 20 ticks, 5 ms apart: 100 ms of wall clock, 15 ms minimum interval.
 		let scheduled = 0;
 		for (let i = 0; i < 20; i++) {
 			const gains = context.created.gains.length;
 			sound.play("tick");
 			if (context.created.gains.length > gains) scheduled++;
-			nowMs += 10;
+			nowMs += 5;
 		}
 		expect(scheduled).toBeGreaterThan(0);
-		expect(scheduled).toBeLessThanOrEqual(6);
+		expect(scheduled).toBeLessThanOrEqual(7);
 		expect(context.created.gains.length).toBeGreaterThan(before);
 	});
 });
