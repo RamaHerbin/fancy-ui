@@ -24,7 +24,7 @@ function button(container: HTMLElement): HTMLButtonElement {
  * `aria-live` in the default composition: StatusMorph owns the announcement.
  */
 function visibleLabel(container: HTMLElement): HTMLElement {
-	return button(container).lastElementChild as HTMLElement;
+	return button(container).querySelector(".ft-copybtn__live") as HTMLElement;
 }
 
 /**
