@@ -62,7 +62,7 @@ describe("ExamplesSection failure isolation", { timeout: 20_000 }, () => {
 			expect(el).not.toBeNull();
 			return el!;
 		}, LOAD);
-		expect(failed).toHaveTextContent("This preview failed to render.");
+		expect(failed).toHaveTextContent("This preview could not be loaded.");
 		expect(failed).toHaveAttribute("role", "alert");
 	});
 
@@ -102,7 +102,7 @@ describe("ExamplesSection failure isolation", { timeout: 20_000 }, () => {
 		expect(consoleError.mock.calls.some((args) => args.some((a) => a instanceof Error))).toBe(true);
 		// The failed example says so in its own frame; its source stays readable.
 		expect(stages[0].querySelector('[data-preview-error="import"]')).toHaveTextContent(
-			"This preview failed to render."
+			"This preview could not be loaded."
 		);
 	});
 });

@@ -78,7 +78,7 @@ describe("DemoRenderer failures", { timeout: 20_000 }, () => {
 			expect(el).not.toBeNull();
 			return el!;
 		}, LOAD);
-		expect(failed).toHaveTextContent("This preview failed to render.");
+		expect(failed).toHaveTextContent("This preview could not be loaded.");
 		expect(consoleError.mock.calls.flat()).toContain(RENDER_ERROR);
 	});
 
