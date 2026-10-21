@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { fade } from "svelte/transition";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	type Direction = "top" | "bottom" | "left" | "right";
 
@@ -24,6 +25,9 @@
 	}: Props = $props();
 
 	let divRef: HTMLDivElement;
+	// JS-timed fades collapse to 0 under reduced motion (the CSS side is motion-safe gated).
+	const reducedMotion = createReducedMotion();
+	$effect(() => reducedMotion.start());
 	let direction = $state<Direction | null>(null);
 	let isTouched = $state(false);
 	let isMobile = $state(false);
@@ -106,7 +110,7 @@
 
 	let containerClass = $derived(
 		cn(
-			"group/card relative overflow-hidden rounded-lg bg-transparent motion-safe:transition-all duration-300",
+			"group/card relative overflow-hidden rounded-lg bg-transparent motion-safe:transition-all motion-safe:duration-300",
 			"h-48 w-48",
 			"sm:h-64 sm:w-64",
 			"md:h-80 md:w-80",
@@ -121,7 +125,7 @@
 
 	let imageClass = $derived(
 		cn(
-			"h-full w-full object-cover motion-safe:transition-transform duration-300",
+			"h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-300",
 			"scale-125",
 			"sm:scale-[1.35]",
 			"md:scale-150",
@@ -131,7 +135,7 @@
 
 	let childrenClass = $derived(
 		cn(
-			"absolute z-40 text-white motion-safe:transition-opacity duration-300",
+			"absolute z-40 text-white motion-safe:transition-opacity motion-safe:duration-300",
 			"bottom-2 left-2 text-sm",
 			"sm:bottom-3 sm:left-3 sm:text-base",
 			"md:bottom-4 md:left-4 md:text-lg",
@@ -140,7 +144,7 @@
 	);
 
 	let overlayClass = $derived.by(() => {
-		const baseClasses = "absolute inset-0 z-10 motion-safe:transition-all duration-300";
+		const baseClasses = "absolute inset-0 z-10 motion-safe:transition-all motion-safe:duration-300";
 		const backgroundClasses = "bg-black/40 dark:bg-black/60";
 
 		let transformClasses = "";
@@ -165,7 +169,7 @@
 	});
 
 	let imageContainerClass = $derived(
-		cn("relative size-full bg-gray-50 motion-safe:transition-transform duration-300 dark:bg-black", {
+		cn("relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black", {
 			"translate-y-2 md:translate-y-5": direction === "top",
 			"-translate-y-2 md:-translate-y-5": direction === "bottom",
 			"translate-x-2 md:translate-x-5": direction === "left",
@@ -197,7 +201,7 @@
 >
 	<div class="relative size-full overflow-hidden">
 		{#if direction !== null}
-			<div class={overlayClass} transition:fade={{ duration: 300 }}></div>
+			<div class={overlayClass} transition:fade={{ duration: reducedMotion.current ? 0 : 300 }}></div>
 		{/if}
 
 		<div class={imageContainerClass}>
@@ -205,7 +209,7 @@
 		</div>
 
 		{#if direction !== null || isTouched}
-			<div class={childrenClass} transition:fade={{ duration: 300 }}>
+			<div class={childrenClass} transition:fade={{ duration: reducedMotion.current ? 0 : 300 }}>
 				{#if children}
 					{@render children()}
 				{/if}
@@ -223,10 +227,4 @@
 		}
 	}
 
-	/* Smooth transitions for reduced motion preference */
-	@media (prefers-reduced-motion: reduce) {
-		:global(*) {
-			transition-duration: 0.1s !important;
-		}
-	}
 </style>

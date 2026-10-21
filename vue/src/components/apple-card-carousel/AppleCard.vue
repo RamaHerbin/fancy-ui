@@ -184,7 +184,7 @@ function handleOverlayKeydown(e: KeyboardEvent) {
 		<img
 			:src="card.src"
 			:alt="card.title"
-			class="absolute inset-0 h-full w-full object-cover motion-safe:transition-transform duration-500 hover:scale-105"
+			class="absolute inset-0 h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-500 hover:scale-105"
 			draggable="false"
 		/>
 		<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
