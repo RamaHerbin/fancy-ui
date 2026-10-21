@@ -45,10 +45,17 @@ test.describe("Docs follow the selected framework", () => {
 			await pick(page, "React");
 			await expect(usage).toContainText("fancy-ui-react");
 			await expect(usage).not.toContainText("<script");
+			await expect(usage).not.toContainText("fancy-ui-svelte");
+			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
+			await expect(usage).toContainText("Move your cursor here");
+			await expect(usage).toContainText("className");
 
 			await pick(page, "Vue");
 			await expect(usage).toContainText("fancy-ui-vue");
 			await expect(usage).not.toContainText("fancy-ui-react");
+			await expect(usage).not.toContainText("fancy-ui-svelte");
+			await expect(usage.locator("[data-snippet-missing]")).toHaveCount(0);
+			await expect(usage).toContainText("<template>");
 		});
 	}
 
