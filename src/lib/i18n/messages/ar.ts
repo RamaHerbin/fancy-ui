@@ -371,4 +371,68 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"المكوّنات هي مكوّنات Vue 3.5 أحادية الملف، لذا يلزم Vue 3.5.2 أو أحدث.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "تخطَّ إلى المحتوى",
+	"a11y.docsBreadcrumb": "مسار التنقل في التوثيق",
+	"a11y.prevNext": "الصفحة السابقة والتالية",
+	"a11y.search": "بحث",
+	"search.a11y.close": "إغلاق البحث",
+	"nav.backToSite": "العودة إلى الصفحة الرئيسية لـ FancyUI",
+	"nav.recipes": "وصفات",
+	"toc.show": "عرض جدول المحتويات",
+	"footer.docs": "التوثيق",
+	"footer.contribute": "المساهمة",
+	"footer.issues": "المشكلات",
+	"footer.discussions": "النقاشات",
+	"footer.security": "الأمان",
+	"footer.conduct": "مدونة قواعد السلوك",
+	"footer.changelog": "سجل التغييرات",
+	"footer.versions": "الإصدارات",
+	"footer.install": "التثبيت",
+	"footer.license": "رخصة MIT",
+	"comp.editPage": "تحرير هذه الصفحة",
+	"comp.reportIssue": "الإبلاغ عن مشكلة",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"هي مجموعة من {count} مكوّنًا واجهيًا متحركًا وتفاعليًا لـ Svelte 5 وReact وVue، مبنية على رموز التصميم نفسها.",
+	"intro.importHint":
+		"استورد المكوّنات التي تحتاج إليها. يعتمد مسار الاستيراد على إطار العمل الذي تستخدمه.",
+	"install.kitOptional":
+		"SvelteKit اختياري: يعمل FancyUI في أي مشروع Svelte 5 يُبنى باستخدام Vite.",
+	"theming.cssPerFramework":
+		"استورد ورقة الأنماط الخاصة بإطار العمل لديك: تأتي كل حزمة بورقتها الخاصة.",
+	"status.planned": "مخطط له",
+	"status.deprecated": "مهمل",
+	"comp.sinceVersion": "جديد في الإصدار v{version}",
+	"comp.deprecatedNotice": "هذا المكوّن مهمل وقد تتم إزالته في إصدار مستقبلي.",
+	"comp.inspiredByNoLink": "مستوحى من {name}",
+	"recipes.title": "وصفات",
+	"recipes.lead": "تركيبات خطوة بخطوة تجمع عدة مكوّنات في واجهة مكتملة.",
+	"recipes.components": "المكوّنات: {count}",
+	"error.notFoundTitle": "الصفحة غير موجودة",
+	"error.genericTitle": "حدث خطأ ما",
+	"error.notFoundBody": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+	"error.genericBody": "حدث خطأ غير متوقع. أعد المحاولة أو عد إلى التوثيق.",
+	"error.unauthorizedTitle": "تسجيل الدخول مطلوب",
+	"error.unauthorizedBody": "يجب تسجيل الدخول لاستخدام هذه الصفحة.",
+	"error.home": "العودة إلى الصفحة الرئيسية",
+	"error.browse": "تصفح المكوّنات",
+	"error.search": "البحث في التوثيق",
+	"error.report": "الإبلاغ عن رابط معطل",
+	"comp.previewFailed": "تعذّر تحميل هذه المعاينة.",
+	"demo.noPreview": "لا تتوفر معاينة لهذا المكوّن حتى الآن.",
+	"demo.notFound": "لم يتم العثور على المكوّن.",
+	"recipes.steps": "الخطوات",
+	"recipes.pitfalls": "أخطاء شائعة",
+	"recipes.componentsUsed": "المكوّنات المستخدمة",
+	"seo.introduction":
+		"FancyUI مكتبة من مكوّنات الواجهة المتحركة والتفاعلية لـ Svelte 5 وReact وVue. تعرّف على محتوياتها وكيفية البدء.",
+	"seo.installation":
+		"ثبّت FancyUI لـ Svelte 5 أو React أو Vue: أضف الحزمة، واستورد ورقة الأنماط، ثم اعرض أول مكوّن لديك.",
+	"seo.theming":
+		"خصّص FancyUI باستخدام رموز التصميم: ألوان OKLCh ونصف القطر والحركة والوضع الداكن، لـ Svelte 5 وReact وVue.",
+	"seo.themeGenerator":
+		"اضبط رموز التصميم OKLCh في FancyUI مباشرةً وانسخ شيفرة CSS الناتجة إلى تطبيقك.",
+	"seo.changelog": "ملاحظات إصدار حزم FancyUI لـ Svelte 5 وReact وVue.",
 } satisfies Catalog;

@@ -378,4 +378,68 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"Komponenty jsou jednosouborové komponenty Vue 3.5, proto je vyžadováno Vue 3.5.2 nebo novější.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "Přeskočit na obsah",
+	"a11y.docsBreadcrumb": "Drobečková navigace dokumentace",
+	"a11y.prevNext": "Předchozí a další stránka",
+	"a11y.search": "Hledat",
+	"search.a11y.close": "Zavřít vyhledávání",
+	"nav.backToSite": "Zpět na úvodní stránku FancyUI",
+	"nav.recipes": "Recepty",
+	"toc.show": "Zobrazit obsah",
+	"footer.docs": "Dokumentace",
+	"footer.contribute": "Přispívání",
+	"footer.issues": "Issues",
+	"footer.discussions": "Diskuze",
+	"footer.security": "Zabezpečení",
+	"footer.conduct": "Kodex chování",
+	"footer.changelog": "Seznam změn",
+	"footer.versions": "Verze",
+	"footer.install": "Instalace",
+	"footer.license": "Licence MIT",
+	"comp.editPage": "Upravit tuto stránku",
+	"comp.reportIssue": "Nahlásit problém",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"je kolekce {count} animovaných interaktivních komponent rozhraní pro Svelte 5, React a Vue, postavených na stejných design tokenech.",
+	"intro.importHint":
+		"Naimportujte komponenty, které potřebujete. Cesta importu závisí na frameworku.",
+	"install.kitOptional":
+		"SvelteKit je volitelný: FancyUI funguje v každém projektu Svelte 5 sestaveném pomocí Vite.",
+	"theming.cssPerFramework":
+		"Naimportujte stylopis pro daný framework: každý balíček obsahuje vlastní.",
+	"status.planned": "Plánováno",
+	"status.deprecated": "Zastaralé",
+	"comp.sinceVersion": "Novinka ve v{version}",
+	"comp.deprecatedNotice": "Tato komponenta je zastaralá a může být v budoucí verzi odstraněna.",
+	"comp.inspiredByNoLink": "Inspirováno: {name}",
+	"recipes.title": "Recepty",
+	"recipes.lead": "Postupné kompozice, které spojují několik komponent do hotového rozhraní.",
+	"recipes.components": "Komponenty: {count}",
+	"error.notFoundTitle": "Stránka nenalezena",
+	"error.genericTitle": "Něco se pokazilo",
+	"error.notFoundBody": "Hledaná stránka neexistuje nebo byla přesunuta.",
+	"error.genericBody": "Došlo k neočekávané chybě. Zkuste to znovu nebo se vraťte do dokumentace.",
+	"error.unauthorizedTitle": "Vyžadováno přihlášení",
+	"error.unauthorizedBody": "Pro použití této stránky je nutné být přihlášen.",
+	"error.home": "Zpět na úvod",
+	"error.browse": "Procházet komponenty",
+	"error.search": "Prohledat dokumentaci",
+	"error.report": "Nahlásit nefunkční odkaz",
+	"comp.previewFailed": "Tuto ukázku se nepodařilo načíst.",
+	"demo.noPreview": "Pro tuto komponentu zatím není k dispozici ukázka.",
+	"demo.notFound": "Komponenta nenalezena.",
+	"recipes.steps": "Kroky",
+	"recipes.pitfalls": "Časté chyby",
+	"recipes.componentsUsed": "Použité komponenty",
+	"seo.introduction":
+		"FancyUI je knihovna animovaných interaktivních komponent rozhraní pro Svelte 5, React a Vue. Zjistěte, co obsahuje a jak začít.",
+	"seo.installation":
+		"Nainstalujte FancyUI pro Svelte 5, React nebo Vue: přidejte balíček, naimportujte stylopis a vykreslete první komponentu.",
+	"seo.theming":
+		"Přizpůsobte FancyUI pomocí design tokenů: barvy OKLCh, zaoblení, pohyb a tmavý režim pro Svelte 5, React a Vue.",
+	"seo.themeGenerator":
+		"Upravujte design tokeny OKLCh knihovny FancyUI naživo a zkopírujte vygenerované CSS do aplikace.",
+	"seo.changelog": "Poznámky k vydání balíčků FancyUI pro Svelte 5, React a Vue.",
 } satisfies Catalog;
