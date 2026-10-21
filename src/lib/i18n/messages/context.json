@@ -1,0 +1,2066 @@
+{
+	"nav.gettingStarted": {
+		"en": "Getting Started",
+		"context": null,
+		"maxLen": 27,
+		"render": "src/lib/components/docs/CommandSearch.svelte:54"
+	},
+	"nav.components": {
+		"en": "Components",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/Breadcrumbs.svelte:26"
+	},
+	"nav.home": {
+		"en": "Home",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/Breadcrumbs.svelte:21"
+	},
+	"nav.docsSuffix": {
+		"en": "docs",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/Sidebar.svelte:83"
+	},
+	"a11y.closeSidebar": {
+		"en": "Close sidebar",
+		"context": null,
+		"maxLen": 25,
+		"render": "src/lib/components/docs/Sidebar.svelte:55"
+	},
+	"a11y.toggleSidebar": {
+		"en": "Toggle sidebar",
+		"context": null,
+		"maxLen": 26,
+		"render": "src/lib/components/docs/DocHeader.svelte:38"
+	},
+	"a11y.breadcrumb": {
+		"en": "Breadcrumb",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/Breadcrumbs.svelte:18"
+	},
+	"page.introduction": {
+		"en": "Introduction",
+		"context": "Title of the Introduction page: sidebar entry, breadcrumb, browser tab and page heading.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/CommandSearch.svelte:23"
+	},
+	"page.installation": {
+		"en": "Installation",
+		"context": "Title of the Installation page: sidebar entry, breadcrumb, browser tab and page heading.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/CommandSearch.svelte:28"
+	},
+	"page.theming": {
+		"en": "Theming",
+		"context": "Title of the Theming page (design tokens, colors, dark mode): sidebar entry, breadcrumb, browser tab and page heading. Also the text of the link in tg.intro.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/CommandSearch.svelte:32"
+	},
+	"page.themeGenerator": {
+		"en": "Theme Generator",
+		"context": "Title of the Theme Generator page, an interactive tool that edits the design tokens and outputs CSS: sidebar entry, breadcrumb, browser tab and page heading.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/CommandSearch.svelte:34"
+	},
+	"page.changelog": {
+		"en": "Changelog",
+		"context": "Title of the Changelog page (release notes): sidebar entry, breadcrumb, browser tab and page heading.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/CommandSearch.svelte:38"
+	},
+	"header.search": {
+		"en": "Search...",
+		"context": null,
+		"maxLen": 21,
+		"render": "src/lib/components/docs/DocHeader.svelte:111"
+	},
+	"a11y.github": {
+		"en": "GitHub",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/lib/components/docs/DocHeader.svelte:123"
+	},
+	"a11y.changeTheme": {
+		"en": "Change theme",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/lib/components/docs/ThemeSwitcher.svelte:83"
+	},
+	"a11y.changeLanguage": {
+		"en": "Change language",
+		"context": null,
+		"maxLen": 27,
+		"render": "src/lib/components/docs/LanguageSwitcher.svelte:54"
+	},
+	"theme.heading": {
+		"en": "Theme",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/ThemeSwitcher.svelte:111"
+	},
+	"theme.system": {
+		"en": "System",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/lib/components/docs/ThemeSwitcher.svelte:29"
+	},
+	"language.heading": {
+		"en": "Language",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/LanguageSwitcher.svelte:96"
+	},
+	"skin.heading": {
+		"en": "Skin",
+		"context": "Heading of the skin picker in the header menu. A skin is a visual style of the docs chrome (standard, brutal, retro).",
+		"maxLen": 16,
+		"render": "src/lib/components/docs/SkinSwitcher.svelte:109"
+	},
+	"skin.standard": {
+		"en": "Standard",
+		"context": "Name of the default skin.",
+		"maxLen": 20,
+		"render": "src/lib/components/docs/SkinSwitcher.svelte:13"
+	},
+	"skin.brutal": {
+		"en": "Brutal",
+		"context": "Name of the bold skin with thick borders and hard shadows.",
+		"maxLen": 18,
+		"render": "src/lib/components/docs/SkinSwitcher.svelte:14"
+	},
+	"skin.retroOs": {
+		"en": "Retro OS",
+		"context": "Name of the skin that mimics an old desktop operating system. OS stays as is.",
+		"maxLen": 20,
+		"render": "src/lib/components/docs/SkinSwitcher.svelte:15"
+	},
+	"skin.beta": {
+		"en": "Beta",
+		"context": "Small badge next to a skin name marking it as experimental.",
+		"maxLen": 16,
+		"render": "src/lib/components/docs/SkinSwitcher.svelte:132"
+	},
+	"a11y.changeSkin": {
+		"en": "Change skin",
+		"context": null,
+		"maxLen": 23,
+		"render": "src/lib/components/docs/SkinSwitcher.svelte:82"
+	},
+	"a11y.sound": {
+		"en": "Sound",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/DocHeader.svelte:136"
+	},
+	"search.placeholder": {
+		"en": "Search components and pages...",
+		"context": null,
+		"maxLen": 48,
+		"render": "src/lib/components/docs/CommandSearch.svelte:203"
+	},
+	"search.noResults": {
+		"en": "No results found",
+		"context": null,
+		"maxLen": 28,
+		"render": "src/lib/components/docs/CommandSearch.svelte:216"
+	},
+	"search.esc": {
+		"en": "ESC",
+		"context": null,
+		"maxLen": 15,
+		"render": "src/lib/components/docs/CommandSearch.svelte:208"
+	},
+	"search.tryInstead": {
+		"en": "Try one of these instead:",
+		"context": "Shown in the empty search state, above a list of suggested searches taken from the jobs.* labels. Ends with a colon in English.",
+		"maxLen": 40,
+		"render": "src/lib/components/docs/CommandSearch.svelte:217"
+	},
+	"jobs.heading": {
+		"en": "Browse by what you need",
+		"context": "Heading of the browse-by-need section (components page and command search); it groups the jobs.* labels below.",
+		"maxLen": 37,
+		"render": "src/lib/components/docs/JobsBrowse.svelte:10"
+	},
+	"jobs.feedback": {
+		"en": "Give feedback",
+		"context": "Browse-by-need label for components that give the user feedback (toasts, tooltips, loaders). Imperative phrase; same vocabulary as category.feedback.",
+		"maxLen": 25,
+		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+	},
+	"jobs.input": {
+		"en": "Collect an input",
+		"context": "Browse-by-need label for components that collect an input from the user (fields, pickers, toggles). Imperative phrase; same vocabulary as category.forms.",
+		"maxLen": 28,
+		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+	},
+	"jobs.attention": {
+		"en": "Guide attention",
+		"context": "Browse-by-need label for components that draw the eye to something (spotlights, highlights, beams). Imperative phrase.",
+		"maxLen": 27,
+		"render": "src/lib/components/docs/CommandSearch.svelte:43"
+	},
+	"jobs.navigate": {
+		"en": "Navigate",
+		"context": "Browse-by-need label for components that move the user around (menus, tabs, breadcrumbs). Imperative phrase; same vocabulary as category.navigation.",
+		"maxLen": 20,
+		"render": "src/lib/components/docs/CommandSearch.svelte:43"
+	},
+	"jobs.progress": {
+		"en": "Show progress",
+		"context": "Browse-by-need label for components that show how far a task has got (bars, steppers, counters). Imperative phrase.",
+		"maxLen": 25,
+		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+	},
+	"jobs.surprise": {
+		"en": "Surprise",
+		"context": "Browse-by-need label for purely decorative, delightful effects. Imperative phrase; same vocabulary as category.effects.",
+		"maxLen": 20,
+		"render": "src/lib/components/docs/CommandSearch.svelte:99"
+	},
+	"comp.preview": {
+		"en": "Preview",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/ComponentPreview.svelte:43"
+	},
+	"comp.code": {
+		"en": "Code",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/ComponentPreview.svelte:52"
+	},
+	"comp.installation": {
+		"en": "Installation",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:384"
+	},
+	"install.framework": {
+		"en": "Framework",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallBlock.svelte:82"
+	},
+	"install.sourceOnly": {
+		"en": "Not on npm yet — this port lives in the repository.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallBlock.svelte:49"
+	},
+	"install.unavailable": {
+		"en": "No port of this component for this framework yet.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallBlock.svelte:49"
+	},
+	"install.copySource": {
+		"en": "Copy source",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallBlock.svelte:95"
+	},
+	"install.copySourceNote": {
+		"en": "Copies the component source into your project; you own the code.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallBlock.svelte:121"
+	},
+	"comp.usage": {
+		"en": "Usage",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:391"
+	},
+	"comp.props": {
+		"en": "Props",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:416"
+	},
+	"comp.slots": {
+		"en": "Slots",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:426"
+	},
+	"comp.links": {
+		"en": "Links",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:501"
+	},
+	"comp.sourceCode": {
+		"en": "Source Code",
+		"context": null,
+		"maxLen": 23,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:514"
+	},
+	"comp.inspiredBy": {
+		"en": "Inspired by",
+		"context": "Label before the credit link on a component page. A courtesy credit to the work the component draws on; never phrase it as ported or copied.",
+		"maxLen": 23,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:525"
+	},
+	"comp.examples": {
+		"en": "Examples",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/ExamplesSection.svelte:80"
+	},
+	"comp.related": {
+		"en": "Related components",
+		"context": null,
+		"maxLen": 30,
+		"render": "src/lib/components/docs/RelatedComponents.svelte:32"
+	},
+	"comp.previous": {
+		"en": "Previous",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/PrevNextNav.svelte:59"
+	},
+	"comp.next": {
+		"en": "Next",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/PrevNextNav.svelte:72"
+	},
+	"status.stable": {
+		"en": "Stable",
+		"context": "Status chip on a component page and card: the component API is settled.",
+		"maxLen": 18,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:265"
+	},
+	"table.prop": {
+		"en": "Prop",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/PropsTable.svelte:27"
+	},
+	"table.type": {
+		"en": "Type",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/PropsTable.svelte:28"
+	},
+	"table.default": {
+		"en": "Default",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/PropsTable.svelte:29"
+	},
+	"table.description": {
+		"en": "Description",
+		"context": null,
+		"maxLen": 23,
+		"render": "src/lib/components/docs/PropsTable.svelte:30"
+	},
+	"table.slot": {
+		"en": "Slot",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:431"
+	},
+	"table.event": {
+		"en": "Event",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:467"
+	},
+	"table.payload": {
+		"en": "Payload",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:468"
+	},
+	"table.portName": {
+		"en": "Name in {framework}",
+		"context": "Screen-reader label before the React or Vue name of a Svelte prop. {framework} is Svelte, React or Vue and stays untranslated.",
+		"maxLen": 31,
+		"render": "src/lib/components/docs/PortName.svelte:21"
+	},
+	"table.portNameUnknown": {
+		"en": "Not derivable by the naming rules; see the differences from the Svelte API.",
+		"context": "Tooltip and screen-reader text for a prop whose React or Vue name cannot be derived from the naming rules; it points at the written list of differences.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/PortName.svelte:30"
+	},
+	"comp.events": {
+		"en": "Events",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:462"
+	},
+	"comp.copyMarkdown": {
+		"en": "Copy as Markdown",
+		"context": null,
+		"maxLen": 28,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:302"
+	},
+	"action.copy": {
+		"en": "Copy",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/CodeBlock.svelte:76"
+	},
+	"action.copied": {
+		"en": "Copied!",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/CodeBlock.svelte:76"
+	},
+	"toc.onThisPage": {
+		"en": "On this page",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/lib/components/docs/TableOfContents.svelte:109"
+	},
+	"gallery.title": {
+		"en": "Components",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/routes/docs/components/+page.svelte:148"
+	},
+	"gallery.subtitle": {
+		"en": "{count} beautifully animated components for Svelte 5, React and Vue. Browse, search, and find what you need.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:158"
+	},
+	"gallery.intro": {
+		"en": "Components are available for Svelte 5, React and Vue, styled with Tailwind CSS v4 and typed with TypeScript. Every page has a live preview and copy-paste Svelte examples, with React and Vue usage where available. Install the package once and own the code.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:161"
+	},
+	"gallery.filterPlaceholder": {
+		"en": "Filter components...",
+		"context": null,
+		"maxLen": 32,
+		"render": "src/routes/docs/components/+page.svelte:194"
+	},
+	"gallery.all": {
+		"en": "All",
+		"context": null,
+		"maxLen": 15,
+		"render": "src/routes/docs/components/+page.svelte:254"
+	},
+	"gallery.noMatch": {
+		"en": "No components match your search.",
+		"context": null,
+		"maxLen": 52,
+		"render": "src/routes/docs/components/+page.svelte:333"
+	},
+	"gallery.meta": {
+		"en": "{components} components · {categories} categories · Svelte 5 · React · Vue · TypeScript",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:164"
+	},
+	"gallery.results.one": {
+		"en": "{count} result",
+		"context": "Result count above the component grid after filtering. Plural message: {count} is the number of matching components.",
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:288"
+	},
+	"gallery.results.other": {
+		"en": "{count} results",
+		"context": "Result count above the component grid after filtering. Plural message: {count} is the number of matching components.",
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:288"
+	},
+	"gallery.clearFilters": {
+		"en": "Clear filters",
+		"context": null,
+		"maxLen": 25,
+		"render": "src/routes/docs/components/+page.svelte:295"
+	},
+	"gallery.clearSearch": {
+		"en": "Clear search",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/routes/docs/components/+page.svelte:213"
+	},
+	"gallery.searchHint": {
+		"en": "Press / to search",
+		"context": null,
+		"maxLen": 29,
+		"render": "src/routes/docs/components/+page.svelte:230"
+	},
+	"gallery.groupLabel": {
+		"en": "Component group",
+		"context": null,
+		"maxLen": 27,
+		"render": "src/routes/docs/components/+page.svelte:241"
+	},
+	"gallery.categoryLabel": {
+		"en": "Categories",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/routes/docs/components/+page.svelte:262"
+	},
+	"gallery.desc.buttons": {
+		"en": "Interactive buttons with rich hover and press motion",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.cards": {
+		"en": "Cards and containers that react to the pointer",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.backgrounds": {
+		"en": "Animated and decorative backgrounds",
+		"context": null,
+		"maxLen": 56,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.text": {
+		"en": "Text animations and typographic effects",
+		"context": null,
+		"maxLen": 63,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.layout": {
+		"en": "Layout primitives and structural components",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.feedback": {
+		"en": "Tooltips, toasts, loaders, and other feedback",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.data-display": {
+		"en": "Lists, timelines, and collections of data",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.navigation": {
+		"en": "Menus, tabs, links, and wayfinding",
+		"context": null,
+		"maxLen": 55,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.media": {
+		"en": "Image, video, and media display",
+		"context": null,
+		"maxLen": 50,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.effects": {
+		"en": "Visual effects and decorative motion",
+		"context": null,
+		"maxLen": 58,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.ai-chat": {
+		"en": "Messages, composers, threads, and streaming text",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.ai-agents": {
+		"en": "Reasoning, tool use, plans, and human-in-the-loop cards",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.actions": {
+		"en": "Buttons, toggles, and other action primitives",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.forms": {
+		"en": "Inputs and primitives for capturing user input",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.overlays": {
+		"en": "Dialogs, popovers, menus, and sheets",
+		"context": null,
+		"maxLen": 58,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"gallery.desc.display": {
+		"en": "Badges, avatars, and status display",
+		"context": null,
+		"maxLen": 56,
+		"render": "src/routes/docs/components/+page.svelte:316"
+	},
+	"tg.metaDescription": {
+		"en": "Tune FancyUI's OKLCh design tokens live and copy the CSS into your app.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:177"
+	},
+	"tg.intro": {
+		"en": "Tune FancyUI's design tokens and watch the components react in real time. When it looks right, copy the generated CSS into your app's stylesheet (e.g. src/app.css). Colors use the OKLCh color space; the rainbow palette uses HSL. For the full token reference, see <link>Theming</link>.",
+		"context": "Theme Generator introduction paragraph. <link>...</link> wraps the link to the Theming page; it ends the sentence. Keep the tag.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/RichText.svelte:11"
+	},
+	"tg.presets": {
+		"en": "Presets",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:190"
+	},
+	"tg.base": {
+		"en": "Base",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:209"
+	},
+	"tg.light": {
+		"en": "Light",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:219"
+	},
+	"tg.dark": {
+		"en": "Dark",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:219"
+	},
+	"tg.primary": {
+		"en": "Primary",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:228"
+	},
+	"tg.accent": {
+		"en": "Accent",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:270"
+	},
+	"tg.lightness": {
+		"en": "Lightness",
+		"context": null,
+		"maxLen": 21,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:237"
+	},
+	"tg.chroma": {
+		"en": "Chroma",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:244"
+	},
+	"tg.hue": {
+		"en": "Hue",
+		"context": null,
+		"maxLen": 15,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:258"
+	},
+	"tg.radius": {
+		"en": "Radius",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:312"
+	},
+	"tg.motion": {
+		"en": "Motion",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:321"
+	},
+	"tg.rainbowPalette": {
+		"en": "Rainbow palette",
+		"context": null,
+		"maxLen": 27,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:329"
+	},
+	"tg.livePreview": {
+		"en": "Live preview",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:353"
+	},
+	"tg.cardSurface": {
+		"en": "Card surface",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:362"
+	},
+	"tg.cardSurfaceDesc": {
+		"en": "Uses --card, --foreground, --border and --radius.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:363"
+	},
+	"tg.primaryAction": {
+		"en": "Primary action",
+		"context": null,
+		"maxLen": 26,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:371"
+	},
+	"tg.accentBadge": {
+		"en": "Accent badge",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:377"
+	},
+	"tg.beamDesc": {
+		"en": "Beam colors follow {primary} → {accent}.",
+		"context": "Caption of a preview card whose animated border follows the two tuned colors. {primary} and {accent} are the translated labels of tg.primary and tg.accent.",
+		"maxLen": 64,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:393"
+	},
+	"tg.generatedCss": {
+		"en": "Generated CSS",
+		"context": null,
+		"maxLen": 25,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:415"
+	},
+	"tg.copyCss": {
+		"en": "Copy CSS",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:447"
+	},
+	"tg.copied": {
+		"en": "Copied",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/routes/docs/getting-started/theme-generator/+page.svelte:433"
+	},
+	"category.buttons": {
+		"en": "Buttons",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/CommandSearch.svelte:43"
+	},
+	"category.cards": {
+		"en": "Cards",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.backgrounds": {
+		"en": "Backgrounds",
+		"context": null,
+		"maxLen": 23,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.text": {
+		"en": "Text & Typography",
+		"context": null,
+		"maxLen": 29,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.layout": {
+		"en": "Layout",
+		"context": null,
+		"maxLen": 18,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.feedback": {
+		"en": "Feedback",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.data-display": {
+		"en": "Data Display",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.navigation": {
+		"en": "Navigation",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.media": {
+		"en": "Media",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.effects": {
+		"en": "Effects",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.ai-chat": {
+		"en": "AI Chat",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.ai-agents": {
+		"en": "AI Agents",
+		"context": null,
+		"maxLen": 21,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"intro.title": {
+		"en": "Introduction",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:58"
+	},
+	"intro.metaTitle": {
+		"en": "Introduction",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/getting-started/introduction/+page.svelte:9"
+	},
+	"intro.pill.svelte": {
+		"en": "Svelte 5 Native",
+		"context": null,
+		"maxLen": 27,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:67"
+	},
+	"intro.pill.animation": {
+		"en": "Animation-first",
+		"context": null,
+		"maxLen": 27,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:70"
+	},
+	"intro.pill.copyPaste": {
+		"en": "Copy-paste friendly",
+		"context": null,
+		"maxLen": 31,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:73"
+	},
+	"intro.pill.tailwind": {
+		"en": "Tailwind CSS 4",
+		"context": null,
+		"maxLen": 26,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:76"
+	},
+	"intro.pill.typescript": {
+		"en": "TypeScript",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:78"
+	},
+	"intro.philosophy.heading": {
+		"en": "Philosophy",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:81"
+	},
+	"intro.philosophy.card1.title": {
+		"en": "Svelte 5 native",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:85"
+	},
+	"intro.philosophy.card1.desc": {
+		"en": "Built with runes. No legacy APIs.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:87"
+	},
+	"intro.philosophy.card2.title": {
+		"en": "Animation-first",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:91"
+	},
+	"intro.philosophy.card2.desc": {
+		"en": "Every component ships with polished animations out of the box.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:93"
+	},
+	"intro.philosophy.card3.title": {
+		"en": "Copy-paste friendly",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:97"
+	},
+	"intro.philosophy.card3.desc": {
+		"en": "Use as a package or copy the source directly.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:99"
+	},
+	"intro.philosophy.card4.title": {
+		"en": "Tailwind CSS 4",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:103"
+	},
+	"intro.philosophy.card4.desc": {
+		"en": "Styled with utility classes and CSS custom properties.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:105"
+	},
+	"intro.philosophy.card5.title": {
+		"en": "TypeScript",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:109"
+	},
+	"intro.philosophy.card5.desc": {
+		"en": "Full type safety with exported prop interfaces.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:111"
+	},
+	"intro.quickStart.heading": {
+		"en": "Quick Start",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:115"
+	},
+	"intro.quickStart.step1.title": {
+		"en": "Install",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:120"
+	},
+	"intro.quickStart.step1.desc": {
+		"en": "Add FancyUI to your project.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:121"
+	},
+	"intro.quickStart.step2.title": {
+		"en": "Import",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:128"
+	},
+	"intro.quickStart.step2.desc": {
+		"en": "Import the components you need.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:129"
+	},
+	"intro.quickStart.step3.title": {
+		"en": "Use",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:136"
+	},
+	"intro.quickStart.step3.desc": {
+		"en": "Drop it in your Svelte components.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:137"
+	},
+	"intro.whatsIncluded.heading": {
+		"en": "What's Included",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:143"
+	},
+	"intro.whatsIncluded.body.one": {
+		"en": "{count} component across {categories} categories:",
+		"context": "Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:160"
+	},
+	"intro.whatsIncluded.body.other": {
+		"en": "{count} components across {categories} categories:",
+		"context": "Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:160"
+	},
+	"intro.category.buttons": {
+		"en": "Buttons",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:30"
+	},
+	"intro.category.cards": {
+		"en": "Cards",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:36"
+	},
+	"intro.category.effects": {
+		"en": "Effects",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:42"
+	},
+	"intro.stats.buttons": {
+		"en": "Rainbow, ripple, shimmer and friends. Buttons that beg to be clicked.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:32"
+	},
+	"intro.stats.cards": {
+		"en": "Carousels, bento grids, 3D tilts. Ways to present content without boring anyone.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:38"
+	},
+	"intro.stats.effects": {
+		"en": "Cursors, trails, animated text. The little touches that make the difference.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:44"
+	},
+	"sidebar.starTitle": {
+		"en": "Star on GitHub",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/Sidebar.svelte:275"
+	},
+	"sidebar.starBody": {
+		"en": "If you like FancyUI, give it a star!",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/Sidebar.svelte:276"
+	},
+	"rail.nextPage": {
+		"en": "Next page",
+		"context": null,
+		"maxLen": 21,
+		"render": "src/routes/docs/+layout.svelte:58"
+	},
+	"intro.nextSteps.heading": {
+		"en": "Next Steps",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:171"
+	},
+	"intro.nextSteps.installation": {
+		"en": "Installation",
+		"context": null,
+		"maxLen": 24,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:174"
+	},
+	"intro.nextSteps.theming": {
+		"en": "Theming",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:178"
+	},
+	"intro.nextSteps.components": {
+		"en": "Browse Components",
+		"context": null,
+		"maxLen": 29,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:182"
+	},
+	"intro.cta.title": {
+		"en": "New to FancyUI?",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:191"
+	},
+	"intro.cta.body": {
+		"en": "Check out the <b>Theme Generator</b> to customize colors and see components react in real time.",
+		"context": "Call-to-action body on the Introduction page. <b>...</b> wraps the name of the Theme Generator page and renders bold.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:192"
+	},
+	"intro.cta.button": {
+		"en": "Try Theme Generator",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:196"
+	},
+	"group.core": {
+		"en": "Core",
+		"context": null,
+		"maxLen": 16,
+		"render": "src/lib/components/docs/Sidebar.svelte:159"
+	},
+	"group.fancy": {
+		"en": "Fancy",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/Sidebar.svelte:217"
+	},
+	"category.actions": {
+		"en": "Actions",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.forms": {
+		"en": "Forms",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.overlays": {
+		"en": "Overlays",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"category.display": {
+		"en": "Display",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/CommandSearch.svelte:92"
+	},
+	"status.inProgress": {
+		"en": "In progress",
+		"context": "Status chip on a component page and card: the component exists but its API may still change.",
+		"maxLen": 23,
+		"render": "src/lib/components/docs/ComponentCard.svelte:95"
+	},
+	"install.metaTitle": {
+		"en": "Installation",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/getting-started/installation/+page.svelte:9"
+	},
+	"install.title": {
+		"en": "Installation",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:83"
+	},
+	"install.lead": {
+		"en": "Add FancyUI to a SvelteKit project in three steps: install the package, import the stylesheet, render a component.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:57"
+	},
+	"install.pill.svelte": {
+		"en": "Svelte 5",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/InstallationPage.svelte:58"
+	},
+	"install.pill.tailwind": {
+		"en": "Tailwind CSS 4",
+		"context": null,
+		"maxLen": 26,
+		"render": "src/lib/components/docs/InstallationPage.svelte:89"
+	},
+	"install.pill.node": {
+		"en": "Node.js 20.19+",
+		"context": null,
+		"maxLen": 26,
+		"render": "src/lib/components/docs/InstallationPage.svelte:91"
+	},
+	"install.pill.typescript": {
+		"en": "TypeScript",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/InstallationPage.svelte:94"
+	},
+	"install.prerequisites.heading": {
+		"en": "Prerequisites",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:99"
+	},
+	"install.prerequisites.body": {
+		"en": "FancyUI targets current toolchains. Check these three before installing.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:100"
+	},
+	"install.prerequisites.card1.title": {
+		"en": "SvelteKit",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:59"
+	},
+	"install.prerequisites.card1.version": {
+		"en": "Svelte 5",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:60"
+	},
+	"install.prerequisites.card1.desc": {
+		"en": "Components are written with runes, so Svelte 5 is required. Svelte 4 projects will not compile them.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:61"
+	},
+	"install.prerequisites.card2.title": {
+		"en": "Tailwind CSS",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:111"
+	},
+	"install.prerequisites.card2.version": {
+		"en": "v4",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:112"
+	},
+	"install.prerequisites.card2.desc": {
+		"en": "Styling relies on Tailwind v4 utilities and CSS custom properties.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:114"
+	},
+	"install.prerequisites.card3.title": {
+		"en": "Node.js",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:118"
+	},
+	"install.prerequisites.card3.version": {
+		"en": "20.19+",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:119"
+	},
+	"install.prerequisites.card3.desc": {
+		"en": "Required by the current build tooling FancyUI is tested against.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:121"
+	},
+	"install.steps.heading": {
+		"en": "Install",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:127"
+	},
+	"install.steps.body": {
+		"en": "Pick your package manager, wire up the stylesheet, then render your first component.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:128"
+	},
+	"install.step1.title": {
+		"en": "Install the package",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:133"
+	},
+	"install.step1.desc": {
+		"en": "One package for every component. Switch tabs to copy the command for your package manager.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:134"
+	},
+	"install.step2.title": {
+		"en": "Import the stylesheet",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:141"
+	},
+	"install.step2.desc": {
+		"en": "Add the FancyUI stylesheet right after your Tailwind import.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:142"
+	},
+	"install.step2.caption": {
+		"en": "In your global stylesheet, usually src/app.css.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:144"
+	},
+	"install.step3.title": {
+		"en": "Render a component",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:150"
+	},
+	"install.step3.desc": {
+		"en": "Import from the package root and drop it into your markup.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:151"
+	},
+	"install.tailwind.heading": {
+		"en": "Tailwind CSS setup",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:159"
+	},
+	"install.tailwind.body": {
+		"en": "FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:160"
+	},
+	"install.tailwind.order": {
+		"en": "Import order matters: Tailwind first, FancyUI second. Place the FancyUI import before your own @custom-variant dark, otherwise FancyUI's replaces yours.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:161"
+	},
+	"install.tailwind.note": {
+		"en": "The entry provides default colour tokens (background, primary, border and the rest) and a dark variant. Your own :root and .dark blocks override them: redefine the CSS variables and your values win.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:164"
+	},
+	"install.usage.heading": {
+		"en": "Usage",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:169"
+	},
+	"install.usage.body": {
+		"en": "Every component is a named export of the package root, so there are no per-component import paths to remember.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:170"
+	},
+	"install.usage.note": {
+		"en": "Each component's page lists its props, live examples and accessibility notes.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:172"
+	},
+	"install.typescript.heading": {
+		"en": "TypeScript",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:176"
+	},
+	"install.typescript.body": {
+		"en": "Prop types are exported next to each component, so you can type wrappers and shared presets.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:177"
+	},
+	"install.typescript.note": {
+		"en": "Types ship inside the package. There is no separate types package to install.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:179"
+	},
+	"install.peerDeps.heading": {
+		"en": "Peer dependencies",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:183"
+	},
+	"install.peerDeps.body": {
+		"en": "FancyUI expects these to already exist in your project:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:184"
+	},
+	"install.peerDeps.colPackage": {
+		"en": "Package",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:189"
+	},
+	"install.peerDeps.colVersion": {
+		"en": "Version",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:190"
+	},
+	"install.peerDeps.bundled": {
+		"en": "A few components need extra runtime libraries. These ship with the package, so there is nothing more to install:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:204"
+	},
+	"install.peerDeps.bundledNote": {
+		"en": "They are only pulled in by the components that use them.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:212"
+	},
+	"install.nextSteps.heading": {
+		"en": "Next steps",
+		"context": null,
+		"maxLen": 22,
+		"render": "src/lib/components/docs/InstallationPage.svelte:216"
+	},
+	"install.nextSteps.components.title": {
+		"en": "Browse components",
+		"context": null,
+		"maxLen": 29,
+		"render": "src/lib/components/docs/InstallationPage.svelte:220"
+	},
+	"install.nextSteps.components.desc": {
+		"en": "{count} components with live previews, props and copy-paste examples.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:224"
+	},
+	"install.nextSteps.theming.title": {
+		"en": "Theming",
+		"context": null,
+		"maxLen": 19,
+		"render": "src/lib/components/docs/InstallationPage.svelte:232"
+	},
+	"install.nextSteps.theming.desc": {
+		"en": "Override the design tokens so every component matches your brand in light and dark mode.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:235"
+	},
+	"theming.metaTitle": {
+		"en": "Theming",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/getting-started/theming/+page.svelte:9"
+	},
+	"theming.title": {
+		"en": "Theming",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:62"
+	},
+	"theming.lead": {
+		"en": "Every FancyUI component reads its colors, radii and timings from CSS custom properties in the OKLCh color space — override a token and the whole library follows.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:63"
+	},
+	"theming.pill.oklch": {
+		"en": "OKLCh color space",
+		"context": null,
+		"maxLen": 29,
+		"render": "src/lib/components/docs/ThemingPage.svelte:67"
+	},
+	"theming.pill.shadcn": {
+		"en": "Standard token names",
+		"context": null,
+		"maxLen": 32,
+		"render": "src/lib/components/docs/ThemingPage.svelte:70"
+	},
+	"theming.pill.dark": {
+		"en": "Dark mode",
+		"context": null,
+		"maxLen": 21,
+		"render": "src/lib/components/docs/ThemingPage.svelte:72"
+	},
+	"theming.pill.tokens": {
+		"en": "Design tokens",
+		"context": null,
+		"maxLen": 25,
+		"render": "src/lib/components/docs/ThemingPage.svelte:75"
+	},
+	"theming.generator.body": {
+		"en": "Prefer to tune it visually? The Theme Generator adjusts these tokens with live sliders and hands you the CSS.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:82"
+	},
+	"theming.generator.cta": {
+		"en": "Open the Theme Generator",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:84"
+	},
+	"theming.cssSetup.heading": {
+		"en": "CSS setup",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:90"
+	},
+	"theming.cssSetup.body": {
+		"en": "Import the FancyUI stylesheet in your app's global CSS, usually src/app.css:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:91"
+	},
+	"theming.colors.heading": {
+		"en": "Color system",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:96"
+	},
+	"theming.colors.body": {
+		"en": "All colors use the OKLCh color space for perceptually uniform gradients:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:97"
+	},
+	"theming.colors.note": {
+		"en": "Token names follow the widely used semantic convention (background, foreground, primary, …), so an existing theme with the same variable names drops in unchanged.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:99"
+	},
+	"theming.dark.heading": {
+		"en": "Dark mode",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:103"
+	},
+	"theming.dark.body": {
+		"en": "Dark mode follows the operating-system preference by default. Put the .dark class on <html> or any ancestor to force dark, or .light to force light; the dark: utilities and every token follow. To customise the dark values, override them under .dark:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:104"
+	},
+	"theming.motion.heading": {
+		"en": "Animation tokens",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:109"
+	},
+	"theming.motion.body": {
+		"en": "Control animation timing globally:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:110"
+	},
+	"theming.easing.heading": {
+		"en": "Easing functions",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:115"
+	},
+	"theming.easing.body": {
+		"en": "Easing curves are tokens too, shared by every component transition:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:116"
+	},
+	"theming.rainbow.heading": {
+		"en": "Rainbow gradients",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:121"
+	},
+	"theming.rainbow.body": {
+		"en": "Used by RainbowButton, GradientButton and other gradient effects:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:122"
+	},
+	"theming.customizing.heading": {
+		"en": "Customizing",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:127"
+	},
+	"theming.customizing.body": {
+		"en": "Override any token in your own CSS to change the look:",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:128"
+	},
+	"theming.customizing.note": {
+		"en": "Tokens cascade: override them globally in :root, or scope them to a wrapper element to theme a single section.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:130"
+	},
+	"theming.nextSteps.heading": {
+		"en": "Next steps",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:134"
+	},
+	"theming.nextSteps.generator.title": {
+		"en": "Theme Generator",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:138"
+	},
+	"theming.nextSteps.generator.desc": {
+		"en": "Tune every token with live sliders and copy the finished CSS.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:141"
+	},
+	"theming.nextSteps.components.title": {
+		"en": "Browse components",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:145"
+	},
+	"theming.nextSteps.components.desc": {
+		"en": "See the tokens at work across the full component gallery.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ThemingPage.svelte:148"
+	},
+	"changelog.metaTitle": {
+		"en": "Changelog",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/getting-started/changelog/+page.svelte:11"
+	},
+	"changelog.title": {
+		"en": "Changelog",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ChangelogPage.svelte:77"
+	},
+	"changelog.lead": {
+		"en": "Every FancyUI release and what changed in it, newest first.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ChangelogPage.svelte:78"
+	},
+	"changelog.latest": {
+		"en": "Latest",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ChangelogPage.svelte:112"
+	},
+	"changelog.major": {
+		"en": "Major changes",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ChangelogPage.svelte:65"
+	},
+	"changelog.minor": {
+		"en": "Minor changes",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ChangelogPage.svelte:66"
+	},
+	"changelog.patch": {
+		"en": "Patch changes",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ChangelogPage.svelte:67"
+	},
+	"retro.explorer": {
+		"en": "Explorer",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/Sidebar.svelte:73"
+	},
+	"retro.start": {
+		"en": "Start",
+		"context": null,
+		"maxLen": 17,
+		"render": "src/lib/components/docs/retro/RetroTaskbar.svelte:27"
+	},
+	"retro.tagline": {
+		"en": "Animated components for Svelte 5 — copy-paste friendly.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/retro/RetroTaskbar.svelte:32"
+	},
+	"comp.snippetSvelteOnly": {
+		"en": "A full example for this framework is not written yet; only the Svelte version has one for now.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/ExamplesSection.svelte:84"
+	},
+	"comp.copyMarkdownSvelte": {
+		"en": "Copy as Markdown (Svelte)",
+		"context": null,
+		"maxLen": 40,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:301"
+	},
+	"comp.markdownSvelteOnly": {
+		"en": "The Markdown export describes the Svelte version only.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:282"
+	},
+	"comp.apiNoticeReact": {
+		"en": "This API reference uses the Svelte names. In React, class becomes className, on* handlers are camelCase (onclick becomes onClick) and snippets become ReactNode props or render functions.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:403"
+	},
+	"comp.apiNoticeVue": {
+		"en": "This API reference uses the Svelte names. In Vue, snippets become slots and bindable props become v-model:name.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:403"
+	},
+	"comp.apiNoticeLink": {
+		"en": "Differences from the Svelte API",
+		"context": null,
+		"maxLen": 50,
+		"render": "src/routes/docs/components/[slug]/+page.svelte:408"
+	},
+	"install.lead.react": {
+		"en": "Add FancyUI to a React project in three steps: install the package, import the stylesheet, render a component.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:64"
+	},
+	"install.lead.vue": {
+		"en": "Add FancyUI to a Vue project in three steps: install the package, import the stylesheet, render a component.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:71"
+	},
+	"install.pill.react": {
+		"en": "React 18+",
+		"context": null,
+		"maxLen": 21,
+		"render": "src/lib/components/docs/InstallationPage.svelte:65"
+	},
+	"install.pill.vue": {
+		"en": "Vue 3.5+",
+		"context": null,
+		"maxLen": 20,
+		"render": "src/lib/components/docs/InstallationPage.svelte:72"
+	},
+	"install.prerequisites.card1.title.react": {
+		"en": "React",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:66"
+	},
+	"install.prerequisites.card1.version.react": {
+		"en": "18 / 19",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:67"
+	},
+	"install.prerequisites.card1.desc.react": {
+		"en": "Supports React 18 and 19. Components ship as client modules, so Server Components can import them directly.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:68"
+	},
+	"install.prerequisites.card1.title.vue": {
+		"en": "Vue",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:73"
+	},
+	"install.prerequisites.card1.version.vue": {
+		"en": "3.5+",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:74"
+	},
+	"install.prerequisites.card1.desc.vue": {
+		"en": "Components are Vue 3.5 single-file components, so Vue 3.5.2 or later is required.",
+		"context": null,
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:75"
+	},
+	"a11y.skipToContent": {
+		"en": "Skip to content",
+		"context": "Skip link, first focusable element of every docs page; jumps to the main content.",
+		"maxLen": 27,
+		"render": null
+	},
+	"a11y.docsBreadcrumb": {
+		"en": "Documentation breadcrumb",
+		"context": "aria-label of the breadcrumb nav in the docs header.",
+		"maxLen": 39,
+		"render": null
+	},
+	"a11y.prevNext": {
+		"en": "Previous and next pages",
+		"context": "aria-label of the previous/next page navigation at the bottom of a page.",
+		"maxLen": 37,
+		"render": null
+	},
+	"a11y.search": {
+		"en": "Search",
+		"context": "aria-label of the icon-only search button shown on narrow screens.",
+		"maxLen": 18,
+		"render": null
+	},
+	"search.a11y.close": {
+		"en": "Close search",
+		"context": "aria-label of the close button in the command search dialog.",
+		"maxLen": 24,
+		"render": "src/lib/components/docs/CommandSearch.svelte:174"
+	},
+	"nav.backToSite": {
+		"en": "Back to FancyUI home",
+		"context": "aria-label / title of the wordmark link in the docs sidebar that returns to the landing page.",
+		"maxLen": 32,
+		"render": null
+	},
+	"nav.recipes": {
+		"en": "Recipes",
+		"context": "Sidebar entry and breadcrumb label for the recipes index.",
+		"maxLen": 19,
+		"render": null
+	},
+	"toc.show": {
+		"en": "Show contents",
+		"context": "Summary of the collapsible on-this-page outline shown on screens too narrow for the side table of contents.",
+		"maxLen": 25,
+		"render": null
+	},
+	"footer.docs": {
+		"en": "Docs",
+		"context": "Docs footer: label of the documentation link group.",
+		"maxLen": 16,
+		"render": null
+	},
+	"footer.contribute": {
+		"en": "Contribute",
+		"context": "Docs footer link to the contributing guide.",
+		"maxLen": 22,
+		"render": null
+	},
+	"footer.issues": {
+		"en": "Issues",
+		"context": "Docs footer link to the GitHub issue tracker. Product term, often kept as is.",
+		"maxLen": 18,
+		"render": null
+	},
+	"footer.discussions": {
+		"en": "Discussions",
+		"context": "Docs footer link to the GitHub Discussions board.",
+		"maxLen": 23,
+		"render": null
+	},
+	"footer.security": {
+		"en": "Security",
+		"context": "Docs footer link to the security policy.",
+		"maxLen": 20,
+		"render": null
+	},
+	"footer.conduct": {
+		"en": "Code of conduct",
+		"context": "Docs footer link to the code of conduct.",
+		"maxLen": 27,
+		"render": null
+	},
+	"footer.changelog": {
+		"en": "Changelog",
+		"context": "Docs footer link to the release notes.",
+		"maxLen": 21,
+		"render": null
+	},
+	"footer.versions": {
+		"en": "Versions",
+		"context": "Docs footer: label before the three package version badges (Svelte, React, Vue).",
+		"maxLen": 20,
+		"render": null
+	},
+	"footer.install": {
+		"en": "Install",
+		"context": "Docs footer: label before the one-line install command for the selected framework.",
+		"maxLen": 19,
+		"render": null
+	},
+	"footer.license": {
+		"en": "MIT license",
+		"context": "Docs footer: license note next to the copyright line.",
+		"maxLen": 23,
+		"render": null
+	},
+	"comp.editPage": {
+		"en": "Edit this page",
+		"context": "Page action link that opens the source file in the GitHub editor.",
+		"maxLen": 26,
+		"render": null
+	},
+	"comp.reportIssue": {
+		"en": "Report an issue",
+		"context": "Page action link that opens a pre-filled GitHub issue about the current page.",
+		"maxLen": 27,
+		"render": null
+	},
+	"comp.issueTitle": {
+		"en": "[docs] {name}",
+		"context": "Pre-filled issue title. {name} is the page or component name. Keep the [docs] prefix.",
+		"maxLen": 25,
+		"render": null
+	},
+	"intro.lead": {
+		"en": "is a collection of <grad>{count}</grad> animated, interactive UI components for Svelte 5, React and Vue, built on the same design tokens.",
+		"context": "Introduction lead sentence, rendered right after the FancyUI wordmark. {count} is the number of components and is highlighted by <grad>. Keep the tags and the placeholder.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/IntroductionPage.svelte:62"
+	},
+	"intro.importHint": {
+		"en": "Import the components you need. The import path follows your framework.",
+		"context": "Introduction quick-start step 2 text; the code sample below it changes with the selected framework.",
+		"maxLen": null,
+		"render": null
+	},
+	"install.kitOptional": {
+		"en": "SvelteKit is optional: FancyUI works in any Svelte 5 project built with Vite.",
+		"context": "Installation prerequisites note about the optional SvelteKit peer dependency.",
+		"maxLen": null,
+		"render": null
+	},
+	"theming.cssPerFramework": {
+		"en": "Import the stylesheet for your framework: each package ships its own.",
+		"context": "Theming page instruction above the per-framework stylesheet import snippet.",
+		"maxLen": null,
+		"render": null
+	},
+	"status.planned": {
+		"en": "Planned",
+		"context": "Status chip for a component announced but not built yet.",
+		"maxLen": 19,
+		"render": null
+	},
+	"status.deprecated": {
+		"en": "Deprecated",
+		"context": "Status chip for a component that is scheduled for removal.",
+		"maxLen": 22,
+		"render": null
+	},
+	"comp.sinceVersion": {
+		"en": "New in v{version}",
+		"context": "Chip on a component page. {version} is a semver number such as 0.15.0.",
+		"maxLen": 29,
+		"render": null
+	},
+	"comp.deprecatedNotice": {
+		"en": "This component is deprecated and may be removed in a future release.",
+		"context": "Banner shown on the page of a deprecated component.",
+		"maxLen": null,
+		"render": null
+	},
+	"comp.inspiredByNoLink": {
+		"en": "Inspired by {name}",
+		"context": "Credit line when the inspiration has no URL. {name} is the credited author or project.",
+		"maxLen": 30,
+		"render": null
+	},
+	"recipes.title": {
+		"en": "Recipes",
+		"context": "Title of the recipes index page.",
+		"maxLen": null,
+		"render": null
+	},
+	"recipes.lead": {
+		"en": "Step-by-step compositions that combine several components into a finished interface.",
+		"context": "Lead paragraph of the recipes index page.",
+		"maxLen": null,
+		"render": null
+	},
+	"recipes.components": {
+		"en": "Components: {count}",
+		"context": "Per-recipe count of components it uses, shown on its card. {count} is a number.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.notFoundTitle": {
+		"en": "Page not found",
+		"context": "Heading of the 404 error page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.genericTitle": {
+		"en": "Something went wrong",
+		"context": "Heading of the generic error page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.notFoundBody": {
+		"en": "The page you are looking for does not exist or has moved.",
+		"context": "Body text of the 404 error page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.genericBody": {
+		"en": "An unexpected error occurred. Try again, or head back to the docs.",
+		"context": "Body text of the generic error page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.unauthorizedTitle": {
+		"en": "Sign in required",
+		"context": "Heading of the 401 error page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.unauthorizedBody": {
+		"en": "You need to be signed in to use this page.",
+		"context": "Body text of the 401 error page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.home": {
+		"en": "Back to home",
+		"context": "Error page action: go to the landing page.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.browse": {
+		"en": "Browse components",
+		"context": "Error page action: go to the components gallery.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.search": {
+		"en": "Search the docs",
+		"context": "Error page action: open the command search.",
+		"maxLen": null,
+		"render": null
+	},
+	"error.report": {
+		"en": "Report a broken link",
+		"context": "Error page action: open a pre-filled GitHub issue about this URL.",
+		"maxLen": null,
+		"render": null
+	},
+	"comp.previewFailed": {
+		"en": "This preview could not be loaded.",
+		"context": "Shown in place of a live preview whose module failed to load.",
+		"maxLen": 53,
+		"render": null
+	},
+	"demo.noPreview": {
+		"en": "No preview is available for this component yet.",
+		"context": "Standalone demo page, component without a preview.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/DemoRenderer.svelte:380"
+	},
+	"demo.notFound": {
+		"en": "Component not found.",
+		"context": "Standalone demo page, unknown component slug.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/DemoRenderer.svelte:448"
+	},
+	"recipes.steps": {
+		"en": "Steps",
+		"context": "Heading of the numbered steps section of a recipe.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:10"
+	},
+	"recipes.pitfalls": {
+		"en": "Pitfalls",
+		"context": "Heading of the common-mistakes section of a recipe.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:11"
+	},
+	"recipes.componentsUsed": {
+		"en": "Components used",
+		"context": "Heading of the section listing the components a recipe uses.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:12"
+	},
+	"seo.introduction": {
+		"en": "FancyUI is a library of animated, interactive UI components for Svelte 5, React and Vue. See what is included and how to get started.",
+		"context": "Meta description of the Introduction page (about 150 characters).",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:14"
+	},
+	"seo.installation": {
+		"en": "Install FancyUI for Svelte 5, React or Vue: add the package, import the stylesheet and render your first component.",
+		"context": "Meta description of the Installation page.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:17"
+	},
+	"seo.theming": {
+		"en": "Customize FancyUI with design tokens: OKLCh colors, radius, motion and dark mode, for Svelte 5, React and Vue.",
+		"context": "Meta description of the Theming page.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:20"
+	},
+	"seo.themeGenerator": {
+		"en": "Tune FancyUI's OKLCh design tokens live and copy the generated CSS into your app.",
+		"context": "Meta description of the Theme Generator page.",
+		"maxLen": null,
+		"render": null
+	},
+	"seo.changelog": {
+		"en": "Release notes for the FancyUI packages for Svelte 5, React and Vue.",
+		"context": "Meta description of the Changelog page.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/chrome-i18n.ts:23"
+	}
+}

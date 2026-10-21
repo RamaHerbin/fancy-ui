@@ -82,10 +82,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "في هذه الصفحة",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "التبديل إلى الوضع الفاتح",
-	"theme.switchToDark": "التبديل إلى الوضع الداكن",
-
 	// Components gallery
 	"gallery.title": "المكوّنات",
 	"gallery.subtitle":
@@ -96,8 +92,12 @@ export default {
 	"gallery.all": "الكل",
 	"gallery.noMatch": "لا توجد مكوّنات تطابق بحثك.",
 	"gallery.meta": "{components} مكوّنًا · {categories} فئات · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} نتيجة",
-	"gallery.resultOne": "نتيجة واحدة",
+	"gallery.results.zero": "{count} نتيجة",
+	"gallery.results.one": "نتيجة واحدة",
+	"gallery.results.two": "{count} نتيجة",
+	"gallery.results.few": "{count} نتيجة",
+	"gallery.results.many": "{count} نتيجة",
+	"gallery.results.other": "{count} نتيجة",
 	"gallery.clearFilters": "مسح عوامل التصفية",
 	"gallery.clearSearch": "مسح البحث",
 	"gallery.searchHint": "اضغط / للبحث",
@@ -123,8 +123,7 @@ export default {
 	// Theme-generator page
 	"tg.metaDescription": "اضبط رموز تصميم OKLCh الخاصة بـ FancyUI مباشرةً وانسخ الـ CSS إلى تطبيقك.",
 	"tg.intro":
-		"اضبط رموز تصميم FancyUI وشاهد المكوّنات تتفاعل في الوقت الفعلي. عندما يبدو المظهر مناسباً، انسخ الـ CSS المُولّد إلى صفحة أنماط تطبيقك (مثل src/app.css). تستخدم الألوان فضاء الألوان OKLCh؛ بينما تستخدم اللوحة القوسية HSL.",
-	"tg.seeTheming": "للاطّلاع على المرجع الكامل للرموز، راجع",
+		"اضبط رموز تصميم FancyUI وشاهد المكوّنات تتفاعل في الوقت الفعلي. عندما يبدو المظهر مناسباً، انسخ الـ CSS المُولّد إلى صفحة أنماط تطبيقك (مثل src/app.css). تستخدم الألوان فضاء الألوان OKLCh؛ بينما تستخدم اللوحة القوسية HSL. للاطّلاع على المرجع الكامل للرموز، راجع <link>السِّمات</link>.",
 	"tg.presets": "الإعدادات المسبقة",
 	"tg.base": "الأساس",
 	"tg.light": "فاتح",
@@ -142,7 +141,7 @@ export default {
 	"tg.cardSurfaceDesc": "يستخدم --card و--foreground و--border و--radius.",
 	"tg.primaryAction": "الإجراء الأساسي",
 	"tg.accentBadge": "شارة التمييز",
-	"tg.beamDesc": "تتبع ألوان الشعاع Primary → Accent.",
+	"tg.beamDesc": "تتبع ألوان الشعاع {primary} → {accent}.",
 	"tg.generatedCss": "الـ CSS المُولّد",
 	"tg.copyCss": "نسخ الـ CSS",
 	"tg.copied": "تم النسخ",
@@ -164,10 +163,6 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "مقدّمة",
 	"intro.metaTitle": "مقدّمة",
-	"intro.leadPre": "هي مجموعة من",
-	"intro.leadHighlight": "{count} مكوّناً متحركاً",
-	"intro.leadHighlight2": "وتفاعلياً لواجهة المستخدم",
-	"intro.leadPost": "مبنية أصلاً لـ Svelte 5.",
 	"intro.pill.svelte": "أصلي لـ Svelte 5",
 	"intro.pill.animation": "الحركة أولاً",
 	"intro.pill.copyPaste": "سهلة النسخ واللصق",
@@ -192,17 +187,15 @@ export default {
 	"intro.quickStart.step3.title": "الاستخدام",
 	"intro.quickStart.step3.desc": "أضِفها إلى مكوّنات Svelte الخاصة بك.",
 	"intro.whatsIncluded.heading": "ما الذي تتضمّنه",
-	"intro.whatsIncluded.body": "{count} مكوّناً موزّعة على {categories} فئات:",
+	"intro.whatsIncluded.body.zero": "{count} مكوّناً موزّعة على {categories} فئات:",
+	"intro.whatsIncluded.body.one": "{count} مكوّناً موزّعة على {categories} فئات:",
+	"intro.whatsIncluded.body.two": "{count} مكوّناً موزّعة على {categories} فئات:",
+	"intro.whatsIncluded.body.few": "{count} مكوّناً موزّعة على {categories} فئات:",
+	"intro.whatsIncluded.body.many": "{count} مكوّناً موزّعة على {categories} فئات:",
+	"intro.whatsIncluded.body.other": "{count} مكوّناً موزّعة على {categories} فئات:",
 	"intro.category.buttons": "الأزرار",
 	"intro.category.cards": "البطاقات",
-	"intro.category.text": "النصوص والطباعة",
-	"intro.category.backgrounds": "الخلفيات",
 	"intro.category.effects": "التأثيرات",
-	"intro.category.layout": "التخطيط",
-	"intro.category.navigation": "التنقّل",
-	"intro.category.dataDisplay": "عرض البيانات",
-	"intro.category.feedback": "التغذية الراجعة",
-	"intro.category.media": "الوسائط",
 	"intro.stats.buttons": "Rainbow وRipple وShimmer وغيرها. أزرار تدعوك للنقر عليها.",
 	"intro.stats.cards": "دوّارات وشبكات بينتو وتأثيرات ثلاثية الأبعاد. طرق لعرض المحتوى دون ملل.",
 	"intro.stats.effects": "مؤشرات وآثار ونصوص متحركة. لمسات صغيرة تصنع الفرق.",
@@ -215,7 +208,7 @@ export default {
 	"intro.nextSteps.components": "تصفّح المكوّنات",
 	"intro.cta.title": "جديد على FancyUI؟",
 	"intro.cta.body":
-		"اطّلع على <strong>مُولّد السِّمات</strong> لتخصيص الألوان ومشاهدة تفاعل المكوّنات في الوقت الفعلي.",
+		"اطّلع على <b>مُولّد السِّمات</b> لتخصيص الألوان ومشاهدة تفاعل المكوّنات في الوقت الفعلي.",
 	"intro.cta.button": "جرّب مُولّد السِّمات",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -394,8 +387,8 @@ export default {
 	"comp.editPage": "تحرير هذه الصفحة",
 	"comp.reportIssue": "الإبلاغ عن مشكلة",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"هي مجموعة من {count} مكوّنًا واجهيًا متحركًا وتفاعليًا لـ Svelte 5 وReact وVue، مبنية على رموز التصميم نفسها.",
+	"intro.lead":
+		"هي مجموعة من <grad>{count}</grad> مكوّنًا واجهيًا متحركًا وتفاعليًا لـ Svelte 5 وReact وVue، مبنية على رموز التصميم نفسها.",
 	"intro.importHint":
 		"استورد المكوّنات التي تحتاج إليها. يعتمد مسار الاستيراد على إطار العمل الذي تستخدمه.",
 	"install.kitOptional":

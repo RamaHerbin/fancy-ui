@@ -82,10 +82,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "Bu sayfada",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "Aydınlık moda geç",
-	"theme.switchToDark": "Karanlık moda geç",
-
 	// Components gallery
 	"gallery.title": "Bileşenler",
 	"gallery.intro":
@@ -95,8 +91,8 @@ export default {
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
 	"gallery.meta":
 		"{components} bileşen · {categories} kategori · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} sonuç",
-	"gallery.resultOne": "1 sonuç",
+	"gallery.results.one": "{count} sonuç",
+	"gallery.results.other": "{count} sonuç",
 	"gallery.clearFilters": "Filtreleri temizle",
 	"gallery.clearSearch": "Aramayı temizle",
 	"gallery.searchHint": "Aramak için / tuşuna basın",
@@ -125,8 +121,7 @@ export default {
 	"tg.metaDescription":
 		"FancyUI'nin OKLCh tasarım belirteçlerini canlı olarak ayarlayın ve CSS'yi uygulamanıza kopyalayın.",
 	"tg.intro":
-		"FancyUI'nin tasarım belirteçlerini ayarlayın ve bileşenlerin gerçek zamanlı olarak tepki vermesini izleyin. Doğru göründüğünde, oluşturulan CSS'yi uygulamanızın stil sayfasına (örneğin src/app.css) kopyalayın. Renkler OKLCh renk uzayını kullanır; gökkuşağı paleti HSL kullanır.",
-	"tg.seeTheming": "Tüm belirteç referansı için bkz.",
+		"FancyUI'nin tasarım belirteçlerini ayarlayın ve bileşenlerin gerçek zamanlı olarak tepki vermesini izleyin. Doğru göründüğünde, oluşturulan CSS'yi uygulamanızın stil sayfasına (örneğin src/app.css) kopyalayın. Renkler OKLCh renk uzayını kullanır; gökkuşağı paleti HSL kullanır. Tüm belirteç referansı için bkz. <link>Tema</link>.",
 	"tg.presets": "Hazır Ayarlar",
 	"tg.base": "Temel",
 	"tg.light": "Aydınlık",
@@ -144,7 +139,7 @@ export default {
 	"tg.cardSurfaceDesc": "--card, --foreground, --border ve --radius kullanır.",
 	"tg.primaryAction": "Birincil eylem",
 	"tg.accentBadge": "Vurgu rozeti",
-	"tg.beamDesc": "Işın renkleri Primary → Accent sırasını izler.",
+	"tg.beamDesc": "Işın renkleri {primary} → {accent} sırasını izler.",
 	"tg.generatedCss": "Oluşturulan CSS",
 	"tg.copyCss": "CSS'yi Kopyala",
 	"tg.copied": "Kopyalandı",
@@ -166,10 +161,6 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Giriş",
 	"intro.metaTitle": "Giriş",
-	"intro.leadPre": "Svelte 5 için doğal olarak geliştirilmiş",
-	"intro.leadHighlight": "{count} animasyonlu",
-	"intro.leadHighlight2": "etkileşimli arayüz bileşeninden",
-	"intro.leadPost": "oluşan bir koleksiyondur.",
 	"intro.pill.svelte": "Svelte 5 Doğal",
 	"intro.pill.animation": "Önce Animasyon",
 	"intro.pill.copyPaste": "Kopyala-Yapıştır Dostu",
@@ -196,17 +187,11 @@ export default {
 	"intro.quickStart.step3.title": "Kullan",
 	"intro.quickStart.step3.desc": "Svelte bileşenlerinize ekleyin.",
 	"intro.whatsIncluded.heading": "Neler İçerir",
-	"intro.whatsIncluded.body": "{categories} kategoride {count} bileşen:",
+	"intro.whatsIncluded.body.one": "{categories} kategoride {count} bileşen:",
+	"intro.whatsIncluded.body.other": "{categories} kategoride {count} bileşen:",
 	"intro.category.buttons": "Düğmeler",
 	"intro.category.cards": "Kartlar",
-	"intro.category.text": "Metin",
-	"intro.category.backgrounds": "Arka Planlar",
 	"intro.category.effects": "Efektler",
-	"intro.category.layout": "Düzen",
-	"intro.category.navigation": "Gezinme",
-	"intro.category.dataDisplay": "Veri Görüntüleme",
-	"intro.category.feedback": "Geri Bildirim",
-	"intro.category.media": "Medya",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer ve arkadaşları. Tıklanmak isteyen düğmeler.",
 	"intro.stats.cards":
 		"Karuseller, bento ızgaralar, 3D efektler. İçeriği sıkmadan sunmanın yolları.",
@@ -220,7 +205,7 @@ export default {
 	"intro.nextSteps.components": "Bileşenlere Göz At",
 	"intro.cta.title": "FancyUI'de yeni misiniz?",
 	"intro.cta.body":
-		"Renkleri özelleştirmek ve bileşenlerin gerçek zamanlı nasıl tepki verdiğini görmek için <strong>Tema Oluşturucu</strong>'yu inceleyin.",
+		"Renkleri özelleştirmek ve bileşenlerin gerçek zamanlı nasıl tepki verdiğini görmek için <b>Tema Oluşturucu</b>'yu inceleyin.",
 	"intro.cta.button": "Tema Oluşturucu'yu Dene",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -408,8 +393,8 @@ export default {
 	"comp.editPage": "Bu sayfayı düzenleyin",
 	"comp.reportIssue": "Sorun bildirin",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"Svelte 5, React ve Vue için aynı tasarım belirteçleri üzerine kurulu, {count} animasyonlu ve etkileşimli arayüz bileşeninden oluşan bir koleksiyondur.",
+	"intro.lead":
+		"Svelte 5, React ve Vue için aynı tasarım belirteçleri üzerine kurulu, <grad>{count}</grad> animasyonlu ve etkileşimli arayüz bileşeninden oluşan bir koleksiyondur.",
 	"intro.importHint":
 		"İhtiyacınız olan bileşenleri içe aktarın. İçe aktarma yolu kullandığınız framework'e bağlıdır.",
 	"install.kitOptional":

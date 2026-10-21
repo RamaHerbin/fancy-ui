@@ -82,10 +82,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "このページの内容",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "ライトモードに切り替え",
-	"theme.switchToDark": "ダークモードに切り替え",
-
 	// Components gallery
 	"gallery.title": "コンポーネント",
 	"gallery.intro":
@@ -95,8 +91,7 @@ export default {
 	"gallery.noMatch": "検索に一致するコンポーネントがありません。",
 	"gallery.meta":
 		"{components} コンポーネント · {categories} カテゴリ · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} 件の結果",
-	"gallery.resultOne": "1 件の結果",
+	"gallery.results.other": "{count} 件の結果",
 	"gallery.clearFilters": "フィルターをクリア",
 	"gallery.clearSearch": "検索をクリア",
 	"gallery.searchHint": "/ を押して検索",
@@ -125,8 +120,7 @@ export default {
 	"tg.metaDescription":
 		"FancyUI の OKLCh デザイントークンをライブで調整し、CSS をアプリにコピーできます。",
 	"tg.intro":
-		"FancyUI のデザイントークンを調整すると、コンポーネントがリアルタイムに反応します。気に入ったら、生成された CSS をアプリのスタイルシート（例: src/app.css）にコピーしてください。色は OKLCh 色空間を使用し、レインボーパレットは HSL を使用します。",
-	"tg.seeTheming": "トークンの完全なリファレンスについては、以下を参照してください",
+		"FancyUI のデザイントークンを調整すると、コンポーネントがリアルタイムに反応します。気に入ったら、生成された CSS をアプリのスタイルシート（例: src/app.css）にコピーしてください。色は OKLCh 色空間を使用し、レインボーパレットは HSL を使用します。 トークンの完全なリファレンスについては、以下を参照してください <link>テーマ設定</link>.",
 	"tg.presets": "プリセット",
 	"tg.base": "ベース",
 	"tg.light": "ライト",
@@ -144,7 +138,7 @@ export default {
 	"tg.cardSurfaceDesc": "--card、--foreground、--border、--radius を使用します。",
 	"tg.primaryAction": "プライマリアクション",
 	"tg.accentBadge": "アクセントバッジ",
-	"tg.beamDesc": "ビームの色は Primary → Accent に従います。",
+	"tg.beamDesc": "ビームの色は {primary} → {accent} に従います。",
 	"tg.generatedCss": "生成された CSS",
 	"tg.copyCss": "CSS をコピー",
 	"tg.copied": "コピーしました",
@@ -166,10 +160,6 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "はじめに",
 	"intro.metaTitle": "はじめに",
-	"intro.leadPre": "は、",
-	"intro.leadHighlight": "{count}種のアニメーション",
-	"intro.leadHighlight2": "インタラクティブな UI コンポーネント",
-	"intro.leadPost": "の詰め合わせで、Svelte 5 向けにネイティブに構築されています。",
 	"intro.pill.svelte": "Svelte 5 ネイティブ",
 	"intro.pill.animation": "アニメーション優先",
 	"intro.pill.copyPaste": "コピー＆ペーストに対応",
@@ -197,17 +187,10 @@ export default {
 	"intro.quickStart.step3.title": "使用",
 	"intro.quickStart.step3.desc": "Svelte コンポーネント内に配置するだけです。",
 	"intro.whatsIncluded.heading": "収録内容",
-	"intro.whatsIncluded.body": "{categories} のカテゴリーにわたる {count} 個のコンポーネント:",
+	"intro.whatsIncluded.body.other": "{categories} のカテゴリーにわたる {count} 個のコンポーネント:",
 	"intro.category.buttons": "ボタン",
 	"intro.category.cards": "カード",
-	"intro.category.text": "テキスト",
-	"intro.category.backgrounds": "背景",
 	"intro.category.effects": "エフェクト",
-	"intro.category.layout": "レイアウト",
-	"intro.category.navigation": "ナビゲーション",
-	"intro.category.dataDisplay": "データ表示",
-	"intro.category.feedback": "フィードバック",
-	"intro.category.media": "メディア",
 	"intro.stats.buttons": "Rainbow、Ripple、Shimmer など。思わずクリックしたくなるボタン。",
 	"intro.stats.cards": "カルーセル、ベントーグリッド、3D 効果。飽きさせないコンテンツ表現。",
 	"intro.stats.effects": "カーソル、軌跡、アニメーションテキスト。違いを生む小さな演出。",
@@ -220,7 +203,7 @@ export default {
 	"intro.nextSteps.components": "コンポーネント一覧",
 	"intro.cta.title": "FancyUI は初めてですか？",
 	"intro.cta.body":
-		"<strong>テーマジェネレーター</strong> をチェックして、色をカスタマイズしたり、コンポーネントがリアルタイムに反応する様子を確認したりしましょう。",
+		"<b>テーマジェネレーター</b> をチェックして、色をカスタマイズしたり、コンポーネントがリアルタイムに反応する様子を確認したりしましょう。",
 	"intro.cta.button": "テーマジェネレーターを試す",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -407,8 +390,8 @@ export default {
 	"comp.editPage": "このページを編集",
 	"comp.reportIssue": "問題を報告",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"は、Svelte 5、React、Vue向けの{count}個のアニメーション付きインタラクティブUIコンポーネントを集めたコレクションです。すべて同じデザイントークンで作られています。",
+	"intro.lead":
+		"は、Svelte 5、React、Vue向けの<grad>{count}</grad>個のアニメーション付きインタラクティブUIコンポーネントを集めたコレクションです。すべて同じデザイントークンで作られています。",
 	"intro.importHint":
 		"必要なコンポーネントをインポートします。インポートパスはお使いのフレームワークによって異なります。",
 	"install.kitOptional":

@@ -25,7 +25,7 @@ const AUDIT_KEYS = [
 	"comp.editPage",
 	"comp.reportIssue",
 	"comp.issueTitle",
-	"intro.leadNeutral",
+	"intro.lead",
 	"intro.importHint",
 	"install.kitOptional",
 	"theming.cssPerFramework",

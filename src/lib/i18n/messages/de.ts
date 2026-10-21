@@ -83,10 +83,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "Auf dieser Seite",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "Zum hellen Modus wechseln",
-	"theme.switchToDark": "Zum dunklen Modus wechseln",
-
 	// Components gallery
 	"gallery.title": "Komponenten",
 	"gallery.subtitle":
@@ -98,8 +94,8 @@ export default {
 	"gallery.noMatch": "Keine Komponenten entsprechen deiner Suche.",
 	"gallery.meta":
 		"{components} Komponenten · {categories} Kategorien · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} Ergebnisse",
-	"gallery.resultOne": "1 Ergebnis",
+	"gallery.results.one": "{count} Ergebnis",
+	"gallery.results.other": "{count} Ergebnisse",
 	"gallery.clearFilters": "Filter zurücksetzen",
 	"gallery.clearSearch": "Suche löschen",
 	"gallery.searchHint": "Drücke /, um zu suchen",
@@ -126,8 +122,7 @@ export default {
 	"tg.metaDescription":
 		"Passe FancyUIs OKLCh-Design-Tokens live an und kopiere das CSS in deine App.",
 	"tg.intro":
-		"Passe FancyUIs Design-Tokens an und beobachte, wie die Komponenten in Echtzeit reagieren. Wenn es passt, kopiere das generierte CSS in das Stylesheet deiner App (z. B. src/app.css). Farben verwenden den OKLCh-Farbraum; die Regenbogen-Palette verwendet HSL.",
-	"tg.seeTheming": "Die vollständige Token-Referenz findest du unter",
+		"Passe FancyUIs Design-Tokens an und beobachte, wie die Komponenten in Echtzeit reagieren. Wenn es passt, kopiere das generierte CSS in das Stylesheet deiner App (z. B. src/app.css). Farben verwenden den OKLCh-Farbraum; die Regenbogen-Palette verwendet HSL. Die vollständige Token-Referenz findest du unter <link>Themes</link>.",
 	"tg.presets": "Voreinstellungen",
 	"tg.base": "Basis",
 	"tg.light": "Hell",
@@ -145,7 +140,7 @@ export default {
 	"tg.cardSurfaceDesc": "Verwendet --card, --foreground, --border und --radius.",
 	"tg.primaryAction": "Primäraktion",
 	"tg.accentBadge": "Akzent-Badge",
-	"tg.beamDesc": "Beam-Farben folgen Primary → Accent.",
+	"tg.beamDesc": "Beam-Farben folgen {primary} → {accent}.",
 	"tg.generatedCss": "Generiertes CSS",
 	"tg.copyCss": "CSS kopieren",
 	"tg.copied": "Kopiert",
@@ -167,10 +162,6 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Einführung",
 	"intro.metaTitle": "Einführung",
-	"intro.leadPre": "ist eine Sammlung von",
-	"intro.leadHighlight": "{count} animierten",
-	"intro.leadHighlight2": "interaktiven UI-Komponenten",
-	"intro.leadPost": "und wurde nativ für Svelte 5 entwickelt.",
 	"intro.pill.svelte": "Svelte 5 nativ",
 	"intro.pill.animation": "Animation zuerst",
 	"intro.pill.copyPaste": "Copy-and-paste-freundlich",
@@ -196,17 +187,11 @@ export default {
 	"intro.quickStart.step3.title": "Verwenden",
 	"intro.quickStart.step3.desc": "Füge sie in deine Svelte-Komponenten ein.",
 	"intro.whatsIncluded.heading": "Was enthalten ist",
-	"intro.whatsIncluded.body": "{count} Komponenten in {categories} Kategorien:",
+	"intro.whatsIncluded.body.one": "{count} Komponenten in {categories} Kategorien:",
+	"intro.whatsIncluded.body.other": "{count} Komponenten in {categories} Kategorien:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Karten",
-	"intro.category.text": "Text",
-	"intro.category.backgrounds": "Hintergründe",
 	"intro.category.effects": "Effekte",
-	"intro.category.layout": "Layout",
-	"intro.category.navigation": "Navigation",
-	"intro.category.dataDisplay": "Datenanzeige",
-	"intro.category.feedback": "Feedback",
-	"intro.category.media": "Medien",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer und Co. Buttons, die zum Klicken einladen.",
 	"intro.stats.cards":
 		"Karussells, Bento-Raster, 3D-Effekte. Inhalte präsentieren, ohne zu langweilen.",
@@ -221,7 +206,7 @@ export default {
 	"intro.nextSteps.components": "Komponenten durchsuchen",
 	"intro.cta.title": "Neu bei FancyUI?",
 	"intro.cta.body":
-		"Schau dir den <strong>Theme-Generator</strong> an, um Farben anzupassen und zu sehen, wie Komponenten in Echtzeit reagieren.",
+		"Schau dir den <b>Theme-Generator</b> an, um Farben anzupassen und zu sehen, wie Komponenten in Echtzeit reagieren.",
 	"intro.cta.button": "Theme-Generator ausprobieren",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -409,8 +394,8 @@ export default {
 	"comp.editPage": "Seite bearbeiten",
 	"comp.reportIssue": "Problem melden",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"ist eine Sammlung von {count} animierten, interaktiven UI-Komponenten für Svelte 5, React und Vue, die auf denselben Design-Tokens aufbauen.",
+	"intro.lead":
+		"ist eine Sammlung von <grad>{count}</grad> animierten, interaktiven UI-Komponenten für Svelte 5, React und Vue, die auf denselben Design-Tokens aufbauen.",
 	"intro.importHint":
 		"Importiere die Komponenten, die du brauchst. Der Importpfad richtet sich nach deinem Framework.",
 	"install.kitOptional":

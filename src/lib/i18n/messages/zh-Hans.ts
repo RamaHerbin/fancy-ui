@@ -73,9 +73,6 @@ export default {
 
 	"toc.onThisPage": "本页内容",
 
-	"theme.switchToLight": "切换到浅色模式",
-	"theme.switchToDark": "切换到深色模式",
-
 	"gallery.title": "组件",
 	"gallery.subtitle":
 		"{count} 个精美的 Svelte 5, React, Vue 动画组件。浏览、搜索，找到你需要的内容。",
@@ -85,8 +82,7 @@ export default {
 	"gallery.all": "全部",
 	"gallery.noMatch": "没有与搜索匹配的组件。",
 	"gallery.meta": "{components} 个组件 · {categories} 个分类 · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} 个结果",
-	"gallery.resultOne": "1 个结果",
+	"gallery.results.other": "{count} 个结果",
 	"gallery.clearFilters": "清除筛选",
 	"gallery.clearSearch": "清除搜索",
 	"gallery.searchHint": "按 / 搜索",
@@ -111,8 +107,7 @@ export default {
 
 	"tg.metaDescription": "实时调整 FancyUI 的 OKLCh 设计令牌，并将 CSS 复制到你的应用中。",
 	"tg.intro":
-		"调整 FancyUI 的设计令牌，实时观察组件的变化。当效果满意时，将生成的 CSS 复制到你的应用样式表中（例如 src/app.css）。颜色使用 OKLCh 色彩空间；彩虹调色板使用 HSL。",
-	"tg.seeTheming": "完整的令牌参考，请查看",
+		"调整 FancyUI 的设计令牌，实时观察组件的变化。当效果满意时，将生成的 CSS 复制到你的应用样式表中（例如 src/app.css）。颜色使用 OKLCh 色彩空间；彩虹调色板使用 HSL。 完整的令牌参考，请查看 <link>主题</link>.",
 	"tg.presets": "预设",
 	"tg.base": "基础",
 	"tg.light": "浅色",
@@ -130,7 +125,7 @@ export default {
 	"tg.cardSurfaceDesc": "使用 --card、--foreground、--border 和 --radius。",
 	"tg.primaryAction": "主要操作",
 	"tg.accentBadge": "强调徽章",
-	"tg.beamDesc": "光束颜色遵循 Primary → Accent。",
+	"tg.beamDesc": "光束颜色遵循 {primary} → {accent}。",
 	"tg.generatedCss": "生成的 CSS",
 	"tg.copyCss": "复制 CSS",
 	"tg.copied": "已复制",
@@ -151,10 +146,6 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "简介",
 	"intro.metaTitle": "简介",
-	"intro.leadPre": "是一套",
-	"intro.leadHighlight": "{count} 个动画",
-	"intro.leadHighlight2": "交互式 UI 组件",
-	"intro.leadPost": "原生为 Svelte 5 打造。",
 	"intro.pill.svelte": "Svelte 5 原生",
 	"intro.pill.animation": "动画优先",
 	"intro.pill.copyPaste": "便于复制粘贴",
@@ -179,17 +170,10 @@ export default {
 	"intro.quickStart.step3.title": "使用",
 	"intro.quickStart.step3.desc": "将其放入你的 Svelte 组件中。",
 	"intro.whatsIncluded.heading": "包含内容",
-	"intro.whatsIncluded.body": "{count} 个组件，涵盖 {categories} 个分类：",
+	"intro.whatsIncluded.body.other": "{count} 个组件，涵盖 {categories} 个分类：",
 	"intro.category.buttons": "按钮",
 	"intro.category.cards": "卡片",
-	"intro.category.text": "文本",
-	"intro.category.backgrounds": "背景",
 	"intro.category.effects": "特效",
-	"intro.category.layout": "布局",
-	"intro.category.navigation": "导航",
-	"intro.category.dataDisplay": "数据展示",
-	"intro.category.feedback": "反馈",
-	"intro.category.media": "媒体",
 	"intro.stats.buttons": "Rainbow、Ripple、Shimmer 等。让人忍不住点击的按钮。",
 	"intro.stats.cards": "轮播、便当网格、3D 效果。让内容展示不再乏味。",
 	"intro.stats.effects": "光标、拖尾、动画文字。决定成败的小细节。",
@@ -201,7 +185,7 @@ export default {
 	"intro.nextSteps.theming": "主题",
 	"intro.nextSteps.components": "浏览组件",
 	"intro.cta.title": "刚接触 FancyUI？",
-	"intro.cta.body": "查看<strong>主题生成器</strong>，自定义颜色并实时查看组件的变化。",
+	"intro.cta.body": "查看<b>主题生成器</b>，自定义颜色并实时查看组件的变化。",
 	"intro.cta.button": "试用主题生成器",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -366,8 +350,8 @@ export default {
 	"comp.editPage": "编辑此页",
 	"comp.reportIssue": "报告问题",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"是一套包含 {count} 个动画交互式 UI 组件的集合，适用于 Svelte 5、React 和 Vue，基于同一套设计令牌构建。",
+	"intro.lead":
+		"是一套包含 <grad>{count}</grad> 个动画交互式 UI 组件的集合，适用于 Svelte 5、React 和 Vue，基于同一套设计令牌构建。",
 	"intro.importHint": "导入你需要的组件。导入路径取决于你使用的框架。",
 	"install.kitOptional": "SvelteKit 是可选的：FancyUI 可用于任何使用 Vite 构建的 Svelte 5 项目。",
 	"theming.cssPerFramework": "导入与你的框架对应的样式表：每个包都自带样式表。",

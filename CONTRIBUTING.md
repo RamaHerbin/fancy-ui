@@ -70,16 +70,73 @@ The other specs (`builder-*`, `inspiration`, `sound-lab`) are not run there yet.
 
 ## Docs translations (i18n)
 
-The docs site is localized through a single mechanism: **message catalogs** in `src/lib/i18n/messages/`. `en.ts` is the source of truth; every other `<code>.ts` file translates the exact same keys and is looked up at runtime by `t()` (from `$lib/stores`), which falls back to English per key.
+The docs site is localized through a single mechanism: **message catalogs** in `src/lib/i18n/messages/`. `en.ts` is the source of truth; every other `<code>.ts` file translates the same keys. The catalog is a flat object of string messages, read at runtime with three helpers from `$lib/stores`, each falling back to English per key:
 
-**Adding a UI string:** add the key to `en.ts` first, then add its translation to all other catalogs. Two gates keep the catalogs honest:
+| Helper              | Use it for                      | Example                                        |
+| ------------------- | ------------------------------- | ---------------------------------------------- |
+| `t(key, vars?)`     | a message, with `{name}` values | `t("table.portName", { framework: "React" })`  |
+| `tn(key, n, vars?)` | a count (plural message)        | `tn("gallery.results", 12)`                    |
+| `tx(key, vars?)`    | a message with inline tags      | `<RichText segments={tx("intro.cta.body")} />` |
 
-- `satisfies Catalog` on every translated catalog makes a missing, extra, or typo'd key a compile error (`pnpm check`).
-- `pnpm check:i18n` verifies locale registry ↔ catalog files ↔ key parity ↔ the RTL map in `src/app.html`, and runs in CI.
+Never build a sentence from fragments and never call `.replace("{count}", …)` at a call site: word order differs between languages, and plural rules differ again. One sentence is one message.
 
-**Adding a locale:** add an entry to `src/lib/i18n/locales.ts`, drop a full `src/lib/i18n/messages/<code>.ts` catalog (`export default { … } satisfies Catalog;`), and if the language is RTL, mirror it in the pre-paint `RTL` map in `src/app.html`.
+### Adding or changing a UI string
 
-**What stays English:** component names, and the registry descriptions in `src/lib/fancy-ui/registry.ts` (including `categoryLabels`/`categoryDescriptions`) — they are the machine-facing source feeding `/llms.txt` and the Component Copilot. Docs UI must not render them as display text; use the translated `category.*` keys (via `tCategory()`) instead.
+1. Add the key to `en.ts` with a `/** @context … */` comment above it saying where the text appears and what its variables are. Translators work from that comment, not from the code.
+2. Add the key to every other catalog (`pnpm check` fails on a missing, extra or typo'd key through `satisfies Catalog`). A translation you cannot write yourself goes in as the English text and is marked for review by the quality test.
+3. Run `node scripts/i18n-context.mjs` to refresh `messages/context.json` (English, context, length budget and where the key renders), then `pnpm check:i18n` and `pnpm test`.
+4. If you change the English of an existing key, say so in the PR: the reviewers' manifests hash the English, so the key shows up as stale for every locale until it is re-read.
+
+Do not add a key nothing reads. The quality test fails on dead keys; a key that is registered ahead of the component that will use it is listed in `deadKeys.pendingConsumers` in `messages/quality-allowlist.json` until that component lands.
+
+### Messages with values, counts and tags
+
+- **Values** are `{name}` placeholders. Every translation must carry exactly the placeholders of the English text. Numbers passed to `t()` are formatted for the active locale; pass a string (a version, a name) to keep it as written.
+- **Counts** are plural messages: flat keys `<base>.<category>`, read with `tn(base, n)`. `{count}` is always available. A catalog provides the CLDR cardinal categories of its language, and `.other` is always required: `en`, `de`, `es`, `it`, `pt`, `fr`, `tr`, `hi`, `fa` have `one` and `other`; `pl` and `cs` have `one`, `few`, `many`, `other`; `ar` has `zero`, `one`, `two`, `few`, `many`, `other`; `ja`, `ko`, `zh-Hans`, `id` have only `other`. `fr`, `es`, `it` and `pt` may add `many` (exact millions) but do not have to. Languages where `one` covers 0 as well (`fr`, `pt`, `hi`, `fa`) must keep `{count}` in `one`; where `one` is exactly 1 and for `zero`/`two`, the number may be said in words. `pnpm check:i18n` enforces the category set per locale.
+- **Tags** in a message are a closed set: `<b>`, `<grad>`, `<solid>`, `<link>…</link>`. They render through `tx()` and `<RichText>`; there is no raw HTML anywhere. A translation keeps the same tags, properly nested, and may move them to follow the sentence. Never translate or rename a tag.
+
+### Registers and glossary
+
+Each locale has one register, applied consistently: `fr` vous, `de` du, `es` tú, `it` tu, `pt` você, `pl` and `cs` neutral (no direct address where avoidable), `ja` です/ます, `ko` 합니다, `zh-Hans` 你, `tr` siz, `id` Anda, `hi` आप, `ar` and `fa` formal. Terminology follows `src/lib/i18n/messages/reviewed/glossary.md`; the words in the `jobs.*` labels and the `category.*` labels must stay in the same family.
+
+### Script and typography rules
+
+The quality test checks these per script, so write them as native typography would:
+
+- `fr`: a no-break space (U+00A0 or U+202F) before `:` `;` `!` `?` and inside « ».
+- `pl`, `cs`: a no-break space after single-letter words (`w`, `z`, `i`, `a`, `o`, `u`, and in Czech `k`, `s`, `v`) so they never end a line.
+- `ja`, `zh-Hans`: full-width punctuation next to CJK text, half-width inside Latin runs.
+- `ar`, `fa`: the Arabic comma `،`, semicolon `؛` and question mark `؟`.
+- Every locale: the sentence ends with the same kind of mark as the English one (full stop, colon, question or exclamation mark, ellipsis), expressed in the script's own form; no doubled punctuation, no stray double spaces.
+- Short labels (nav, a11y, header, status, table, footer, jobs, category, …) have a **length budget** of `max(1.6 × English, English + 12)` characters; `messages/context.json` lists the budget per key as `maxLen`. If a correct translation cannot fit, ask for a per-key override in `quality-allowlist.json` instead of abbreviating badly.
+- A value identical to the English one fails the `untranslated` check unless the term genuinely stays (a product name, a technical word, a cognate). Those exceptions live in `quality-allowlist.json`, each with a reason.
+
+### Review workflow
+
+Machine drafts and reviewed text are told apart by a **review manifest**, `src/lib/i18n/messages/reviewed/<code>.json`: `{ "<key>": sha1(English) }` for every key the reviewer has read. A catalog starts with the line `// <Language> (<code>) — machine-translated draft…`; the reviewer reads the whole catalog against the current English and `messages/context.json`, removes that header line, then runs
+
+```bash
+node scripts/i18n-manifest.mjs <code>          # write the manifest
+node scripts/i18n-manifest.mjs <code> --check  # verify it
+```
+
+From then on the locale is strict: the quality test fails on a missing, stale or extra manifest entry, so changing the English of a key (or adding one) sends it back to every reviewer. A reviewer owns exactly two files, `messages/<code>.ts` and `messages/reviewed/<code>.json`, and reports English that is ambiguous instead of "fixing" it in translation.
+
+`pnpm vitest run src/lib/i18n/catalog-quality.test.ts` runs the whole gate. The structural checks (keys, plural categories, placeholders, tags, dead keys, literal English in the docs chrome, the runtime helpers) always block. The style checks (untranslated, punctuation, typography, length) block for a locale with a manifest and only warn for the others; to see them as failures while you review one locale:
+
+```bash
+I18N_STRICT=fr pnpm vitest run src/lib/i18n/catalog-quality.test.ts -t "catalog fr"
+```
+
+`messages/quality-allowlist.json` has `"manifestMode": "warn"` while some locales have no manifest yet; it becomes `"fail"` once all of them do.
+
+### Adding a locale
+
+Add an entry to `src/lib/i18n/locales.ts`, drop a full `src/lib/i18n/messages/<code>.ts` catalog (`export default { … } satisfies Catalog;`), pin its plural categories in `scripts/lib/i18n-parse.mjs` (`REQUIRED_PLURALS`), and mirror the code in the pre-paint `LOCALES` map in `src/app.html` (plus `RTL` if the language is right-to-left). `pnpm check:i18n` fails until all of that agrees. The pre-paint script sets `lang` and `dir` before first paint only from a persisted choice (`?lang=` or the saved preference); a locale guessed from the browser language is applied after hydration, so a first visit never mirrors English text.
+
+### What stays English
+
+Component names, and the registry descriptions in `src/lib/fancy-ui/registry.ts` (including `categoryLabels` and `categoryDescriptions`): they are the machine-facing source feeding `/llms.txt` and the Component Copilot. Docs UI must not render them as display text; use the translated `category.*` keys (via `tCategory()`). Component example titles and descriptions, the changelog, recipe bodies and the page `<title>` of component and recipe pages are English on purpose, so the search-result headline matches English queries. Everything else visible in the docs chrome is a message: the quality test scans `src/lib/components/docs/**` and `src/routes/docs/**` for literal English text, `aria-label`, `title` and `placeholder`, and fails on it unless the entry is listed with a reason in `quality-allowlist.json`.
 
 ## Storybook
 
