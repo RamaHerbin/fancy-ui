@@ -7,7 +7,7 @@
  * for the identity/purity gate this file must keep passing.
  *
  * Framework-free means exactly that: no `import ... from "react"` (or
- * "svelte"/"vue"), no `import.meta.env`, no `window`/`document`/`navigator`
+ * "svelte"/"vue"), no bundler env reads, no `window`/`document`/`navigator`
  * read at module scope. DOM types (`HTMLElement`, `Element`) are fine — they
  * come from `lib.dom.d.ts`, not from a framework — and so is calling into a
  * DOM API from inside a function, which only ever happens once a real node
