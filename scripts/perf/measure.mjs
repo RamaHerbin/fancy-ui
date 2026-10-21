@@ -35,6 +35,8 @@ import {
 	measureAssets,
 	median,
 	parseKeptScratch,
+	backfillMark,
+	groupLoad,
 	loadVerdict,
 	proposeBudget,
 	runRows,
@@ -641,13 +643,14 @@ function environment(sections) {
 	const { sizes, effects, lifecycle } = sections;
 	const first = sizes.run ?? effects[0]?.run ?? {};
 	const settings = recordedSettings(effects, lifecycle);
+	const mark = (v) => backfillMark(v, first);
 	return [
-		["machine", first.machine ?? "unrecorded"],
-		["os", first.os ?? "unrecorded"],
-		["node", first.node ?? "unrecorded"],
+		["machine", mark(first.machine ?? "unrecorded")],
+		["os", mark(first.os ?? "unrecorded")],
+		["node", mark(first.node ?? "unrecorded")],
 		["chromium", effects[0]?.chromium ?? "n/a"],
 		["gpu", "software GL (swiftshader), headless"],
-		...Object.entries(first.versions ?? {}),
+		...Object.entries(first.versions ?? {}).map(([k, v]) => [k, mark(v)]),
 		["repetitions", settings.reps],
 		["lifecycle cycles", settings.cycles],
 	];
@@ -671,7 +674,7 @@ function runReport() {
 		"",
 		markdownTable(["key", "value"], environment({ sizes, imports, effects, lifecycle: life })),
 		"",
-		"Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when its 1-minute load is below half the core count; the others are labelled loaded and their timing numbers are indicative only.",
+		'Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when the worst of its 1-, 5- and 15-minute loads is below half the core count; the others are labelled loaded and their timing numbers are indicative only. A record filled in after the measurement (`stamp`) is marked "(backfilled)" on everything it supplies: machine, os, node, package versions, library commit and tool commit.',
 		"",
 		markdownTable(
 			["section", "library commit", "tool commit", "load at end (1/5/15 min)", "state"],
@@ -815,6 +818,7 @@ function runReport() {
 
 	md.push(`## 4. Mount/unmount and simultaneous instances`, "");
 	for (const g of life) {
+		const tenProvisional = loadVerdict(groupLoad(g), g.run?.cores) !== "quiet";
 		md.push(
 			`### ${g.framework}: ${g.rows[0].cycles} mount/unmount cycles, then 10 instances at once`,
 			""
@@ -860,7 +864,7 @@ function runReport() {
 					"contexts created",
 					"contexts connected",
 					"context warnings",
-					"CPU ms/s",
+					tenProvisional ? "CPU ms/s (provisional: loaded machine)" : "CPU ms/s",
 					"raf/s",
 				],
 				g.rows.map((r) => [
@@ -919,8 +923,7 @@ function runReport() {
 		const worst = Math.max(
 			...g.rows.filter((r) => r.name !== "none").map((r) => r.idle.cpuMsPerSec)
 		);
-		const load = g.run?.loadAvgAtEnd ?? g.loadAvgAtEnd;
-		const provisional = loadVerdict(load?.[0], g.run?.cores) !== "quiet";
+		const provisional = loadVerdict(groupLoad(g), g.run?.cores) !== "quiet";
 		budgetRows.push([
 			`${g.framework} idle CPU, worst effect`,
 			`${f1(worst)} ms/s`,

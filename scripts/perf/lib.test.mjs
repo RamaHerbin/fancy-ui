@@ -26,6 +26,8 @@ import {
 	recordedSettings,
 	runRows,
 	stampRun,
+	backfillMark,
+	groupLoad,
 } from "./lib.mjs";
 
 test("compressedSizes reports raw, gzip and brotli bytes", () => {
@@ -195,6 +197,32 @@ test("loadVerdict calls a machine quiet only below half a core of load per core"
 	assert.equal(loadVerdict(1, undefined), "unrecorded");
 });
 
+test("loadVerdict takes the worst of the 1-, 5- and 15-minute loads", () => {
+	assert.equal(loadVerdict([6.8, 8.2, 14.3], 14), "loaded");
+	assert.equal(loadVerdict([2, 3, 4], 14), "quiet");
+	assert.equal(loadVerdict([1, 1, 9], 14), "loaded");
+	assert.equal(loadVerdict([], 14), "unrecorded");
+});
+
+test("backfillMark and groupLoad", () => {
+	assert.equal(backfillMark("x", { backfilled: true }), "x (backfilled)");
+	assert.equal(backfillMark("x", { backfilled: false }), "x");
+	assert.equal(backfillMark("x", undefined), "x");
+	assert.deepEqual(
+		groupLoad({ loadAvgAtEnd: [1, 2, 3], run: { loadAvgAtEnd: [9, 9, 9] } }),
+		[1, 2, 3]
+	);
+	assert.deepEqual(groupLoad({ run: { loadAvgAtEnd: [4, 5, 6] } }), [4, 5, 6]);
+	assert.equal(groupLoad({}), undefined);
+});
+
+test("runRows marks a backfilled record on the library commit and the tool commit", () => {
+	const rows = runRows({
+		sizes: { rows: [], run: { measuredCommit: "a", toolCommit: "b", cores: 14, backfilled: true } },
+	});
+	assert.deepEqual(rows[0].slice(1, 3), ["a (backfilled)", "b (backfilled)"]);
+});
+
 test("stampRun fills a missing run record and never overwrites a recorded one", () => {
 	const run = { measuredCommit: "aaa", toolCommit: "bbb", cores: 14 };
 	const object = stampRun({ rows: [] }, run);
@@ -222,7 +250,7 @@ test("runRows prints each section's own commits and load, and labels the loaded 
 			},
 			{ framework: "react", run: run([22.6, 17.6, 22.5]) },
 		],
-		lifecycle: [{ framework: "svelte", run: run([5.5, 8.4, 15.1]) }],
+		lifecycle: [{ framework: "svelte", run: run([2.5, 3.4, 4.1]) }],
 	});
 	const byName = Object.fromEntries(rows.map((r) => [r[0], r]));
 	assert.deepEqual(byName.sizes.slice(1), ["lib1", "tool1", "2.0 / 3.0 / 4.0", "quiet"]);

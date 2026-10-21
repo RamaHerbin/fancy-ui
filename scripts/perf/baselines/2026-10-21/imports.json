@@ -1,0 +1,836 @@
+[
+	{
+		"consumer": "svelte-vite",
+		"pkg": "fancy-ui-svelte",
+		"rows": [
+			{
+				"case": "baseline",
+				"kind": "none",
+				"js": {
+					"files": 1,
+					"raw": 735,
+					"gzip": 412,
+					"brotli": 345
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 470
+			},
+			{
+				"case": "Button",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 82061,
+					"gzip": 29655,
+					"brotli": 26459
+				},
+				"css": {
+					"files": 1,
+					"raw": 1864,
+					"gzip": 640,
+					"brotli": 580
+				},
+				"buildMs": 1734
+			},
+			{
+				"case": "Button",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 82061,
+					"gzip": 29639,
+					"brotli": 26424
+				},
+				"css": {
+					"files": 1,
+					"raw": 1864,
+					"gzip": 640,
+					"brotli": 580
+				},
+				"buildMs": 564
+			},
+			{
+				"case": "Dialog",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 79819,
+					"gzip": 28842,
+					"brotli": 25733
+				},
+				"css": {
+					"files": 1,
+					"raw": 138,
+					"gzip": 134,
+					"brotli": 114
+				},
+				"buildMs": 1732
+			},
+			{
+				"case": "Dialog",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 79819,
+					"gzip": 28813,
+					"brotli": 25727
+				},
+				"css": {
+					"files": 1,
+					"raw": 138,
+					"gzip": 134,
+					"brotli": 114
+				},
+				"buildMs": 524
+			},
+			{
+				"case": "Select",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 94283,
+					"gzip": 34409,
+					"brotli": 30783
+				},
+				"css": {
+					"files": 1,
+					"raw": 404,
+					"gzip": 221,
+					"brotli": 183
+				},
+				"buildMs": 1880
+			},
+			{
+				"case": "Select",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 94289,
+					"gzip": 34418,
+					"brotli": 30696
+				},
+				"css": {
+					"files": 1,
+					"raw": 404,
+					"gzip": 221,
+					"brotli": 183
+				},
+				"buildMs": 604
+			},
+			{
+				"case": "BorderBeam",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 55224,
+					"gzip": 19351,
+					"brotli": 17307
+				},
+				"css": {
+					"files": 1,
+					"raw": 5207,
+					"gzip": 1372,
+					"brotli": 1234
+				},
+				"buildMs": 1986
+			},
+			{
+				"case": "BorderBeam",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 55224,
+					"gzip": 19351,
+					"brotli": 17307
+				},
+				"css": {
+					"files": 1,
+					"raw": 5207,
+					"gzip": 1372,
+					"brotli": 1234
+				},
+				"buildMs": 513
+			},
+			{
+				"case": "Toaster",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 78763,
+					"gzip": 28532,
+					"brotli": 25518
+				},
+				"css": {
+					"files": 1,
+					"raw": 884,
+					"gzip": 419,
+					"brotli": 353
+				},
+				"buildMs": 1835
+			},
+			{
+				"case": "Toaster",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 78757,
+					"gzip": 28543,
+					"brotli": 25496
+				},
+				"css": {
+					"files": 1,
+					"raw": 884,
+					"gzip": 419,
+					"brotli": 353
+				},
+				"buildMs": 700
+			},
+			{
+				"case": "all five",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 115332,
+					"gzip": 41118,
+					"brotli": 36767
+				},
+				"css": {
+					"files": 1,
+					"raw": 8388,
+					"gzip": 2087,
+					"brotli": 1867
+				},
+				"buildMs": 2156
+			},
+			{
+				"case": "all five",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 115326,
+					"gzip": 41155,
+					"brotli": 36796
+				},
+				"css": {
+					"files": 1,
+					"raw": 8493,
+					"gzip": 2095,
+					"brotli": 1854
+				},
+				"buildMs": 826
+			}
+		],
+		"dev": [
+			{
+				"case": "baseline",
+				"kind": "none",
+				"modules": 3,
+				"rawBytes": 182766,
+				"loadMs": 825
+			},
+			{
+				"case": "Button",
+				"kind": "barrel",
+				"modules": 17,
+				"rawBytes": 6502636,
+				"loadMs": 1040
+			},
+			{
+				"case": "Button",
+				"kind": "deep",
+				"modules": 33,
+				"rawBytes": 1310313,
+				"loadMs": 843
+			},
+			{
+				"case": "all five",
+				"kind": "barrel",
+				"modules": 17,
+				"rawBytes": 6502970,
+				"loadMs": 1136
+			},
+			{
+				"case": "all five",
+				"kind": "deep",
+				"modules": 58,
+				"rawBytes": 1773817,
+				"loadMs": 876
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	},
+	{
+		"consumer": "react-vite",
+		"pkg": "fancy-ui-react",
+		"rows": [
+			{
+				"case": "baseline",
+				"kind": "none",
+				"js": {
+					"files": 1,
+					"raw": 735,
+					"gzip": 412,
+					"brotli": 345
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 277
+			},
+			{
+				"case": "Button",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 52280,
+					"gzip": 18080,
+					"brotli": 15978
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 828
+			},
+			{
+				"case": "Button",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 52280,
+					"gzip": 18126,
+					"brotli": 15952
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 267
+			},
+			{
+				"case": "Dialog",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 66291,
+					"gzip": 22885,
+					"brotli": 20218
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 745
+			},
+			{
+				"case": "Dialog",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 66291,
+					"gzip": 23049,
+					"brotli": 20263
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 291
+			},
+			{
+				"case": "Select",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 70796,
+					"gzip": 24632,
+					"brotli": 21771
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 730
+			},
+			{
+				"case": "Select",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 70796,
+					"gzip": 24778,
+					"brotli": 21798
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 294
+			},
+			{
+				"case": "BorderBeam",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 31097,
+					"gzip": 10039,
+					"brotli": 8818
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 748
+			},
+			{
+				"case": "BorderBeam",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 31097,
+					"gzip": 10017,
+					"brotli": 8792
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 211
+			},
+			{
+				"case": "Toaster",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 61804,
+					"gzip": 21259,
+					"brotli": 18786
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 730
+			},
+			{
+				"case": "Toaster",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 61804,
+					"gzip": 21296,
+					"brotli": 18836
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 282
+			},
+			{
+				"case": "all five",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 89388,
+					"gzip": 30495,
+					"brotli": 27201
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 777
+			},
+			{
+				"case": "all five",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 89388,
+					"gzip": 30719,
+					"brotli": 27242
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 321
+			}
+		],
+		"dev": [
+			{
+				"case": "baseline",
+				"kind": "none",
+				"modules": 4,
+				"rawBytes": 296070,
+				"loadMs": 904
+			},
+			{
+				"case": "Button",
+				"kind": "barrel",
+				"modules": 8,
+				"rawBytes": 3382118,
+				"loadMs": 917
+			},
+			{
+				"case": "Button",
+				"kind": "deep",
+				"modules": 19,
+				"rawBytes": 955693,
+				"loadMs": 841
+			},
+			{
+				"case": "all five",
+				"kind": "barrel",
+				"modules": 8,
+				"rawBytes": 3382420,
+				"loadMs": 918
+			},
+			{
+				"case": "all five",
+				"kind": "deep",
+				"modules": 51,
+				"rawBytes": 1457302,
+				"loadMs": 836
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	},
+	{
+		"consumer": "vue-vite",
+		"pkg": "fancy-ui-vue",
+		"rows": [
+			{
+				"case": "baseline",
+				"kind": "none",
+				"js": {
+					"files": 1,
+					"raw": 735,
+					"gzip": 412,
+					"brotli": 345
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 385
+			},
+			{
+				"case": "Button",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 78923,
+					"gzip": 28344,
+					"brotli": 25471
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 856
+			},
+			{
+				"case": "Button",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 78917,
+					"gzip": 28388,
+					"brotli": 25487
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 390
+			},
+			{
+				"case": "Dialog",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 84806,
+					"gzip": 30702,
+					"brotli": 27620
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 818
+			},
+			{
+				"case": "Dialog",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 84806,
+					"gzip": 30745,
+					"brotli": 27572
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 393
+			},
+			{
+				"case": "Select",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 89178,
+					"gzip": 32340,
+					"brotli": 29079
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 795
+			},
+			{
+				"case": "Select",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 89178,
+					"gzip": 32410,
+					"brotli": 29148
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 412
+			},
+			{
+				"case": "BorderBeam",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 49144,
+					"gzip": 16857,
+					"brotli": 15019
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 836
+			},
+			{
+				"case": "BorderBeam",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 49150,
+					"gzip": 16736,
+					"brotli": 15021
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 346
+			},
+			{
+				"case": "Toaster",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 84548,
+					"gzip": 30811,
+					"brotli": 27753
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 816
+			},
+			{
+				"case": "Toaster",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 84542,
+					"gzip": 30848,
+					"brotli": 27743
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 398
+			},
+			{
+				"case": "all five",
+				"kind": "barrel",
+				"js": {
+					"files": 1,
+					"raw": 121430,
+					"gzip": 42833,
+					"brotli": 38589
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 806
+			},
+			{
+				"case": "all five",
+				"kind": "deep",
+				"js": {
+					"files": 1,
+					"raw": 121418,
+					"gzip": 42951,
+					"brotli": 38657
+				},
+				"css": {
+					"files": 0,
+					"raw": 0,
+					"gzip": 0,
+					"brotli": 0
+				},
+				"buildMs": 466
+			}
+		],
+		"dev": [
+			{
+				"case": "baseline",
+				"kind": "none",
+				"modules": 3,
+				"rawBytes": 183151,
+				"loadMs": 816
+			},
+			{
+				"case": "Button",
+				"kind": "barrel",
+				"modules": 4,
+				"rawBytes": 3506779,
+				"loadMs": 845
+			},
+			{
+				"case": "Button",
+				"kind": "deep",
+				"modules": 27,
+				"rawBytes": 2208954,
+				"loadMs": 839
+			},
+			{
+				"case": "all five",
+				"kind": "barrel",
+				"modules": 4,
+				"rawBytes": 3507005,
+				"loadMs": 846
+			},
+			{
+				"case": "all five",
+				"kind": "deep",
+				"modules": 60,
+				"rawBytes": 2670695,
+				"loadMs": 842
+			}
+		],
+		"run": {
+			"measuredCommit": "17b78315",
+			"toolCommit": "901879eb",
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"backfilled": true
+		}
+	}
+]

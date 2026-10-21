@@ -1,0 +1,161 @@
+{
+	"rows": [
+		{
+			"name": "sveltekit",
+			"pkg": "fancy-ui-svelte",
+			"seconds": 78,
+			"js": {
+				"files": 14,
+				"raw": 211799,
+				"gzip": 77218,
+				"brotli": 68527
+			},
+			"css": {
+				"files": 2,
+				"raw": 157751,
+				"gzip": 24240,
+				"brotli": 19598
+			},
+			"total": {
+				"files": 16,
+				"raw": 369550,
+				"gzip": 101458,
+				"brotli": 88125
+			}
+		},
+		{
+			"name": "svelte-vite",
+			"pkg": "fancy-ui-svelte",
+			"seconds": 24,
+			"js": {
+				"files": 1,
+				"raw": 185926,
+				"gzip": 62091,
+				"brotli": 54902
+			},
+			"css": {
+				"files": 1,
+				"raw": 158858,
+				"gzip": 24247,
+				"brotli": 19544
+			},
+			"total": {
+				"files": 2,
+				"raw": 344784,
+				"gzip": 86338,
+				"brotli": 74446
+			}
+		},
+		{
+			"name": "react-vite",
+			"pkg": "fancy-ui-react",
+			"seconds": 31,
+			"js": {
+				"files": 1,
+				"raw": 347291,
+				"gzip": 109451,
+				"brotli": 94482
+			},
+			"css": {
+				"files": 1,
+				"raw": 319038,
+				"gzip": 52228,
+				"brotli": 42655
+			},
+			"total": {
+				"files": 2,
+				"raw": 666329,
+				"gzip": 161679,
+				"brotli": 137137
+			}
+		},
+		{
+			"name": "next",
+			"pkg": "fancy-ui-react",
+			"seconds": 23,
+			"js": {
+				"files": 15,
+				"raw": 942135,
+				"gzip": 290518,
+				"brotli": 248475
+			},
+			"css": {
+				"files": 2,
+				"raw": 315037,
+				"gzip": 52973,
+				"brotli": 43572
+			},
+			"total": {
+				"files": 17,
+				"raw": 1257172,
+				"gzip": 343491,
+				"brotli": 292047
+			}
+		},
+		{
+			"name": "vue-vite",
+			"pkg": "fancy-ui-vue",
+			"seconds": 27,
+			"js": {
+				"files": 1,
+				"raw": 206339,
+				"gzip": 71828,
+				"brotli": 63305
+			},
+			"css": {
+				"files": 1,
+				"raw": 371289,
+				"gzip": 57157,
+				"brotli": 46080
+			},
+			"total": {
+				"files": 2,
+				"raw": 577628,
+				"gzip": 128985,
+				"brotli": 109385
+			}
+		},
+		{
+			"name": "nuxt",
+			"pkg": "fancy-ui-vue",
+			"seconds": 31,
+			"js": {
+				"files": 5,
+				"raw": 287814,
+				"gzip": 101706,
+				"brotli": 90026
+			},
+			"css": {
+				"files": 3,
+				"raw": 375069,
+				"gzip": 59632,
+				"brotli": 48235
+			},
+			"total": {
+				"files": 8,
+				"raw": 662883,
+				"gzip": 161338,
+				"brotli": 138261
+			}
+		}
+	],
+	"tarballs": {
+		"fancy-ui-react.tgz": 724256,
+		"fancy-ui-svelte.tgz": 1016727,
+		"fancy-ui-vue.tgz": 732288
+	},
+	"run": {
+		"measuredCommit": "17b78315",
+		"toolCommit": "901879eb",
+		"cores": 14,
+		"machine": "Apple M4 Pro, 14 cores, 24 GB",
+		"os": "Darwin 25.5.0",
+		"node": "v24.13.0",
+		"versions": {
+			"fancy-ui-svelte": "0.16.0",
+			"fancy-ui-react": "0.5.0",
+			"fancy-ui-vue": "0.2.0"
+		},
+		"backfilled": true
+	}
+}

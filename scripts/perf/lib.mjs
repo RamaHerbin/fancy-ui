@@ -129,13 +129,28 @@ export function assertSmokePassed(name, result) {
 	}
 }
 
-/** A section counts as measured on a quiet machine below this 1-minute load per core. */
+/** A section counts as measured on a quiet machine below this load per core, for the worst of the 1-, 5- and 15-minute averages. */
 export const QUIET_LOAD_PER_CORE = 0.5;
 
-/** "quiet", "loaded", or "unrecorded" when the load or the core count was not stored. */
-export function loadVerdict(load1, cores) {
-	if (!Number.isFinite(load1) || !Number.isFinite(cores)) return "unrecorded";
-	return load1 < cores * QUIET_LOAD_PER_CORE ? "quiet" : "loaded";
+/**
+ * "quiet", "loaded", or "unrecorded" when the load or the core count was not
+ * stored. `loads` is the [1, 5, 15] minute array (a single number is accepted
+ * and read as the 1-minute value); the verdict uses the worst of them.
+ */
+export function loadVerdict(loads, cores) {
+	const list = (Array.isArray(loads) ? loads : [loads]).filter((n) => n !== undefined);
+	if (!list.length || !list.every(Number.isFinite) || !Number.isFinite(cores)) return "unrecorded";
+	return Math.max(...list) < cores * QUIET_LOAD_PER_CORE ? "quiet" : "loaded";
+}
+
+/** Append "(backfilled)" to a value that comes from a run record filled in after the fact. */
+export function backfillMark(value, run) {
+	return run?.backfilled ? `${value} (backfilled)` : String(value);
+}
+
+/** The load of a group: the one it stored itself, else the one of its run record. */
+export function groupLoad(g) {
+	return g?.loadAvgAtEnd ?? g?.run?.loadAvgAtEnd;
 }
 
 /**
@@ -160,15 +175,13 @@ export function stampRun(data, run) {
 export function runRows({ sizes, imports, effects, lifecycle }) {
 	const rows = [];
 	const row = (label, g) => {
-		const load = g?.run?.loadAvgAtEnd ?? g?.loadAvgAtEnd;
+		const load = groupLoad(g);
 		rows.push([
 			label,
-			g?.run?.measuredCommit ?? "unrecorded",
-			g?.run?.toolCommit
-				? `${g.run.toolCommit}${g.run.backfilled ? " (backfilled)" : ""}`
-				: "unrecorded",
+			g?.run?.measuredCommit ? backfillMark(g.run.measuredCommit, g.run) : "unrecorded",
+			g?.run?.toolCommit ? backfillMark(g.run.toolCommit, g.run) : "unrecorded",
 			load ? load.map((n) => n.toFixed(1)).join(" / ") : "unrecorded",
-			loadVerdict(load?.[0], g?.run?.cores),
+			loadVerdict(load, g?.run?.cores),
 		]);
 	};
 	if (sizes) row("sizes", sizes);
