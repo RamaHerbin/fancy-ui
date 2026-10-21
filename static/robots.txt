@@ -6,5 +6,6 @@ Disallow:
 #   https://fancy-ui.rama.app/llms.txt        index, links to one Markdown page per component
 #   https://fancy-ui.rama.app/llms-full.txt   every component: import, props, a working example
 #   https://fancy-ui.rama.app/registry.json   the same facts as JSON
+#   https://fancy-ui.rama.app/humans.txt      the humans (and a few secrets)
 
 Sitemap: https://fancy-ui.rama.app/sitemap.xml
