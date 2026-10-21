@@ -20,6 +20,8 @@ export interface FileUploadProps {
 	files?: UploadFile[];
 	/** Called with the new list on every change — a selection, a drop, or a removal. */
 	onFilesChange?: (files: UploadFile[]) => void;
+	/** A consumer `@change` on the file input, run once after the internal handling. */
+	onChange?: (event: Event) => void;
 	/** The input's native `accept` attribute (comma-separated extensions and/or MIME types/wildcards). Also enforced in JS: a dropped file never passes through the picker, so the browser's own filtering never sees it. */
 	accept?: string;
 	/** Allows more than one file per selection or drop. */
@@ -53,7 +55,7 @@ export interface FileUploadProps {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -68,6 +70,7 @@ defineOptions({ name: "FileUpload", inheritAttrs: false });
 
 const {
 	onFilesChange,
+	onChange,
 	accept,
 	multiple = false,
 	maxSize,
@@ -106,9 +109,16 @@ const effectiveRequired = computed(() => field?.required ?? required);
 const effectiveInvalid = computed(() => field?.invalid ?? invalid);
 
 const hintId = computed(() => `${effectiveId.value}-hint`);
-const describedBy = computed(
-	() => [field?.describedBy, hint ? hintId.value : undefined].filter(Boolean).join(" ") || undefined
-);
+const attrs = useAttrs() as Record<string, string | undefined>;
+// A plain function, re-run by every render: `attrs` is not reactive, so a computed
+// would never see an `aria-describedby` added after the first run.
+function describedBy(): string | undefined {
+	return (
+		[field?.describedBy, attrs["aria-describedby"], hint ? hintId.value : undefined]
+			.filter(Boolean)
+			.join(" ") || undefined
+	);
+}
 
 // Counts enter/leave pairs instead of toggling a boolean on either one.
 // dragenter/dragleave bubble from every child the pointer crosses — the
@@ -262,14 +272,29 @@ async function addFiles(incoming: File[]) {
 	}
 }
 
+/**
+ * A consumer listener rides a declared camelCase prop (not the fall-through
+ * attrs) so a guarded activation can skip it; Vue hands several `@event`
+ * bindings over as an array.
+ */
+function callListener(listener: unknown, ...args: unknown[]) {
+	if (Array.isArray(listener)) {
+		for (const fn of listener) if (typeof fn === "function") fn(...args);
+	} else if (typeof listener === "function") {
+		listener(...args);
+	}
+}
+
 function handleInputChange(event: Event) {
 	if (effectiveDisabled.value) return;
 	const input = event.currentTarget as HTMLInputElement;
 	const picked = Array.from(input.files ?? []);
-	// Cleared so selecting the exact same file again still fires change —
-	// otherwise the browser sees an unchanged selection and stays silent.
-	input.value = "";
 	addFiles(picked);
+	callListener(onChange, event);
+	// Cleared last, so a consumer handler still sees the live FileList, and so
+	// selecting the exact same file again still fires change — otherwise the
+	// browser sees an unchanged selection and stays silent.
+	input.value = "";
 }
 
 function handleDragEnter(event: DragEvent) {
@@ -464,6 +489,7 @@ const dropzoneClasses = computed(() =>
 			@drop="handleDrop"
 		>
 			<input
+				v-bind="attrs"
 				ref="input"
 				type="file"
 				:id="effectiveId"
@@ -472,9 +498,11 @@ const dropzoneClasses = computed(() =>
 				:multiple="multiple"
 				:disabled="effectiveDisabled"
 				:required="effectiveRequired"
-				:aria-invalid="effectiveInvalid ? 'true' : undefined"
-				:aria-describedby="describedBy"
-				:aria-label="label"
+				:aria-invalid="
+					effectiveInvalid ? 'true' : (attrs['aria-invalid'] as 'true' | 'false' | undefined)
+				"
+				:aria-describedby="describedBy()"
+				:aria-label="label ?? attrs['aria-label']"
 				class="ft-file-upload-input sr-only"
 				@change="handleInputChange"
 			/>
