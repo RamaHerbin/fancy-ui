@@ -375,5 +375,12 @@ describe("Slider", () => {
 			const { container } = render(<Slider>{"x"}</Slider>);
 			expect(slider(container).childNodes.length).toBe(0);
 		});
+
+		it("merges a consumer style with the fill variable instead of replacing it", () => {
+			const { container } = render(<Slider value={50} style={{ opacity: 0.5 }} />);
+			const el = slider(container);
+			expect(el.style.opacity).toBe("0.5");
+			expect(el.style.getPropertyValue("--ft-slider-fill")).toBe("50%");
+		});
 	});
 });

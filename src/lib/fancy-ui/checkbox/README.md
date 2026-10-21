@@ -91,7 +91,7 @@ Notes.
 
 ## Native attributes
 
-Any other attribute or listener (`aria-*`, `data-*`, `form`, `autocomplete`, `onfocus`, `onblur`, `onkeydown`, …) is forwarded to the inner `<input type="checkbox">`, the element that takes focus and carries the form value. `class` still lands on the wrapping `<label>`. `type`, `aria-checked`, `checked` and the FormField-managed `id`, `disabled`, `required` and `aria-invalid` stay authoritative, and a consumer `aria-describedby` is merged with the FormField one. A consumer `onchange` runs once, after the internal toggle; a disabled box calls neither.
+Any other attribute or listener (`aria-*`, `data-*`, `form`, `autocomplete`, `onfocus`, `onblur`, `onkeydown`, …) is forwarded to the inner `<input type="checkbox">`, the element that takes focus and carries the form value. `class` still lands on the wrapping `<label>`. `role` is open (for example `menuitemcheckbox`); `type`, `aria-checked`, `checked` and the FormField-managed `id`, `disabled`, `required` and `aria-invalid` stay authoritative, and a consumer `aria-describedby` is merged with the FormField one. A consumer `onchange` runs once, after the internal toggle; a disabled box calls neither.
 
 ## Theming
 

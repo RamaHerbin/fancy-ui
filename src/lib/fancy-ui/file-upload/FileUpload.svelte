@@ -261,11 +261,12 @@
 	function handleInputChange(event: Event & { currentTarget: HTMLInputElement }) {
 		if (effectiveDisabled) return;
 		const picked = Array.from(event.currentTarget.files ?? []);
-		// Cleared so selecting the exact same file again still fires change —
-		// otherwise the browser sees an unchanged selection and stays silent.
-		event.currentTarget.value = "";
 		addFiles(picked);
 		onchange?.(event);
+		// Cleared last, so a consumer handler still sees the live FileList, and so
+		// selecting the exact same file again still fires change — otherwise the
+		// browser sees an unchanged selection and stays silent.
+		event.currentTarget.value = "";
 	}
 
 	function handleDragEnter(event: DragEvent) {

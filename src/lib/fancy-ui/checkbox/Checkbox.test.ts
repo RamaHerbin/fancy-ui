@@ -607,6 +607,8 @@ describe("Checkbox", () => {
 			const el = checkbox(container);
 			expect(el.getAttribute("aria-checked")).toBe("true");
 			expect(el.type).toBe("checkbox");
+			// role is not managed on a checkbox, so a consumer value passes through.
+			expect(el.getAttribute("role")).toBe("switch");
 		});
 
 		it("takes part in a form: name, value and the form attribute reach the input", () => {

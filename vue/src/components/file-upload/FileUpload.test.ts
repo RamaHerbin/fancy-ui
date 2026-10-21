@@ -804,6 +804,30 @@ describe("FileUpload", () => {
 			expect(order).toEqual(["internal", "consumer"]);
 		});
 
+		it("shows a consumer @change the live FileList, before the input is cleared", async () => {
+			let seen = -1;
+			const onChange = vi.fn((event: Event) => {
+				seen = (event.currentTarget as HTMLInputElement).files?.length ?? 0;
+			});
+			const { container } = render(FileUpload, { attrs: { onChange } });
+			const el = fileInput(container);
+			let cleared = false;
+			Object.defineProperty(el, "files", {
+				get: () => (cleared ? [] : [makeFile("a.txt")]),
+				configurable: true,
+			});
+			Object.defineProperty(el, "value", {
+				get: () => "",
+				set: (v: string) => {
+					if (v === "") cleared = true;
+				},
+				configurable: true,
+			});
+			await fireEvent.change(el);
+			expect(seen).toBe(1);
+			expect(cleared).toBe(true);
+		});
+
 		it("does not call a consumer @change when disabled", async () => {
 			const onChange = vi.fn();
 			const { container } = render(FileUpload, {

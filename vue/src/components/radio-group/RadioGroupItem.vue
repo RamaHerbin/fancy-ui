@@ -77,7 +77,10 @@ function callListener(listener: unknown, ...args: unknown[]) {
 // would never see a `required` added after the first run.
 function isRequired(): boolean {
 	return (
-		!!group?.required || (attrs.required !== undefined && (attrs.required as unknown) !== false)
+		!!group?.required ||
+		(attrs.required !== undefined &&
+			(attrs.required as unknown) !== false &&
+			attrs.required !== "false")
 	);
 }
 

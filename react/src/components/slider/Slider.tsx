@@ -42,7 +42,10 @@ interface SliderOwnProps {
 
 export interface SliderProps
 	extends
-		Omit<ComponentPropsWithoutRef<"input">, keyof SliderOwnProps | "type" | "role">,
+		Omit<
+			ComponentPropsWithoutRef<"input">,
+			keyof SliderOwnProps | "type" | "role" | "defaultValue"
+		>,
 		SliderOwnProps {}
 
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(
@@ -211,7 +214,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 						aria-valuemax={max}
 						aria-valuenow={clampedValue}
 						aria-label={label ?? ariaLabel}
-						style={{ "--ft-slider-fill": `${fraction * 100}%` } as React.CSSProperties}
+						style={
+							{ ...rest.style, "--ft-slider-fill": `${fraction * 100}%` } as React.CSSProperties
+						}
 						onChange={handleInput}
 					/>
 				</div>

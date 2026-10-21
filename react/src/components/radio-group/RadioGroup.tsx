@@ -54,7 +54,10 @@ interface RadioGroupOwnProps {
 
 export interface RadioGroupProps
 	extends
-		Omit<ComponentPropsWithoutRef<"div">, keyof RadioGroupOwnProps | "role">,
+		Omit<
+			ComponentPropsWithoutRef<"div">,
+			keyof RadioGroupOwnProps | "role" | "defaultValue" | "defaultChecked"
+		>,
 		RadioGroupOwnProps {}
 
 /**
