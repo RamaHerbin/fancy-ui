@@ -31,10 +31,19 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PRERENDERED = join(ROOT, ".svelte-kit/output/prerendered/pages");
-const SITE_URL = "https://fancy-ui.rama.app";
+/** Single source of truth: SITE_URL in src/lib/site.ts (read, not copied, so the rewrite never goes stale). */
+const SITE_URL = /SITE_URL\s*=\s*["']([^"']+)["']/.exec(
+	readFileSync(join(ROOT, "src/lib/site.ts"), "utf8")
+)?.[1];
+if (!SITE_URL) {
+	console.error("check-registry-cli: could not read SITE_URL from src/lib/site.ts.");
+	process.exit(2);
+}
 
 const args = process.argv.slice(2);
-const stack = args.find((a) => !a.startsWith("--")) ?? "react";
+const VALUE_FLAGS = new Set(["--dir", "--items"]);
+const positional = args.filter((a, i) => !a.startsWith("--") && !VALUE_FLAGS.has(args[i - 1]));
+const stack = positional[0] ?? "react";
 const keep = args.includes("--keep");
 const flag = (name) => {
 	const i = args.indexOf(name);
@@ -83,6 +92,7 @@ const run = (cmd, argv, cwd) =>
 			stdio: ["ignore", "inherit", "inherit"],
 			env: { ...process.env, CI: "1" },
 		});
+		child.on("error", rej);
 		child.on("exit", (code) =>
 			code === 0 ? res() : rej(new Error(`${cmd} ${argv.join(" ")} exited with ${code}`))
 		);
@@ -186,29 +196,36 @@ export default defineConfig({
 	);
 }
 
+/** Props for components that render nothing useful without them. */
+const REACT_JSX = {
+	dialog: (X) => `<${X} open={false} onOpenChange={() => {}} title="Hello">Body</${X}>`,
+};
+
 function renderReact(dir, names) {
 	const pascal = (s) => s.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
+	const imports = names
+		.map((n) => `import { ${pascal(n)} } from "@/components/ui/fancy/components/${n}";`)
+		.join("\n");
+	const jsx = names
+		.map((n) => {
+			const X = pascal(n);
+			return `\t\t${(REACT_JSX[n] ?? ((C) => `<${C}>${n}</${C}>`))(X)}`;
+		})
+		.join("\n");
 	write(
 		dir,
 		"src/main.tsx",
 		`import { createRoot } from "react-dom/client";
 import "./index.css";
-import { Button } from "@/components/ui/fancy/components/button";
-import { RainbowButton } from "@/components/ui/fancy/components/rainbow-button";
-import { Dialog } from "@/components/ui/fancy/components/dialog";
+${imports}
 
 createRoot(document.getElementById("root")!).render(
 	<main>
-		<Button>Plain</Button>
-		<RainbowButton>Rainbow</RainbowButton>
-		<Dialog open={false} onOpenChange={() => {}} title="Hello">
-			Body
-		</Dialog>
+${jsx}
 	</main>
 );
 `
 	);
-	return names.map(pascal);
 }
 
 const server = await serve();
