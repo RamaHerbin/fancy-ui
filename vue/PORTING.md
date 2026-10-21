@@ -96,6 +96,16 @@ Svelte is the reference: open it there, then spread at the same position here.
   `callListener` (`internals/call-listener.ts`), never a lowercase prop. Modified
   forms (`@click.once`, `.capture`) compile to `onClickOnce` and the like, which
   bind past that guard, so drop every `onClick*` attr while the control is inert.
+- **Order, in practice.** Write `@event` before `v-bind="attrs"`, and the
+  managed bindings after it. Where a managed binding has a legitimate consumer
+  value, fall back per key (`:tabindex="inert ? -1 : attrs.tabindex"`,
+  `$attrs['aria-label']`), never by overwriting with `undefined`.
+- **Reading `attrs`.** Never wrap `useAttrs()` in `computed` or `watch`: the
+  proxy has no `ownKeys` trap, so a derived value goes stale. Read it inside
+  the template or in a plain function called from it.
+- **Pickers.** Select, Combobox, Autocomplete, DatePicker and TimePicker bind
+  the result of a function that merges the component's invariants after
+  `attrs`; their listeners are written before it.
 - **Descriptions.** A consumer `aria-describedby` is merged (space-joined) with
   the component's own description or error id, not replaced.
 - **Types.** Props stay own-only; native attributes are untyped, as above.
