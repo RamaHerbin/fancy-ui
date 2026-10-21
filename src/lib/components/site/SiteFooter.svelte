@@ -56,7 +56,6 @@
 			links: [
 				{ label: "Contribute", href: `${GITHUB_URL}/blob/main/CONTRIBUTING.md`, external: true },
 				{ label: "Issues", href: `${GITHUB_URL}/issues`, external: true },
-				{ label: "Discussions", href: `${GITHUB_URL}/discussions`, external: true },
 				{ label: "Sponsors", href: "https://github.com/sponsors/RamaHerbin", external: true },
 			],
 		},
