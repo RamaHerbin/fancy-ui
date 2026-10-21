@@ -17,6 +17,7 @@ const PRIORITY = [
 	"reveal",
 	"composer",
 	"chat-panel",
+	"follow-button",
 ];
 
 describe("framework snippets", () => {
