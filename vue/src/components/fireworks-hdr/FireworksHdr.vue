@@ -82,7 +82,6 @@ const {
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>("canvas");
 
-
 // The wrapper owns the media query; the engine only sees the answer. The
 // composable starts the query in its own `onMounted`, registered before the
 // one below, so the answer is already in by the time the engine is built.

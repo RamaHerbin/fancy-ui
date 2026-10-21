@@ -19,10 +19,17 @@ import type { TransitionRun } from "../../internals/motion/animate.js";
 // The source gates its focusable-trigger warning on the bundler dev flag,
 // which needs Vite's client types this package does not load.
 // `process.env.NODE_ENV` is the equivalent signal every React consumer's
-// bundler already replaces. Declared locally so the d.ts build needs no
-// @types/node; the module-scoped declaration shadows any global one.
-declare const process: undefined | { env: { NODE_ENV?: string } };
-const DEV = typeof process !== "undefined" && process.env.NODE_ENV !== "production";
+// bundler already replaces statically, so it is read as that exact literal in
+// try/catch (no `typeof process` guard in front: it would short-circuit in a
+// browser bundle). Declared locally so the d.ts build needs no @types/node.
+declare const process: { env: { NODE_ENV?: string } };
+const DEV = (() => {
+	try {
+		return process.env.NODE_ENV !== "production";
+	} catch {
+		return false;
+	}
+})();
 
 export interface TooltipProps {
 	/** The tooltip's text. Plain text only — a tooltip never holds interactive content. */

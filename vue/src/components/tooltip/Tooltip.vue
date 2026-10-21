@@ -33,7 +33,6 @@ function isFocusable(el: HTMLElement): boolean {
 	const tabindex = el.getAttribute("tabindex");
 	return tabindex !== null && tabindex !== "-1";
 }
-
 </script>
 
 <script setup lang="ts">
