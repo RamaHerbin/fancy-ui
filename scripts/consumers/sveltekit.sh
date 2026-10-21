@@ -7,5 +7,8 @@ consumer_init sveltekit
 consumer_pack fancy-ui-svelte . pnpm package
 consumer_copy
 consumer_install fancy-ui-svelte
+# Strict svelte-check: the copied types snippet must resolve and type-check
+# against the packed package (the bundler alone would drop a type import).
+(cd "$APP" && npm run check)
 (cd "$APP" && npm run build)
 consumer_smoke

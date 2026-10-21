@@ -7,6 +7,12 @@ import {
 	expectPrimaryBackground,
 	waitForHydration,
 } from "../../smoke-helpers";
+import {
+	expectButtonOnclick,
+	expectDarkAncestorTheme,
+	expectDialogOnOpenChange,
+	expectInstallSnippets,
+} from "../../svelte-helpers";
 
 // fancy-ui-svelte installed from the packed tarball, in a SvelteKit (server-rendered) app built outside the repo.
 test("loads clean, hydrates, styles resolve, effects run, dialog is keyboard-operable", async ({
@@ -34,5 +40,39 @@ test("loads clean, hydrates, styles resolve, effects run, dialog is keyboard-ope
 
 	await expectKeyboardDialog(page, "Open dialog");
 
+	expect(errors).toEqual([]);
+});
+
+test("a .dark ancestor flips the Button background", async ({ page }) => {
+	const errors = collectErrors(page);
+	await page.emulateMedia({ colorScheme: "light" });
+	await page.goto("/");
+	await waitForHydration(page);
+	await expectDarkAncestorTheme(page, {
+		toggle: '[data-testid="theme-toggle"]',
+		root: '[data-testid="theme-root"]',
+		button: '[data-testid="button"]',
+	});
+	expect(errors).toEqual([]);
+});
+
+test("Button onclick and Dialog onOpenChange reach the consumer's handlers", async ({ page }) => {
+	const errors = collectErrors(page);
+	await page.goto("/");
+	await waitForHydration(page);
+	await expectButtonOnclick(page, '[data-testid="button"]', '[data-testid="button-clicks"]');
+	await expectDialogOnOpenChange(
+		page,
+		'[data-testid="open-dialog"]',
+		'[data-testid="dialog-events"]'
+	);
+	expect(errors).toEqual([]);
+});
+
+test("the install page's snippets compile, render and animate", async ({ page }) => {
+	const errors = collectErrors(page);
+	await page.goto("/");
+	await waitForHydration(page);
+	await expectInstallSnippets(page);
 	expect(errors).toEqual([]);
 });
