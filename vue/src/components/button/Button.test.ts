@@ -76,6 +76,36 @@ const LeadHarness = defineComponent({
 	},
 });
 
+/**
+ * jsdom marks `isTrusted` unforgeable and the hover gate rejects untrusted
+ * events, so the `pointerenter` listeners bound on a node are captured and
+ * invoked with a trusted-looking event instead.
+ */
+const enterListeners: Array<[EventTarget, EventListener]> = [];
+function captureEnterListeners() {
+	const original = EventTarget.prototype.addEventListener;
+	return vi.spyOn(EventTarget.prototype, "addEventListener").mockImplementation(function (
+		this: EventTarget,
+		type,
+		listener,
+		options
+	) {
+		if (type === "pointerenter" && typeof listener === "function") {
+			enterListeners.push([this, listener as EventListener]);
+		}
+		return original.call(this, type, listener, options);
+	});
+}
+
+/** A real hover: pointer movement first, then a trusted pointerenter. */
+function hover(node: Element, pointerType = "mouse") {
+	document.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+	const event = { type: "pointerenter", isTrusted: true, pointerType, relatedTarget: null };
+	for (const [target, listener] of enterListeners) {
+		if (target === node) listener(event as unknown as Event);
+	}
+}
+
 describe("Button", () => {
 	afterEach(() => {
 		cleanup();
@@ -447,11 +477,16 @@ describe("Button", () => {
 	describe("sound", () => {
 		let play: ReturnType<typeof vi.spyOn>;
 
+		let listenerSpy: ReturnType<typeof captureEnterListeners>;
+
 		beforeEach(() => {
 			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			enterListeners.length = 0;
+			listenerSpy = captureEnterListeners();
 		});
 
 		afterEach(() => {
+			listenerSpy.mockRestore();
 			play.mockRestore();
 		});
 
@@ -465,6 +500,41 @@ describe("Button", () => {
 
 			expect(play).toHaveBeenCalledTimes(1);
 			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays the hover cue on a mouse pointerenter when sound is enabled, then press once on click", async () => {
+			const { container } = render(Button, {
+				props: { sound: true },
+				slots: { default: "<span>Go</span>" },
+			});
+
+			hover(root(container));
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play.mock.calls[0][0]).toBe("hover");
+
+			play.mockClear();
+			await fireEvent.click(root(container));
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("does not play hover for touch pointers, without sound, or while disabled", () => {
+			const on = render(Button, {
+				props: { sound: true },
+				slots: { default: "<span>Go</span>" },
+			});
+			hover(root(on.container), "touch");
+			const off = render(Button, {
+				slots: { default: "<span>Go</span>" },
+			});
+			hover(root(off.container));
+			const dis = render(Button, {
+				props: { sound: true, disabled: true },
+				slots: { default: "<span>Go</span>" },
+			});
+			hover(root(dis.container));
+
+			expect(play).not.toHaveBeenCalled();
 		});
 
 		it("plays nothing by default (sound prop omitted)", async () => {
