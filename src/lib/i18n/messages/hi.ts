@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "कॉम्पोनेंट्स",
 	"gallery.subtitle":
-		"Svelte 5 के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
+		"Svelte 5, React, Vue के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
 	"gallery.intro":
-		"हर कॉम्पोनेंट runes के साथ Svelte 5 के लिए नेटिव रूप से बना है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript में टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका।",
+		"कॉम्पोनेंट Svelte 5, React और Vue के लिए उपलब्ध हैं, Tailwind CSS v4 से स्टाइल किए गए हैं और TypeScript से टाइप किए गए हैं। हर पेज में लाइव प्रीव्यू और कॉपी-पेस्ट Svelte उदाहरण हैं, और जहाँ उपलब्ध हो वहाँ React व Vue का उपयोग भी। पैकेज एक बार इंस्टॉल करें और कोड आपका हो जाता है।",
 	"gallery.filterPlaceholder": "कॉम्पोनेंट्स फ़िल्टर करें...",
 	"gallery.all": "सभी",
 	"gallery.noMatch": "आपकी खोज से कोई कॉम्पोनेंट मेल नहीं खाता।",
-	"gallery.meta": "{components} कॉम्पोनेंट · {categories} श्रेणियाँ · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} कॉम्पोनेंट · {categories} श्रेणियाँ · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} परिणाम",
 	"gallery.resultOne": "1 परिणाम",
 	"gallery.clearFilters": "फ़िल्टर हटाएँ",
@@ -228,7 +229,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "पूर्वापेक्षाएँ",
 	"install.prerequisites.body":
-		"FancyUI वर्तमान Svelte टूलचेन को लक्षित करता है। इंस्टॉल करने से पहले ये तीन चीज़ें जाँच लें।",
+		"FancyUI मौजूदा टूलचेन को लक्षित करता है। इंस्टॉल करने से पहले ये तीन बातें जाँच लें।",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -240,7 +241,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"उन SvelteKit और Vite संस्करणों के लिए आवश्यक, जिनके साथ FancyUI बिल्ड होता है।",
+		"उन मौजूदा बिल्ड टूल्स के लिए ज़रूरी, जिनके साथ FancyUI टेस्ट किया जाता है।",
 	"install.steps.heading": "इंस्टॉल करें",
 	"install.steps.body":
 		"अपना पैकेज मैनेजर चुनें, स्टाइलशीट सेट करें, फिर अपना पहला कॉम्पोनेंट रेंडर करें।",
@@ -256,9 +257,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI Tailwind CSS v4 पर बना है, जिसे JavaScript कॉन्फ़िग फ़ाइल के बजाय CSS में कॉन्फ़िगर किया जाता है। यदि आपके प्रोजेक्ट में Tailwind पहले से काम कर रहा है, तो और कुछ कॉन्फ़िगर करने की आवश्यकता नहीं है।",
 	"install.tailwind.order":
-		"इम्पोर्ट का क्रम महत्वपूर्ण है: पहले Tailwind, फिर FancyUI, ताकि FancyUI की लेयर्स और कस्टम प्रॉपर्टीज डिफ़ॉल्ट के ऊपर लागू हों।",
+		"इम्पोर्ट का क्रम मायने रखता है: पहले Tailwind, फिर FancyUI। FancyUI का इम्पोर्ट अपने @custom-variant dark से पहले रखें, वरना FancyUI वाला आपके वाले को बदल देगा।",
 	"install.tailwind.note":
-		"इस स्टाइलशीट में वे डिज़ाइन टोकन हैं जिन्हें हर कॉम्पोनेंट पढ़ता है: रंग, रेडियस और एनिमेशन टाइमिंग। इसके बिना कॉम्पोनेंट्स बिना स्टाइल के दिखेंगे।",
+		"यह एंट्री डिफ़ॉल्ट रंग टोकन (background, primary, border और अन्य) और एक डार्क वेरिएंट देती है। आपके अपने :root और .dark ब्लॉक इन्हें ओवरराइड करते हैं: CSS वेरिएबल दोबारा परिभाषित करें और आपके मान लागू होंगे।",
 	"install.usage.heading": "उपयोग",
 	"install.usage.body":
 		"हर कॉम्पोनेंट पैकेज रूट का एक नेम्ड एक्सपोर्ट है, इसलिए हर कॉम्पोनेंट के लिए अलग इम्पोर्ट पाथ याद रखने की आवश्यकता नहीं है।",
@@ -291,7 +292,7 @@ export default {
 	"theming.lead":
 		"हर FancyUI कॉम्पोनेंट अपने रंग, रेडियस और टाइमिंग OKLCh कलर स्पेस में CSS कस्टम प्रॉपर्टीज से पढ़ता है — एक टोकन ओवरराइड करें और पूरी लाइब्रेरी उसका अनुसरण करेगी।",
 	"theming.pill.oklch": "OKLCh कलर स्पेस",
-	"theming.pill.shadcn": "shadcn-svelte के साथ संगत",
+	"theming.pill.shadcn": "मानक टोकन नाम",
 	"theming.pill.dark": "डार्क मोड",
 	"theming.pill.tokens": "डिज़ाइन टोकन",
 	"theming.generator.body":
@@ -304,10 +305,10 @@ export default {
 	"theming.colors.body":
 		"बोधगत रूप से एकसमान ग्रेडिएंट के लिए सभी रंग OKLCh कलर स्पेस का उपयोग करते हैं:",
 	"theming.colors.note":
-		"टोकन के नाम shadcn-svelte की परंपराओं का पालन करते हैं, इसलिए मौजूदा shadcn थीम बिना किसी बदलाव के फ़िट हो जाती है।",
+		"टोकन के नाम व्यापक रूप से प्रचलित सिमैंटिक परंपरा (background, foreground, primary आदि) का पालन करते हैं, इसलिए वही वेरिएबल नाम वाली मौजूदा थीम बिना किसी बदलाव के फ़िट हो जाती है।",
 	"theming.dark.heading": "डार्क मोड",
 	"theming.dark.body":
-		"डार्क मोड किसी पैरेंट एलिमेंट पर .dark क्लास से सक्रिय होता है। FancyUI हर टोकन को ओवरराइड करता है:",
+		"डार्क मोड डिफ़ॉल्ट रूप से ऑपरेटिंग सिस्टम की पसंद का पालन करता है। डार्क को बाध्य करने के लिए <html> या किसी भी पूर्वज पर .dark क्लास लगाएँ, और लाइट को बाध्य करने के लिए .light; dark: यूटिलिटी और हर टोकन इसका पालन करते हैं। डार्क मान अनुकूलित करने के लिए उन्हें .dark के अंतर्गत ओवरराइड करें:",
 	"theming.motion.heading": "एनिमेशन टोकन",
 	"theming.motion.body": "एनिमेशन टाइमिंग को ग्लोबल रूप से नियंत्रित करें:",
 	"theming.easing.heading": "ईज़िंग फ़ंक्शन",
@@ -344,4 +345,27 @@ export default {
 	"retro.explorer": "एक्सप्लोरर",
 	"retro.start": "स्टार्ट",
 	"retro.tagline": "Svelte 5 के लिए एनिमेटेड कंपोनेंट — कॉपी-पेस्ट के लिए तैयार।",
+	"comp.snippetSvelteOnly":
+		"इस फ्रेमवर्क के लिए पूरा उदाहरण अभी नहीं लिखा गया है; फिलहाल केवल Svelte संस्करण में है।",
+	"comp.copyMarkdownSvelte": "Markdown के रूप में कॉपी करें (Svelte)",
+	"comp.markdownSvelteOnly": "Markdown एक्सपोर्ट केवल Svelte संस्करण का वर्णन करता है।",
+	"comp.apiNoticeReact":
+		"यह API संदर्भ Svelte के नामों का उपयोग करता है। React में class बदलकर className हो जाता है, on* हैंडलर camelCase में लिखे जाते हैं (onclick बदलकर onClick) और स्निपेट ReactNode प्रॉप या रेंडर फ़ंक्शन बन जाते हैं।",
+	"comp.apiNoticeVue":
+		"यह API संदर्भ Svelte के नामों का उपयोग करता है। Vue में स्निपेट स्लॉट बन जाते हैं और बाइंड करने योग्य प्रॉप v-model:नाम बन जाते हैं।",
+	"comp.apiNoticeLink": "Svelte API से अंतर",
+	"install.lead.react":
+		"तीन चरणों में FancyUI को React प्रोजेक्ट में जोड़ें: पैकेज इंस्टॉल करें, स्टाइलशीट इम्पोर्ट करें, और एक कॉम्पोनेंट रेंडर करें।",
+	"install.lead.vue":
+		"तीन चरणों में FancyUI को Vue प्रोजेक्ट में जोड़ें: पैकेज इंस्टॉल करें, स्टाइलशीट इम्पोर्ट करें, और एक कॉम्पोनेंट रेंडर करें।",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18 और 19 को सपोर्ट करता है। कॉम्पोनेंट क्लाइंट मॉड्यूल के रूप में आते हैं, इसलिए Server Components उन्हें सीधे इम्पोर्ट कर सकते हैं।",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"कॉम्पोनेंट Vue 3.5 के सिंगल-फ़ाइल कॉम्पोनेंट हैं, इसलिए Vue 3.5.2 या उससे नया संस्करण ज़रूरी है।",
 } satisfies Catalog;

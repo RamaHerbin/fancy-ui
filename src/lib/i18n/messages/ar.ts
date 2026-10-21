@@ -78,13 +78,13 @@ export default {
 	// Components gallery
 	"gallery.title": "المكوّنات",
 	"gallery.subtitle":
-		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5. تصفّح وابحث واعثر على ما تحتاجه.",
+		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5, React, Vue. تصفّح وابحث واعثر على ما تحتاجه.",
 	"gallery.intro":
-		"كل مكوّن مبني أصلاً لـ Svelte 5 باستخدام الـ runes، ومنسّق بـ Tailwind CSS v4، ومكتوب بـ TypeScript، ويأتي مع معاينة حيّة وأمثلة جاهزة للنسخ واللصق. ثبّت الحزمة مرة واحدة وستمتلك الشيفرة.",
+		"المكوّنات متاحة لـ Svelte 5 وReact وVue، ومنسّقة بـ Tailwind CSS v4 ومكتوبة الأنواع بـ TypeScript. لكل صفحة معاينة حيّة وأمثلة Svelte جاهزة للنسخ واللصق، مع استخدام React وVue حيثما توفّر. ثبّت الحزمة مرة واحدة ويصبح الكود ملكك.",
 	"gallery.filterPlaceholder": "تصفية المكوّنات...",
 	"gallery.all": "الكل",
 	"gallery.noMatch": "لا توجد مكوّنات تطابق بحثك.",
-	"gallery.meta": "{components} مكوّنًا · {categories} فئات · Svelte 5 · TypeScript",
+	"gallery.meta": "{components} مكوّنًا · {categories} فئات · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} نتيجة",
 	"gallery.resultOne": "نتيجة واحدة",
 	"gallery.clearFilters": "مسح عوامل التصفية",
@@ -227,7 +227,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "المتطلّبات المسبقة",
 	"install.prerequisites.body":
-		"تستهدف FancyUI سلسلة أدوات Svelte الحالية. تحقّق من هذه النقاط الثلاث قبل التثبيت.",
+		"يستهدف FancyUI سلاسل الأدوات الحالية. تحقّق من هذه الأمور الثلاثة قبل التثبيت.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -238,8 +238,7 @@ export default {
 		"يعتمد التنسيق على أصناف المرافق في Tailwind v4 وخصائص CSS المخصّصة.",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc":
-		"مطلوب من قِبل إصدارات SvelteKit وVite التي تُبنى FancyUI عليها.",
+	"install.prerequisites.card3.desc": "مطلوب لأدوات البناء الحالية التي يُختبر FancyUI عليها.",
 	"install.steps.heading": "التثبيت",
 	"install.steps.body": "اختر مدير الحزم لديك، واربط ملف الأنماط، ثم اعرض مكوّنك الأول.",
 	"install.step1.title": "ثبّت الحزمة",
@@ -254,9 +253,9 @@ export default {
 	"install.tailwind.body":
 		"بُنيت FancyUI على Tailwind CSS v4 الذي يُهيّأ عبر CSS بدلاً من ملف إعدادات JavaScript. إذا كان Tailwind يعمل بالفعل في مشروعك، فلا حاجة إلى أي إعداد إضافي.",
 	"install.tailwind.order":
-		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI، حتى تُحلّ طبقات FancyUI وخصائصه المخصّصة فوق القيم الافتراضية.",
+		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI. ضع استيراد FancyUI قبل @custom-variant dark الخاص بك، وإلا فسيحل متغير FancyUI محل متغيرك.",
 	"install.tailwind.note":
-		"يحمل ملف الأنماط رموز التصميم التي يقرأها كل مكوّن: الألوان والزوايا الدائرية وتوقيتات الحركة. من دونه تظهر المكوّنات بلا تنسيق.",
+		"توفّر نقطة الدخول رموز ألوان افتراضية (background وprimary وborder وغيرها) ونسخة للوضع الداكن. كتل :root و.dark الخاصة بك تتجاوزها: أعد تعريف متغيرات CSS وستسري قيمك.",
 	"install.usage.heading": "الاستخدام",
 	"install.usage.body":
 		"كل مكوّن هو تصدير مُسمّى من جذر الحزمة، فلا حاجة إلى تذكّر مسارات استيراد لكل مكوّن على حدة.",
@@ -286,7 +285,7 @@ export default {
 	"theming.lead":
 		"كل مكوّن في FancyUI يقرأ ألوانه وزواياه الدائرية وتوقيتاته من خصائص CSS مخصّصة ضمن فضاء الألوان OKLCh — تجاوز رمزاً واحداً فتتبعه المكتبة كاملةً.",
 	"theming.pill.oklch": "فضاء الألوان OKLCh",
-	"theming.pill.shadcn": "متوافق مع shadcn-svelte",
+	"theming.pill.shadcn": "أسماء رموز قياسية",
 	"theming.pill.dark": "الوضع الداكن",
 	"theming.pill.tokens": "رموز التصميم",
 	"theming.generator.body":
@@ -299,10 +298,10 @@ export default {
 	"theming.colors.body":
 		"تستخدم جميع الألوان فضاء الألوان OKLCh للحصول على تدرّجات متجانسة إدراكياً:",
 	"theming.colors.note":
-		"تتّبع أسماء الرموز اتفاقيات shadcn-svelte، لذا يعمل أي سِمة shadcn موجودة مسبقاً دون أي تعديل.",
+		"تتّبع أسماء الرموز الاتفاقية الدلالية الشائعة الاستخدام (background وforeground وprimary وغيرها)، لذا يعمل أي سِمة موجودة مسبقاً تستخدم أسماء المتغيّرات نفسها دون أي تعديل.",
 	"theming.dark.heading": "الوضع الداكن",
 	"theming.dark.body":
-		"يُفعَّل الوضع الداكن عبر صنف .dark على عنصر أب. تُعيد FancyUI تعريف كل رمز:",
+		"يتبع الوضع الداكن تفضيل نظام التشغيل افتراضياً. ضع الفئة .dark على <html> أو على أي عنصر سلف لفرض الداكن، أو .light لفرض الفاتح؛ وتتبعها أدوات dark: وكل رمز. لتخصيص القيم الداكنة، تجاوزها ضمن .dark:",
 	"theming.motion.heading": "رموز الحركة",
 	"theming.motion.body": "تحكّم في توقيت الحركة عالمياً:",
 	"theming.easing.heading": "دوال التسهيل",
@@ -338,4 +337,27 @@ export default {
 	"retro.explorer": "المستكشف",
 	"retro.start": "ابدأ",
 	"retro.tagline": "مكوّنات متحركة لـ Svelte 5 — جاهزة للنسخ واللصق.",
+	"comp.snippetSvelteOnly":
+		"لم يُكتب بعد مثال كامل لهذا الإطار؛ حاليًا نسخة Svelte فقط لديها واحد.",
+	"comp.copyMarkdownSvelte": "نسخ بصيغة Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "تصدير Markdown يصف إصدار Svelte فقط.",
+	"comp.apiNoticeReact":
+		"يستخدم مرجع واجهة البرمجة هذا أسماء Svelte. في React يصبح class هو className، وتُكتب معالجات on* بنمط camelCase (يصبح onclick هو onClick)، وتتحول المقاطع (snippets) إلى خصائص ReactNode أو دوال عرض.",
+	"comp.apiNoticeVue":
+		"يستخدم مرجع واجهة البرمجة هذا أسماء Svelte. في Vue تتحول المقاطع (snippets) إلى slots، وتتحول الخصائص القابلة للربط إلى v-model:الاسم.",
+	"comp.apiNoticeLink": "الفروق عن واجهة Svelte",
+	"install.lead.react":
+		"أضف FancyUI إلى مشروع React في ثلاث خطوات: ثبّت الحزمة، واستورد ملف الأنماط، واعرض مكوّناً.",
+	"install.lead.vue":
+		"أضف FancyUI إلى مشروع Vue في ثلاث خطوات: ثبّت الحزمة، واستورد ملف الأنماط، واعرض مكوّناً.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"يدعم React 18 و19. تُوزَّع المكوّنات كوحدات عميل، لذا يمكن لـ Server Components استيرادها مباشرة.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"المكوّنات هي مكوّنات Vue 3.5 أحادية الملف، لذا يلزم Vue 3.5.2 أو أحدث.",
 } satisfies Catalog;

@@ -17,8 +17,10 @@ export interface NavbarLinkProps {
 	external?: boolean;
 	/** Strips the link out of the click and keyboard-activation paths. */
 	disabled?: boolean;
-	/** Native click handler. Never called while `disabled`. */
-	onclick?: (event: MouseEvent) => void;
+	/** Click handler. Never called while `disabled`. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
 	/**
@@ -30,6 +32,7 @@ export interface NavbarLinkProps {
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
@@ -41,6 +44,7 @@ const {
 	current = false,
 	external = false,
 	disabled = false,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
@@ -77,7 +81,7 @@ function handleClick(event: MouseEvent) {
 		return;
 	}
 	if (!current) playCue("select");
-	onclick?.(event);
+	callListener(onClick ?? onclick, event);
 }
 </script>
 

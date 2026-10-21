@@ -902,7 +902,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "RainbowButton",
 		slug: "rainbow-button",
 		description:
-			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo",
+			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo. Other native attributes are forwarded to the rendered element",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -927,6 +927,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "disabled",
 				type: "boolean",
 				description: "Disables the button and suppresses the press cue",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Called once per activation, after the optional sound cue; never while disabled.",
 			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],
@@ -1910,6 +1916,13 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds the light above SDR white in a WebGPU layer with extended tone mapping: the hottest tiles peak around 1000 nits and the halo gets a hot core. Elsewhere nothing starts and the mosaic is unchanged",
+			},
 			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
 			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
 			{
@@ -8096,6 +8109,85 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"tick-nav": {
+		name: "TickNav",
+		slug: "tick-nav",
+		description:
+			"A navigation list on a ruler of tick marks: every line the pointer crosses plucks like a string, neighbouring lines and ticks stretch and light up on springs, and an optional preview card follows the pointer.",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		tags: ["nav", "sidebar", "ruler", "ticks", "proximity", "spring", "preview", "hover"],
+		props: [
+			{
+				name: "items",
+				type: "TickNavItem[]",
+				required: true,
+				description:
+					"The rows, top to bottom: `{ id, label, href?, badge?, disabled? }`. A row with `href` renders as a link, otherwise as a button.",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Id of the current item. Bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(id: string) => void",
+				description: "Called with the id of an item that is activated and not already current.",
+			},
+			{
+				name: "preview",
+				type: "Snippet<[TickNavItem]>",
+				description:
+					"Content of the card that follows the pointer while a row is hovered (or sits beside a keyboard-focused row). Leave it out and no card is rendered.",
+			},
+			{
+				name: "reach",
+				type: "number",
+				default: "4",
+				description: "Rows over which the neighbours of the hovered row still react.",
+			},
+			{
+				name: "minorTicks",
+				type: "number",
+				default: "2",
+				description: "Ruler ticks drawn between two rows.",
+			},
+			{
+				name: "variant",
+				type: '"default" | "neon"',
+				default: '"default"',
+				description:
+					"Neon turns the lines into glowing tubes: proximity raises the glow, a beam of light rides every pluck, labels glow on hover, and the current line breathes. Made for dark surfaces.",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"Neon only: on a display that reports HDR, draws the light in a WebGPU canvas with extended tone mapping, so the tubes reach SDR white and the beam peaks around 1000 nits. Elsewhere the CSS glow carries the effect alone.",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: '"Navigation"',
+				description: "Accessible name of the nav landmark.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a cue for every line a mouse or pen plucks (hover for an item, a softer tick for a ruler tick), once the user has enabled sound",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the nav.",
+			},
+		],
+	},
 	sidebar: {
 		name: "Sidebar",
 		slug: "sidebar",

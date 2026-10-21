@@ -77,15 +77,26 @@ export interface CompareProps {
 	beamColors?: string[];
 	/** Accessible name of the slider */
 	label?: string;
-	onpercentagechange?: (percentage: number) => void;
-	ondragstart?: () => void;
-	ondragend?: () => void;
-	onhoverenter?: () => void;
-	onhoverleave?: () => void;
+	onPercentageChange?: ((percentage: number) => void) | ((percentage: number) => void)[];
+	/** @deprecated Use `@percentage-change` / `onPercentageChange`. Only called when `onPercentageChange` is absent. */
+	onpercentagechange?: ((percentage: number) => void) | ((percentage: number) => void)[];
+	onDragStart?: (() => void) | (() => void)[];
+	/** @deprecated Use `@drag-start` / `onDragStart`. Only called when `onDragStart` is absent. */
+	ondragstart?: (() => void) | (() => void)[];
+	onDragEnd?: (() => void) | (() => void)[];
+	/** @deprecated Use `@drag-end` / `onDragEnd`. Only called when `onDragEnd` is absent. */
+	ondragend?: (() => void) | (() => void)[];
+	onHoverEnter?: (() => void) | (() => void)[];
+	/** @deprecated Use `@hover-enter` / `onHoverEnter`. Only called when `onHoverEnter` is absent. */
+	onhoverenter?: (() => void) | (() => void)[];
+	onHoverLeave?: (() => void) | (() => void)[];
+	/** @deprecated Use `@hover-leave` / `onHoverLeave`. Only called when `onHoverLeave` is absent. */
+	onhoverleave?: (() => void) | (() => void)[];
 }
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
@@ -107,10 +118,15 @@ const {
 	autoplayDuration = 5000,
 	beamColors,
 	label = "Comparison slider",
+	onPercentageChange,
 	onpercentagechange,
+	onDragStart,
 	ondragstart,
+	onDragEnd,
 	ondragend,
+	onHoverEnter,
 	onhoverenter,
+	onHoverLeave,
 	onhoverleave,
 } = defineProps<CompareProps>();
 
@@ -141,7 +157,7 @@ const palette = computed(() => beamPalette(beamColors));
 function setPercent(p: number): void {
 	const next = Math.max(0, Math.min(100, p));
 	sliderXPercent.value = next;
-	onpercentagechange?.(next);
+	callListener(onPercentageChange ?? onpercentagechange, next);
 }
 
 function startAutoplay(): void {
@@ -208,7 +224,7 @@ function glideTo(target: number): void {
 function mouseEnterHandler(): void {
 	isMouseOver.value = true;
 	stopReturn();
-	onhoverenter?.();
+	callListener(onHoverEnter ?? onhoverenter);
 	if (autoplay) {
 		stopAutoplay();
 	}
@@ -217,7 +233,7 @@ function mouseEnterHandler(): void {
 function mouseLeaveHandler(): void {
 	isMouseOver.value = false;
 	isInteracting.value = false;
-	onhoverleave?.();
+	callListener(onHoverLeave ?? onhoverleave);
 
 	if (slideMode === "hover") {
 		glideTo(initialSliderPercentage);
@@ -236,7 +252,7 @@ function handleStart(): void {
 	if (slideMode === "drag") {
 		isDragging.value = true;
 		isInteracting.value = true;
-		ondragstart?.();
+		callListener(onDragStart ?? ondragstart);
 		stopAutoplay();
 	}
 }
@@ -245,7 +261,7 @@ function handleEnd(): void {
 	if (slideMode === "drag") {
 		isDragging.value = false;
 		isInteracting.value = false;
-		ondragend?.();
+		callListener(onDragEnd ?? ondragend);
 		if (autoplay && !isMouseOver.value) {
 			startAutoplay();
 		}
@@ -337,7 +353,14 @@ function syncAutoplay(): void {
 }
 
 watch(
-	[() => autoplay, isMouseOver, isDragging, () => autoplayDuration, () => onpercentagechange],
+	[
+		() => autoplay,
+		isMouseOver,
+		isDragging,
+		() => autoplayDuration,
+		() => onPercentageChange,
+		() => onpercentagechange,
+	],
 	syncAutoplay,
 	{ flush: "post" }
 );

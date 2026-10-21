@@ -83,6 +83,16 @@
 		}
 	},
 	{
+		"id": "mosaic-glow/mosaic-glow-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/mosaic-glow/mosaic-glow-hdr.ts",
+			"react": "react/src/components/mosaic-glow/mosaic-glow-hdr.ts",
+			"vue": "vue/src/components/mosaic-glow/mosaic-glow-hdr.ts"
+		}
+	},
+	{
 		"id": "mosaic-glow/mosaic-glow-core.ts",
 		"kind": "engine-core",
 		"shared": true,
@@ -946,6 +956,26 @@
 			"svelte": "src/lib/fancy-ui/fireworks-hdr/fireworks-hdr-core.ts",
 			"react": null,
 			"vue": "vue/src/components/fireworks-hdr/fireworks-hdr-core.ts"
+		}
+	},
+	{
+		"id": "tick-nav/tick-nav-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/tick-nav/tick-nav-core.ts",
+			"react": "react/src/components/tick-nav/tick-nav-core.ts",
+			"vue": "vue/src/components/tick-nav/tick-nav-core.ts"
+		}
+	},
+	{
+		"id": "tick-nav/tick-nav-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/tick-nav/tick-nav-hdr.ts",
+			"react": "react/src/components/tick-nav/tick-nav-hdr.ts",
+			"vue": "vue/src/components/tick-nav/tick-nav-hdr.ts"
 		}
 	},
 	{

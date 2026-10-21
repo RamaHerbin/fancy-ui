@@ -140,6 +140,7 @@ export const NEEDS_PROPS = [
 	"TerminalBlock",
 	"TextGenerateEffect",
 	"ThreadList",
+	"TickNav",
 	"Toast",
 	"ToolCall",
 	"ToolTimeline",

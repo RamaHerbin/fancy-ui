@@ -194,6 +194,49 @@ describe("Presence", () => {
 			expect(panel.inert).toBe(false);
 		});
 
+		it("chains consumer onintrostart/onintroend/onoutrostart/onoutroend handlers once each, alongside the internal ones", () => {
+			stubMatchMedia(false);
+			const onintrostart = vi.fn();
+			const onintroend = vi.fn();
+			const onoutrostart = vi.fn();
+			const onoutroend = vi.fn();
+			const onEnterEnd = vi.fn();
+			const onExitEnd = vi.fn();
+			const { container } = render(Presence, {
+				props: {
+					open: true,
+					children: CHILD(),
+					onintrostart,
+					onintroend,
+					onoutrostart,
+					onoutroend,
+					onEnterEnd,
+					onExitEnd,
+				},
+			});
+			const panel = container.querySelector(".ft-presence") as HTMLElement;
+
+			const e1 = new CustomEvent("introstart");
+			const e2 = new CustomEvent("introend");
+			const e3 = new CustomEvent("outrostart");
+			const e4 = new CustomEvent("outroend");
+			panel.dispatchEvent(e1);
+			panel.dispatchEvent(e2);
+			panel.dispatchEvent(e3);
+			panel.dispatchEvent(e4);
+
+			expect(onintrostart).toHaveBeenCalledTimes(1);
+			expect(onintrostart).toHaveBeenCalledWith(e1);
+			expect(onintroend).toHaveBeenCalledTimes(1);
+			expect(onintroend).toHaveBeenCalledWith(e2);
+			expect(onoutrostart).toHaveBeenCalledTimes(1);
+			expect(onoutrostart).toHaveBeenCalledWith(e3);
+			expect(onoutroend).toHaveBeenCalledTimes(1);
+			expect(onoutroend).toHaveBeenCalledWith(e4);
+			expect(onEnterEnd).toHaveBeenCalledTimes(1);
+			expect(onExitEnd).toHaveBeenCalledTimes(1);
+		});
+
 		it("onoutroend fires onExitEnd", () => {
 			stubMatchMedia(false);
 			const onExitEnd = vi.fn();

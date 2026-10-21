@@ -1270,8 +1270,7 @@
 		"divergences": [
 			"`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
 			"Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
-			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
-			"No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`."
+			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -5154,6 +5153,42 @@
 				"severity": "minor"
 			}
 		]
+	},
+	{
+		"slug": "tick-nav",
+		"sveltePath": "src/lib/fancy-ui/tick-nav",
+		"reactPath": "react/src/components/tick-nav",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "trivial",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "raf-field",
+		"deps": {
+			"internals": ["media-query", "use-element-ref", "use-live-ref", "tick-nav-core"],
+			"motion": [],
+			"sound": true,
+			"components": []
+		},
+		"browserAPIs": ["requestAnimationFrame", "matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["TickNav"],
+		"loc": 330,
+		"testFiles": ["TickNav.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.",
+			"`preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.",
+			"`class` → `className` (PORTING.md).",
+			"All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame)."
+		],
+		"lastFailure": null
 	},
 	{
 		"slug": "time-picker",

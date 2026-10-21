@@ -189,6 +189,17 @@ describe("MosaicGlow", () => {
 		expect(host.querySelector("[data-testid='content']")).toBeTruthy();
 	});
 
+	it("renders a second HDR canvas by default, and none with hdr={false}; data-hdr stays off without WebGPU", () => {
+		const { container } = render(<MosaicGlow />);
+		const host = getHost(container);
+		expect(host.querySelectorAll("canvas")).toHaveLength(2);
+		expect(host.querySelector("canvas.mosaic-glow__hdr")).toBeTruthy();
+		expect(host.hasAttribute("data-hdr")).toBe(false);
+		cleanup();
+		const { container: plain } = render(<MosaicGlow hdr={false} />);
+		expect(getHost(plain).querySelectorAll("canvas")).toHaveLength(1);
+	});
+
 	it("omits the content wrapper without children", () => {
 		const { container } = render(<MosaicGlow />);
 		expect(container.querySelector(".mosaic-glow__content")).toBeNull();
