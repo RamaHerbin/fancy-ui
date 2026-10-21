@@ -116,6 +116,20 @@ test("a dynamic import of a private environment module fails too", () => {
 	assert.match(r.out, /\$env\/static\/public/);
 });
 
+test("an import of the SvelteKit package in a shipped file fails", () => {
+	const r = run(
+		pkg({
+			files: {
+				...CLEAN,
+				"dist/button.js": 'import { error } from "@sveltejs/kit";\nexport const Button = error;\n',
+			},
+		})
+	);
+	assert.equal(r.status, 1, r.out);
+	assert.match(r.out, /dist\/button\.js:1/);
+	assert.match(r.out, /@sveltejs\/kit/);
+});
+
 test("a package without one of the documented entry points fails", () => {
 	const { "./package.json": _drop, ...rest } = EXPORTS;
 	const r = run(pkg({ manifest: { exports: rest } }));

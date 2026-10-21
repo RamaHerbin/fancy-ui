@@ -109,8 +109,14 @@
 		"node": ">=20.19.0"
 	},
 	"peerDependencies": {
+		"@sveltejs/kit": ">=2.0.0",
 		"svelte": "^5.20.0",
 		"tailwindcss": "^4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@sveltejs/kit": {
+			"optional": true
+		}
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.5",
