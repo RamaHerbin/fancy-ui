@@ -6,7 +6,7 @@
 
 type DismissableAction<P> = (
 	node: HTMLElement,
-	params: P,
+	params: P
 ) => {
 	update?(params: P): void;
 	destroy?(): void;
@@ -55,6 +55,38 @@ interface Layer {
 
 const layers: Layer[] = [];
 
+// What a mousedown can move focus to by itself. A press on anything else —
+// plain text, a scrim, empty page — makes the browser blur to `<body>`.
+const FOCUS_TAKING_SELECTOR =
+	'a[href], area[href], button, input, select, textarea, label, summary, iframe, [tabindex], [contenteditable]:not([contenteditable="false"])';
+
+// An outside press dismisses on `pointerdown`, and the overlay hands focus back
+// (usually to its trigger) right then — but the press's own `mousedown` comes
+// after, and on a target that cannot take focus its default action blurs
+// whatever is focused to `<body>`, undoing the return a moment after it
+// happened. Cancelling that ONE default keeps the returned focus. A press on
+// something focusable is left alone: focus moving there is what the user asked
+// for. The guard disarms on the first of mousedown / click / pointercancel, so
+// a press that never produces a mousedown (a touch scroll) cannot leave it
+// armed for a later, unrelated press.
+function keepFocusThroughPress(target: Node) {
+	const el = target instanceof Element ? target : target.parentElement;
+	if (el?.closest(FOCUS_TAKING_SELECTOR)) return;
+
+	function preventBlur(event: Event) {
+		event.preventDefault();
+		disarm();
+	}
+	function disarm() {
+		document.removeEventListener("mousedown", preventBlur, true);
+		document.removeEventListener("click", disarm, true);
+		document.removeEventListener("pointercancel", disarm, true);
+	}
+	document.addEventListener("mousedown", preventBlur, true);
+	document.addEventListener("click", disarm, true);
+	document.addEventListener("pointercancel", disarm, true);
+}
+
 export const dismissable: DismissableAction<DismissableOptions> = (node, opts) => {
 	// Actions only run in the browser, but stay defensive for SSR contexts.
 	if (typeof document === "undefined") {
@@ -102,6 +134,7 @@ export const dismissable: DismissableAction<DismissableOptions> = (node, opts) =
 		const excluded = exclude?.() ?? [];
 		if (excluded.some((el) => el?.contains(target))) return;
 
+		keepFocusThroughPress(target);
 		onDismiss();
 	}
 

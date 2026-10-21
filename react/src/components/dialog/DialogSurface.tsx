@@ -16,6 +16,7 @@ import "./dialog-surface.css";
 export const DialogSurface = forwardRef<HTMLDivElement, DialogSurfaceProps>(function DialogSurface(
 	{
 		open,
+		id,
 		role,
 		titleId,
 		descriptionId,
@@ -142,6 +143,7 @@ export const DialogSurface = forwardRef<HTMLDivElement, DialogSurfaceProps>(func
 					*/}
 					<div
 						ref={panelRef}
+						id={id}
 						role={role}
 						aria-modal="true"
 						aria-labelledby={titleId}

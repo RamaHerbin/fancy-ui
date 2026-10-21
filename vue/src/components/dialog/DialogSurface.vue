@@ -135,6 +135,7 @@ const scrimRef = composeRefs<HTMLDivElement>(
 			></div>
 			<div
 				:ref="panelRef"
+				:id="props.id"
 				:role="props.role"
 				aria-modal="true"
 				:aria-labelledby="props.titleId"

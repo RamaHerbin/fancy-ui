@@ -247,6 +247,28 @@ describe("AlertDialog", () => {
 		expect(document.activeElement).toBe(trigger);
 	});
 
+	it("puts aria-haspopup, aria-expanded and aria-controls on the rendered trigger", async () => {
+		render(AlertDialog, {
+			props: {
+				title: "Delete project",
+				trigger: snippet('<button type="button" data-testid="open-trigger">Delete</button>'),
+			},
+		});
+		await tick();
+
+		const trigger = document.body.querySelector<HTMLButtonElement>('[data-testid="open-trigger"]')!;
+		expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		expect(trigger.hasAttribute("aria-controls")).toBe(false);
+
+		await fireEvent.click(trigger);
+		await tick();
+
+		expect(trigger.getAttribute("aria-expanded")).toBe("true");
+		expect(panel()?.id).toBe(trigger.getAttribute("aria-controls"));
+		expect(panel()?.id).toBeTruthy();
+	});
+
 	it("only the top-most stacked layer reacts to Escape — a nested overlay takes the first press", async () => {
 		const onCancel = vi.fn();
 		render(AlertDialog, { props: { open: true, title: "Delete project", onCancel } });

@@ -13,6 +13,7 @@
 
 	let {
 		open,
+		id,
 		role,
 		titleId,
 		descriptionId,
@@ -109,6 +110,7 @@
 	-->
 	<div
 		bind:this={ref}
+		{id}
 		{role}
 		aria-modal="true"
 		aria-labelledby={titleId}

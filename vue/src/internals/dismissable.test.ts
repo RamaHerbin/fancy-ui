@@ -304,6 +304,80 @@ describe("dismissable — the active gate", () => {
 	});
 });
 
+describe("dismissable — an outside press keeps the returned focus", () => {
+	afterEach(() => {
+		document.body.innerHTML = "";
+	});
+
+	/** pointerdown → mousedown → click, as a real press dispatches them. Returns the mousedown. */
+	function press(target: HTMLElement) {
+		pointerDownOn(target);
+		const mousedown = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		target.dispatchEvent(mousedown);
+		target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		return mousedown;
+	}
+
+	function setup() {
+		const node = document.createElement("div");
+		node.innerHTML = `<button>Inside</button>`;
+		const text = document.createElement("p");
+		text.textContent = "Plain text";
+		const field = document.createElement("input");
+		document.body.append(node, text, field);
+		return { node, text, field };
+	}
+
+	// The dismiss lands on pointerdown and the overlay hands focus back right
+	// then; the same press's mousedown on non-focusable content would blur
+	// that returned focus straight to <body>.
+	it("cancels the blur of a dismissing press on non-focusable content", () => {
+		const { node, text } = setup();
+		const onDismiss = vi.fn();
+		const action = dismissable(node, { onDismiss });
+
+		const mousedown = press(text);
+
+		expect(onDismiss).toHaveBeenCalledTimes(1);
+		expect(mousedown.defaultPrevented).toBe(true);
+		action?.destroy?.();
+	});
+
+	it("leaves a dismissing press on a focusable element alone", () => {
+		const { node, field } = setup();
+		const onDismiss = vi.fn();
+		const action = dismissable(node, { onDismiss });
+
+		const mousedown = press(field);
+
+		expect(onDismiss).toHaveBeenCalledTimes(1);
+		expect(mousedown.defaultPrevented).toBe(false);
+		action?.destroy?.();
+	});
+
+	it("disarms after one press, so a later unrelated press is untouched", () => {
+		const { node, text } = setup();
+		const action = dismissable(node, { onDismiss: vi.fn() });
+		press(text);
+		action?.destroy?.();
+
+		const later = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+		text.dispatchEvent(later);
+
+		expect(later.defaultPrevented).toBe(false);
+	});
+
+	it("does not arm on a press that does not dismiss", () => {
+		const { node, text } = setup();
+		const action = dismissable(node, { onDismiss: vi.fn(), outsideClick: false });
+
+		const mousedown = press(text);
+
+		expect(mousedown.defaultPrevented).toBe(false);
+		action?.destroy?.();
+	});
+});
+
 describe("dismissable — layer bookkeeping", () => {
 	afterEach(() => {
 		document.body.innerHTML = "";
