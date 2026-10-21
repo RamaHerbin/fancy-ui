@@ -1,0 +1,78 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+# One run per ref: a new push cancels the one still running for the same branch.
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Browser suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      # System libraries are not part of the cache, so they are installed every run;
+      # the browser download itself is skipped on a cache hit.
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      # playwright.config.ts starts `pnpm dev --port 5174 --mode test` and, under CI,
+      # never reuses a server that is already running.
+      - name: Run the stable specs
+        run: >-
+          pnpm exec playwright test
+          tests/e2e/docs-framework.spec.ts
+          tests/e2e/components-gallery.spec.ts
+          tests/e2e/home.spec.ts
+          tests/e2e/landing-footer.spec.ts
+
+      - name: Upload the HTML report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload the traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
