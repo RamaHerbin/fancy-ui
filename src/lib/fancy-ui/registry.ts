@@ -3331,6 +3331,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"#ffffff"',
 				description: "Text color in dark mode",
 			},
+			{
+				name: "maxDpr",
+				type: "number",
+				default: "2",
+				description: "Upper bound for the renderer's device pixel ratio",
+			},
 		],
 	},
 
