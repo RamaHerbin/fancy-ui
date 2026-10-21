@@ -1,7 +1,7 @@
 ---
-"fancy-ui-svelte": patch
-"fancy-ui-react": patch
-"fancy-ui-vue": patch
+"fancy-ui-svelte": minor
+"fancy-ui-react": minor
+"fancy-ui-vue": minor
 ---
 
 Sound design refresh.
