@@ -9,6 +9,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
+import v8 from "node:v8";
+import vm from "node:vm";
 
 import {
 	classifyAsset,
@@ -17,8 +20,10 @@ import {
 	markdownTable,
 	measureAssets,
 	median,
+	assertSmokePassed,
 	parseKeptScratch,
 	proposeBudget,
+	recordedSettings,
 } from "./lib.mjs";
 
 test("compressedSizes reports raw, gzip and brotli bytes", () => {
@@ -112,4 +117,68 @@ test("proposeBudget adds headroom and rounds up to a readable step", () => {
 	assert.equal(proposeBudget(1000, 0.25, 100), 1300);
 	assert.equal(proposeBudget(0, 0.25, 100), 0);
 	assert.equal(proposeBudget(7.2, 0.5, 1), 11);
+});
+
+test("recordedSettings reads repetitions and cycles from the stored results", () => {
+	const effects = [{ rows: [{ reps: 5 }, { reps: 5 }] }];
+	const lifecycle = [{ rows: [{ cycles: 50 }] }];
+	assert.deepEqual(recordedSettings(effects, lifecycle), { reps: "5", cycles: "50" });
+	assert.deepEqual(recordedSettings([], []), { reps: "n/a", cycles: "n/a" });
+	const mixed = [{ rows: [{ reps: 3 }] }, { rows: [{ reps: 5 }] }];
+	assert.equal(recordedSettings(mixed, []).reps, "3, 5");
+});
+
+test("assertSmokePassed refuses a size for a broken consumer", () => {
+	assert.doesNotThrow(() => assertSmokePassed("next", { status: 0 }));
+	assert.throws(() => assertSmokePassed("next", { status: 1 }), /next.*smoke.*1/i);
+	assert.throws(() => assertSmokePassed("next", { status: null }), /smoke/i);
+});
+
+test("the observer probe does not keep disconnected observers alive", async () => {
+	v8.setFlagsFromString("--expose-gc");
+	const gc = vm.runInNewContext("gc");
+	class Fake {
+		constructor(cb) {
+			this.cb = cb;
+		}
+		observe() {}
+		unobserve() {}
+		disconnect() {}
+	}
+	const win = {
+		requestAnimationFrame: () => 0,
+		setInterval: () => 0,
+		clearInterval: () => {},
+		setTimeout: () => 0,
+		ResizeObserver: Fake,
+		IntersectionObserver: Fake,
+		MutationObserver: Fake,
+		PerformanceObserver: class {
+			observe() {}
+		},
+		HTMLCanvasElement: { prototype: { getContext() {} } },
+		EventTarget: { prototype: { addEventListener() {}, removeEventListener() {} } },
+		document: {},
+		console: { warn() {} },
+	};
+	win.window = win;
+	const ctx = vm.createContext({ ...win, window: win, WeakRef, WeakMap, Set, Math });
+	// the script reads these as globals and through `window`
+	Object.assign(ctx, win, { window: win });
+	vm.runInContext(readFileSync(new URL("./harness/instrument.js", import.meta.url), "utf8"), ctx);
+	const weak = [];
+	const mount = () => {
+		const heavy = { payload: new Array(1000).fill(1) };
+		weak.push(new WeakRef(heavy));
+		const o = new win.ResizeObserver(() => heavy);
+		o.observe({});
+		o.disconnect();
+	};
+	for (let i = 0; i < 5; i++) mount();
+	for (let i = 0; i < 4; i++) {
+		await new Promise((r) => setImmediate(r));
+		gc();
+	}
+	assert.equal(weak.filter((w) => w.deref()).length, 0, "callbacks stay reachable");
+	assert.equal(win.__probe.snapshot().liveObservers, 0);
 });

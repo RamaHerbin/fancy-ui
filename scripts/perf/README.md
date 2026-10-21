@@ -17,7 +17,7 @@ PERF_OUT=~/perf-run-2 node scripts/perf/measure.mjs all
 | `lifecycle` | Does mounting and unmounting leak contexts, listeners or memory?            |
 | `report`    | Renders `BASELINE-<date>.md` from the JSON the other sections wrote.        |
 
-Options: `--out DIR` (or `PERF_OUT`, default `$TMPDIR/fancy-ui-perf`), `--reps N` (default 3, effects), `--cycles N` (default 50, lifecycle), `--only svelte|react|vue`, `--port N` (default 5355; the second framework uses the next port, always `--strictPort`), `--date YYYY-MM-DD` (report title and file name).
+Options: `--out DIR` (or `PERF_OUT`, default `$TMPDIR/fancy-ui-perf`), `--reps N` (default 3, effects), `--cycles N` (default 50, lifecycle), `--only svelte|react|vue`, `--component NAME` (effects and lifecycle: one component only), `--port N` (default 5355; the second framework uses the next port, always `--strictPort`), `--date YYYY-MM-DD` (report title and file name).
 
 Every section writes `<out>/<section>.json`. Raw Chrome traces of each effect go to `<out>/traces/<framework>-<component>.json` (open them in the browser's performance panel); they are large and not committed.
 
@@ -62,7 +62,7 @@ On a fresh page per component, after one warm-up cycle and a forced garbage coll
 - **ten instances**: ten mounted at once from the same baseline: heap, DOM nodes, listeners, observers, intervals, contexts, warnings, CPU ms/s and raf/s over 3 s;
 - **after unmounting the ten**: the residue against the same baseline.
 
-"Persistent listeners" counts listeners registered on `window`, `document`, `<html>`, `<body>`, `MediaQueryList` and `visualViewport`, de-duplicated like the platform does and decremented by `removeEventListener` or an aborted signal. Listeners on nodes that are removed with the component are garbage with it and are not a leak. `once` listeners are not tracked. For `toast`, one instance is one Toaster plus 4 toasts, extra instances are one toast each (the stack is a module-level singleton capped at 4 visible).
+"Persistent listeners" counts listeners registered on `window`, `document`, `<html>`, `<body>`, `MediaQueryList` and `visualViewport`, de-duplicated like the platform does and decremented by `removeEventListener` or an aborted signal. Listeners on nodes that are removed with the component are garbage with it and are not a leak. `once` listeners are not tracked. The probe holds observers and contexts through `WeakRef` only: a strong reference would keep every disconnected observer callback, and the renderer it closes over, alive, and the tool would report its own retention as a leak (`lib.test.mjs` guards this). "Contexts retained" is a delta against the warm baseline, like "contexts created". For `toast`, one instance is one Toaster plus 4 toasts, extra instances are one toast each (the stack is a module-level singleton capped at 4 visible).
 
 ## Reading the numbers
 

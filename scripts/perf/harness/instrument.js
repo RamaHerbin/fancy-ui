@@ -100,7 +100,9 @@
 		return nativeRemove.call(this, type, listener, options);
 	};
 
-	// Observers: instances that still observe at least one target.
+	// Observers: instances that still observe at least one target. Held weakly:
+	// a strong reference would keep every observer callback, and the component
+	// scope it closes over (renderer, GL context), alive after disconnect().
 	const observers = new Set();
 	for (const name of ["ResizeObserver", "IntersectionObserver", "MutationObserver"]) {
 		const Native = window[name];
@@ -109,7 +111,7 @@
 			constructor(...a) {
 				super(...a);
 				this.__targets = 0;
-				observers.add(this);
+				observers.add(new WeakRef(this));
 			}
 			observe(...a) {
 				this.__targets += 1;
@@ -145,6 +147,16 @@
 		return nativeSetTimeout(...a);
 	};
 
+	const liveObserverCount = () => {
+		let n = 0;
+		for (const ref of observers) {
+			const o = ref.deref();
+			if (!o) observers.delete(ref);
+			else if (o.__targets > 0) n += 1;
+		}
+		return n;
+	};
+
 	probe.snapshot = () => {
 		const alive = probe.contexts.filter((c) => c.canvas.deref()?.isConnected);
 		const retained = probe.contexts.filter((c) => c.ctx.deref());
@@ -158,7 +170,7 @@
 			persistentListeners: counts.persistentTotal,
 			persistentListenersByType: { ...counts.persistentByType },
 			trackedListeners: counts.allTotal,
-			liveObservers: [...observers].filter((o) => o.__targets > 0).length,
+			liveObservers: liveObserverCount(),
 			intervalsLive: live.size,
 			timeoutsScheduled: probe.timeoutsScheduled,
 		};

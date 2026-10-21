@@ -109,3 +109,22 @@ export function proposeBudget(measured, headroom, step) {
 }
 
 export const kb = (bytes) => (bytes / 1024).toFixed(1);
+
+/**
+ * Repetitions and lifecycle cycles as stored in the results, so a report
+ * rendered on its own never prints the command-line default instead.
+ */
+export function recordedSettings(effects, lifecycle) {
+	const uniq = (values) => [...new Set(values.filter((v) => v !== undefined))].join(", ") || "n/a";
+	return {
+		reps: uniq(effects.flatMap((g) => g.rows.map((r) => r.reps))),
+		cycles: uniq(lifecycle.flatMap((g) => g.rows.map((r) => r.cycles))),
+	};
+}
+
+/** A consumer whose smoke failed has no trustworthy size: refuse to report one. */
+export function assertSmokePassed(name, result) {
+	if (result.status !== 0) {
+		throw new Error(`${name}: consumer smoke exited with ${result.status}, no size is reported`);
+	}
+}

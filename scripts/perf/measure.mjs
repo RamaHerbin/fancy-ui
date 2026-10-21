@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Performance protocol for the three packages. See scripts/perf/README.md.
 //
-//   node scripts/perf/measure.mjs <section> [--out DIR] [--reps N] [--port N] [--only svelte|react]
+//   node scripts/perf/measure.mjs <section> [--out DIR] [--reps N] [--port N] [--only svelte|react|vue] [--component NAME] [--cycles N]
 //
 // Sections, in the order `all` runs them:
 //   sizes      JS/CSS weight of each consumer app built from the packed tarball
@@ -35,6 +35,8 @@ import {
 	median,
 	parseKeptScratch,
 	proposeBudget,
+	assertSmokePassed,
+	recordedSettings,
 } from "./lib.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -101,6 +103,7 @@ function runSizes() {
 			allowFail: true,
 		});
 		process.stdout.write((r.stdout ?? "").split("\n").slice(-6).join("\n"));
+		assertSmokePassed(c.name, r);
 		const scratch = parseKeptScratch(`${r.stdout}\n${r.stderr}`);
 		if (!scratch) throw new Error(`${c.name}: no kept scratch folder in the output`);
 		const app = join(scratch, "app");
@@ -544,7 +547,7 @@ async function runLifecycle() {
 						...diff(after, base),
 						contextsCreated: after.s.contextsCreated - base.s.contextsCreated,
 						contextsConnected: after.s.contextsConnected,
-						contextsRetained: after.s.contextsRetained,
+						contextsRetained: after.s.contextsRetained - base.s.contextsRetained,
 						contextWarnings: after.s.contextWarnings - base.s.contextWarnings,
 						rafAfterUnmount,
 					},
@@ -581,6 +584,8 @@ function environment() {
 	const git = sh("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT }).stdout.trim();
 	const pkgVersion = (p) => JSON.parse(readFileSync(join(ROOT, p, "package.json"), "utf8")).version;
 	const effects = existsSync(jsonPath("effects")) ? load("effects") : [];
+	const lifecycle = existsSync(jsonPath("lifecycle")) ? load("lifecycle") : [];
+	const settings = recordedSettings(effects, lifecycle);
 	const cpus = os.cpus();
 	return [
 		["commit", git],
@@ -599,8 +604,8 @@ function environment() {
 		["fancy-ui-svelte", JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version],
 		["fancy-ui-react", pkgVersion("react")],
 		["fancy-ui-vue", pkgVersion("vue")],
-		["repetitions", String(REPS)],
-		["lifecycle cycles", String(CYCLES)],
+		["repetitions", settings.reps],
+		["lifecycle cycles", settings.cycles],
 	];
 }
 
@@ -767,7 +772,7 @@ function runReport() {
 					"intervals",
 					"contexts created",
 					"contexts connected",
-					"contexts retained",
+					"contexts retained (delta)",
 					"context warnings",
 					"raf/s after unmount",
 				],
@@ -862,6 +867,48 @@ function runReport() {
 			`${f1(worst)} ms/s`,
 			`${proposeBudget(worst, 0.5, 5)} ms/s`,
 		]);
+	}
+	for (const g of imports) {
+		const base = g.rows.find((r) => r.case === "baseline").js;
+		const byCase = new Map();
+		for (const r of g.rows.filter((x) => x.case !== "baseline")) {
+			byCase.set(r.case, { ...byCase.get(r.case), [r.kind]: r });
+		}
+		let worstRatio = 0;
+		for (const [name, v] of byCase) {
+			const barrel = v.barrel.js.gzip - base.gzip;
+			const deep = v.deep.js.gzip - base.gzip;
+			if (deep > 0) worstRatio = Math.max(worstRatio, barrel / deep);
+			budgetRows.push([
+				`${g.pkg} ${name} through the barrel, gzip`,
+				`${kb(barrel)} KB`,
+				`${kb(proposeBudget(barrel, 0.1, 1024))} KB`,
+			]);
+		}
+		budgetRows.push([`${g.pkg} barrel/deep ratio, worst component`, worstRatio.toFixed(2), "1.05"]);
+	}
+	for (const g of life) {
+		const worstHeap = Math.max(...g.rows.map((r) => r.afterCycles.heapBytes));
+		budgetRows.push([
+			`${g.framework} heap delta after ${g.rows[0].cycles} cycles, worst component`,
+			`${kb(worstHeap)} KB`,
+			`${kb(proposeBudget(worstHeap, 0.5, 256 * 1024))} KB`,
+		]);
+		const worstResidue = (pick) => Math.max(...g.rows.map((r) => pick(r)));
+		for (const [label, pick] of [
+			["raf/s after unmount", (r) => r.afterTenUnmounted.rafAfterUnmount],
+			["persistent listeners after unmount", (r) => r.afterTenUnmounted.persistentListeners],
+			["observers still observing after unmount", (r) => r.afterTenUnmounted.observers],
+			["intervals still running after unmount", (r) => r.afterTenUnmounted.intervals],
+			["contexts still connected after unmount", (r) => r.afterTenUnmounted.contextsConnected],
+			["contexts retained after the cycles (delta)", (r) => r.afterCycles.contextsRetained],
+		]) {
+			budgetRows.push([
+				`${g.framework} ${label}, worst component`,
+				String(worstResidue(pick)),
+				"0",
+			]);
+		}
 	}
 	md.push(markdownTable(["metric", "measured", "proposed ceiling"], budgetRows), "");
 
