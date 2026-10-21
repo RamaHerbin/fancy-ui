@@ -250,7 +250,13 @@ describe("FlickeringGrid", () => {
 			stubResizeObserver();
 			const raf = stubRaf();
 
-			const view = render(<FlickeringGrid width={200} height={100} seed={seed} />);
+			// A concrete inherited colour keeps the currentColor probe canvas out of
+			// the recorded fills (jsdom reports a keyword, not an rgb() triplet).
+			const view = render(
+				<div style={{ color: "rgb(0, 0, 0)" }}>
+					<FlickeringGrid width={200} height={100} seed={seed} />
+				</div>
+			);
 			act(() => latestIntersectionObserver().trigger(true));
 			act(() => raf.flush(16));
 			act(() => raf.flush(32));
@@ -267,5 +273,25 @@ describe("FlickeringGrid", () => {
 		expect(first.length).toBe(400);
 		expect(again).toEqual(first);
 		expect(other).not.toEqual(first);
+	});
+
+	it("defaults the colour to currentColor: squares take the inherited text colour", () => {
+		const harness = stubCanvas2d();
+		stubResizeObserver();
+		const raf = stubRaf();
+
+		const { container } = render(
+			<div style={{ color: "rgb(10, 20, 30)" }}>
+				<FlickeringGrid width={40} height={20} />
+			</div>
+		);
+		expect(container.querySelector("canvas")).toBeInTheDocument();
+		act(() => latestIntersectionObserver().trigger(true));
+		act(() => raf.flush(16));
+
+		expect(harness.fills.length).toBeGreaterThan(0);
+		for (const fill of harness.fills) {
+			expect(fill.fillStyle).toMatch(/^rgba\(10, 20, 30,/);
+		}
 	});
 });

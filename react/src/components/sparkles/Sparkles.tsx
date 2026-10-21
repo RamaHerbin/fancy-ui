@@ -17,7 +17,7 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 export interface SparklesProps {
 	/** Background color */
 	background?: string;
-	/** Particle color */
+	/** Particle color: a hex string, or `currentColor` to follow the text colour */
 	particleColor?: string;
 	/** Minimum particle size */
 	minSize?: number;
@@ -64,6 +64,42 @@ function mulberry32(seed: number): () => number {
 		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
 		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 	};
+}
+
+const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
+
+/**
+ * Resolve `currentColor` to a `#rrggbb` string from `el`'s computed text colour
+ * (the particle loop appends a hex alpha byte, so it needs hex). The common
+ * `rgb()`/`rgba()` serialisation is parsed directly; newer spaces are
+ * rasterised through a 1x1 canvas. Any other value is returned unchanged.
+ */
+function resolveCurrentColor(color: string, el: Element): string {
+	if (!CURRENT_COLOR.test(color)) return color;
+	const computed = getComputedStyle(el).color;
+	let r = 0;
+	let g = 0;
+	let b = 0;
+	const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(computed);
+	if (m) {
+		r = Math.round(+m[1]!);
+		g = Math.round(+m[2]!);
+		b = Math.round(+m[3]!);
+	} else if (computed) {
+		try {
+			const probe = document.createElement("canvas");
+			probe.width = probe.height = 1;
+			const pctx = probe.getContext("2d", { willReadFrequently: true });
+			if (pctx) {
+				pctx.fillStyle = computed;
+				pctx.fillRect(0, 0, 1, 1);
+				[r = 0, g = 0, b = 0] = pctx.getImageData(0, 0, 1, 1).data;
+			}
+		} catch {
+			// keep the black fallback
+		}
+	}
+	return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
 }
 
 export function Sparkles({
@@ -134,6 +170,7 @@ export function Sparkles({
 			const context = ctx;
 			if (!context || !canvas) return;
 			context.clearRect(0, 0, canvas.width, canvas.height);
+			const fill = resolveCurrentColor(particleColorRef.current, canvas);
 
 			for (const p of particles) {
 				p.x += p.vx;
@@ -153,7 +190,7 @@ export function Sparkles({
 					0,
 					Math.PI * 2
 				);
-				context.fillStyle = `${particleColorRef.current}${Math.floor(opacity * 255)
+				context.fillStyle = `${fill}${Math.floor(opacity * 255)
 					.toString(16)
 					.padStart(2, "0")}`;
 				context.fill();

@@ -1,7 +1,7 @@
 import { render, cleanup, waitFor } from "@testing-library/svelte";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, it, expect, vi } from "vitest";
 import DemoRenderer, { previewBox, defaultProps } from "./DemoRenderer.svelte";
 
 beforeAll(() => {
@@ -72,7 +72,8 @@ describe("DemoRenderer sized stage", () => {
 describe("sparkles preview visibility", () => {
 	it("pairs white particles with an opaque backdrop so light theme shows them", () => {
 		const props = defaultProps.sparkles;
-		expect(props.particleColor).toBe("#ffffff");
+		expect(props.particleColor).toBe("currentColor");
+		expect(props.class).toContain("text-white");
 		expect(props.background).not.toBe("transparent");
 	});
 });
@@ -85,5 +86,31 @@ describe("sparkles example wrappers", () => {
 		);
 		const wrapper = src.match(/<div class="([^"]*)">/)?.[1] ?? "";
 		expect(wrapper.split(/\s+/)).toContain("w-full");
+	});
+});
+
+describe("DemoRenderer theme-aware defaults", () => {
+	beforeEach(() => {
+		global.ResizeObserver = class {
+			observe = vi.fn();
+			unobserve = vi.fn();
+			disconnect = vi.fn();
+		} as unknown as typeof ResizeObserver;
+		global.IntersectionObserver = class {
+			observe = vi.fn();
+			unobserve = vi.fn();
+			disconnect = vi.fn();
+		} as unknown as typeof IntersectionObserver;
+	});
+
+	afterEach(cleanup);
+
+	it("renders the glow-border hero with a visible child, not an empty frame", async () => {
+		const { container } = render(DemoRenderer, { slug: "glow-border" });
+		await waitFor(() => {
+			const label = container.querySelector("[data-glow-border-demo]");
+			expect(label).toBeInTheDocument();
+			expect(label?.textContent?.trim().length).toBeGreaterThan(0);
+		});
 	});
 });

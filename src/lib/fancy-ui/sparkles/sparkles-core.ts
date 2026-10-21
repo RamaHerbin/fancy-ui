@@ -20,7 +20,7 @@ export interface SparklesInitOptions {
 }
 
 export interface SparklesLiveOptions {
-	/** Hex color (e.g. "#ffffff") particles are filled with; re-read every frame. */
+	/** Hex color (e.g. "#ffffff") or `currentColor` particles are filled with; re-read every frame. */
 	particleColor?: string;
 }
 
@@ -46,6 +46,42 @@ const DEFAULT_MAX_SIZE = 3;
 const DEFAULT_SPEED = 4;
 const DEFAULT_PARTICLE_DENSITY = 120;
 const DEFAULT_PARTICLE_COLOR = "#ffffff";
+
+const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
+
+/**
+ * Resolve `currentColor` to a `#rrggbb` string from `el`'s computed text colour
+ * (the particle loop appends a hex alpha byte, so it needs hex). The common
+ * `rgb()`/`rgba()` serialisation is parsed directly; newer spaces are
+ * rasterised through a 1x1 canvas. Any other value is returned unchanged.
+ */
+function resolveCurrentColor(color: string, el: Element): string {
+	if (!CURRENT_COLOR.test(color)) return color;
+	const computed = getComputedStyle(el).color;
+	let r = 0;
+	let g = 0;
+	let b = 0;
+	const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(computed);
+	if (m) {
+		r = Math.round(+m[1]!);
+		g = Math.round(+m[2]!);
+		b = Math.round(+m[3]!);
+	} else if (computed) {
+		try {
+			const probe = document.createElement("canvas");
+			probe.width = probe.height = 1;
+			const pctx = probe.getContext("2d", { willReadFrequently: true });
+			if (pctx) {
+				pctx.fillStyle = computed;
+				pctx.fillRect(0, 0, 1, 1);
+				[r = 0, g = 0, b = 0] = pctx.getImageData(0, 0, 1, 1).data;
+			}
+		} catch {
+			// keep the black fallback
+		}
+	}
+	return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
 
 export function createSparkles(
 	elements: SparklesElements,
@@ -99,6 +135,7 @@ export function createSparkles(
 	function updateAndDraw(): void {
 		if (!ctx) return;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		const fill = resolveCurrentColor(particleColor, canvas);
 
 		for (const p of particles) {
 			p.x += p.vx;
@@ -113,8 +150,14 @@ export function createSparkles(
 			ctx.beginPath();
 			// canvas.width/height are device pixels while the context already
 			// carries the dpr transform, so divide it back out to draw in CSS pixels.
-			ctx.arc((p.x * canvas.width) / (100 * dpr), (p.y * canvas.height) / (100 * dpr), p.size, 0, Math.PI * 2);
-			ctx.fillStyle = `${particleColor}${Math.floor(opacity * 255)
+			ctx.arc(
+				(p.x * canvas.width) / (100 * dpr),
+				(p.y * canvas.height) / (100 * dpr),
+				p.size,
+				0,
+				Math.PI * 2
+			);
+			ctx.fillStyle = `${fill}${Math.floor(opacity * 255)
 				.toString(16)
 				.padStart(2, "0")}`;
 			ctx.fill();

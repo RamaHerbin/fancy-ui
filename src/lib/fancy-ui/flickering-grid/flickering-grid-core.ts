@@ -23,7 +23,7 @@ export interface FlickeringGridLiveOptions {
 	gridGap?: number;
 	/** Probability of a square changing opacity each second (0-1) */
 	flickerChance?: number;
-	/** Color of the squares (hex format) */
+	/** Color of the squares: a hex string, or `currentColor` (default) to follow the text colour */
 	color?: string;
 	/** Maximum opacity of squares (0-1) */
 	maxOpacity?: number;
@@ -49,17 +49,81 @@ const DEFAULTS: Omit<Required<FlickeringGridLiveOptions>, "width" | "height"> = 
 	squareSize: 4,
 	gridGap: 6,
 	flickerChance: 0.3,
-	color: "#000000",
+	color: "currentColor",
 	maxOpacity: 0.3,
 };
 
-function hexToRgba(hex: string): string {
-	const clean = hex.replace(/^#/, "");
-	const bigint = Number.parseInt(clean, 16);
-	const r = (bigint >> 16) & 255;
-	const g = (bigint >> 8) & 255;
-	const b = bigint & 255;
-	return `rgba(${r}, ${g}, ${b},`;
+interface Rgb {
+	r: number;
+	g: number;
+	b: number;
+}
+
+const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
+
+function parseHex(hex: string): Rgb {
+	let h = (hex || "#000").trim().replace(/^#/, "");
+	if (h.length === 3) {
+		h = h
+			.split("")
+			.map((c) => c + c)
+			.join("");
+	}
+	const bigint = parseInt(h, 16) || 0;
+	return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+
+/**
+ * Turn the browser's computed `color` into 0-255 channels. The common
+ * `rgb()`/`rgba()` serialisation is parsed directly; newer spaces (oklch,
+ * color-mix, ...) are rasterised through a 1x1 canvas, which converts them to
+ * sRGB for free. Falls back to black when neither works (no canvas backend).
+ */
+function computedToRgb(computed: string): Rgb {
+	const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(computed);
+	if (m) return { r: Math.round(+m[1]!), g: Math.round(+m[2]!), b: Math.round(+m[3]!) };
+	if (!computed) return { r: 0, g: 0, b: 0 };
+	try {
+		const probe = document.createElement("canvas");
+		probe.width = probe.height = 1;
+		const pctx = probe.getContext("2d", { willReadFrequently: true });
+		if (pctx) {
+			pctx.fillStyle = computed;
+			pctx.fillRect(0, 0, 1, 1);
+			const [r = 0, g = 0, b = 0] = pctx.getImageData(0, 0, 1, 1).data;
+			return { r, g, b };
+		}
+	} catch {
+		// fall through to the black fallback
+	}
+	return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * Colour resolver: a hex string is parsed once per value, `currentColor` is
+ * re-read from `el`'s computed style on every call (so a light/dark switch
+ * lands on the next frame) and re-parsed only when that string changes.
+ */
+function createColorResolver(el: Element) {
+	let lastComputed = "";
+	let lastRgb: Rgb = { r: 0, g: 0, b: 0 };
+	let lastHex = "";
+	let lastHexRgb: Rgb = { r: 0, g: 0, b: 0 };
+	return (color: string): Rgb => {
+		if (CURRENT_COLOR.test(color)) {
+			const computed = getComputedStyle(el).color;
+			if (computed !== lastComputed) {
+				lastComputed = computed;
+				lastRgb = computedToRgb(computed);
+			}
+			return lastRgb;
+		}
+		if (color !== lastHex) {
+			lastHex = color;
+			lastHexRgb = parseHex(color);
+		}
+		return lastHexRgb;
+	};
 }
 
 export function createFlickeringGrid(
@@ -81,6 +145,7 @@ export function createFlickeringGrid(
 	let squares: Float32Array = new Float32Array(0);
 	let dpr = 1;
 	let destroyed = false;
+	const resolveColor = createColorResolver(el.container);
 
 	function setupCanvas(w: number, h: number) {
 		dpr = window.devicePixelRatio || 1;
@@ -107,7 +172,8 @@ export function createFlickeringGrid(
 	}
 
 	function drawGrid() {
-		const colorPrefix = hexToRgba(opts.color);
+		const { r, g, b } = resolveColor(opts.color);
+		const colorPrefix = `rgba(${r}, ${g}, ${b},`;
 		// Non-null: `ctx` was checked once at create-time and canvas 2D contexts never become null after creation.
 		ctx!.clearRect(0, 0, el.canvas.width, el.canvas.height);
 		for (let i = 0; i < cols; i++) {
