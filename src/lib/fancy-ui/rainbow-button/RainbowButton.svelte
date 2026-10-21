@@ -82,7 +82,7 @@
 		{...restProps as HTMLAnchorAttributes}
 		href={disabled ? undefined : href}
 		target={disabled ? undefined : target}
-		aria-disabled={disabled}
+		aria-disabled={disabled ? "true" : undefined}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}
 		onclick={handleClick}

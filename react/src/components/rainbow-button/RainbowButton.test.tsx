@@ -198,7 +198,7 @@ describe("RainbowButton public contract", () => {
 	});
 
 	it("cancels navigation when a disabled anchor is clicked and drops its href", () => {
-		render(<RainbowButton disabled href="/pricing" />);
+		render(<RainbowButton disabled href="/pricing" target="_blank" />);
 		const link = screen.getByRole("link");
 		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
 
@@ -206,7 +206,20 @@ describe("RainbowButton public contract", () => {
 
 		expect(event.defaultPrevented).toBe(true);
 		expect(link).not.toHaveAttribute("href");
+		expect(link).not.toHaveAttribute("target");
 		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("keeps the inert-link attributes authoritative over consumer attributes", () => {
+		render(<RainbowButton disabled href="/pricing" tabIndex={0} aria-disabled="false" />);
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("tabindex", "-1");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("renders no aria-disabled on an enabled anchor", () => {
+		render(<RainbowButton href="/pricing" />);
+		expect(screen.getByRole("link")).not.toHaveAttribute("aria-disabled");
 	});
 
 	it("leaves navigation alone on an enabled anchor", () => {

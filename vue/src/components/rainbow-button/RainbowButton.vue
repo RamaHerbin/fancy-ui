@@ -8,6 +8,8 @@ export interface RainbowButtonProps {
 	class?: HTMLAttributes["class"];
 	/** Render as anchor element */
 	href?: string;
+	/** Anchor `target` (dropped while a link is disabled) */
+	target?: string;
 	/** Native button type (ignored when `href` is set) */
 	type?: "button" | "submit" | "reset";
 	/** Disables the button / marks the link aria-disabled */
@@ -34,12 +36,13 @@ defineOptions({ name: "RainbowButton", inheritAttrs: false });
 
 // `disabled: undefined` is load-bearing, not noise: a `boolean` prop compiles
 // to `type: Boolean`, and Vue casts an ABSENT boolean prop to `false` unless
-// the prop declares a default. Without it, `:aria-disabled="disabled"` below
+// the prop declares a default. Without it, `:aria-disabled="disabled ? 'true' : undefined"` below
 // would write `aria-disabled="false"` on every enabled anchor, where the
 // Svelte source emits no attribute at all.
 const props = withDefaults(defineProps<RainbowButtonProps>(), {
 	speed: 2,
 	href: undefined,
+	target: undefined,
 	type: "button",
 	disabled: undefined,
 	sound: false,
@@ -91,13 +94,14 @@ const baseClasses = computed(() =>
 	<a
 		v-if="href"
 		ref="el"
+		v-bind="attrs"
 		:class="baseClasses"
 		:style="speedStyle"
 		:href="disabled ? undefined : href"
-		:aria-disabled="disabled"
+		:target="disabled ? undefined : target"
+		:aria-disabled="disabled ? 'true' : undefined"
 		:role="disabled ? 'link' : undefined"
 		:tabindex="disabled ? -1 : undefined"
-		v-bind="attrs"
 		@click="handleClick"
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
@@ -107,11 +111,11 @@ const baseClasses = computed(() =>
 	<button
 		v-else
 		ref="el"
+		v-bind="attrs"
 		:class="baseClasses"
 		:style="speedStyle"
 		:type="type"
 		:disabled="disabled"
-		v-bind="attrs"
 		@click="handleClick"
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>

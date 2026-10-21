@@ -235,10 +235,33 @@ describe("RainbowButton public contract", () => {
 	});
 
 	it("drops the href of a disabled anchor", () => {
-		render(RainbowButton, { props: { disabled: true, href: "/pricing" } });
+		render(RainbowButton, { props: { disabled: true, href: "/pricing", target: "_blank" } });
 		const link = screen.getByRole("link");
 		expect(link).not.toHaveAttribute("href");
+		expect(link).not.toHaveAttribute("target");
 		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("keeps the inert-link attributes authoritative over consumer attributes", () => {
+		render(RainbowButton, {
+			props: { disabled: true, href: "/pricing" },
+			attrs: { tabindex: 0, "aria-disabled": "false" },
+		});
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("tabindex", "-1");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("renders no aria-disabled on an enabled anchor", () => {
+		render(RainbowButton, { props: { href: "/pricing" } });
+		expect(screen.getByRole("link")).not.toHaveAttribute("aria-disabled");
+	});
+
+	it("calls a consumer listener passed as an attribute exactly once", async () => {
+		const handler = vi.fn();
+		render(RainbowButton, { attrs: { onClick: handler } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(handler).toHaveBeenCalledTimes(1);
 	});
 });
 

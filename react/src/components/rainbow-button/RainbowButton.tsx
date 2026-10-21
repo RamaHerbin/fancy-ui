@@ -92,15 +92,15 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 			return (
 				<a
 					ref={ref as Ref<HTMLAnchorElement>}
+					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
 					className={baseClasses}
 					style={speedStyle}
 					href={disabled ? undefined : href}
 					target={disabled ? undefined : target}
-					aria-disabled={disabled}
+					aria-disabled={disabled ? "true" : undefined}
 					role={disabled ? "link" : undefined}
 					tabIndex={disabled ? -1 : undefined}
 					onClick={handleClick}
-					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
 				>
 					<span className="rainbow-button__glow" aria-hidden="true">
 						<span></span>
@@ -114,12 +114,12 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		return (
 			<button
 				ref={ref as Ref<HTMLButtonElement>}
+				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 				className={baseClasses}
 				style={speedStyle}
 				type={type}
 				disabled={disabled}
 				onClick={handleClick}
-				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 			>
 				<span className="rainbow-button__glow" aria-hidden="true">
 					<span></span>
