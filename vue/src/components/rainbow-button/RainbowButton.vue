@@ -58,11 +58,14 @@ const attrs = useAttrs();
 // modified listeners (`@click.once`, `.capture`, `.passive`) compile to
 // `onClickOnce` / `onClickCapture` / `onClickPassive` and would otherwise bind
 // straight to the element and run past the disabled guard.
-const forwarded = computed(() => {
+// A plain function called from the template, not a `computed`: the attrs proxy
+// has no `ownKeys` trap, so a computed spreading it would only track the keys
+// present at its first run. Called during render, it re-runs on every update.
+function forwardedAttrs() {
 	const { style: _style, ...rest } = attrs;
 	if (!props.disabled) return rest;
 	return Object.fromEntries(Object.entries(rest).filter(([key]) => !/^onClick/.test(key)));
-});
+}
 type AriaDisabled = boolean | "true" | "false" | undefined;
 
 defineSlots<{ default?: () => unknown }>();
@@ -106,7 +109,7 @@ const baseClasses = computed(() =>
 	<a
 		v-if="href"
 		ref="el"
-		v-bind="forwarded"
+		v-bind="forwardedAttrs()"
 		:class="baseClasses"
 		:style="[speedStyle, attrs.style as StyleValue]"
 		:href="disabled ? undefined : href"
@@ -123,7 +126,7 @@ const baseClasses = computed(() =>
 	<button
 		v-else
 		ref="el"
-		v-bind="forwarded"
+		v-bind="forwardedAttrs()"
 		:class="baseClasses"
 		:style="[speedStyle, attrs.style as StyleValue]"
 		:type="type"

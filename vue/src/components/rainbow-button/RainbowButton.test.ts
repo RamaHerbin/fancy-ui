@@ -1,5 +1,6 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/vue";
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { defineComponent, h, nextTick, ref } from "vue";
+import { afterEach,beforeEach, describe, it, expect, vi } from "vitest";
 import RainbowButton from "./RainbowButton.vue";
 import { sound } from "../../sound/index.js";
 
@@ -319,5 +320,41 @@ describe("RainbowButton default slot", () => {
 		cleanup();
 		render(RainbowButton, { props: { href: "#x" }, slots: { default: "Link" } });
 		expect(screen.getByRole("link").textContent).toBe("Link");
+	});
+});
+
+describe("RainbowButton forwarded attributes reactivity", () => {
+	afterEach(cleanup);
+
+	it.each([
+		["button", {}, "button"],
+		["anchor", { href: "/x" }, "link"],
+	] as const)("forwards attributes added after mount (%s branch)", async (_name, base, role) => {
+		// A parent toggling `v-bind` is what adds attributes after mount.
+		const on = ref(false);
+		const Parent = defineComponent({
+			setup: () => () =>
+				h(RainbowButton, { ...base, ...(on.value ? { "data-x": "1", "aria-label": "A" } : {}) }),
+		});
+		render(Parent);
+		const el = screen.getByRole(role);
+		expect(el).not.toHaveAttribute("data-x");
+		on.value = true;
+		await nextTick();
+		expect(el).toHaveAttribute("data-x", "1");
+		expect(el).toHaveAttribute("aria-label", "A");
+	});
+
+	it("drops a listener forwarded while enabled once disabled", async () => {
+		const onClickOnce = vi.fn();
+		const disabled = ref(false);
+		const Parent = defineComponent({
+			setup: () => () => h(RainbowButton, { disabled: disabled.value, onClickOnce }),
+		});
+		render(Parent);
+		disabled.value = true;
+		await nextTick();
+		await fireEvent.click(screen.getByRole("button"));
+		expect(onClickOnce).not.toHaveBeenCalled();
 	});
 });
