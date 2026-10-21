@@ -91,13 +91,14 @@ export const en = {
 	// Components gallery
 	"gallery.title": "Components",
 	"gallery.subtitle":
-		"{count} beautifully animated components for Svelte 5. Browse, search, and find what you need.",
+		"{count} beautifully animated components for Svelte 5, React and Vue. Browse, search, and find what you need.",
 	"gallery.intro":
-		"Every component is built natively for Svelte 5 with runes, styled with Tailwind CSS v4, typed with TypeScript, and ships with a live preview and copy-paste examples. Install the package once and own the code.",
+		"Components are available for Svelte 5, React and Vue, styled with Tailwind CSS v4 and typed with TypeScript. Every page has a live preview and copy-paste Svelte examples, with React and Vue usage where available. Install the package once and own the code.",
 	"gallery.filterPlaceholder": "Filter components...",
 	"gallery.all": "All",
 	"gallery.noMatch": "No components match your search.",
-	"gallery.meta": "{components} components · {categories} categories · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} components · {categories} categories · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} results",
 	"gallery.resultOne": "1 result",
 	"gallery.clearFilters": "Clear filters",
@@ -242,7 +243,7 @@ export const en = {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Prerequisites",
 	"install.prerequisites.body":
-		"FancyUI targets the current Svelte toolchain. Check these three before installing.",
+		"FancyUI targets current toolchains. Check these three before installing.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -254,7 +255,7 @@ export const en = {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Required by the SvelteKit and Vite versions FancyUI builds against.",
+		"Required by the current build tooling FancyUI is tested against.",
 	"install.steps.heading": "Install",
 	"install.steps.body":
 		"Pick your package manager, wire up the stylesheet, then render your first component.",
@@ -270,9 +271,9 @@ export const en = {
 	"install.tailwind.body":
 		"FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
 	"install.tailwind.order":
-		"Import order matters: Tailwind first, FancyUI second, so FancyUI's layers and custom properties resolve on top of the defaults.",
+		"Import order matters: Tailwind first, FancyUI second. Place the FancyUI import before your own @custom-variant dark, otherwise FancyUI's replaces yours.",
 	"install.tailwind.note":
-		"The stylesheet carries the design tokens every component reads: colors, radii and animation timings. Without it, components render unstyled.",
+		"The entry provides default colour tokens (background, primary, border and the rest) and a dark variant. Your own :root and .dark blocks override them: redefine the CSS variables and your values win.",
 	"install.usage.heading": "Usage",
 	"install.usage.body":
 		"Every component is a named export of the package root, so there are no per-component import paths to remember.",
@@ -304,7 +305,7 @@ export const en = {
 	"theming.lead":
 		"Every FancyUI component reads its colors, radii and timings from CSS custom properties in the OKLCh color space — override a token and the whole library follows.",
 	"theming.pill.oklch": "OKLCh color space",
-	"theming.pill.shadcn": "shadcn-svelte compatible",
+	"theming.pill.shadcn": "Standard token names",
 	"theming.pill.dark": "Dark mode",
 	"theming.pill.tokens": "Design tokens",
 	"theming.generator.body":
@@ -316,10 +317,10 @@ export const en = {
 	"theming.colors.heading": "Color system",
 	"theming.colors.body": "All colors use the OKLCh color space for perceptually uniform gradients:",
 	"theming.colors.note":
-		"Token names follow shadcn-svelte conventions, so an existing shadcn theme drops in unchanged.",
+		"Token names follow the widely used semantic convention (background, foreground, primary, …), so an existing theme with the same variable names drops in unchanged.",
 	"theming.dark.heading": "Dark mode",
 	"theming.dark.body":
-		"Dark mode is activated by the .dark class on a parent element. FancyUI overrides every token:",
+		"Dark mode follows the operating-system preference by default. Put the .dark class on <html> or any ancestor to force dark, or .light to force light; the dark: utilities and every token follow. To customise the dark values, override them under .dark:",
 	"theming.motion.heading": "Animation tokens",
 	"theming.motion.body": "Control animation timing globally:",
 	"theming.easing.heading": "Easing functions",
@@ -349,6 +350,29 @@ export const en = {
 	"retro.explorer": "Explorer",
 	"retro.start": "Start",
 	"retro.tagline": "Animated components for Svelte 5 — copy-paste friendly.",
+	"comp.snippetSvelteOnly":
+		"A full example for this framework is not written yet; only the Svelte version has one for now.",
+	"comp.copyMarkdownSvelte": "Copy as Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "The Markdown export describes the Svelte version only.",
+	"comp.apiNoticeReact":
+		"This API reference uses the Svelte names. In React, class becomes className, on* handlers are camelCase (onclick becomes onClick) and snippets become ReactNode props or render functions.",
+	"comp.apiNoticeVue":
+		"This API reference uses the Svelte names. In Vue, snippets become slots and bindable props become v-model:name.",
+	"comp.apiNoticeLink": "Differences from the Svelte API",
+	"install.lead.react":
+		"Add FancyUI to a React project in three steps: install the package, import the stylesheet, render a component.",
+	"install.lead.vue":
+		"Add FancyUI to a Vue project in three steps: install the package, import the stylesheet, render a component.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Supports React 18 and 19. Components ship as client modules, so Server Components can import them directly.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Components are Vue 3.5 single-file components, so Vue 3.5.2 or later is required.",
 } as const;
 export type Messages = typeof en;
 export type MessageKey = keyof Messages;

@@ -341,3 +341,45 @@ describe("mosaic-glow-core / engine timing invariants", () => {
 		expect(normalizeRadius(Number.NaN)).toBe(170);
 	});
 });
+
+describe("mosaic-glow-core / light layer hook", () => {
+	it("hands every painted frame's light field to onFrame", () => {
+		const onFrame = vi.fn();
+		mount({ idle: "none", flicker: false, onFrame });
+		frame(16);
+		expect(onFrame).toHaveBeenCalled();
+		const f = onFrame.mock.calls.at(-1)![0];
+		expect(f.cols).toBe(10);
+		expect(f.rows).toBe(6);
+		expect(f.heat).toHaveLength(60);
+		expect(f.width).toBe(200);
+		expect(f.height).toBe(120);
+		expect(f.pitch).toBe(20);
+		expect(f.halo.fade).toBe(0);
+	});
+
+	it("repaints once when a layer attaches to a settled mosaic, and detaches with null", () => {
+		const e = mount({ idle: "none", flicker: false });
+		frame(16);
+		expect(rafCallbacks.length).toBe(0);
+		const onFrame = vi.fn();
+		e.setOptions({ onFrame });
+		frame(32);
+		expect(onFrame).toHaveBeenCalledTimes(1);
+		e.setOptions({ onFrame: null });
+		frame(48);
+		expect(onFrame).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a throwing layer instead of stopping the mosaic", () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		const onFrame = vi.fn(() => {
+			throw new Error("gpu lost");
+		});
+		mount({ idle: "drift", flicker: false, onFrame });
+		frame(16);
+		frame(32);
+		expect(onFrame).toHaveBeenCalledTimes(1);
+		expect(rafCallbacks.length).toBe(1); // the drift loop keeps running
+	});
+});

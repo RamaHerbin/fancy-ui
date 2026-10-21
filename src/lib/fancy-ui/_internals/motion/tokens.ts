@@ -8,8 +8,9 @@
  * during SSR. It is also the ONLY place these numbers live as JS values:
  * every component that wants `--ft-ease-out` (or any other `--ft-*` var)
  * still has to type the identical literal into its own scoped `<style>` as
- * that CSS custom property's fallback (this repo ships no shared runtime
- * stylesheet — see `tailwind.css`, a 3-line `@source` stub). Nothing
+ * that CSS custom property's fallback (this repo ships no shared stylesheet
+ * for `--ft-*` motion vars; `tailwind.css` carries only colour tokens and the
+ * dark variant). Nothing
  * enforces that a component's CSS fallback matches the value here; this file
  * is the source of truth a component author copies FROM, not a value CSS
  * reads at runtime. Keep the two in sync by hand.

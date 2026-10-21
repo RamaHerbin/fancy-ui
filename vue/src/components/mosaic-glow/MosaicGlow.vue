@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { HTMLAttributes } from "vue";
 import type { MosaicGlowIdle } from "./mosaic-glow-core.js";
+import { startMosaicGlowHdr } from "./mosaic-glow-hdr.js";
 
 export type { MosaicGlowIdle };
 
@@ -48,11 +49,17 @@ export interface MosaicGlowProps {
 	interactive?: boolean;
 	/** Seed for the per-tile randomness — same seed, same mosaic */
 	seed?: number;
+	/**
+	 * On a display that reports HDR, add the light above SDR white in a WebGPU
+	 * layer with extended tone mapping: the hottest tiles peak around 1000
+	 * nits and the halo gets a hot core. Elsewhere the mosaic is unchanged.
+	 */
+	hdr?: boolean;
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import {
@@ -83,6 +90,7 @@ const {
 	idle = "drift",
 	interactive = true,
 	seed = 1,
+	hdr = true,
 } = defineProps<MosaicGlowProps>();
 
 // Clamped here as well as inside the engine: the watchers below depend on the
@@ -101,6 +109,10 @@ const attrs = useAttrs();
 const reducedMotion = useReducedMotion();
 const hostEl = useTemplateRef<HTMLDivElement>("host");
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+const hdrOn = ref(false);
+/** Set once the engine exists, so the HDR watcher can attach to it. */
+const engineReady = ref(false);
 /** Plain closure state on purpose: nothing rendered depends on the engine. */
 let engine: MosaicGlowEngine | null = null;
 let ro: ResizeObserver | undefined;
@@ -138,6 +150,7 @@ onMounted(() => {
 		}
 	);
 	if (!engine) return;
+	engineReady.value = true;
 
 	if (typeof ResizeObserver !== "undefined") {
 		// The engine ignores a resize that moved neither the box nor the pixel ratio.
@@ -159,6 +172,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	engine?.destroy();
 	engine = null;
+	engineReady.value = false;
 	ro?.disconnect();
 	ro = undefined;
 	io?.disconnect();
@@ -210,6 +224,36 @@ watch(
 	{ flush: "post" }
 );
 
+// HDR light: async WebGPU start; resolves to null off HDR displays.
+watch(
+	[hdrCanvas, engineReady],
+	([canvas, ready], _old, onCleanup) => {
+		if (!canvas || !ready) return;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		void startMosaicGlowHdr(canvas).then((light) => {
+			if (!light) return;
+			if (cancelled || !engine) {
+				light.destroy();
+				return;
+			}
+			const target = engine;
+			target.setOptions({ onFrame: (frame) => light.render(frame) });
+			hdrOn.value = true;
+			stop = () => {
+				target.setOptions({ onFrame: null });
+				light.destroy();
+				hdrOn.value = false;
+			};
+		});
+		onCleanup(() => {
+			cancelled = true;
+			stop?.();
+		});
+	},
+	{ flush: "post" }
+);
+
 // `v-bind="attrs"` precedes `:style` on purpose: Svelte's
 // `style:background-color` directive always beats a spread `style`, and
 // `mergeProps` lets later keys win, so the prop must come last. The key is
@@ -221,12 +265,20 @@ watch(
 	<div
 		ref="host"
 		:class="cn('mosaic-glow relative overflow-hidden', className)"
+		:data-hdr="hdrOn ? '' : undefined"
 		v-bind="attrs"
 		:style="{ 'background-color': background }"
 	>
 		<canvas
 			ref="canvas"
 			class="pointer-events-none absolute inset-0 block h-full w-full"
+			aria-hidden="true"
+		></canvas>
+		<!-- Light above SDR white, added over the 2D mosaic on HDR displays only. -->
+		<canvas
+			v-if="hdr"
+			ref="hdrCanvas"
+			class="mosaic-glow__hdr pointer-events-none absolute inset-0 block h-full w-full"
 			aria-hidden="true"
 		></canvas>
 		<div v-if="$slots.default" class="mosaic-glow__content relative z-[1] h-full w-full">
