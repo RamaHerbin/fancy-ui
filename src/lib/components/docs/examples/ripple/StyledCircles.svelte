@@ -2,7 +2,7 @@
 	import { Ripple } from "$lib/fancy-ui/ripple";
 </script>
 
-<div class="bg-card relative h-96 overflow-hidden rounded-lg border">
+<div class="bg-card relative h-96 w-full overflow-hidden rounded-lg border">
 	<Ripple
 		circleClass="border-primary/30 bg-primary/5"
 		numberOfCircles={5}
