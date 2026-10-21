@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
@@ -6,6 +6,12 @@ import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { createTickNavCore, TICK_NAV_DEFAULTS, TICK_NAV_FLAT_PATH } from "./tick-nav-core.js";
+import {
+	resolveCssColor,
+	startTickNavHdr,
+	tickNavLights,
+	TICK_NAV_HDR_PAD,
+} from "./tick-nav-hdr.js";
 import type { TickNavCore } from "./tick-nav-core.js";
 import type { TickNavItem } from "./types.js";
 import "./tick-nav.css";
@@ -26,6 +32,13 @@ export interface TickNavProps {
 	reach?: number;
 	/** Ruler ticks drawn between two rows. */
 	minorTicks?: number;
+	/**
+	 * Neon only: on a display that reports HDR, draw the light in a WebGPU
+	 * canvas with extended tone mapping, so the tubes run brighter than SDR
+	 * white and the beam peaks around 1000 nits. Elsewhere the CSS glow
+	 * stays on its own.
+	 */
+	hdr?: boolean;
 	/** Accessible name of the `<nav>` landmark. */
 	ariaLabel?: string;
 	/**
@@ -59,6 +72,7 @@ export function TickNav({
 	ariaLabel = "Navigation",
 	sound = false,
 	variant = "default",
+	hdr = true,
 	className,
 }: TickNavProps) {
 	// `value` mirrors the Svelte side's `$bindable()`: the prop seeds internal
@@ -74,7 +88,9 @@ export function TickNav({
 	const [list, listRef] = useElementRef<HTMLUListElement>();
 	/** Row under the pointer or keyboard focus; -1 when none. */
 	const [active, setActive] = useState(-1);
-	const coreRef = useRef<TickNavCore | null>(null);
+	const [core, setCore] = useState<TickNavCore | null>(null);
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	const [hdrOn, setHdrOn] = useState(false);
 
 	const reduced = useReducedMotion();
 
@@ -100,23 +116,65 @@ export function TickNav({
 				else soundFx.play("tick", { volume: 0.6 });
 			},
 		});
-		coreRef.current = instance;
+		setCore(instance);
 		return () => {
 			instance.destroy();
-			coreRef.current = null;
+			setCore(null);
 			setActive(-1);
 		};
 	}, [root, list, live]);
 
 	useEffect(() => {
-		coreRef.current?.update({ reach, current: currentIndex, reducedMotion: reduced });
-	}, [root, list, reach, currentIndex, reduced]);
+		core?.update({ reach, current: currentIndex, reducedMotion: reduced });
+	}, [core, reach, currentIndex, reduced]);
 
 	// Rows were added, removed or reordered: the core re-reads them after the DOM update.
 	const idKey = items.map((item) => item.id).join("\u0000");
 	useEffect(() => {
-		coreRef.current?.refresh();
-	}, [root, list, idKey]);
+		core?.refresh();
+	}, [core, idKey]);
+
+	// HDR light: async WebGPU start; resolves to null off HDR displays.
+	useEffect(() => {
+		if (!hdrCanvas || !core || !root) return;
+		const canvas = hdrCanvas;
+		const instance = core;
+		const host = root;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		void startTickNavHdr(canvas).then((light) => {
+			if (!light) return;
+			if (cancelled) {
+				light.destroy();
+				return;
+			}
+			const accent = resolveCssColor(getComputedStyle(canvas).color);
+			if (accent) light.setAccent(accent);
+			const size = () =>
+				light.resize(
+					host.offsetWidth + TICK_NAV_HDR_PAD * 2,
+					host.offsetHeight + TICK_NAV_HDR_PAD * 2
+				);
+			size();
+			const ro = new ResizeObserver(() => {
+				size();
+				instance.measure();
+			});
+			ro.observe(host);
+			instance.update({ onFrame: (lines) => light.render(tickNavLights(lines)) });
+			setHdrOn(true);
+			stop = () => {
+				ro.disconnect();
+				instance.update({ onFrame: undefined });
+				light.destroy();
+				setHdrOn(false);
+			};
+		});
+		return () => {
+			cancelled = true;
+			stop?.();
+		};
+	}, [hdrCanvas, core, root]);
 
 	function activate(item: TickNavItem, event: ReactMouseEvent): void {
 		if (item.disabled) {
@@ -134,7 +192,11 @@ export function TickNav({
 			aria-label={ariaLabel}
 			className={cn("tn-root", className)}
 			data-variant={variant === "neon" ? "neon" : undefined}
+			data-hdr={hdrOn ? "" : undefined}
 		>
+			{variant === "neon" && hdr ? (
+				<canvas ref={hdrCanvasRef} className="tn-hdr" aria-hidden="true" />
+			) : null}
 			<ul ref={listRef} className="tn-list">
 				{items.map((item, i) => {
 					const isCurrent = item.id === value;

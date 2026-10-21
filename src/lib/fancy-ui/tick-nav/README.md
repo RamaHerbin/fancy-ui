@@ -54,6 +54,16 @@ pointer.
   with stacked `drop-shadow`s scaled by proximity, labels get a text glow on
   hover, and the current line breathes. Built for dark surfaces; the Svelte
   selector on `data-plucking` is `:global` because only the core sets it.
+- **HDR light.** CSS and SVG colours stop at SDR white, so with `hdr` (on by
+  default) the neon variant also starts `tick-nav-hdr.ts`, a second shared
+  module: a WebGPU canvas (`rgba16float`, `display-p3`, `toneMapping:
+{ mode: "extended" }`) laid over the nav, drawing additive capsule lights from
+  the core's `onFrame` line state. Tubes stay at or under SDR white (1.0); the
+  spark on each pluck's head peaks at 4.9 (≈1000 nits against a 203-nit
+  reference white). It only starts when extended tone mapping sticks AND the
+  display reports `(dynamic-range: high)`; anywhere else nothing is created and
+  the CSS glow works alone. The root gets `data-hdr` while it runs. A failing
+  `onFrame` is dropped by the core rather than allowed to stop the motion.
 - **Sound.** With `sound`, every pluck from a mouse or pen plays a cue: `hover`
   for an item's line, `tick` at 60% for a ruler tick.
 

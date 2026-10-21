@@ -8149,6 +8149,13 @@ export const registry: Record<string, ComponentMeta> = {
 					"Neon turns the lines into glowing tubes: proximity raises the glow, a beam of light rides every pluck, labels glow on hover, and the current line breathes. Made for dark surfaces.",
 			},
 			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"Neon only: on a display that reports HDR, draws the light in a WebGPU canvas with extended tone mapping, so the tubes reach SDR white and the beam peaks around 1000 nits. Elsewhere the CSS glow carries the effect alone.",
+			},
+			{
 				name: "ariaLabel",
 				type: "string",
 				default: '"Navigation"',

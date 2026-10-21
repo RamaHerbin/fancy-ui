@@ -194,8 +194,8 @@
 	filter: drop-shadow(0 0 2px var(--tn-accent)) drop-shadow(0 0 8px var(--tn-accent));
 }
 
-/* `data-plucking` is set by the core. */
-svg[data-plucking] .tn-beam {
+/* `data-plucking` is set by the core, so Svelte cannot see it: :global. */
+svg:global([data-plucking]) .tn-beam {
 	/* Fades out over the last third of the run as the wave dies down. */
 	opacity: calc(min(1, (1 - var(--tn-p, 0)) * 3));
 }
@@ -235,6 +235,19 @@ svg[data-plucking] .tn-beam {
 	box-shadow:
 		0 0 0 1px color-mix(in oklab, var(--tn-accent) 20%, transparent),
 		0 0 24px -4px color-mix(in oklab, var(--tn-accent) 60%, transparent);
+}
+
+/* The HDR light layer: brighter-than-white glow, drawn over the lines.
+   Its `color` is only read to resolve the accent for the shader. */
+.tn-hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	z-index: 1;
+	pointer-events: none;
+	color: var(--tn-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {

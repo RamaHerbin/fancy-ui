@@ -20,6 +20,13 @@ export interface TickNavProps {
 	 * current line breathes. Made for dark surfaces.
 	 */
 	variant?: "default" | "neon";
+	/**
+	 * Neon only: on a display that reports HDR, draw the light in a WebGPU
+	 * canvas with extended tone mapping, so the tubes run brighter than SDR
+	 * white and the beam peaks around 1000 nits. Elsewhere the CSS glow
+	 * stays on its own.
+	 */
+	hdr?: boolean;
 	/** Accessible name of the `<nav>` landmark. */
 	ariaLabel?: string;
 	/**
@@ -34,7 +41,7 @@ export interface TickNavProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
@@ -44,6 +51,12 @@ import {
 	TICK_NAV_FLAT_PATH,
 	type TickNavCore,
 } from "./tick-nav-core.js";
+import {
+	resolveCssColor,
+	startTickNavHdr,
+	tickNavLights,
+	TICK_NAV_HDR_PAD,
+} from "./tick-nav-hdr.js";
 
 defineOptions({ name: "TickNav", inheritAttrs: false });
 
@@ -51,6 +64,7 @@ const props = withDefaults(defineProps<TickNavProps>(), {
 	reach: TICK_NAV_DEFAULTS.reach,
 	minorTicks: 2,
 	variant: "default",
+	hdr: true,
 	ariaLabel: "Navigation",
 	sound: false,
 });
@@ -70,7 +84,9 @@ const root = useTemplateRef<HTMLElement>("root");
 const list = useTemplateRef<HTMLUListElement>("list");
 /** Row under the pointer or keyboard focus; -1 when none. */
 const active = ref(-1);
-let core: TickNavCore | null = null;
+const core = shallowRef<TickNavCore | null>(null);
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+const hdrOn = ref(false);
 
 const reduced = useReducedMotion();
 
@@ -80,7 +96,7 @@ const activeItem = computed(() => (active.value >= 0 ? props.items[active.value]
 
 onMounted(() => {
 	if (!root.value || !list.value) return;
-	core = createTickNavCore(root.value, list.value, {
+	core.value = createTickNavCore(root.value, list.value, {
 		reach: props.reach,
 		current: currentIndex.value,
 		reducedMotion: reduced.value,
@@ -96,15 +112,15 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-	core?.destroy();
-	core = null;
+	core.value?.destroy();
+	core.value = null;
 	active.value = -1;
 });
 
 watch(
 	[() => props.reach, currentIndex, reduced],
 	() => {
-		core?.update({
+		core.value?.update({
 			reach: props.reach,
 			current: currentIndex.value,
 			reducedMotion: reduced.value,
@@ -116,7 +132,50 @@ watch(
 // Rows were added, removed or reordered: the core re-reads them after the DOM update.
 watch(
 	() => props.items.map((item) => item.id).join("\u0000"),
-	() => core?.refresh(),
+	() => core.value?.refresh(),
+	{ flush: "post" }
+);
+
+// HDR light: async WebGPU start; resolves to null off HDR displays.
+watch(
+	[hdrCanvas, core, root],
+	([canvas, instance, host], _old, onCleanup) => {
+		if (!canvas || !instance || !host) return;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		void startTickNavHdr(canvas).then((light) => {
+			if (!light) return;
+			if (cancelled) {
+				light.destroy();
+				return;
+			}
+			const accent = resolveCssColor(getComputedStyle(canvas).color);
+			if (accent) light.setAccent(accent);
+			const size = () =>
+				light.resize(
+					host.offsetWidth + TICK_NAV_HDR_PAD * 2,
+					host.offsetHeight + TICK_NAV_HDR_PAD * 2
+				);
+			size();
+			const ro = new ResizeObserver(() => {
+				size();
+				instance.measure();
+			});
+			ro.observe(host);
+			instance.update({ onFrame: (lines) => light.render(tickNavLights(lines)) });
+			hdrOn.value = true;
+			stop = () => {
+				ro.disconnect();
+				instance.update({ onFrame: undefined });
+				light.destroy();
+				hdrOn.value = false;
+			};
+		});
+		onCleanup(() => {
+			cancelled = true;
+			stop?.();
+		});
+	},
 	{ flush: "post" }
 );
 
@@ -137,7 +196,14 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 		:aria-label="ariaLabel"
 		:class="cn('tn-root', props.class)"
 		:data-variant="variant === 'neon' ? 'neon' : undefined"
+		:data-hdr="hdrOn ? '' : undefined"
 	>
+		<canvas
+			v-if="variant === 'neon' && hdr"
+			ref="hdrCanvas"
+			class="tn-hdr"
+			aria-hidden="true"
+		></canvas>
 		<ul ref="list" class="tn-list">
 			<li
 				v-for="(item, i) in items"
@@ -409,8 +475,8 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 	filter: drop-shadow(0 0 2px var(--tn-accent)) drop-shadow(0 0 8px var(--tn-accent));
 }
 
-/* `data-plucking` is set by the core at runtime. */
-svg[data-plucking] .tn-beam {
+/* `data-plucking` is set by the core, so Svelte cannot see it: :global. */
+svg:global([data-plucking]) .tn-beam {
 	/* Fades out over the last third of the run as the wave dies down. */
 	opacity: calc(min(1, (1 - var(--tn-p, 0)) * 3));
 }
@@ -450,6 +516,19 @@ svg[data-plucking] .tn-beam {
 	box-shadow:
 		0 0 0 1px color-mix(in oklab, var(--tn-accent) 20%, transparent),
 		0 0 24px -4px color-mix(in oklab, var(--tn-accent) 60%, transparent);
+}
+
+/* The HDR light layer: brighter-than-white glow, drawn over the lines.
+	   Its `color` is only read to resolve the accent for the shader. */
+.tn-hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	z-index: 1;
+	pointer-events: none;
+	color: var(--tn-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
