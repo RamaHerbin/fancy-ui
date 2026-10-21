@@ -248,6 +248,12 @@ describe("Drawer", () => {
 		expect(dialog()!.hasAttribute("aria-labelledby")).toBe(false);
 	});
 
+	it("puts the id prop on the panel, for a trigger's aria-controls", async () => {
+		render(Drawer, { props: { open: true, id: "settings-panel" } });
+		await nextTick();
+		expect(dialog()!.id).toBe("settings-panel");
+	});
+
 	it("falls back to aria-label for an accessible name when there is no title", async () => {
 		render(Drawer, { props: { open: true, ariaLabel: "Filters" } });
 		await nextTick();

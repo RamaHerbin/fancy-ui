@@ -5775,7 +5775,8 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "onclick",
 				type: "(event: MouseEvent) => void",
-				description: "Click handler, called right after the copy starts; never called while disabled",
+				description:
+					"Click handler, called right after the copy starts; never called while disabled",
 			},
 			{
 				name: "class",
@@ -6783,6 +6784,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Additional CSS classes merged onto the panel",
 			},
 			{
+				name: "id",
+				type: "string",
+				description:
+					"The panel's id, for the aria-controls of a trigger rendered outside the component",
+			},
+			{
 				name: "ref",
 				type: "HTMLDivElement | null",
 				default: "null",
@@ -6849,6 +6856,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes merged onto the panel",
+			},
+			{
+				name: "id",
+				type: "string",
+				description:
+					"The panel's id, for the aria-controls of a trigger rendered outside the component",
 			},
 			{
 				name: "ref",
@@ -8894,6 +8907,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "id",
+				type: "string",
+				description:
+					"The panel's id, for the aria-controls of a trigger rendered outside the component",
 			},
 			{
 				name: "ref",

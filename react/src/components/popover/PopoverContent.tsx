@@ -110,6 +110,10 @@ export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
 			outsideClick: ctx.dismissible,
 			exclude: () => [ctx.triggerRef],
 			active: ctx.open,
+			// Never modal: keep focus only through the press that dismisses (focus is
+			// back on the trigger). A non-dismissible popover leaves outside presses
+			// alone, so the page keeps text selection and blur while it holds focus.
+			keepFocus: ctx.dismissible,
 		});
 
 		// Convention C-2: composed ABOVE the conditional below. Calling this

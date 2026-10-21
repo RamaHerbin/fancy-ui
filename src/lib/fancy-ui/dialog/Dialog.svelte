@@ -97,6 +97,26 @@
 	const uid = $props.id();
 	const titleId = $derived(title ? `${uid}-title` : undefined);
 	const descriptionId = $derived(description ? `${uid}-description` : undefined);
+
+	// The wrapper above carries no semantics, so the disclosure state goes on
+	// what the caller rendered inside it — the real button a keyboard or
+	// screen-reader user lands on. Written imperatively because a snippet's
+	// root cannot be handed props from here. `aria-controls` only while the
+	// panel exists, so it never points at an id that is not in the document.
+	const panelId = `${uid}-panel`;
+	$effect(() => {
+		const el = triggerRef?.firstElementChild;
+		if (!el) return;
+		el.setAttribute("aria-haspopup", "dialog");
+		el.setAttribute("aria-expanded", String(open));
+		if (open) el.setAttribute("aria-controls", panelId);
+		else el.removeAttribute("aria-controls");
+		return () => {
+			el.removeAttribute("aria-haspopup");
+			el.removeAttribute("aria-expanded");
+			el.removeAttribute("aria-controls");
+		};
+	});
 </script>
 
 {#if trigger}
@@ -150,6 +170,7 @@
 
 <DialogSurface
 	{open}
+	id={panelId}
 	role="dialog"
 	{titleId}
 	{descriptionId}
