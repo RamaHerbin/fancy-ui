@@ -158,6 +158,10 @@ export * from "./navigation-menu/index.js";
 // Core — feedback
 export * from "./skeleton/index.js";
 
+// Core — data display
+export * from "./badge/index.js";
+export * from "./avatar/index.js";
+
 // Micro-interactions (share the `_internals/motion` foundation)
 export * from "./reveal/index.js";
 export * from "./presence/index.js";

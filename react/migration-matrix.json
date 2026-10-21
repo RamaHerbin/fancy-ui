@@ -5756,5 +5756,72 @@
 		"divergences": [],
 		"lastFailure": null,
 		"minors": []
+	},
+	{
+		"slug": "badge",
+		"sveltePath": "src/lib/fancy-ui/badge",
+		"reactPath": "react/src/components/badge",
+		"status": "ported",
+		"wave": "F3",
+		"tier": 1,
+		"group": "trivial",
+		"model": null,
+		"effort": "low",
+		"complexity": "css-trivial",
+		"deps": {
+			"internals": [],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["Badge"],
+		"loc": 70,
+		"testFiles": ["Badge.test.ts", "Badge.attrs.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null
+	},
+	{
+		"slug": "avatar",
+		"sveltePath": "src/lib/fancy-ui/avatar",
+		"reactPath": "react/src/components/avatar",
+		"status": "ported",
+		"wave": "F3",
+		"tier": 2,
+		"group": "stateful",
+		"model": null,
+		"effort": "medium",
+		"complexity": "stateful",
+		"deps": {
+			"internals": ["avatar-core"],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": ["img.complete"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["Avatar"],
+		"loc": 130,
+		"testFiles": [
+			"Avatar.test.ts",
+			"Avatar.attrs.test.ts",
+			"Avatar.ssr.test.ts",
+			"avatar-core.test.ts"
+		],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null
 	}
 ]

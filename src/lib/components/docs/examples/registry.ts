@@ -1583,6 +1583,32 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Wrapping mode: real content swaps in once loading is false.",
 		},
 	],
+	badge: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "The five variants, each with a visible word.",
+		},
+		{
+			name: "Sizes",
+			title: "Sizes",
+			description: "Compact and regular, beside the rows they describe.",
+		},
+	],
+	avatar: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"An image, then initials on a colour fixed by the name, in a few shapes and sizes.",
+		},
+		{
+			name: "Fallbacks",
+			title: "Fallbacks",
+			description:
+				"Initials per name, a broken image, no name at all, and a decorative avatar beside a visible name.",
+		},
+	],
 	"status-morph": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{

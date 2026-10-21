@@ -104,7 +104,7 @@ src/
   routes/routes.test.ts      each route is its screen, on the shared API
   lib/shell/                 navigation, theme toggle, screen header
   lib/screens/               the four screens, their copy, the loader and the undo pattern
-  lib/local/                 avatar, badge, card, empty and error states local to the app
+  lib/local/                 card, empty and error states local to the app (Avatar and Badge come from the package)
   lib/data/                  mock data, API, their tests
   lib/test/                  test doubles: the layout around a probe screen
   lib/strings.ts             interface copy

@@ -180,6 +180,11 @@
 		// way worth showing; BasicUsage binds the value, AsyncServer carries the
 		// fake server that makes the pending and error states reachable.
 		"follow-button",
+		// Core / data display. A propless Badge is an empty pill and a propless
+		// Avatar is a bare silhouette; BasicUsage supplies the labels, names and
+		// the image that make them read.
+		"badge",
+		"avatar",
 	]);
 </script>
 

@@ -23,6 +23,8 @@ export * from "./components/apple-card-carousel/index.js";
 export * from "./components/approval-card/index.js";
 export * from "./components/artifact-card/index.js";
 export * from "./components/autocomplete/index.js";
+export * from "./components/avatar/index.js";
+export * from "./components/badge/index.js";
 export * from "./components/bento-grid/index.js";
 export * from "./components/bg-falling-stars/index.js";
 export * from "./components/bg-stars/index.js";
