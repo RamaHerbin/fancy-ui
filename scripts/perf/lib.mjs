@@ -129,18 +129,49 @@ export function assertSmokePassed(name, result) {
 	}
 }
 
-/** A section counts as measured on a quiet machine below this load per core, for the worst of the 1-, 5- and 15-minute averages. */
+/** A section counts as measured on a quiet machine below this load per core, for the worse of the 1- and 5-minute averages. */
 export const QUIET_LOAD_PER_CORE = 0.5;
 
 /**
  * "quiet", "loaded", or "unrecorded" when the load or the core count was not
  * stored. `loads` is the [1, 5, 15] minute array (a single number is accepted
- * and read as the 1-minute value); the verdict uses the worst of them.
+ * and read as the 1-minute value). Only the 1- and 5-minute values count: the
+ * 15-minute window reaches back into the tool's own builds.
  */
 export function loadVerdict(loads, cores) {
-	const list = (Array.isArray(loads) ? loads : [loads]).filter((n) => n !== undefined);
+	const list = (Array.isArray(loads) ? loads : [loads]).slice(0, 2).filter((n) => n !== undefined);
 	if (!list.length || !list.every(Number.isFinite) || !Number.isFinite(cores)) return "unrecorded";
 	return Math.max(...list) < cores * QUIET_LOAD_PER_CORE ? "quiet" : "loaded";
+}
+
+/**
+ * Poll the 1-minute load average until it is under `threshold` per core, or
+ * until `timeoutMs` has passed. Everything that touches the machine is
+ * injectable so the tests run on a fake clock and a scripted loadavg.
+ * Resolves to { quiet, waitedMs, load1, polls }; when `quiet` is false the
+ * caller proceeds anyway and the section is labelled loaded.
+ */
+export async function waitForQuiet({
+	loadavg,
+	cores,
+	threshold = QUIET_LOAD_PER_CORE,
+	timeoutMs = 10 * 60 * 1000,
+	pollMs = 5000,
+	sleep,
+	now = Date.now,
+	log = () => {},
+}) {
+	const start = now();
+	let polls = 0;
+	for (;;) {
+		const load1 = loadavg()[0];
+		polls += 1;
+		const waitedMs = now() - start;
+		if (load1 / cores < threshold) return { quiet: true, waitedMs, load1, polls };
+		if (waitedMs >= timeoutMs) return { quiet: false, waitedMs, load1, polls };
+		log(`waiting for a quiet machine: 1-minute load ${load1.toFixed(2)} on ${cores} cores`);
+		await sleep(Math.min(pollMs, timeoutMs - waitedMs));
+	}
 }
 
 /** Append "(backfilled)" to a value that comes from a run record filled in after the fact. */
@@ -151,6 +182,12 @@ export function backfillMark(value, run) {
 /** The load of a group: the one it stored itself, else the one of its run record. */
 export function groupLoad(g) {
 	return g?.loadAvgAtEnd ?? g?.run?.loadAvgAtEnd;
+}
+
+/** quiet / loaded / unrecorded for a stored group: a quiet wait that timed out always means loaded. */
+export function groupVerdict(g) {
+	if (g?.run?.quietWait?.quiet === false) return "loaded";
+	return loadVerdict(groupLoad(g), g?.run?.cores);
 }
 
 /**
@@ -181,7 +218,7 @@ export function runRows({ sizes, imports, effects, lifecycle }) {
 			g?.run?.measuredCommit ? backfillMark(g.run.measuredCommit, g.run) : "unrecorded",
 			g?.run?.toolCommit ? backfillMark(g.run.toolCommit, g.run) : "unrecorded",
 			load ? load.map((n) => n.toFixed(1)).join(" / ") : "unrecorded",
-			loadVerdict(load, g?.run?.cores),
+			groupVerdict(g),
 		]);
 	};
 	if (sizes) row("sizes", sizes);
