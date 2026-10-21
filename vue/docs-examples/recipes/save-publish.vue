@@ -43,7 +43,7 @@ async function publish() {
 <template>
 	<Toaster />
 	<div class="flex flex-wrap items-center gap-4">
-		<Button :loading="saving" @click="publish">
+		<Button @click="publish">
 			Publish
 			<template #iconEnd>
 				<StatusMorph v-model:state="status" />

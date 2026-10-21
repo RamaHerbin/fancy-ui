@@ -33,14 +33,14 @@ export const recipesRegistry: readonly Recipe[] = [
 			"A button that shows work in progress, then a success mark only once the request has actually resolved, and a toast with a retry when it fails. Built from Button, StatusMorph and Toast.",
 		components: ["button", "status-morph", "toast"],
 		steps: [
-			"Give the Button `loading` while the request runs. It stays focusable and reads as busy rather than disabled, and a second activation is ignored.",
+			"Guard the handler so a second activation while the request runs is ignored, and leave the busy state to StatusMorph in the button's end slot. Setting the Button `loading` as well would draw two spinners at once.",
 			"Drive StatusMorph from the same status: `loading` while pending, `success` after the promise resolves, `error` after it rejects. Never set `success` before the request settles.",
 			"On failure, raise an `error` toast with a `Retry` action. The action does not close the toast by itself, so dismiss it from the handler and run the request again.",
 			"Let StatusMorph return to idle on its own (`resetAfter`); the button is ready for the next save without any extra state.",
 		],
 		pitfalls: [
 			"Showing success optimistically: if the request then fails, the interface has already told the user the work is saved.",
-			"Disabling the button while loading: it drops focus and hides the busy state from assistive technology. Use `loading`.",
+			"Disabling the button while loading: it drops focus and hides the busy state from assistive technology. Keep it enabled and guard the handler instead.",
 			"Leaving the error toast to time out: it carries the only way to retry, so it should stay until the user acts or closes it.",
 		],
 	},
@@ -59,6 +59,7 @@ export const recipesRegistry: readonly Recipe[] = [
 		pitfalls: [
 			"Committing only on `timeout`: closing the toast or deleting four more items would then silently cancel a deletion the user confirmed by moving on.",
 			"Committing on every reason including `action`: Undo would restore the item locally and still delete it on the server.",
+			"Mounting the Toaster per page: when it unmounts, pending timers are dropped without firing `onClose`, so a deletion still waiting on its undo window is never committed. Mount one Toaster at the app level.",
 			"Expecting hover to restart the clock: pausing keeps what was left, so hovering at 5.9 s of 6 s and leaving still gives the remaining 0.1 s, not a fresh window.",
 		],
 	},

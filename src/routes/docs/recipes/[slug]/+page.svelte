@@ -108,34 +108,41 @@
 
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="preview">{t("comp.preview")}</h2>
-		<div class="border-border overflow-hidden rounded-lg border">
-			<div class="border-border flex border-b px-1">
-				<button
-					type="button"
-					onclick={() => (tab = "preview")}
-					class="px-4 py-2.5 text-sm font-medium transition-colors {tab === 'preview'
-						? 'border-foreground text-foreground border-b-2'
-						: 'text-muted-foreground hover:text-foreground'}"
-				>
-					{t("comp.preview")}
-				</button>
-				<button
-					type="button"
-					onclick={() => (tab = "code")}
-					class="px-4 py-2.5 text-sm font-medium transition-colors {tab === 'code'
-						? 'border-foreground text-foreground border-b-2'
-						: 'text-muted-foreground hover:text-foreground'}"
-				>
-					{t("comp.code")}
-				</button>
-			</div>
-			<div class="p-6" hidden={tab !== "preview"}>
-				{#if Demo}
-					<Demo />
-				{/if}
-			</div>
-			<div hidden={tab !== "code"}>
-				<CodeBlock {code} {lang} active={tab === "code"} />
+		<!-- Not ComponentPreview: that one unmounts the demo off-tab, and a recipe demo has to stay mounted
+		     while the Code tab is open so pending toasts (an undo window, a retry) keep running. The retro
+		     skin hooks and the bounded code pane are kept to match it. -->
+		<div class="retro-window-shadow">
+			<div class="retro-window border-border overflow-hidden rounded-lg border">
+				<div class="retro-tabbar border-border flex border-b px-1">
+					<button
+						type="button"
+						onclick={() => (tab = "preview")}
+						class="px-4 py-2.5 text-sm font-medium transition-colors {tab === 'preview'
+							? 'border-foreground text-foreground border-b-2'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						{t("comp.preview")}
+					</button>
+					<button
+						type="button"
+						onclick={() => (tab = "code")}
+						class="px-4 py-2.5 text-sm font-medium transition-colors {tab === 'code'
+							? 'border-foreground text-foreground border-b-2'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						{t("comp.code")}
+					</button>
+				</div>
+				<div data-thumb-stage class="retro-stage p-6" hidden={tab !== "preview"}>
+					{#if Demo}
+						<Demo />
+					{/if}
+				</div>
+				<div hidden={tab !== "code"}>
+					<div class="max-h-[500px] overflow-auto">
+						<CodeBlock {code} {lang} active={tab === "code"} />
+					</div>
+				</div>
 			</div>
 		</div>
 	</section>

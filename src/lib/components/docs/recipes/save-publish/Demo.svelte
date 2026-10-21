@@ -41,7 +41,7 @@
 
 <Toaster />
 <div class="flex flex-wrap items-center gap-4">
-	<Button loading={status === "loading"} onclick={publish}>
+	<Button onclick={publish}>
 		Publish
 		{#snippet iconEnd()}
 			<StatusMorph bind:state={status} />

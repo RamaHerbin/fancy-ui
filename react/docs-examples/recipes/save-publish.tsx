@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, StatusMorph, Toaster, dismissToast, toast } from "fancy-ui-react";
 import type { StatusMorphState } from "fancy-ui-react";
 
@@ -12,12 +12,18 @@ function saveDraft(fail: boolean): Promise<void> {
 export function SavePublishExample() {
 	const [failNext, setFailNext] = useState(false);
 	const [status, setStatus] = useState<StatusMorphState>("idle");
+	// The Retry action outlives the render that created it, so anything it reads has to live in a
+	// ref: a closed-over `failNext` or `status` would be the value from the first click.
+	const failNextRef = useRef(failNext);
+	failNextRef.current = failNext;
+	const savingRef = useRef(false);
 
 	async function publish() {
-		if (status === "loading") return;
+		if (savingRef.current) return;
+		savingRef.current = true;
 		setStatus("loading");
 		try {
-			await saveDraft(failNext);
+			await saveDraft(failNextRef.current);
 			// Success is only ever shown once the request has resolved.
 			setStatus("success");
 		} catch {
@@ -34,6 +40,8 @@ export function SavePublishExample() {
 					},
 				},
 			});
+		} finally {
+			savingRef.current = false;
 		}
 	}
 
@@ -42,7 +50,6 @@ export function SavePublishExample() {
 			<Toaster />
 			<div className="flex flex-wrap items-center gap-4">
 				<Button
-					loading={status === "loading"}
 					onClick={publish}
 					iconEnd={<StatusMorph state={status} onStateChange={setStatus} />}
 				>
