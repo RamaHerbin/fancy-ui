@@ -88,14 +88,15 @@ function handleClick(event: MouseEvent) {
 <template>
 	<a
 		ref="el"
-		:href="disabled ? undefined : href"
-		:target="external ? '_blank' : undefined"
-		:rel="external ? 'noopener noreferrer' : undefined"
-		:aria-current="current ? 'page' : undefined"
-		:aria-disabled="disabled ? 'true' : undefined"
-		:tabindex="disabled ? -1 : undefined"
-		:class="classes"
 		@click="handleClick"
+		v-bind="$attrs"
+		:href="disabled ? undefined : href"
+		:target="external ? '_blank' : ($attrs.target as string | undefined)"
+		:rel="external ? 'noopener noreferrer' : ($attrs.rel as string | undefined)"
+		:aria-current="current ? 'page' : ($attrs['aria-current'] as 'page' | undefined)"
+		:aria-disabled="disabled ? 'true' : ($attrs['aria-disabled'] as 'true' | undefined)"
+		:tabindex="disabled ? -1 : ($attrs.tabindex as number | undefined)"
+		:class="classes"
 	>
 		<slot />
 		<span v-if="external" class="sr-only">{{ " " }}(opens in a new tab)</span>

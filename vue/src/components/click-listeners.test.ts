@@ -12,6 +12,7 @@ import IconButton from "./icon-button/IconButton.vue";
 import ChatMessageAction from "./chat-message/ChatMessageAction.vue";
 import FlipCard from "./flip-card/FlipCard.vue";
 import Compare from "./compare/Compare.vue";
+import { callListener } from "../internals/call-listener";
 
 afterEach(cleanup);
 
@@ -149,5 +150,48 @@ describe.each([
 		await fireEvent.click(target(container));
 		expect(inner).toHaveBeenCalledTimes(1);
 		expect(outer).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe("callListener with merged listeners", () => {
+	it("calls every function of a normal array once", () => {
+		const first = vi.fn();
+		const second = vi.fn();
+		const event = new MouseEvent("click");
+		callListener([first, second], event);
+		expect(first).toHaveBeenCalledWith(event);
+		expect(second).toHaveBeenCalledWith(event);
+	});
+
+	it("stops later functions once an earlier one calls stopImmediatePropagation", () => {
+		const first = vi.fn((e: Event) => e.stopImmediatePropagation());
+		const second = vi.fn();
+		const event = new MouseEvent("click");
+		const native = vi.spyOn(Event.prototype, "stopImmediatePropagation");
+		callListener([first, second], event);
+		expect(first).toHaveBeenCalledTimes(1);
+		expect(second).not.toHaveBeenCalled();
+		expect(native).toHaveBeenCalledTimes(1);
+		native.mockRestore();
+		expect(Object.prototype.hasOwnProperty.call(event, "stopImmediatePropagation")).toBe(false);
+	});
+
+	it("keeps single-function behaviour unchanged", () => {
+		const only = vi.fn((e: Event) => e.stopImmediatePropagation());
+		const event = new MouseEvent("click");
+		callListener(only, event);
+		expect(only).toHaveBeenCalledTimes(1);
+	});
+
+	it("a wrapper's @click that stops immediate propagation suppresses the parent's", async () => {
+		const inner = vi.fn((e: Event) => e.stopImmediatePropagation());
+		const outer = vi.fn();
+		const Wrapper = defineComponent({
+			setup: () => () => h(Button as never, { onClick: inner }),
+		});
+		const { container } = render(Wrapper, { attrs: { onClick: outer } });
+		await fireEvent.click(target(container));
+		expect(inner).toHaveBeenCalledTimes(1);
+		expect(outer).not.toHaveBeenCalled();
 	});
 });
