@@ -12,7 +12,7 @@
 		{ key: "gridGap", type: "range", label: "Grid Gap", min: 1, max: 20, step: 1 },
 	]}
 	initialValues={{
-		color: "#000000",
+		color: "#6366f1",
 		flickerChance: 0.3,
 		maxOpacity: 0.3,
 		squareSize: 4,

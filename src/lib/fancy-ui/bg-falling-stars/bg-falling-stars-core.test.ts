@@ -125,4 +125,44 @@ describe("createFallingStars", () => {
 		expect(engine).not.toBeNull();
 		expect(() => rafCallbacks[0]?.(0)).not.toThrow();
 	});
+
+	describe("currentColor default", () => {
+		it("draws with the canvas's computed text colour when no colour is given", () => {
+			const ctx = makeCtx();
+			const canvas = makeCanvas(ctx);
+			canvas.style.color = "rgb(1, 2, 3)";
+			document.body.append(canvas);
+			const engine = createFallingStars({ canvas }, { count: 1 });
+			expect(engine).not.toBeNull();
+			rafCallbacks.shift()?.(0);
+			expect(ctx.strokeStyleHistory[0]).toBe("rgba(1, 2, 3, 0.08)");
+			engine!.destroy();
+			canvas.remove();
+		});
+
+		it("re-resolves currentColor on every frame (theme switch)", () => {
+			const ctx = makeCtx();
+			const canvas = makeCanvas(ctx);
+			canvas.style.color = "rgb(0, 0, 0)";
+			document.body.append(canvas);
+			const engine = createFallingStars({ canvas }, { count: 1 });
+			rafCallbacks.shift()?.(0);
+			canvas.style.color = "rgb(255, 255, 255)";
+			ctx.strokeStyleHistory.length = 0;
+			rafCallbacks.shift()?.(16);
+			expect(ctx.strokeStyleHistory[0]).toBe("rgba(255, 255, 255, 0.08)");
+			engine!.destroy();
+			canvas.remove();
+		});
+
+		it("keeps an explicit hex colour", () => {
+			const ctx = makeCtx();
+			const canvas = makeCanvas(ctx);
+			canvas.style.color = "rgb(1, 2, 3)";
+			const engine = createFallingStars({ canvas }, { count: 1, color: "#F00" });
+			rafCallbacks.shift()?.(0);
+			expect(ctx.strokeStyleHistory[0]).toBe("rgba(255, 0, 0, 0.08)");
+			engine!.destroy();
+		});
+	});
 });

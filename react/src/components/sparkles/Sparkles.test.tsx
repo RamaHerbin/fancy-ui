@@ -245,6 +245,24 @@ describe("Sparkles", () => {
 		}
 	});
 
+	it('resolves particleColor="currentColor" from the inherited text colour', () => {
+		const harness = installHarness();
+		try {
+			render(
+				<div style={{ color: "rgb(18, 52, 86)" }}>
+					<Sparkles particleDensity={3} particleColor="currentColor" />
+				</div>
+			);
+			harness.step(1);
+			expect(harness.sparkles.length).toBe(3);
+			for (const sparkle of harness.sparkles) {
+				expect(sparkle.fill).toMatch(/^#123456[0-9a-f]{2}$/);
+			}
+		} finally {
+			harness.restore();
+		}
+	});
+
 	it("sizes every particle between minSize and maxSize", () => {
 		const harness = installHarness();
 		try {
