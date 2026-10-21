@@ -7,9 +7,13 @@ import {
 	generateLlmsTxt,
 	generateRegistryJson,
 	importNames,
+	markdownUrl,
 	primaryExample,
 	reactImportNames,
+	typeExports,
+	vueImportNames,
 } from "./llms.js";
+import { parseBarrelTypeExports, vueExportsBySlug } from "./barrels.js";
 
 const barrels = import.meta.glob("../fancy-ui/*/index.ts", { eager: true }) as Record<
 	string,
@@ -24,6 +28,29 @@ describe("llms.txt", () => {
 		for (const c of live) {
 			expect(txt).toContain(`(https://fancy-ui.rama.app/docs/components/${c.slug}.md)`);
 		}
+	});
+
+	it("lists the React and Vue Markdown pages of every ported component", () => {
+		for (const c of live) {
+			if (reactImportNames(c)) {
+				expect(txt).toContain(`https://fancy-ui.rama.app/docs/components/react/${c.slug}.md`);
+			}
+			if (vueImportNames(c)) {
+				expect(txt).toContain(`https://fancy-ui.rama.app/docs/components/vue/${c.slug}.md`);
+			}
+		}
+	});
+
+	it("states the container rule per cursor instead of mounting every cursor at layout level", () => {
+		expect(txt).not.toMatch(/mount them ONCE/i);
+		expect(txt).toMatch(/FluidCursor[^\n]*`contained`/);
+		expect(txt).toMatch(/ImageTrailCursor[^\n]*parent/);
+		expect(txt).toMatch(/SmoothCursor[^\n]*fixed/);
+	});
+
+	it("does not forbid the exported Props types", () => {
+		expect(txt).not.toMatch(/Do NOT import `XxxProps`/);
+		expect(txt).toContain("Types:");
 	});
 
 	it("points to the full reference, the JSON registry and the React package", () => {
@@ -81,6 +108,82 @@ describe("componentMarkdown", () => {
 	});
 });
 
+describe("componentMarkdown per framework", () => {
+	it("defaults to Svelte", () => {
+		const c = getComponent("compare")!;
+		expect(componentMarkdown(c)).toBe(componentMarkdown(c, "svelte"));
+	});
+
+	it("serves the React page with the React package, setup and docs example", () => {
+		const md = componentMarkdown(getComponent("rainbow-button")!, "react");
+		expect(md).toContain("`fancy-ui-react`");
+		expect(md).toContain("npm install fancy-ui-react");
+		expect(md).toContain('@import "fancy-ui-react/tailwind.css";');
+		expect(md).toContain("import { RainbowButton } from 'fancy-ui-react';");
+		expect(md).toContain("```tsx");
+		expect(md).toContain("RainbowButtonExample");
+		expect(md).not.toContain("fancy-ui-svelte");
+		expect(md).not.toContain("fancy-ui-vue");
+		expect(md).not.toContain("```svelte");
+	});
+
+	it("serves the Vue page with the Vue package, setup and docs example", () => {
+		const md = componentMarkdown(getComponent("rainbow-button")!, "vue");
+		expect(md).toContain("npm install fancy-ui-vue");
+		expect(md).toContain('@import "fancy-ui-vue/styles.css";');
+		expect(md).toContain("```vue");
+		expect(md).toContain('import { RainbowButton } from "fancy-ui-vue";');
+		expect(md).not.toContain("fancy-ui-svelte");
+		expect(md).not.toContain("fancy-ui-react");
+		expect(md).not.toContain("```svelte");
+	});
+
+	it("falls back to the import line and a note, never another framework's code", () => {
+		const c = getComponent("compare")!;
+		for (const fw of ["react", "vue"] as const) {
+			const md = componentMarkdown(c, fw);
+			expect(md).toContain(`from 'fancy-ui-${fw}'`);
+			expect(md).toContain("Svelte-only");
+			expect(md).toContain(markdownUrl(c));
+			expect(md).not.toContain("```svelte");
+			expect(md).not.toContain("## Examples");
+		}
+	});
+
+	it("lists the exported types of the framework's package", () => {
+		const c = getComponent("border-beam")!;
+		for (const fw of ["svelte", "react", "vue"] as const) {
+			expect(typeExports(c, fw)).toContain("BorderBeamProps");
+			expect(componentMarkdown(c, fw)).toMatch(/Types: .*`BorderBeamProps`/);
+		}
+	});
+
+	it("gives each framework its own Markdown URL", () => {
+		const c = getComponent("compare")!;
+		expect(markdownUrl(c)).toBe("https://fancy-ui.rama.app/docs/components/compare.md");
+		expect(markdownUrl(c, "react")).toBe(
+			"https://fancy-ui.rama.app/docs/components/react/compare.md"
+		);
+		expect(markdownUrl(c, "vue")).toBe("https://fancy-ui.rama.app/docs/components/vue/compare.md");
+	});
+});
+
+describe("parseBarrelTypeExports", () => {
+	it("reads type-only lists, inline type specifiers and declarations", () => {
+		expect(
+			parseBarrelTypeExports(
+				[
+					'export { A, type AProps } from "./A";',
+					'export type {\n\tB,\n\tBItem as Item,\n} from "./B";',
+					"export type Size = keyof typeof SIZES;",
+					"export interface Handle { x: number }",
+					"export type lower = string;",
+				].join("\n")
+			)
+		).toEqual(["AProps", "B", "Item", "Size", "Handle"]);
+	});
+});
+
 describe("reactImportNames", () => {
 	it("finds the React port's value exports and ignores type exports", () => {
 		expect(reactImportNames(getComponent("compare")!)).toEqual(["Compare"]);
@@ -106,5 +209,15 @@ describe("registry.json", () => {
 			expect(c.import.names.length).toBeGreaterThan(0);
 			expect(c.markdown).toBe(`${c.docs}.md`);
 		}
+	});
+
+	it("carries the Vue import next to the React one", () => {
+		const beam = json.components.find((c) => c.slug === "border-beam")!;
+		expect(beam.vue).toEqual({ package: "fancy-ui-vue", names: ["BorderBeam"] });
+		for (const c of json.components) {
+			if (!c.vue) continue;
+			for (const name of c.vue.names) expect(vueExportsBySlug.get(c.slug)).toContain(name);
+		}
+		expect(json.components.filter((c) => c.vue).length).toBeGreaterThan(100);
 	});
 });
