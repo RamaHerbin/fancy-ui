@@ -1,9 +1,29 @@
 <script lang="ts">
+	import { page } from "$app/stores";
+	import PageActions from "$lib/components/docs/PageActions.svelte";
+	import { sourcePathForRoute } from "$lib/docs/page-sources.js";
+	import { t } from "$lib/stores";
+
 	let { children } = $props();
+
+	const PAGE_KEYS = {
+		introduction: "page.introduction",
+		installation: "page.installation",
+		theming: "page.theming",
+		"theme-generator": "page.themeGenerator",
+		changelog: "page.changelog",
+	} as const;
+
+	const slug = $derived($page.url.pathname.split("/").filter(Boolean).at(-1) ?? "");
+	const name = $derived(slug in PAGE_KEYS ? t(PAGE_KEYS[slug as keyof typeof PAGE_KEYS]) : slug);
+	const sourcePath = $derived(sourcePathForRoute($page.url.pathname));
 </script>
 
 <article class="doc-prose max-w-none">
 	{@render children()}
+	<div class="border-border mt-12 border-t pt-4">
+		<PageActions {sourcePath} {name} />
+	</div>
 </article>
 
 <style>
