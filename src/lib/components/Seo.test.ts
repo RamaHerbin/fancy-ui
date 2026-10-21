@@ -24,6 +24,12 @@ describe("Seo", () => {
 		expect(meta('meta[property="og:locale"]')?.getAttribute("content")).toBe("fr_FR");
 	});
 
+	it("og:locale stays en_US outside /docs even with another locale", () => {
+		setLocale("fr");
+		render(Seo, { props: { ...props, path: "/" } });
+		expect(meta('meta[property="og:locale"]')?.getAttribute("content")).toBe("en_US");
+	});
+
 	it("maps script-tagged locale codes", () => {
 		setLocale("zh-Hans");
 		render(Seo, { props });

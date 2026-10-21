@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import ErrorBody from "./ErrorBody.svelte";
 import source from "./ErrorBody.svelte?raw";
 import { newIssueUrl } from "$lib/site.js";
+import { setLocale } from "$lib/stores/locale.svelte.js";
 
 describe("ErrorBody", () => {
 	afterEach(cleanup);
@@ -57,8 +58,36 @@ describe("ErrorBody", () => {
 		expect(b.queryByRole("button", { name: "Search the docs" })).toBeNull();
 	});
 
+	it("carries lang and dir of the active locale on its root", () => {
+		setLocale("ar");
+		const a = render(ErrorBody, { props: { status: 404, url: "/x" } });
+		const root = a.container.querySelector<HTMLElement>("[data-error-variant]")!;
+		expect(root.getAttribute("lang")).toBe("ar");
+		expect(root.getAttribute("dir")).toBe("rtl");
+		cleanup();
+		setLocale("en");
+		const b = render(ErrorBody, { props: { status: 404, url: "/x" } });
+		const rootEn = b.container.querySelector<HTMLElement>("[data-error-variant]")!;
+		expect(rootEn.getAttribute("lang")).toBe("en");
+		expect(rootEn.getAttribute("dir")).toBe("ltr");
+	});
+
+	it("sets action colours in an unlayered scoped style so skin link rules cannot override them", () => {
+		expect(source).toMatch(/<style>[\s\S]*\.err-action[\s\S]*color:/);
+		const { container } = render(ErrorBody, { props: { status: 404, url: "/x" } });
+		for (const a of container.querySelectorAll(
+			"a[href='/'], a[href='/docs/components'], a[data-report]"
+		))
+			expect(a.className).toMatch(/err-/);
+	});
+
+	it("flags the report link as opening a new tab for screen readers", () => {
+		const { container } = render(ErrorBody, { props: { status: 404, url: "/x" } });
+		expect(container.querySelector("a[data-report] .sr-only")).toBeTruthy();
+	});
+
 	it("uses theme tokens and no violet literals", () => {
 		expect(source).not.toMatch(/#7c3aed|#a78bfa|124,\s*58,\s*237|violet|purple/i);
-		expect(source).toContain("--color-");
+		expect(source).toMatch(/var\(--(foreground|background|border)\)/);
 	});
 });

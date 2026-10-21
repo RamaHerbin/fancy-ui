@@ -49,8 +49,11 @@
 		noindex = false,
 	}: Props = $props();
 
-	// UX-only i18n: the locale is a reader preference, so there is no hreflang.
-	const locale = $derived(ogLocale(getLocale()));
+	// UX-only i18n: the locale is a reader preference, so there is no hreflang,
+	// and it only localizes /docs; every other page's content is English.
+	const locale = $derived(
+		path === "/docs" || path.startsWith("/docs/") ? ogLocale(getLocale()) : ogLocale("en")
+	);
 	const url = $derived(absoluteUrl(path));
 	const imageUrl = $derived(absoluteUrl(image));
 	const alt = $derived(imageAlt ?? `Social card for ${title}`);

@@ -14,6 +14,41 @@ test.describe("Error pages", () => {
 		await expect(page.getByPlaceholder(/search/i).first()).toBeVisible();
 	});
 
+	test("an unmatched /docs/* URL also keeps the docs chrome", async ({ page }) => {
+		for (const path of ["/docs/getting-started/nope", "/docs/nope"]) {
+			const res = await page.goto(path);
+			expect(res?.status()).toBe(404);
+			await page.waitForLoadState("networkidle");
+			await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
+			await expect(page.locator("aside a[href='/docs/components']").first()).toBeAttached();
+		}
+	});
+
+	test("the brutal skin does not recolour the action links", async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem("fancy-ui-skin", "brutal"));
+		await page.goto("/docs/getting-started/nope");
+		await page.waitForLoadState("networkidle");
+		const color = (name: string, role: "link" | "button") =>
+			page
+				.getByRole(role, { name })
+				.first()
+				.evaluate((el) => getComputedStyle(el).color);
+		const blue = await page.evaluate(() => {
+			const probe = document.createElement("i");
+			probe.style.color = "var(--skin-blue)";
+			document.querySelector(".docs-skin")!.appendChild(probe);
+			const c = getComputedStyle(probe).color;
+			probe.remove();
+			return c;
+		});
+		const browse = await color("Browse components", "link");
+		const search = await color("Search the docs", "button");
+		expect(browse).toBe(search);
+		expect(browse).not.toBe(blue);
+		expect(await color("Back to home", "link")).not.toBe(blue);
+		expect(await color("Report a broken link", "link")).not.toBe(blue);
+	});
+
 	test("a root 404 renders the shared body without docs chrome", async ({ page }) => {
 		const res = await page.goto("/nope");
 		expect(res?.status()).toBe(404);
