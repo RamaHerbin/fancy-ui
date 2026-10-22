@@ -13,10 +13,10 @@ npx sv add fancy-ui-sv
 Without prompts, for scripts and CI:
 
 ```bash
-npx sv add fancy-ui-sv="demo:yes" --no-git-check --install npm
+npx sv add fancy-ui-sv="demo:yes" --no-git-check --no-download-check --install npm
 ```
 
-Like every community add-on, sv first warns that the Svelte maintainers have not reviewed it; `--no-download-check` skips that prompt.
+Like every community add-on, sv first warns that the Svelte maintainers have not reviewed it; `--no-download-check` skips that warning.
 
 ### Options
 
@@ -39,6 +39,8 @@ fancy-ui-svelte needs Tailwind CSS v4.
 - **Tailwind v4 already set up** (a CSS file imports `tailwindcss`): only the line above is added.
 - **No Tailwind**, or Tailwind declared but imported by no CSS file: the add-on depends on sv's official `tailwindcss` add-on, which sv runs first: it adds `tailwindcss` and `@tailwindcss/vite`, the Vite plugin, the stylesheet and its import in the root layout (or `App.svelte`), plus its editor settings in `.vscode/`. It asks which Tailwind plugins you want; answer up front with `tailwindcss="plugins:none"` for a prompt-free run.
 - **Tailwind v3**: the add-on stops with a message. Upgrade to v4 first.
+- **Tailwind imported with `prefix(...)`**: the add-on stops with a message, since the components use unprefixed utilities and would render unstyled.
+- **A CSS file that does not parse** (an `@import` without its `;`, an unclosed rule) is skipped and named in the next steps; it never stops the run. If it mentions `tailwindcss`, the add-on does not set Tailwind up again.
 
 Do not pass `tailwindcss` yourself when Tailwind is already set up: the official add-on would then run on your stylesheet too, and it adds its own `@import 'tailwindcss'` whenever the existing one is written differently (double quotes, for instance).
 
@@ -48,7 +50,7 @@ Safe. Every change is checked first: the dependency is skipped when declared, th
 
 ## Removing it
 
-Remove `fancy-ui-svelte` from `package.json`, the `@import "fancy-ui-svelte/tailwind.css";` line, and the demo (`src/routes/demo/fancy-ui/`, its entry in `src/routes/demo/DemoLinks.svelte`, or `src/lib/fancy-ui-demo/`).
+Remove `fancy-ui-svelte` from `package.json`, the `@import "fancy-ui-svelte/tailwind.css";` line, and the demo. SvelteKit: `src/routes/demo/fancy-ui/` and its entry in `src/routes/demo/DemoLinks.svelte`; if no other add-on demo is left, also `DemoLinks.svelte` itself and, in `src/routes/+layout.svelte`, the `import DemoLinks from './demo/DemoLinks.svelte'` line and the `<DemoLinks />` tag. Vite: `src/lib/fancy-ui-demo/`.
 
 ## Testing a local build
 

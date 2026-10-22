@@ -124,6 +124,17 @@ describe("existing installs are respected", () => {
 		expect(result.installNeeded).toBe(false);
 	});
 
+	it("an unparsable CSS file is skipped by sv add, the entry still wired", async () => {
+		const cwd = project("kit-ts");
+		await add({ cwd, addons: { tailwindcss: tailwind }, options: opts(false) });
+		fs.mkdirSync(path.join(cwd, "src/styles"));
+		fs.writeFileSync(path.join(cwd, "src/styles/broken.css"), `.a { color: red;`);
+		const result = await add({ cwd, addons: fancy, options: opts(false) });
+		expect(result.status).toEqual({ "fancy-ui": "success" });
+		expect(read(cwd, "src/routes/layout.css")).toContain("fancy-ui-svelte/tailwind.css");
+		expect(read(cwd, "src/styles/broken.css")).toBe(`.a { color: red;`);
+	});
+
 	it("CSS imported from another file than the default stylesheet: that file is edited, once", async () => {
 		const cwd = project("vite-ts");
 		await add({ cwd, addons: { tailwindcss: tailwind }, options: opts(false) });
@@ -156,12 +167,47 @@ describe("setup", () => {
 
 	it("refuses Svelte 4 and Tailwind v3", async () => {
 		const cwd = fs.mkdtempSync(path.join(root, "setup-"));
-		expect((await setup(cwd, { svelte: "4.2.0", tailwindcss: "4.1.0" })).unsupported).toHaveLength(
-			1
-		);
+		const v4 = await setup(cwd, { svelte: "4.2.0", tailwindcss: "4.1.0" });
+		expect(v4.unsupported).toHaveLength(1);
+		expect(v4.dependsOn).toEqual([]);
 		const v3 = await setup(cwd, { svelte: "5.40.0", tailwindcss: "3.4.0" });
 		expect(v3.unsupported[0]).toMatch(/Tailwind CSS v4/);
 		expect(v3.dependsOn).toEqual([]);
+	});
+
+	it("an unreadable major (catalog:, workspace:*, latest) does not add a second Tailwind", async () => {
+		const cwd = fs.mkdtempSync(path.join(root, "setup-"));
+		fs.mkdirSync(path.join(cwd, "src"));
+		fs.writeFileSync(path.join(cwd, "src/app.css"), `@import "tailwindcss";`);
+		for (const range of ["catalog:", "workspace:*", "latest", undefined]) {
+			const deps: Record<string, string> = { svelte: "5.40.0" };
+			if (range) deps.tailwindcss = range;
+			expect(await setup(cwd, deps)).toEqual({ unsupported: [], dependsOn: [] });
+		}
+	});
+
+	it("refuses a prefixed Tailwind import", async () => {
+		const cwd = fs.mkdtempSync(path.join(root, "setup-"));
+		fs.mkdirSync(path.join(cwd, "src"));
+		fs.writeFileSync(path.join(cwd, "src/app.css"), `@import "tailwindcss" prefix(tw);`);
+		const calls = await setup(cwd, { svelte: "5.40.0", tailwindcss: "4.1.0" });
+		expect(calls.unsupported[0]).toMatch(/prefix\(tw\) in src\/app\.css/);
+		expect(calls.dependsOn).toEqual([]);
+	});
+
+	it("a CSS file that does not parse does not crash setup", async () => {
+		const cwd = fs.mkdtempSync(path.join(root, "setup-"));
+		fs.mkdirSync(path.join(cwd, "src/odd"), { recursive: true });
+		fs.writeFileSync(path.join(cwd, "src/app.css"), `@import "tailwindcss";`);
+		fs.writeFileSync(path.join(cwd, "src/odd/broken.css"), `.a { color: red;`);
+		expect(await setup(cwd, { svelte: "5.40.0", tailwindcss: "4.1.0" })).toEqual({
+			unsupported: [],
+			dependsOn: [],
+		});
+		// the unparsable file may be the Tailwind entry: no second Tailwind either
+		fs.rmSync(path.join(cwd, "src/app.css"));
+		fs.writeFileSync(path.join(cwd, "src/odd/broken.css"), `@import "tailwindcss"`);
+		expect((await setup(cwd, { svelte: "5.40.0", tailwindcss: "4.1.0" })).dependsOn).toEqual([]);
 	});
 
 	it("depends on tailwindcss when it is declared but imported by no CSS file", async () => {

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { hasFancyImport, hasTailwindImport } from "./css.js";
+import { hasFancyImport, hasTailwindImport, parseCssImports, tailwindPrefix } from "./css.js";
 
 /**
  * The project's CSS files, the stylesheet sv knows about first, then `src/**\/*.css`
@@ -34,13 +34,33 @@ function read(cwd: string, file: string): string {
 	}
 }
 
-type CssPlan = { target: string | null; alreadyWired: string | null };
+export type CssPlan = {
+	/** File that gets the import, null when one already has it or none imports Tailwind. */
+	target: string | null;
+	/** File that already imports fancy-ui-svelte/tailwind.css. */
+	alreadyWired: string | null;
+	/** Files that do not parse as CSS: skipped, reported in the next steps. */
+	unparsable: string[];
+	/** `prefix(...)` found on a Tailwind import (unsupported), with its file. */
+	prefixed: { file: string; prefix: string } | null;
+};
 
 /** Which file gets the import: none if one already has it, else the first that imports Tailwind. */
 export function planCss(cwd: string, stylesheet: string, src = "src"): CssPlan {
 	const files = cssCandidates(cwd, stylesheet, src).map((f) => ({ f, content: read(cwd, f) }));
+	const unparsable = files
+		.filter(({ content }) => parseCssImports(content) === null)
+		.map((x) => x.f);
+	let prefixed: CssPlan["prefixed"] = null;
+	for (const { f, content } of files) {
+		const prefix = tailwindPrefix(content);
+		if (prefix !== null) {
+			prefixed = { file: f, prefix };
+			break;
+		}
+	}
 	const wired = files.find(({ content }) => hasFancyImport(content));
-	if (wired) return { target: null, alreadyWired: wired.f };
+	if (wired) return { target: null, alreadyWired: wired.f, unparsable, prefixed };
 	const tw = files.find(({ content }) => hasTailwindImport(content));
-	return { target: tw?.f ?? null, alreadyWired: null };
+	return { target: tw?.f ?? null, alreadyWired: null, unparsable, prefixed };
 }

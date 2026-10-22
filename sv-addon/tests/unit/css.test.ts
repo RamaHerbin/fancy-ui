@@ -5,6 +5,8 @@ import {
 	hasFancyImport,
 	hasTailwindImport,
 	importSpecifier,
+	parseCssImports,
+	tailwindPrefix,
 } from "../../src/css";
 
 const twice = (css: string) => {
@@ -102,5 +104,38 @@ describe("addFancyImport", () => {
 		expect(hasTailwindImport(`@import "tw-animate-css";`)).toBe(false);
 		expect(hasFancyImport(`@import "${FANCY_CSS}";`)).toBe(true);
 		expect(hasFancyImport(`@import "fancy-ui-react/tailwind.css";`)).toBe(false);
+	});
+
+	it("a comment on the tailwind import's line stays on that line", () => {
+		expect(twice(`@import "tailwindcss"; /* v4 */\nbody {}\n`)).toBe(
+			`@import "tailwindcss"; /* v4 */\n@import "${FANCY_CSS}";\nbody {}\n`
+		);
+		expect(twice(`@import 'tailwindcss'; /* a */ /* b */`)).toBe(
+			`@import 'tailwindcss'; /* a */ /* b */\n@import '${FANCY_CSS}';`
+		);
+		// a rule after the import on the same line is not moved behind the new import
+		expect(twice(`@import "tailwindcss"; body {}`)).toBe(
+			`@import "tailwindcss";\n@import "${FANCY_CSS}"; body {}`
+		);
+	});
+
+	it("CSS that does not parse is reported as such and never throws", () => {
+		for (const broken of [
+			`@import "tailwindcss"`,
+			`body { color: red;`,
+			`@import "tailwindcss";\n.a {`,
+		]) {
+			expect(parseCssImports(broken)).toBeNull();
+			expect(addFancyImport(broken)).toBe(false);
+			expect(hasTailwindImport(broken)).toBe(false);
+			expect(tailwindPrefix(broken)).toBeNull();
+		}
+	});
+
+	it("tailwindPrefix", () => {
+		expect(tailwindPrefix(`@import "tailwindcss" prefix(tw);`)).toBe("tw");
+		expect(tailwindPrefix(`@import "tailwindcss" layer(x) prefix( ui );`)).toBe("ui");
+		expect(tailwindPrefix(`@import "tailwindcss";`)).toBeNull();
+		expect(tailwindPrefix(`@import "./prefix(tw).css";`)).toBeNull();
 	});
 });
