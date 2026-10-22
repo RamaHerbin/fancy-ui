@@ -8,3 +8,6 @@ nuxt/playground/.output/
 nuxt/test/fixtures/**/.nuxt/
 nuxt/test/fixtures/**/.output/
 nuxt/test/fixtures/**/node_modules/
+
+# Vendored JSON Schemas: kept byte-identical to the published files.
+scripts/registry-schemas/

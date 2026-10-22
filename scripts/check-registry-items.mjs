@@ -447,7 +447,10 @@ export function findProblems(snap) {
 				problems.push(`${where}: excluded file shipped: ${file.path}`);
 			}
 			const content = typeof file.content === "string" ? file.content : "";
-			for (const spec of allSpecifiers(content)) {
+			const cssImports = [...content.matchAll(/@import\s+(?:url\(\s*)?["']([^"']+)["']/g)].map(
+				(m) => m[1]
+			);
+			for (const spec of [...allSpecifiers(content), ...cssImports]) {
 				if (OWN_PACKAGE.test(spec)) {
 					problems.push(`${where}: ${file.path} imports the npm package ${spec}`);
 				}
@@ -732,6 +735,11 @@ function reactCases() {
 			"npm self-import (subpath, dynamic)",
 			(s) => (s.items.button.files[1].content = 'const m = import("fancy-ui-cameleon/skins");\n'),
 			"imports the npm package fancy-ui-cameleon/skins",
+		],
+		[
+			"npm self-import (CSS @import)",
+			(s) => (s.items.button.files[2].content = '@import "fancy-ui-react/styles.css";\n.b{}\n'),
+			"imports the npm package fancy-ui-react/styles.css",
 		],
 		["provenance: clean when stamped", (s) => stamp(s), null],
 		[

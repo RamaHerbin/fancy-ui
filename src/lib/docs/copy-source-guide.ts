@@ -21,6 +21,7 @@ import {
 	copyImportFor,
 	type CopyFramework,
 } from "$lib/copy-source.js";
+import { license } from "../../../package.json";
 
 export type GuideBlock =
 	| { kind: "p"; text: string }
@@ -107,7 +108,7 @@ export const COPY_SOURCE_SECTIONS: readonly GuideSection[] = [
 			vue: [
 				code("bash", init(COPY_CLI_VUE)),
 				p(
-					"Vite or Nuxt with the `@/` path alias. In Nuxt, keep the copied tree out of component auto-import:"
+					"Vite or Nuxt with the `@/` path alias. Keep the default `ui` alias, `@/components/ui`: the Vue CLI places the files by their path, and with a custom alias such as `@/shared/ui` it nests them under `<alias>/ui/fancy/`. In Nuxt, keep the copied tree out of component auto-import:"
 				),
 				code("ts", 'components: { dirs: [{ path: "~/components", ignore: ["ui/fancy/**"] }] }'),
 			],
@@ -135,7 +136,7 @@ export const COPY_SOURCE_SECTIONS: readonly GuideSection[] = [
 			vue: [
 				code("bash", copyCommandFor(EXAMPLE, "vue")),
 				p(
-					"Files land in `fancy/components/<slug>/` under the default `components/ui` directory. Import from there:"
+					"Files land in `fancy/components/<slug>/` under the default `components/ui` directory (a custom `ui` alias nests them under `<alias>/ui/fancy/`). Import from there:"
 				),
 				code("ts", copyImportFor(EXAMPLE, ["RainbowButton"], "vue")),
 			],
@@ -206,5 +207,4 @@ export const EXCLUSIONS_INTRO =
 	"The registries ship component code only. These stay out, per framework (paths relative to each package's source tree):";
 
 export const INDEXES_TITLE = "Registry indexes";
-export const INDEXES_INTRO =
-	"Each registry lists every item it serves. The files follow the JSON Schemas the CLIs publish, and every item names its author and MIT licence.";
+export const INDEXES_INTRO = `Each registry lists every item it serves. The files follow the JSON Schemas the CLIs publish, and every item names its author and ${license} licence.`;

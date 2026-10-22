@@ -381,7 +381,7 @@ describe("buildRegistry provenance and guards", () => {
 			license: "MIT",
 			package: "fancy-ui-react",
 			version: "1.2.3",
-			source: `${SITE}/docs/components/alpha`,
+			source: `${SITE}/docs/components/alpha?framework=react`,
 		});
 		// Shared items have no docs page.
 		expect(out.items.utils.meta).toEqual({

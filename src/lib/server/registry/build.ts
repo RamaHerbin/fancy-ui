@@ -229,7 +229,9 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 							package: provenance.package,
 							version: provenance.version,
 							...(meta
-								? { source: `${input.siteUrl.replace(/\/+$/, "")}/docs/components/${name}` }
+								? {
+										source: `${input.siteUrl.replace(/\/+$/, "")}/docs/components/${name}${stack.id === "svelte" ? "" : `?framework=${stack.id}`}`,
+									}
 								: {}),
 						},
 					}
