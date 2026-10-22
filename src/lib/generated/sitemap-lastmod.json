@@ -1,14 +1,14 @@
 {
 	"static": {
 		"/": "2026-10-22",
-		"/docs/components": "2026-10-21",
+		"/docs/components": "2026-10-22",
 		"/docs/recipes": "2026-10-21",
 		"/inspiration": "2026-10-21",
-		"/docs/getting-started/introduction": "2026-10-21",
+		"/docs/getting-started/introduction": "2026-10-22",
 		"/docs/getting-started/installation": "2026-10-21",
 		"/docs/getting-started/theming": "2026-10-21",
 		"/docs/getting-started/theme-generator": "2026-10-21",
-		"/docs/getting-started/changelog": "2026-10-21"
+		"/docs/getting-started/changelog": "2026-10-22"
 	},
 	"components": {
 		"accordion": "2026-10-22",

@@ -1,6 +1,6 @@
 {
 	"name": "fancy-ui-vue",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Animated UI components for Vue — the Vue counterpart of fancy-ui-svelte. WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"license": "MIT",
 	"author": "Rama Herbin",
