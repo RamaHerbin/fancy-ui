@@ -2,185 +2,401 @@
 import type { HTMLAttributes } from "vue";
 
 export interface TracingBeamProps {
-	/** Additional CSS classes */
+	/** Additional CSS classes for the outer wrapper */
 	class?: HTMLAttributes["class"];
+	/**
+	 * Colour of the lamp, its trail and the lit markers. Any CSS colour.
+	 * Unset, it follows the theme's `--primary` token and falls back to a
+	 * soft violet when no theme is present. Also settable from CSS via
+	 * `--tracing-beam-accent`.
+	 */
+	accent?: string;
+	/**
+	 * Where the reader's eye is assumed to be, as a fraction of the viewport
+	 * height from the top. The lamp sits on that line, clamped to the content.
+	 */
+	readingLine?: number;
+	/**
+	 * Draw a marker on the rail for every heading (`h1`–`h4`) inside the
+	 * content — or, when there is none, for every direct child. Markers light
+	 * up as the lamp passes them.
+	 */
+	markers?: boolean;
 }
 
-function mapRange(
-	value: number,
-	inMin: number,
-	inMax: number,
-	outMin: number,
-	outMax: number
-): number {
-	return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
-}
+/** Spring that carries the lamp: stiff enough to feel attached, loose enough to trail. */
+const TENSION = 120;
+const FRICTION = 22;
+/** Settle threshold, in px and px/s. */
+const PRECISION = 0.05;
+/** Longest frame the spring integrates (a tab coming back is not a 2 s step). */
+const MAX_DT = 1 / 30;
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
-
-import { useFancyId } from "../../internals/use-id.js";
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { rafThrottle } from "../../internals/motion/raf.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 
 defineOptions({ name: "TracingBeam", inheritAttrs: false });
 
-const { class: className = "" } = defineProps<TracingBeamProps>();
+const {
+	class: className = "",
+	accent,
+	readingLine = 0.38,
+	markers = true,
+} = defineProps<TracingBeamProps>();
 
-defineSlots<{ default?(): unknown }>();
+defineSlots<{
+	/** Long-form content the beam reads alongside */
+	default?(): unknown;
+}>();
 
-// One gradient per instance: the stroke references it by functional IRI, which
-// resolves document-wide, so a shared literal id would make every later beam
-// paint with the first beam's spring-animated y1/y2. (Upstream fix: the Svelte
-// source still hardcodes `tracing-beam-gradient`.)
-const gradientId = `${useFancyId()}-gradient`;
+const reduced = useReducedMotion();
 
-const tracingBeamRef = useTemplateRef<HTMLDivElement>("tracingBeamRef");
 const contentRef = useTemplateRef<HTMLDivElement>("contentRef");
 
-const svgHeight = ref(0);
-const scrollYProgress = ref(0);
-const scrollPercentage = ref(0);
+/** Content height, so the rail's fade and the lamp's clamp know the end. */
+const height = ref(0);
+/** Marker offsets from the top of the content, in px. */
+const ticks = ref<number[]>([]);
+/** Where the lamp sits, in px from the top of the content. */
+const head = ref(0);
+const ready = ref(false);
 
-// Spring state
-const springY1 = ref(0);
-const springY2 = ref(0);
-let springVelY1 = 0;
-let springVelY2 = 0;
-
-const targetY1 = computed(
-	() =>
-		mapRange(scrollYProgress.value, 0, 0.8, scrollYProgress.value, svgHeight.value) *
-		(1.4 - scrollPercentage.value)
-);
-
-const targetY2 = computed(
-	() =>
-		mapRange(scrollYProgress.value, 0, 1, scrollYProgress.value, svgHeight.value - 500) *
-		(1.4 - scrollPercentage.value)
-);
-
-const circleHasShadow = computed(() => scrollYProgress.value <= 0);
-const circleBg = computed(() => (scrollYProgress.value > 0 ? "bg-white" : "bg-emerald-500"));
-const circleBorder = computed(() =>
-	scrollYProgress.value > 0 ? "border-neutral-300" : "border-emerald-600"
-);
-
-const svgPath = computed(
-	() => `M 1 0V -36 l 18 24 V ${svgHeight.value * 0.8} l -18 24V ${svgHeight.value}`
-);
-
+let target = 0;
+let velocity = 0;
 let rafId = 0;
+let lastTime = 0;
 
-function updateSpring() {
-	const tension = 80;
-	const friction = 26;
-	const precision = 0.01;
+/** Markers the lamp has reached light up; the rest wait. */
+function isLit(offset: number): boolean {
+	return offset <= head.value + 0.5;
+}
 
-	const forceY1 = tension * (targetY1.value - springY1.value);
-	springVelY1 = (springVelY1 + forceY1 * 0.001) * (1 - friction * 0.001);
-	springY1.value += springVelY1;
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, value));
+}
 
-	const forceY2 = tension * (targetY2.value - springY2.value);
-	springVelY2 = (springVelY2 + forceY2 * 0.001) * (1 - friction * 0.001);
-	springY2.value += springVelY2;
-
-	const settled =
-		Math.abs(springVelY1) < precision &&
-		Math.abs(targetY1.value - springY1.value) < precision &&
-		Math.abs(springVelY2) < precision &&
-		Math.abs(targetY2.value - springY2.value) < precision;
-
-	if (!settled) {
-		rafId = requestAnimationFrame(updateSpring);
+/** One spring step; schedules the next until the lamp has settled on `target`. */
+function step(time: number) {
+	const dt = Math.min(MAX_DT, (time - lastTime) / 1000 || 0);
+	lastTime = time;
+	const force = TENSION * (target - head.value) - FRICTION * velocity;
+	velocity += force * dt;
+	head.value += velocity * dt;
+	if (Math.abs(velocity) < PRECISION && Math.abs(target - head.value) < PRECISION) {
+		head.value = target;
+		velocity = 0;
+		rafId = 0;
+		return;
 	}
+	rafId = requestAnimationFrame(step);
 }
 
-function updateScrollProgress() {
-	const el = tracingBeamRef.value;
-	if (!el) return;
-	const rect = el.getBoundingClientRect();
-	const windowHeight = window.innerHeight;
-	const elementHeight = rect.height;
-
-	scrollPercentage.value = (windowHeight - rect.top) / (windowHeight + elementHeight);
-	scrollYProgress.value = (rect.y / windowHeight) * -1;
-
-	cancelAnimationFrame(rafId);
-	rafId = requestAnimationFrame(updateSpring);
-}
-
-function updateSVGHeight() {
+/** Reads where the content sits and sends the lamp to the reading line. */
+function place() {
 	const el = contentRef.value;
 	if (!el) return;
-	svgHeight.value = el.offsetHeight;
+	const rect = el.getBoundingClientRect();
+	const line = window.innerHeight * clamp(readingLine, 0, 1);
+	target = clamp(line - rect.top, 0, Math.max(0, rect.height));
+	ready.value = true;
+	if (reduced.value) {
+		cancelAnimationFrame(rafId);
+		rafId = 0;
+		velocity = 0;
+		head.value = target;
+		return;
+	}
+	if (!rafId) {
+		lastTime = performance.now();
+		rafId = requestAnimationFrame(step);
+	}
 }
 
-let resizeObserver: ResizeObserver | undefined;
+/** Layout reads that only change on resize: content height and marker offsets. */
+function measure() {
+	const el = contentRef.value;
+	if (!el) return;
+	const rect = el.getBoundingClientRect();
+	height.value = rect.height;
+	if (markers) {
+		const headings = el.querySelectorAll<HTMLElement>("h1, h2, h3, h4");
+		const anchors = headings.length ? [...headings] : [...el.children];
+		ticks.value = anchors
+			.filter((node): node is HTMLElement => node instanceof HTMLElement)
+			.map((node) => {
+				const box = node.getBoundingClientRect();
+				return box.top + box.height / 2 - rect.top;
+			});
+	} else {
+		ticks.value = [];
+	}
+	place();
+}
 
 onMounted(() => {
-	window.addEventListener("scroll", updateScrollProgress, { passive: true });
-	window.addEventListener("resize", updateScrollProgress, { passive: true });
-	updateScrollProgress();
+	const onScroll = rafThrottle(place);
+	const onResize = rafThrottle(measure);
 
-	resizeObserver = new ResizeObserver(updateSVGHeight);
-	if (contentRef.value) {
-		resizeObserver.observe(contentRef.value);
-	}
-	updateSVGHeight();
+	const resizeObserver = new ResizeObserver(() => onResize());
+	if (contentRef.value) resizeObserver.observe(contentRef.value);
+	window.addEventListener("scroll", onScroll, { passive: true });
+	window.addEventListener("resize", onResize, { passive: true });
+	measure();
+
+	onBeforeUnmount(() => {
+		onScroll.cancel();
+		onResize.cancel();
+		cancelAnimationFrame(rafId);
+		rafId = 0;
+		resizeObserver.disconnect();
+		window.removeEventListener("scroll", onScroll);
+		window.removeEventListener("resize", onResize);
+	});
 });
 
-onBeforeUnmount(() => {
-	cancelAnimationFrame(rafId);
-	window.removeEventListener("scroll", updateScrollProgress);
-	window.removeEventListener("resize", updateScrollProgress);
-	resizeObserver?.disconnect();
-});
+// `markers` or `readingLine` changed after mount: re-read the layout.
+watch(
+	() => [markers, readingLine] as const,
+	() => {
+		if (contentRef.value) queueMicrotask(measure);
+	},
+	{ flush: "post" }
+);
 </script>
 
 <template>
-	<div ref="tracingBeamRef" :class="cn('relative mx-auto h-full w-full max-w-4xl', className)">
-		<div class="absolute top-3 -left-4 md:-left-12">
-			<div
-				class="ml-[27px] flex size-4 items-center justify-center rounded-full border border-neutral-200 shadow-sm"
-				:style="{ boxShadow: circleHasShadow ? 'rgba(0, 0, 0, 0.24) 0px 3px 8px' : 'none' }"
-			>
-				<div :class="cn('size-2 rounded-full border', circleBg, circleBorder)"></div>
+	<div
+		:class="cn('tb-root relative mx-auto w-full max-w-4xl', className)"
+		:style="{
+			'--tracing-beam-accent': accent,
+			'--tb-progress': `${head}px`,
+			'--tb-height': `${height}px`,
+		}"
+		:data-motion="reduced ? 'reduced' : 'full'"
+		data-tracing-beam
+	>
+		<!-- Gutter: the rail, its markers and the lamp, all out of the content's way -->
+		<div class="tb-gutter" aria-hidden="true">
+			<div class="tb-rail">
+				<span class="tb-hair"></span>
+				<span class="tb-trail"></span>
 			</div>
-			<svg
-				:viewBox="`0 0 20 ${svgHeight}`"
-				width="20"
-				:height="svgHeight"
-				class="ml-4 block"
-				aria-hidden="true"
-			>
-				<path :d="svgPath" fill="none" stroke="#9091A0" stroke-opacity="0.16"></path>
-				<path
-					:d="svgPath"
-					fill="none"
-					:stroke="`url(#${gradientId})`"
-					stroke-width="1.25"
-					class="motion-reduce:hidden"
-				></path>
-				<defs>
-					<linearGradient
-						:id="gradientId"
-						gradientUnits="userSpaceOnUse"
-						x1="0"
-						x2="0"
-						:y1="springY1"
-						:y2="springY2"
-					>
-						<stop stop-color="#18CCFC" stop-opacity="0"></stop>
-						<stop stop-color="#18CCFC"></stop>
-						<stop offset="0.325" stop-color="#6344F5"></stop>
-						<stop offset="1" stop-color="#AE48FF" stop-opacity="0"></stop>
-					</linearGradient>
-				</defs>
-			</svg>
+			<span
+				v-for="(offset, index) in ticks"
+				:key="index"
+				class="tb-tick"
+				:style="{ top: `${offset}px` }"
+				data-tracing-beam-marker
+				:data-lit="String(isLit(offset))"
+			></span>
+			<div class="tb-head" data-tracing-beam-head :data-ready="String(ready)">
+				<span class="tb-spill"></span>
+				<span class="tb-lamp"></span>
+			</div>
 		</div>
-		<div ref="contentRef">
-			<slot></slot>
+
+		<div ref="contentRef" class="tb-content">
+			<slot />
 		</div>
 	</div>
 </template>
+
+<style scoped>
+.tb-root {
+	/* Public hooks: --tracing-beam-accent (colour), --tracing-beam-gutter (rail column width).
+	   --tb-progress and --tb-height are written by the component. */
+	--_tb-accent: var(--tracing-beam-accent, var(--primary, oklch(0.7 0.13 285)));
+	--_tb-cool: oklch(0.74 0.09 255);
+	/* Light surfaces: the glow leans on the cool tint so a dark accent never reads as a smudge. */
+	--_tb-glow: color-mix(in oklab, var(--_tb-accent) 45%, var(--_tb-cool));
+	/* The lamp's core: the glow pushed towards white, never pure white. */
+	--_tb-hot: color-mix(in oklab, var(--_tb-glow) 45%, white);
+	--_tb-hair: rgba(0, 0, 0, 0.1);
+	--_tb-surface: var(--background, #fafafa);
+	--_tb-read: 26%;
+	--_tb-spill-a: 12%;
+	--_tb-gutter: var(--tracing-beam-gutter, 2.5rem);
+	/* The rail's x inside the gutter. */
+	--_tb-x: 9px;
+	--_tb-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	display: grid;
+	grid-template-columns: var(--_tb-gutter) minmax(0, 1fr);
+}
+
+/* The source's `:global(.dark) .tb-root`. Spelled without `:global()` here:
+   the scoped compiler replaces a whole selector that contains `:global(...)`
+   with the wrapped part alone, while a plain ancestor selector is left
+   unscoped and only `.tb-root` gets the attribute. */
+.dark .tb-root {
+	/* A near-white accent (the default dark --primary) would wash out: keep the cool tint in. */
+	--_tb-glow: color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool));
+	--_tb-hot: color-mix(in oklab, var(--_tb-glow) 55%, white);
+	--_tb-hair: rgba(255, 255, 255, 0.1);
+	--_tb-read: 38%;
+	--_tb-spill-a: 18%;
+}
+
+.tb-gutter {
+	position: relative;
+	pointer-events: none;
+}
+
+.tb-content {
+	min-width: 0;
+}
+
+/* ── Rail ─────────────────────────────────────────────── */
+.tb-rail {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: calc(var(--_tb-x) - 1px);
+	width: 3px;
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 24px,
+		#000 calc(100% - 24px),
+		transparent
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 24px,
+		#000 calc(100% - 24px),
+		transparent
+	);
+}
+
+.tb-hair,
+.tb-trail {
+	position: absolute;
+	inset: 0 auto 0 1px;
+	width: 1px;
+}
+
+.tb-hair {
+	background: var(--_tb-hair);
+}
+
+/* What has been read stays softly lit; it brightens into the lamp; nothing past it. */
+.tb-trail {
+	background: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--_tb-glow) var(--_tb-read), transparent),
+		color-mix(in oklab, var(--_tb-glow) var(--_tb-read), transparent)
+			calc(var(--tb-progress) - 180px),
+		color-mix(in oklab, var(--_tb-glow) 90%, transparent) var(--tb-progress),
+		transparent var(--tb-progress)
+	);
+}
+
+/* ── Markers: one tick per heading, lit once the lamp has passed ── */
+.tb-tick {
+	position: absolute;
+	left: calc(var(--_tb-x) - 1px);
+	height: 1px;
+	width: 12px;
+	margin-top: -0.5px;
+	background: var(--_tb-hair);
+	transform-origin: left center;
+	transform: scaleX(0.5);
+	transition:
+		background-color 0.5s var(--_tb-ease),
+		transform 0.5s var(--_tb-ease),
+		box-shadow 0.5s var(--_tb-ease);
+}
+
+.tb-tick::before {
+	/* The notch on the rail itself: a 5px dot the tick grows from. */
+	content: "";
+	position: absolute;
+	left: -2px;
+	top: -2px;
+	width: 5px;
+	height: 5px;
+	border-radius: 999px;
+	background: var(--_tb-surface);
+	box-shadow: 0 0 0 1px var(--_tb-hair);
+	transition: inherit;
+}
+
+.tb-tick[data-lit="true"] {
+	background: color-mix(in oklab, var(--_tb-glow) 80%, transparent);
+	transform: scaleX(1);
+	box-shadow: 0 0 6px color-mix(in oklab, var(--_tb-glow) 60%, transparent);
+}
+
+.tb-tick[data-lit="true"]::before {
+	background: var(--_tb-hot);
+	box-shadow:
+		0 0 0 1px color-mix(in oklab, var(--_tb-glow) 70%, transparent),
+		0 0 8px color-mix(in oklab, var(--_tb-glow) 60%, transparent);
+}
+
+/* ── Lamp: a short hot segment on the rail, and its light spilling onto the lines being read ── */
+.tb-head {
+	position: absolute;
+	top: 0;
+	left: var(--_tb-x);
+	width: 0;
+	height: 0;
+	transform: translate3d(0, var(--tb-progress), 0);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.tb-head[data-ready="true"] {
+	opacity: 1;
+}
+
+.tb-lamp {
+	position: absolute;
+	left: -1.5px;
+	top: -14px;
+	width: 3px;
+	height: 28px;
+	border-radius: 999px;
+	background: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--_tb-glow) 60%, transparent),
+		var(--_tb-hot) 35%,
+		var(--_tb-hot) 65%,
+		color-mix(in oklab, var(--_tb-glow) 60%, transparent)
+	);
+	box-shadow:
+		0 0 5px color-mix(in oklab, var(--_tb-glow) 90%, transparent),
+		0 0 18px 3px color-mix(in oklab, var(--_tb-glow) 60%, transparent);
+}
+
+.tb-spill {
+	position: absolute;
+	left: 0;
+	top: -56px;
+	width: 220px;
+	height: 112px;
+	border-radius: 999px;
+	background: radial-gradient(
+		farthest-side at 0 50%,
+		color-mix(in oklab, var(--_tb-glow) var(--_tb-spill-a), transparent),
+		color-mix(in oklab, var(--_tb-glow) calc(var(--_tb-spill-a) / 3), transparent) 45%,
+		transparent
+	);
+	filter: blur(8px);
+}
+
+/* ── Reduced motion: the lamp still reads, it just does not trail or fade ── */
+.tb-root[data-motion="reduced"] .tb-tick,
+.tb-root[data-motion="reduced"] .tb-tick::before,
+.tb-root[data-motion="reduced"] .tb-head {
+	transition: none;
+}
+
+.tb-root[data-motion="reduced"] .tb-spill {
+	display: none;
+}
+</style>

@@ -3300,17 +3300,39 @@ export const registry: Record<string, ComponentMeta> = {
 	"tracing-beam": {
 		name: "TracingBeam",
 		slug: "tracing-beam",
-		description: "Vertical SVG beam that highlights scroll progress alongside content",
+		description:
+			"A reading lamp on a rail beside long-form content: it trails the reader's eye on a spring, leaves what has been read softly lit, and ticks off each heading as it passes",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
 		],
-		tags: ["scroll", "animation", "svg", "beam", "progress", "sidebar"],
-		slots: [
-			{ name: "children", description: "Long-form content rendered alongside the tracing beam" },
+		tags: ["scroll", "animation", "beam", "progress", "reading", "sidebar", "headings"],
+		props: [
+			{
+				name: "accent",
+				type: "string",
+				default: "undefined (follows --primary, falls back to oklch(0.7 0.13 285))",
+				description:
+					"Colour of the lamp, its trail and the lit markers. Any CSS colour; also settable via the --tracing-beam-accent CSS variable.",
+			},
+			{
+				name: "readingLine",
+				type: "number",
+				default: "0.38",
+				description:
+					"Where the reader's eye is assumed to be, as a fraction of the viewport height from the top. The lamp sits on that line, clamped to the content.",
+			},
+			{
+				name: "markers",
+				type: "boolean",
+				default: "true",
+				description:
+					"Draw a marker on the rail for every heading (h1–h4) inside the content, or for every direct child when there is none. Markers light up as the lamp passes them.",
+			},
 		],
+		slots: [{ name: "children", description: "Long-form content the beam reads alongside" }],
 	},
 	"displacement-text": {
 		name: "DisplacementText",

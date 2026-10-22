@@ -1,0 +1,194 @@
+/*
+ * TracingBeam "reading lamp". Mirrors the Svelte <style> block rule for rule.
+ * The Svelte compiler scoped every selector; here each one is anchored on the
+ * source's own root class `.tb-root` so no generic name leaks into the page.
+ */
+.tb-root {
+	/* Public hooks: --tracing-beam-accent (colour), --tracing-beam-gutter (rail column width).
+	   --tb-progress and --tb-height are written by the component. */
+	--_tb-accent: var(--tracing-beam-accent, var(--primary, oklch(0.7 0.13 285)));
+	--_tb-cool: oklch(0.74 0.09 255);
+	/* Light surfaces: the glow leans on the cool tint so a dark accent never reads as a smudge. */
+	--_tb-glow: color-mix(in oklab, var(--_tb-accent) 45%, var(--_tb-cool));
+	/* The lamp's core: the glow pushed towards white, never pure white. */
+	--_tb-hot: color-mix(in oklab, var(--_tb-glow) 45%, white);
+	--_tb-hair: rgba(0, 0, 0, 0.1);
+	--_tb-surface: var(--background, #fafafa);
+	--_tb-read: 26%;
+	--_tb-spill-a: 12%;
+	--_tb-gutter: var(--tracing-beam-gutter, 2.5rem);
+	/* The rail's x inside the gutter. */
+	--_tb-x: 9px;
+	--_tb-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	display: grid;
+	grid-template-columns: var(--_tb-gutter) minmax(0, 1fr);
+}
+
+.dark .tb-root {
+	/* A near-white accent (the default dark --primary) would wash out: keep the cool tint in. */
+	--_tb-glow: color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool));
+	--_tb-hot: color-mix(in oklab, var(--_tb-glow) 55%, white);
+	--_tb-hair: rgba(255, 255, 255, 0.1);
+	--_tb-read: 38%;
+	--_tb-spill-a: 18%;
+}
+
+.tb-root .tb-gutter {
+	position: relative;
+	pointer-events: none;
+}
+
+.tb-root .tb-content {
+	min-width: 0;
+}
+
+/* ── Rail ─────────────────────────────────────────────── */
+.tb-root .tb-rail {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: calc(var(--_tb-x) - 1px);
+	width: 3px;
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 24px,
+		#000 calc(100% - 24px),
+		transparent
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 24px,
+		#000 calc(100% - 24px),
+		transparent
+	);
+}
+
+.tb-root .tb-hair,
+.tb-root .tb-trail {
+	position: absolute;
+	inset: 0 auto 0 1px;
+	width: 1px;
+}
+
+.tb-root .tb-hair {
+	background: var(--_tb-hair);
+}
+
+/* What has been read stays softly lit; it brightens into the lamp; nothing past it. */
+.tb-root .tb-trail {
+	background: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--_tb-glow) var(--_tb-read), transparent),
+		color-mix(in oklab, var(--_tb-glow) var(--_tb-read), transparent)
+			calc(var(--tb-progress) - 180px),
+		color-mix(in oklab, var(--_tb-glow) 90%, transparent) var(--tb-progress),
+		transparent var(--tb-progress)
+	);
+}
+
+/* ── Markers: one tick per heading, lit once the lamp has passed ── */
+.tb-root .tb-tick {
+	position: absolute;
+	left: calc(var(--_tb-x) - 1px);
+	height: 1px;
+	width: 12px;
+	margin-top: -0.5px;
+	background: var(--_tb-hair);
+	transform-origin: left center;
+	transform: scaleX(0.5);
+	transition:
+		background-color 0.5s var(--_tb-ease),
+		transform 0.5s var(--_tb-ease),
+		box-shadow 0.5s var(--_tb-ease);
+}
+
+.tb-root .tb-tick::before {
+	/* The notch on the rail itself: a 5px dot the tick grows from. */
+	content: "";
+	position: absolute;
+	left: -2px;
+	top: -2px;
+	width: 5px;
+	height: 5px;
+	border-radius: 999px;
+	background: var(--_tb-surface);
+	box-shadow: 0 0 0 1px var(--_tb-hair);
+	transition: inherit;
+}
+
+.tb-root .tb-tick[data-lit="true"] {
+	background: color-mix(in oklab, var(--_tb-glow) 80%, transparent);
+	transform: scaleX(1);
+	box-shadow: 0 0 6px color-mix(in oklab, var(--_tb-glow) 60%, transparent);
+}
+
+.tb-root .tb-tick[data-lit="true"]::before {
+	background: var(--_tb-hot);
+	box-shadow:
+		0 0 0 1px color-mix(in oklab, var(--_tb-glow) 70%, transparent),
+		0 0 8px color-mix(in oklab, var(--_tb-glow) 60%, transparent);
+}
+
+/* ── Lamp: a short hot segment on the rail, and its light spilling onto the lines being read ── */
+.tb-root .tb-head {
+	position: absolute;
+	top: 0;
+	left: var(--_tb-x);
+	width: 0;
+	height: 0;
+	transform: translate3d(0, var(--tb-progress), 0);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.tb-root .tb-head[data-ready="true"] {
+	opacity: 1;
+}
+
+.tb-root .tb-lamp {
+	position: absolute;
+	left: -1.5px;
+	top: -14px;
+	width: 3px;
+	height: 28px;
+	border-radius: 999px;
+	background: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--_tb-glow) 60%, transparent),
+		var(--_tb-hot) 35%,
+		var(--_tb-hot) 65%,
+		color-mix(in oklab, var(--_tb-glow) 60%, transparent)
+	);
+	box-shadow:
+		0 0 5px color-mix(in oklab, var(--_tb-glow) 90%, transparent),
+		0 0 18px 3px color-mix(in oklab, var(--_tb-glow) 60%, transparent);
+}
+
+.tb-root .tb-spill {
+	position: absolute;
+	left: 0;
+	top: -56px;
+	width: 220px;
+	height: 112px;
+	border-radius: 999px;
+	background: radial-gradient(
+		farthest-side at 0 50%,
+		color-mix(in oklab, var(--_tb-glow) var(--_tb-spill-a), transparent),
+		color-mix(in oklab, var(--_tb-glow) calc(var(--_tb-spill-a) / 3), transparent) 45%,
+		transparent
+	);
+	filter: blur(8px);
+}
+
+/* ── Reduced motion: the lamp still reads, it just does not trail or fade ── */
+.tb-root[data-motion="reduced"] .tb-tick,
+.tb-root[data-motion="reduced"] .tb-tick::before,
+.tb-root[data-motion="reduced"] .tb-head {
+	transition: none;
+}
+
+.tb-root[data-motion="reduced"] .tb-spill {
+	display: none;
+}

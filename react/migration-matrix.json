@@ -5569,17 +5569,17 @@
 		"browserAPIs": ["ResizeObserver", "scroll"],
 		"runtimeDeps": [],
 		"setContext": false,
-		"hasStyleBlock": false,
+		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["TracingBeam"],
-		"loc": 157,
+		"loc": 385,
 		"testFiles": [],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"Per-frame spring values are written imperatively to the gradient node in the rAF loop (setAttribute \"y1\"/\"y2\") instead of round-tripping through state, so the component and its children never re-render during the animation; the rendered JSX keeps y1/y2 at their 0 seed, which is also what the server markup emits.",
-			"The SVG gradient id is minted per instance with useFancyId(\"tracing-beam-gradient\") and referenced as url(#id), where the source hardcodes the id; the React side therefore supports several beams on one page."
+			"Per-frame spring values are written straight to the root as --tb-progress from the rAF loop instead of round-tripping through state, so the component and its children never re-render while the lamp moves; marker lit flags are re-derived per frame and committed only when one actually flips.",
+			"A markers or readingLine change after mount re-measures synchronously in the layout effect; the Svelte $effect defers the same re-measure with queueMicrotask. Same result, one tick earlier."
 		],
 		"lastFailure": null,
 		"minors": []

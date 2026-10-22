@@ -1,9 +1,70 @@
 import { act, render, cleanup } from "@testing-library/react";
-import { Profiler, useLayoutEffect } from "react";
+import { Profiler, useLayoutEffect, useRef } from "react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { TracingBeam } from "./TracingBeam.js";
 
+/** A rect at `top` with the given height; enough for the component's reads. */
+function rect(top: number, height: number): DOMRect {
+	return {
+		x: 0,
+		y: top,
+		top,
+		bottom: top + height,
+		left: 0,
+		right: 600,
+		width: 600,
+		height,
+		toJSON: () => ({}),
+	} as DOMRect;
+}
+
+/** The Svelte test's headed fixture: two headings with a paragraph each. */
+function Headed({ markers = true }: { markers?: boolean }) {
+	return (
+		<TracingBeam markers={markers}>
+			<h2 data-heading="a">First</h2>
+			<p>Some text.</p>
+			<h2 data-heading="b">Second</h2>
+			<p>More text.</p>
+		</TracingBeam>
+	);
+}
+
+/**
+ * Content 1000px tall starting 100px below the viewport top; headings at
+ * 150px and 700px from the content's top. Reading line = 38% of 1000px =
+ * 380px → the lamp is at 280px: the first heading is behind it, the second ahead.
+ */
+function layoutHeaded() {
+	Object.defineProperty(window, "innerHeight", { configurable: true, value: 1000 });
+	vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+		this: HTMLElement
+	) {
+		if (this.classList.contains("tb-content")) return rect(100, 1000);
+		if (this.dataset.heading === "a") return rect(240, 20);
+		if (this.dataset.heading === "b") return rect(790, 20);
+		return rect(0, 0);
+	});
+}
+
+/** Reduced motion: the lamp lands on the reading line without a spring. */
+function preferReducedMotion() {
+	window.matchMedia = ((query: string) => ({
+		matches: query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	})) as unknown as typeof window.matchMedia;
+}
+
 describe("TracingBeam", () => {
+	const originalMatchMedia = window.matchMedia;
+	const originalInnerHeight = Object.getOwnPropertyDescriptor(window, "innerHeight");
+
 	beforeEach(() => {
 		vi.stubGlobal(
 			"ResizeObserver",
@@ -17,180 +78,164 @@ describe("TracingBeam", () => {
 
 	afterEach(() => {
 		cleanup();
+		vi.unstubAllGlobals();
 		vi.restoreAllMocks();
+		window.matchMedia = originalMatchMedia;
+		if (originalInnerHeight) Object.defineProperty(window, "innerHeight", originalInnerHeight);
 	});
 
-	it("renders container div", () => {
-		const { container } = render(<TracingBeam />);
-		const div = container.firstElementChild as HTMLElement;
-		expect(div).toBeInTheDocument();
-		expect(div.tagName).toBe("DIV");
-	});
-
-	it("renders SVG element", () => {
-		const { container } = render(<TracingBeam />);
-		const svg = container.querySelector("svg");
-		expect(svg).toBeInTheDocument();
-	});
-
-	it("SVG has aria-hidden attribute", () => {
-		const { container } = render(<TracingBeam />);
-		const svg = container.querySelector("svg");
-		expect(svg?.getAttribute("aria-hidden")).toBe("true");
-	});
-
-	it("renders circle indicator", () => {
-		const { container } = render(<TracingBeam />);
-		const outerCircle = container.querySelector(".rounded-full.border");
-		expect(outerCircle).toBeInTheDocument();
-		const innerCircle = outerCircle?.querySelector(".rounded-full");
-		expect(innerCircle).toBeInTheDocument();
-	});
-
-	it("applies custom class", () => {
+	it("renders the wrapper with its base classes plus the custom one", () => {
 		const { container } = render(<TracingBeam className="my-beam" />);
-		const div = container.firstElementChild as HTMLElement;
-		expect(div?.className).toContain("my-beam");
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.tagName).toBe("DIV");
+		expect(root.className).toContain("my-beam");
+		expect(root.className).toContain("relative");
+		expect(root.className).toContain("mx-auto");
+		expect(root.className).toContain("max-w-4xl");
 	});
 
-	it("preserves base classes when custom class is added", () => {
-		const { container } = render(<TracingBeam className="extra" />);
-		const div = container.firstElementChild as HTMLElement;
-		expect(div?.className).toContain("relative");
-		expect(div?.className).toContain("mx-auto");
-		expect(div?.className).toContain("max-w-4xl");
-	});
-
-	it("renders gradient definition in SVG", () => {
+	it("keeps the rail, the lamp and the markers out of the accessibility tree", () => {
 		const { container } = render(<TracingBeam />);
-		// Looked up by tag, not by id: the id is minted per instance and carries
-		// React's own delimiters, which are illegal in an unescaped selector.
-		const gradient = container.querySelector("svg linearGradient");
-		expect(gradient).toBeInTheDocument();
+		const gutter = container.querySelector(".tb-gutter");
+		expect(gutter?.getAttribute("aria-hidden")).toBe("true");
+		expect(container.querySelector("[data-tracing-beam-head]")).toBeInTheDocument();
 	});
 
-	it("gives each instance its own gradient id, referenced by its own stroke", () => {
-		const { container } = render(
-			<>
-				<TracingBeam />
-				<TracingBeam />
-			</>
-		);
-
-		const ids = [...container.querySelectorAll("svg linearGradient")].map((node) => node.id);
-		expect(ids.length).toBe(2);
-		const [first, second] = ids;
-		expect(first).not.toBe("");
-		expect(second).not.toBe(first);
-
-		// Each beam's animated path references the gradient of its OWN svg, so the
-		// second beam is not driven by the first one's spring.
-		const strokes = [...container.querySelectorAll("svg path[stroke-width]")].map((path) =>
-			path.getAttribute("stroke")
-		);
-		expect(strokes).toEqual([`url(#${first})`, `url(#${second})`]);
-	});
-
-	it("renders two path elements in SVG", () => {
+	it("writes the lamp's position as a custom property instead of re-rendering markup", () => {
 		const { container } = render(<TracingBeam />);
-		const paths = container.querySelectorAll("svg path");
-		expect(paths.length).toBe(2);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tb-progress")).toMatch(/px$/);
 	});
 
-	/** A rect at `y`, complete enough for `getBoundingClientRect`'s consumers. */
-	function rectAt(y: number): DOMRect {
-		return {
-			x: 0,
-			y,
-			top: y,
-			bottom: y + 1000,
-			left: 0,
-			right: 800,
-			width: 800,
-			height: 1000,
-			toJSON: () => ({}),
-		} as DOMRect;
-	}
+	it("passes the accent through to the CSS hook", () => {
+		const { container } = render(<TracingBeam accent="tomato" />);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tracing-beam-accent")).toBe("tomato");
+	});
 
-	it("measures in the layout phase, so the first painted frame carries the beam", () => {
-		// The source measures from `onMount`, which is flushed before the browser
-		// paints; a passive effect would run after it and show one frame with a
-		// zero-height svg and the dot in its at-top colours. The phase is observed
-		// through the order the measurement lands in relative to a later sibling's
-		// layout effect: in the layout phase the beam measures first.
-		const order: string[] = [];
-		vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(() => {
-			order.push("beam");
-			return rectAt(-100);
-		});
-		const offsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-		Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-			configurable: true,
-			get: () => 500,
-		});
+	it("draws one marker per heading, lit once the lamp has reached it", () => {
+		layoutHeaded();
+		preferReducedMotion();
+
+		const { container } = render(<Headed />);
+		const markers = container.querySelectorAll("[data-tracing-beam-marker]");
+		expect(markers.length).toBe(2);
+		expect(markers[0]?.getAttribute("data-lit")).toBe("true");
+		expect(markers[1]?.getAttribute("data-lit")).toBe("false");
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tb-progress")).toBe("280px");
+		expect(root.getAttribute("data-motion")).toBe("reduced");
+	});
+
+	it("draws no marker when `markers` is off", () => {
+		const { container } = render(<Headed markers={false} />);
+		expect(container.querySelectorAll("[data-tracing-beam-marker]").length).toBe(0);
+	});
+
+	it("re-reads the layout when `markers` is switched on after mount", () => {
+		layoutHeaded();
+		const { container, rerender } = render(<Headed markers={false} />);
+		expect(container.querySelectorAll("[data-tracing-beam-marker]").length).toBe(0);
+		rerender(<Headed markers={true} />);
+		expect(container.querySelectorAll("[data-tracing-beam-marker]").length).toBe(2);
+	});
+
+	it("places the lamp before the browser paints", () => {
+		// A parent layout effect runs in the same commit as the child's, after
+		// it and before any passive effect — so what it reads here is what the
+		// first painted frame shows.
+		layoutHeaded();
+		preferReducedMotion();
+		let progressAtPaint: string | undefined;
 
 		function Probe() {
+			const ref = useRef<HTMLDivElement | null>(null);
 			useLayoutEffect(() => {
-				order.push("probe-layout");
+				const root = ref.current?.firstElementChild as HTMLElement;
+				progressAtPaint = root.style.getPropertyValue("--tb-progress");
 			}, []);
-			return null;
-		}
-
-		try {
-			const { container } = render(
-				<>
-					<TracingBeam />
-					<Probe />
-				</>
+			return (
+				<div ref={ref}>
+					<Headed />
+				</div>
 			);
-
-			expect(order[0]).toBe("beam");
-			expect(order).toContain("probe-layout");
-			expect(order.indexOf("beam")).toBeLessThan(order.indexOf("probe-layout"));
-			// And the beam is at its measured height with no frame to wait for.
-			const svg = container.querySelector("svg");
-			expect(svg?.getAttribute("height")).toBe("500");
-		} finally {
-			if (offsetHeight) {
-				Object.defineProperty(HTMLElement.prototype, "offsetHeight", offsetHeight);
-			} else {
-				delete (HTMLElement.prototype as unknown as Record<string, unknown>).offsetHeight;
-			}
 		}
+
+		render(<Probe />);
+		expect(progressAtPaint).toBe("280px");
 	});
 
-	it("does not re-render while scrolling below the threshold it already crossed", () => {
-		// The raw progress is a fresh float per scroll event but feeds only the
-		// three at-top expressions, so a scroll that does not cross the threshold
-		// must cost zero renders — the same DOM-write frequency as the source.
-		let y = -100;
-		vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(() => rectAt(y));
+	it("does not re-render while scrolling between two markers", () => {
+		// The lamp's position is a fresh float per scroll event and feeds only
+		// the custom property, so a scroll that lights no new marker must cost
+		// zero renders — the same DOM-write frequency as the source.
+		let frames: FrameRequestCallback[] = [];
+		vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+			frames.push(cb);
+			return frames.length;
+		});
+		vi.stubGlobal("cancelAnimationFrame", () => {});
+		Object.defineProperty(window, "innerHeight", { configurable: true, value: 1000 });
+		let top = 100;
+		vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+			this: HTMLElement
+		) {
+			if (this.classList.contains("tb-content")) return rect(top, 1000);
+			if (this.dataset.heading === "a") return rect(top + 140, 20);
+			if (this.dataset.heading === "b") return rect(top + 690, 20);
+			return rect(0, 0);
+		});
+		preferReducedMotion();
 
 		let commits = 0;
-		render(
+		const { container } = render(
 			<Profiler
 				id="tracing-beam"
 				onRender={() => {
 					commits += 1;
 				}}
 			>
-				<TracingBeam />
+				<Headed />
 			</Profiler>
 		);
 
-		// One warm-up event: React skips its eager bail-out on the first update that
-		// follows the mount update, so the count is taken from the second event on.
-		function scroll() {
-			y -= 10;
+		function scroll(by: number) {
+			top -= by;
 			act(() => {
 				window.dispatchEvent(new Event("scroll"));
+				const pending = frames;
+				frames = [];
+				for (const cb of pending) cb(0);
 			});
 		}
 
-		scroll();
+		// One warm-up event: React skips its eager bail-out on the first update that
+		// follows the mount update, so the count is taken from the second event on.
+		scroll(10);
 		commits = 0;
-		for (let i = 0; i < 5; i += 1) scroll();
-
+		for (let i = 0; i < 5; i += 1) scroll(10);
 		expect(commits).toBe(0);
+
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tb-progress")).toBe("340px");
+
+		// Crossing the second marker is a markup change, and the one render it costs.
+		scroll(400);
+		expect(commits).toBe(1);
+		const markers = container.querySelectorAll("[data-tracing-beam-marker]");
+		expect(markers[1]?.getAttribute("data-lit")).toBe("true");
+	});
+
+	it("removes its listeners and cancels its frame on unmount", () => {
+		const cancel = vi.fn();
+		vi.stubGlobal("requestAnimationFrame", () => 7);
+		vi.stubGlobal("cancelAnimationFrame", cancel);
+		const remove = vi.spyOn(window, "removeEventListener");
+		const { unmount } = render(<Headed />);
+		unmount();
+		const types = remove.mock.calls.map((c) => c[0]);
+		expect(types).toContain("scroll");
+		expect(types).toContain("resize");
+		expect(cancel).toHaveBeenCalledWith(7);
 	});
 });
