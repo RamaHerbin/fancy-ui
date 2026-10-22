@@ -46,34 +46,28 @@ function alreadyLoaded(nuxt: Nuxt): boolean {
 }
 
 /**
- * The id to hand Nuxt. Nuxt emits each `css` entry as an `import` in a
- * template under the app's buildDir, so a bare specifier resolves from the
- * app: that is the normal case (fancy-ui-vue is a peer dependency the app
- * installs) and it stays a portable id in the generated code. When the app
- * cannot see the package (e.g. a strict pnpm layout where only this module
- * links it), fall back to the absolute path resolved from this module.
+ * Whether the app can resolve the stylesheet. Nuxt emits each `css` entry as an
+ * `import` in a template under the app's buildDir, so the bare specifier has to
+ * resolve from the app — the same requirement as the component shims, which
+ * import `fancy-ui-vue` from there too.
  */
-function stylesId(nuxt: Nuxt): string | undefined {
-	const fromApp = [nuxt.options.rootDir, ...nuxt.options.modulesDir].map((dir) =>
+function resolvableFromApp(nuxt: Nuxt): boolean {
+	const urls = [nuxt.options.rootDir, ...nuxt.options.modulesDir].map((dir) =>
 		pathToFileURL(join(dir, "_index.js"))
 	);
-	for (const url of [fromApp, [new URL(import.meta.url)]]) {
-		try {
-			const resolved = resolveModule(STYLES_SPECIFIER, { url, extensions: [".css"] });
-			return url === fromApp ? STYLES_SPECIFIER : resolved;
-		} catch {
-			// try the next base
-		}
+	try {
+		resolveModule(STYLES_SPECIFIER, { url: urls, extensions: [".css"] });
+		return true;
+	} catch {
+		return false;
 	}
-	return undefined;
 }
 
 export function registerStyles(options: ModuleOptions, nuxt: Nuxt): void {
 	if (!options.css) return;
 	if (alreadyLoaded(nuxt)) return;
 
-	const id = stylesId(nuxt);
-	if (!id) {
+	if (!resolvableFromApp(nuxt)) {
 		useLogger("fancy-ui-nuxt").warn(
 			`Could not resolve \`${STYLES_SPECIFIER}\`. Install fancy-ui-vue in the app, or set \`fancyUi.css: false\` and import it yourself.`
 		);
@@ -88,5 +82,5 @@ export function registerStyles(options: ModuleOptions, nuxt: Nuxt): void {
 	// (they are unlayered anyway) exactly as they did with the manual import,
 	// and the app's own overrides should target the documented CSS variables
 	// rather than rely on source order.
-	nuxt.options.css.push(id);
+	nuxt.options.css.push(STYLES_SPECIFIER);
 }

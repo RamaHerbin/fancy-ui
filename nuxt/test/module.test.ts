@@ -17,7 +17,7 @@ const COMPOSABLES = [
 interface Registered {
 	css: string[];
 	imports: { name: string; as?: string; from: string }[];
-	components: { pascalName: string; export?: string; filePath: string }[];
+	components: { pascalName: string; export?: string; filePath: string; priority?: number }[];
 	optimizeDepsInclude: string[];
 	warnings: string[];
 }
@@ -118,6 +118,13 @@ describe("module options", () => {
 	it('prefix: "" registers the bare export names', async () => {
 		const r = await register({ prefix: "", components: ["ShimmerButton"] });
 		expect(r.components.map((c) => c.pascalName)).toEqual(["ShimmerButton"]);
+	});
+
+	it('prefix: "" leaves clashing names to the app and Nuxt built-ins, and says so for <Link>', async () => {
+		const r = await register({ prefix: "", components: ["Link", "Button"] });
+		const ours = r.components.filter((c) => c.filePath.includes("fancy-ui/components/"));
+		expect(ours.every((c) => c.priority === -1)).toBe(true);
+		expect(r.warnings.some((w) => w.includes("<Link>"))).toBe(true);
 	});
 
 	it("an invalid prefix warns and falls back to Fancy", async () => {

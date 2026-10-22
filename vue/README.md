@@ -155,7 +155,7 @@ Out of the box the package follows the operating-system preference: `dark:` util
 
 ### Nuxt
 
-The setup above works as-is in Nuxt (add `@tailwindcss/vite` to `vite.plugins`). A Nuxt module, [`fancy-ui-nuxt`](../nuxt#readme), auto-imports every component as `<Fancy…>`, adds `styles.css` and auto-imports the sound composables; it lives in this repo and is not yet published to npm.
+The setup above works as-is in Nuxt (add `@tailwindcss/vite` to `vite.plugins`). A Nuxt module, [`fancy-ui-nuxt`](https://github.com/RamaHerbin/fancy-ui/tree/main/nuxt#readme), auto-imports every component as `<Fancy…>`, adds `styles.css` and auto-imports the sound composables; it lives in this repo and is not yet published to npm.
 
 ### Server rendering
 

@@ -73,12 +73,12 @@ export default defineNuxtConfig({
 });
 ```
 
-| Option        | Type                  | Default   | What it does                                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `components`  | `boolean \| string[]` | `true`    | `true` registers every component, an array registers only those export names (`"ShimmerButton"`, not `"FancyShimmerButton"`), `false` registers none. An unknown name logs a warning and is skipped; the build carries on.                                                                                    |
-| `prefix`      | `string`              | `"Fancy"` | Prepended to each export name: `ShimmerButton` becomes `<FancyShimmerButton>`. Must be `""` (bare names, `<ShimmerButton>`) or a PascalCase word matching `/^[A-Z][A-Za-z0-9]*$/` (`"Ui"`, `"X"`). Anything else (`"fancy"`, `"my-ui"`) logs a warning and falls back to `"Fancy"`.                           |
-| `css`         | `boolean`             | `true`    | Appends `fancy-ui-vue/styles.css` to `nuxt.options.css`. Skipped when the app already loads it, either as a `css` entry or as an `@import` in one of the stylesheets listed there (the manual setup), so it never ships twice. `false` leaves the CSS to you. The Tailwind lines stay in your CSS either way. |
-| `composables` | `boolean`             | `true`    | Auto-imports the five sound composables: `useSound`, `useSoundCue`, `useSoundEnabled`, `useSoundStatus`, `useSoundFeedback`.                                                                                                                                                                                  |
+| Option        | Type                  | Default   | What it does                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `components`  | `boolean \| string[]` | `true`    | `true` registers every component, an array registers only those export names (`"ShimmerButton"`, not `"FancyShimmerButton"`), `false` registers none. An unknown name logs a warning and is skipped; the build carries on.                                                                                                                                                                                    |
+| `prefix`      | `string`              | `"Fancy"` | Prepended to each export name: `ShimmerButton` becomes `<FancyShimmerButton>`. Must be `""` (bare names, `<ShimmerButton>`) or a PascalCase word matching `/^[A-Z][A-Za-z0-9]*$/` (`"Ui"`, `"X"`). Anything else (`"fancy"`, `"my-ui"`) logs a warning and falls back to `"Fancy"`.                                                                                                                           |
+| `css`         | `boolean`             | `true`    | Appends `fancy-ui-vue/styles.css` to `nuxt.options.css`. Skipped when the app already loads it, either as a `css` entry or as an `@import` in one of the stylesheets listed there (the manual setup), so that setup does not ship it twice. Other ways of loading it (a `<style>` block, a nested `@import`) are not detected. `false` leaves the CSS to you. The Tailwind lines stay in your CSS either way. |
+| `composables` | `boolean`             | `true`    | Auto-imports the five sound composables: `useSound`, `useSoundCue`, `useSoundEnabled`, `useSoundStatus`, `useSoundFeedback`.                                                                                                                                                                                                                                                                                  |
 
 ## Lazy loading and hydration
 
@@ -117,7 +117,7 @@ Verified on 2026-10-22 against the packed tarballs installed with npm in an app 
 | Tailwind CSS | 4.1 with `@tailwindcss/vite`               |
 | Node         | 20.19 or later (engines); runs on 22 in CI |
 
-- **Nuxt 4 only.** The module declares `^4.0.0`, and Nuxt 3 disables it with a warning. A one-off probe on Nuxt 3.21.11 with the range widened by hand (and `future.compatibilityVersion: 4`) built and passed the same smoke, but Nuxt 3 is not in CI, so it is not supported.
+- **Nuxt 4 only.** The module declares `^4.5.0`, and Nuxt 3 disables it with a warning. A one-off probe on Nuxt 3.21.11 with the range widened by hand (and `future.compatibilityVersion: 4`) built and passed the same smoke, but Nuxt 3 is not in CI, so it is not supported.
 - **Typed props** in `nuxt typecheck` need `typescript` and `vue-tsc` in your dev dependencies, as for any Nuxt app.
 
 ## Limits
@@ -125,7 +125,8 @@ Verified on 2026-10-22 against the packed tarballs installed with npm in an app 
 - **Cameleon skins are not auto-registered.** Import them from `fancy-ui-vue/cameleon` yourself; several share a name with a root component (`Button`, `Badge`, `Input`, …).
 - **Only components and the five composables are auto-imported.** Functions and constants such as `toast()`, `sound` and `cn` are imported explicitly: `import { toast } from "fancy-ui-vue"`. `toast()` needs a `<FancyToaster />` mounted to show anything.
 - **`styles.css` is one global sheet.** It ships whole (about 90 KB gzipped for `fancy-ui-vue` 0.3.0) however few components the app uses; only the JavaScript is split per component.
-- **Why the prefix.** The library uses generic names (`Button`, `Input`, `Dialog`, `Badge`, `Tooltip`), which would collide with an app's own components. Set `prefix: ""` only if nothing in the app shares those names.
+- **The component list follows one `fancy-ui-vue` release** (0.3.0 for this version of the module). On an older `fancy-ui-vue` the module warns, and components added since then fail to resolve.
+- **Why the prefix.** The library uses generic names (`Button`, `Input`, `Dialog`, `Badge`, `Tooltip`), which would collide with an app's own components. Set `prefix: ""` only if nothing in the app shares those names. Without a prefix the app's own components and Nuxt's built-ins win any clash: `<Link>` stays Nuxt's head component (the module warns), so import `Link` from `fancy-ui-vue` explicitly.
 
 ## License
 

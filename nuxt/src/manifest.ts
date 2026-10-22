@@ -227,3 +227,6 @@ export const components = [
 ] as const;
 
 export type FancyComponentName = (typeof components)[number];
+
+/** fancy-ui-vue version this list was generated from; older installs may lack some names. */
+export const sourceVersion = "0.3.0";

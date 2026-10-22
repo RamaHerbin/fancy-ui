@@ -253,7 +253,7 @@ describe("SSR → hydration → navigation through the module", async () => {
 		await Promise.all(pages.map((p) => p.close()));
 	});
 
-	it("renders deterministic, non-empty SSR HTML for every component", async () => {
+	it("renders deterministic, non-empty SSR HTML for the fixture's components", async () => {
 		const a = await $fetch<string>("/");
 		const b = await $fetch<string>("/");
 		expect(normalise(a)).toBe(normalise(b));

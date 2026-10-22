@@ -30,7 +30,7 @@ export default defineNuxtModule<ModuleOptions>().with({
 	meta: {
 		name: "fancy-ui-nuxt",
 		configKey: "fancyUi",
-		compatibility: { nuxt: "^4.0.0" },
+		compatibility: { nuxt: "^4.5.0" },
 	},
 	defaults: {
 		components: true,

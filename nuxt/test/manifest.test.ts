@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 // @ts-expect-error — plain .mjs script without declarations
 import { componentExports, renderManifest } from "../scripts/generate-manifest.mjs";
-import { components } from "../src/manifest";
+import { components, sourceVersion } from "../src/manifest";
 
 describe("component manifest", () => {
 	it("equals the component exports of the built fancy-ui-vue root barrel", async () => {
@@ -22,7 +22,7 @@ describe("component manifest", () => {
 		expect(new Set(components).size).toBe(components.length);
 		const { readFile } = await import("node:fs/promises");
 		const onDisk = await readFile(new URL("../src/manifest.ts", import.meta.url), "utf8");
-		expect(onDisk).toBe(renderManifest([...components]));
+		expect(onDisk).toBe(renderManifest([...components], sourceVersion));
 	});
 
 	it("excludes non-components and cameleon-only names", async () => {
