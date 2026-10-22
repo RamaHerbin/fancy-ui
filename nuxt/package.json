@@ -60,10 +60,12 @@
 		"@nuxt/module-builder": "^1.0.3",
 		"@nuxt/schema": "^4.5.0",
 		"@nuxt/test-utils": "^4.3.4",
+		"@tailwindcss/vite": "^4.1.17",
 		"fancy-ui-vue": "workspace:*",
 		"nuxt": "^4.5.0",
-		"playwright-core": "^1.58.2",
+		"playwright-core": "1.58.2",
 		"publint": "^0.3.18",
+		"tailwindcss": "^4.1.17",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.18",
 		"vue": "^3.5.2"
