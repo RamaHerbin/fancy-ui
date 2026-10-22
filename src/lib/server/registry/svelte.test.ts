@@ -180,6 +180,12 @@ describe("buildRegistry with the svelte stack on fixtures", () => {
 		}
 	});
 
+	it("lists registryDependencies on every item and index entry, empty when none (the CLI's index schema requires the key)", () => {
+		expect(out.items.beta.registryDependencies).toEqual([]);
+		for (const entry of out.index.items)
+			expect(Array.isArray(entry.registryDependencies)).toBe(true);
+	});
+
 	it("throws on any other $lib import in a kept file, naming the file", () => {
 		expect(() =>
 			build({
