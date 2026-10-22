@@ -251,6 +251,16 @@ test("ClientRouter: islands unmount on navigation, nothing accumulates, persist 
 		const fluid = name === "A" ? "fluid-a" : "fluid-b";
 		await expectHydrated(page, fluid);
 		await expectGpuCanvas(page, fluid);
+		// While a view transition runs, its pseudo-element overlay takes the pointer:
+		// a click on the next link would hit the overlay and be lost.
+		await page.waitForFunction(() =>
+			document
+				.getAnimations()
+				.every(
+					(a) =>
+						!(a.effect as KeyframeEffect | null)?.pseudoElement?.startsWith("::view-transition")
+				)
+		);
 	};
 
 	await page.goto("/router/a");
