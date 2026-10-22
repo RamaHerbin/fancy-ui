@@ -63,6 +63,11 @@ jobs:
       # fails when a shipped slug has no entry in thumbs.json, when a listed
       # thumbnail file is missing, or when one is a near-blank frame.
       - run: pnpm test
+      # The Svelte CLI add-on (sv-addon/): types, CSS/dependency rules and the add-on run
+      # through sv's engine twice on sv's own templates. Offline; the CLI end to end is
+      # the sv-addon consumer below.
+      - run: pnpm --filter fancy-ui-sv run check
+      - run: pnpm --filter fancy-ui-sv test
       - run: pnpm build
       # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
       - run: pnpm check:registry-items
