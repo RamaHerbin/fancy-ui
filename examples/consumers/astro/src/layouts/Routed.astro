@@ -1,0 +1,57 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/global.css";
+
+interface Props {
+	title: string;
+}
+const { title } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<!-- Test instrumentation, not part of the setup: counts requestAnimationFrame
+		     calls and GPU contexts created / released, so the smoke can check that
+		     navigating back and forth neither stacks render loops nor leaks contexts. -->
+		<script is:inline>
+			if (!window.__probe) {
+				// `live` counts WebGL contexts not lost yet: an unmounted effect is
+				// expected to release its context (WEBGL_lose_context).
+				const contexts = [];
+				const probe = (window.__probe = {
+					raf: 0,
+					kinds: {},
+					gpuCreated: () => contexts.length,
+					gpuLive: () => contexts.filter((gl) => !gl.isContextLost()).length,
+				});
+				const raf = window.requestAnimationFrame.bind(window);
+				window.requestAnimationFrame = (cb) => {
+					probe.raf++;
+					return raf(cb);
+				};
+				const getContext = HTMLCanvasElement.prototype.getContext;
+				HTMLCanvasElement.prototype.getContext = function (kind, ...rest) {
+					const ctx = getContext.call(this, kind, ...rest);
+					if (ctx && /webgl|webgpu/.test(kind) && !contexts.includes(ctx)) {
+						contexts.push(ctx);
+						probe.kinds[kind] = (probe.kinds[kind] ?? 0) + 1;
+					}
+					return ctx;
+				};
+			}
+		</script>
+		<ClientRouter />
+	</head>
+	<body class="bg-background text-foreground">
+		<nav class="flex gap-4 p-4">
+			<a href="/router/a" data-testid="to-a">Page A</a>
+			<a href="/router/b" data-testid="to-b">Page B</a>
+		</nav>
+		<main class="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+			<slot />
+		</main>
+	</body>
+</html>

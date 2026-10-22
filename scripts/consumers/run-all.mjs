@@ -7,7 +7,9 @@
 //   pnpm consumers next nuxt       # only these
 //
 // Each package is built and packed once per run: the scripts share the
-// tarballs through CONSUMER_PACKS_DIR.
+// tarballs through CONSUMER_PACKS_DIR. A script that exits 77 could not run
+// here (for example astro.sh on a Node older than Astro's floor): it is listed
+// as "skip" and does not fail the run.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -43,10 +45,12 @@ try {
 			env: { ...process.env, CONSUMER_PACKS_DIR: packs },
 		});
 		const seconds = Math.round((Date.now() - started) / 1000);
-		const ok = run.status === 0;
+		const skipped = run.status === 77;
+		const ok = run.status === 0 || skipped;
 		results.push({
 			name,
 			ok,
+			skipped,
 			seconds,
 			detail: ok ? "" : run.error ? String(run.error) : `exit ${run.status ?? run.signal}`,
 		});
@@ -61,13 +65,15 @@ console.log(`${"-".repeat(width)}  ------  ------`);
 for (const r of results) {
 	const time = `${r.seconds}s`.padStart(6);
 	console.log(
-		`${r.name.padEnd(width)}  ${(r.ok ? "pass" : "FAIL").padEnd(6)}  ${time}${r.detail ? `  ${r.detail}` : ""}`
+		`${r.name.padEnd(width)}  ${(r.skipped ? "skip" : r.ok ? "pass" : "FAIL").padEnd(6)}  ${time}${r.detail ? `  ${r.detail}` : ""}`
 	);
 }
 const failed = results.filter((r) => !r.ok);
+const skipped = results.filter((r) => r.skipped).length;
+const skipNote = skipped ? ` (${skipped} skipped)` : "";
 console.log(
 	failed.length
-		? `\n${failed.length} of ${results.length} consumer(s) failed`
-		: `\nall ${results.length} consumers passed`
+		? `\n${failed.length} of ${results.length} consumer(s) failed${skipNote}`
+		: `\nall ${results.length - skipped} consumers passed${skipNote}`
 );
 process.exit(failed.length ? 1 : 0);

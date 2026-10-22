@@ -1,0 +1,51 @@
+---
+// The playground. Static components are imported from the package root and
+// rendered with no directive: they ship HTML and CSS, no JavaScript.
+// Interactive ones go through a local .svelte island (src/islands/*).
+import { BorderBeam, Button, Marquee, Meteors } from "fancy-ui-svelte";
+import Base from "../layouts/Base.astro";
+import DialogIsland from "../islands/DialogIsland.svelte";
+import FluidIsland from "../islands/FluidIsland.svelte";
+import RainbowCounter from "../islands/RainbowCounter.svelte";
+import Counter from "../islands/Counter.svelte";
+---
+
+<Base title="fancy-ui-svelte in Astro">
+	<h1 class="text-2xl font-semibold">fancy-ui-svelte consumer (Astro)</h1>
+
+	<section class="flex flex-col gap-4" data-testid="static">
+		<h2 class="text-lg font-medium">Static: no directive, no JavaScript</h2>
+		<Button data-testid="button">Primary</Button>
+		<div class="relative overflow-hidden rounded-xl border p-6">
+			Light effect
+			<BorderBeam />
+		</div>
+		<Marquee>
+			<span class="px-4">Astro</span><span class="px-4">Svelte</span><span class="px-4"
+				>Tailwind</span
+			>
+		</Marquee>
+		<div class="relative h-40 overflow-hidden rounded-xl border" data-testid="meteors">
+			<Meteors />
+		</div>
+	</section>
+
+	<section class="flex flex-col gap-4" data-testid="islands">
+		<h2 class="text-lg font-medium">Islands: client:load</h2>
+		<RainbowCounter id="rainbow" client:load>Rainbow</RainbowCounter>
+		<DialogIsland client:load />
+	</section>
+
+	<section class="flex flex-col gap-4" data-testid="counter">
+		<h2 class="text-lg font-medium">The Installation page's island snippet</h2>
+		<Counter client:visible />
+	</section>
+
+	<!-- Pushes the next island below the fold, so client:visible is observable. -->
+	<div style="height: 150vh" aria-hidden="true"></div>
+
+	<section class="flex flex-col gap-4">
+		<h2 class="text-lg font-medium">Island: client:visible</h2>
+		<FluidIsland id="fluid" client:visible />
+	</section>
+</Base>
