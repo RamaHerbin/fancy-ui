@@ -1,6 +1,6 @@
 # Consumer apps
 
-Six minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
+Seven minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
 
 - a dependency the package imports but does not declare,
 - a file missing from the `files` allow-list, or a broken `exports` entry,
@@ -17,17 +17,18 @@ None of them is a workspace member (`pnpm-workspace.yaml` globs `examples/*`, no
 | `next`        | `fancy-ui-react`  | Next.js App Router, server-rendered then hydrated    |
 | `vue-vite`    | `fancy-ui-vue`    | Vue 3 + Vite                                         |
 | `nuxt`        | `fancy-ui-vue`    | Nuxt, server-rendered then hydrated                  |
+| `nuxt-module` | `fancy-ui-nuxt`   | Nuxt via the module, no imports, `nuxt typecheck`    |
 
 ## Running them
 
 ```bash
-pnpm consumers                   # all six, one after the other, then a summary table
+pnpm consumers                   # all seven, one after the other, then a summary table
 pnpm consumers next nuxt         # only these
 scripts/consumers/next.sh        # one app, directly
 KEEP_CONSUMER=1 scripts/consumers/next.sh   # keep the scratch copy for debugging
 ```
 
-`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. It builds and packs each package once per run and shares the tarball between the two apps that use it. CI runs it in the **Consumers** job, after the three package jobs.
+`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it in the **Consumers** job, after the package jobs.
 
 Prerequisites: the repo installed (`pnpm install`), Playwright's Chromium (`pnpm exec playwright install chromium`), network access for `npm install`, and `rsync`.
 
@@ -35,7 +36,7 @@ Prerequisites: the repo installed (`pnpm install`), Playwright's Chromium (`pnpm
 
 Every `scripts/consumers/<name>.sh` sources `scripts/consumers/_lib.sh` and runs the same steps:
 
-1. **Build and pack the package** (`pnpm package` for Svelte, `pnpm --filter fancy-ui-react|fancy-ui-vue run build` for the others), then `pnpm pack` into an empty folder. The script checks it holds exactly one tarball, so an old tarball from an earlier run can never be picked up.
+1. **Build and pack the package** (`pnpm package` for Svelte, `pnpm --filter fancy-ui-react|fancy-ui-vue|fancy-ui-nuxt run build` for the others; `nuxt-module` packs both `fancy-ui-vue` and `fancy-ui-nuxt`), then `pnpm pack` into an empty folder. The script checks it holds exactly one tarball, so an old tarball from an earlier run can never be picked up.
 2. **Copy the app outside the repo**, into a `mktemp -d` folder under `$TMPDIR`. Inside the repo, a dependency missing from the app's own `node_modules` would silently resolve from the monorepo's `node_modules` (Node and Vite walk up parent folders), and the tarball's declared dependencies would go untested. The script refuses to run if the scratch folder ends up inside the repo. Build output, tests and the Playwright config are not copied.
 3. **Install the tarball** by rewriting the copy's dependency to `file:<tarball>`, then `npm install` and check the package landed in the copy's `node_modules`. The `file:.tarball/<package>.tgz` value committed in each `package.json` is a placeholder; the repo copy is never modified.
 4. **Build** with the app's own `npm run build`.
@@ -62,6 +63,8 @@ plus `fancy-ui-react/styles.css` (imported from the entry) or `fancy-ui-vue/styl
 - **Dialog**: opens from a focused trigger with Enter and closes with Escape.
 
 `react-vite` also type-checks the app with strict `tsc` and `skipLibCheck: false`, so every declaration file the package publishes is compiled.
+
+`nuxt-module` is the `nuxt` app with the module instead of imports: `modules: ["fancy-ui-nuxt"]`, `<FancyButton>`, `<FancyDialog>`… with no `import`, and only the two Tailwind lines in its CSS (the module adds `fancy-ui-vue/styles.css`). It runs `nuxt typecheck` (vue-tsc) before building, checks the packed `fancy-ui-nuxt` manifest carries no `workspace:` range, and the smoke adds that every `Fancy*` tag rendered as a component on the server.
 
 ### Negative control
 

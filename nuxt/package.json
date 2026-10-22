@@ -1,0 +1,76 @@
+{
+	"name": "fancy-ui-nuxt",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Nuxt module for fancy-ui-vue: auto-imported animated components, global styles and composables, SSR-safe.",
+	"license": "MIT",
+	"author": "Rama Herbin",
+	"funding": "https://github.com/sponsors/RamaHerbin",
+	"keywords": [
+		"nuxt",
+		"nuxt-module",
+		"vue",
+		"components",
+		"animations",
+		"motion",
+		"ui",
+		"tailwindcss"
+	],
+	"type": "module",
+	"homepage": "https://github.com/RamaHerbin/fancy-ui/tree/main/nuxt",
+	"bugs": {
+		"url": "https://github.com/RamaHerbin/fancy-ui/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RamaHerbin/fancy-ui.git",
+		"directory": "nuxt"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/types.d.mts",
+			"import": "./dist/module.mjs"
+		},
+		"./package.json": "./package.json"
+	},
+	"main": "./dist/module.mjs",
+	"types": "./dist/types.d.mts",
+	"files": [
+		"dist"
+	],
+	"sideEffects": false,
+	"scripts": {
+		"build": "nuxt-module-build build",
+		"dev": "nuxt dev playground",
+		"dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
+		"check": "tsc --noEmit -p tsconfig.json",
+		"test": "vitest run",
+		"prepublishOnly": "pnpm run build && publint"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"peerDependencies": {
+		"fancy-ui-vue": ">=0.3.0 <1.0.0"
+	},
+	"dependencies": {
+		"@nuxt/kit": "^4.5.0"
+	},
+	"devDependencies": {
+		"@nuxt/module-builder": "^1.0.3",
+		"@nuxt/schema": "^4.5.0",
+		"@nuxt/test-utils": "^4.3.4",
+		"@tailwindcss/vite": "^4.1.17",
+		"fancy-ui-vue": "workspace:*",
+		"nuxt": "^4.5.0",
+		"playwright-core": "1.58.2",
+		"publint": "^0.3.18",
+		"tailwindcss": "^4.1.17",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18",
+		"vue": "^3.5.2"
+	},
+	"engines": {
+		"node": "^20.19.0 || >=22.12.0"
+	}
+}
