@@ -181,6 +181,52 @@ import { RainbowButton } from "fancy-ui-vue";
 
 Props keep their Svelte names; snippets become named slots and every bindable prop is a `v-model:<name>`. Details and the deliberate differences are in the [Vue package README](./vue/README.md).
 
+### Astro
+
+`fancy-ui-svelte` runs in Astro through the official Svelte integration; there is no Astro-specific package.
+
+```bash
+npx astro add svelte
+npx astro add tailwind
+npm install fancy-ui-svelte
+```
+
+```css
+/* src/styles/global.css, imported from your layout */
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+A component used without a `client:*` directive renders to HTML and CSS and ships no JavaScript. `BorderBeam`, `Marquee`, `Meteors`, and `Button` or `RainbowButton` without a handler work that way:
+
+```astro
+---
+import { BorderBeam, Meteors } from "fancy-ui-svelte";
+---
+<div class="relative overflow-hidden rounded-xl border p-8">
+	<Meteors />
+	<BorderBeam />
+</div>
+```
+
+To hydrate a component, import it in a local `.svelte` file and put the directive on that file. Handlers, state and snippets live there too, since functions and snippets other than the default slot cannot be passed from `.astro`:
+
+```svelte
+<!-- src/islands/Counter.svelte -->
+<script lang="ts">
+	import { RainbowButton } from "fancy-ui-svelte";
+	let clicks = $state(0);
+</script>
+
+<RainbowButton onclick={() => clicks++}>Clicked {clicks} times</RainbowButton>
+```
+
+```astro
+<Counter client:visible />
+```
+
+Do not put `client:*` on a component imported from `fancy-ui-svelte` in an `.astro` file: Astro's island loads the whole module it was imported from. Measured with Astro 7.4.2 on a page with one `RainbowButton` island, the wrapper ships 88 KB of JavaScript (32 KB gzipped, Astro's Svelte runtime included); the same button hydrated from the package root ships 1.66 MB (481 KB gzipped), three.js and GSAP included, and the shared chunk then weighs on every island page of the site. `ClientRouter` (`astro:transitions`) is supported: islands are destroyed on navigation and `transition:persist` keeps one alive. Verified with `astro` 7.4.2 and `@astrojs/svelte` 9.1.1, which need Node 22.23.4 or later; the app in [`examples/consumers/astro`](./examples/consumers/astro) is the tested setup.
+
 ## Using with AI agents (Claude Code, Cursor, Copilot)
 
 The docs site serves documentation built for coding agents, following the [llms.txt](https://llmstxt.org) convention:

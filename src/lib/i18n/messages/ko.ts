@@ -390,6 +390,19 @@ export default {
 		"라이브러리는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 <grad>{count}</grad>개를 제공하며, 모든 컴포넌트가 같은 디자인 토큰을 기반으로 합니다.",
 	"intro.importHint":
 		"필요한 컴포넌트를 가져오세요. 가져오기 경로는 사용하는 프레임워크에 따라 달라집니다.",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"FancyUI는 공식 Svelte 통합을 통해 Astro에서 동작하며 추가 패키지가 필요 없습니다. 통합과 Tailwind를 추가하고 패키지를 설치한 다음, 2단계의 스타일시트를 레이아웃에서 가져오세요.",
+	"install.astro.static":
+		"{directive} 지시어 없이 사용한 컴포넌트는 HTML과 CSS로 렌더링되며 JavaScript를 전혀 보내지 않습니다. BorderBeam, Marquee, Meteors, 핸들러가 없는 버튼이 이렇게 동작합니다.",
+	"install.astro.island":
+		"컴포넌트를 하이드레이션하려면 로컬 {svelte} 파일에서 가져오고 그 파일에 지시어를 붙이세요. 핸들러, 상태, 스니펫도 그 파일에 둡니다. {astro}에서는 기본 슬롯만 아일랜드에 전달됩니다.",
+	"install.astro.why":
+		"{astro} 파일에서 패키지 루트로부터 가져온 컴포넌트에 지시어를 붙이지 마세요. 아일랜드가 라이브러리 전체를 불러오게 됩니다. RainbowButton 아일랜드 하나 기준으로 로컬 파일은 JavaScript {wrapped}를, 패키지 루트는 three.js와 GSAP를 포함한 {barrel}를 보내며, 이 청크는 사이트의 모든 아일랜드 페이지가 공유합니다.",
+	"install.astro.router":
+		"{router}를 지원합니다. 탐색할 때마다 아일랜드가 제거되며, {persist}로 하나를 페이지 간에 유지할 수 있습니다.",
+	"install.astro.versions":
+		"astro {astroVersion}, @astrojs/svelte {integrationVersion}에서 검증했으며, 둘 다 Node {node} 이상이 필요합니다.",
 	"install.kitOptional":
 		"SvelteKit은 선택 사항입니다. FancyUI는 Vite로 빌드하는 모든 Svelte 5 프로젝트에서 동작합니다.",
 	"theming.cssPerFramework":

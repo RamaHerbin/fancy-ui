@@ -21,7 +21,7 @@
 		"en": "docs",
 		"context": null,
 		"maxLen": 16,
-		"render": "src/lib/components/docs/Sidebar.svelte:96"
+		"render": "src/lib/components/docs/Sidebar.svelte:97"
 	},
 	"a11y.closeSidebar": {
 		"en": "Close sidebar",
@@ -987,13 +987,13 @@
 		"en": "Star on GitHub",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/Sidebar.svelte:307"
+		"render": "src/lib/components/docs/Sidebar.svelte:309"
 	},
 	"sidebar.starBody": {
 		"en": "If you like FancyUI, give it a star!",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/Sidebar.svelte:308"
+		"render": "src/lib/components/docs/Sidebar.svelte:310"
 	},
 	"rail.nextPage": {
 		"en": "Next page",
@@ -1047,13 +1047,13 @@
 		"en": "Core",
 		"context": null,
 		"maxLen": 16,
-		"render": "src/lib/components/docs/Sidebar.svelte:191"
+		"render": "src/lib/components/docs/Sidebar.svelte:193"
 	},
 	"group.fancy": {
 		"en": "Fancy",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/Sidebar.svelte:249"
+		"render": "src/lib/components/docs/Sidebar.svelte:251"
 	},
 	"category.actions": {
 		"en": "Actions",
@@ -1095,283 +1095,283 @@
 		"en": "Installation",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:56"
+		"render": "src/lib/components/docs/InstallationPage.svelte:57"
 	},
 	"install.lead": {
 		"en": "Add FancyUI to a SvelteKit project in three steps: install the package, import the stylesheet, render a component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:29"
+		"render": "src/lib/components/docs/InstallationPage.svelte:30"
 	},
 	"install.pill.svelte": {
 		"en": "Svelte 5",
 		"context": null,
 		"maxLen": 20,
-		"render": "src/lib/components/docs/InstallationPage.svelte:30"
+		"render": "src/lib/components/docs/InstallationPage.svelte:31"
 	},
 	"install.pill.tailwind": {
 		"en": "Tailwind CSS 4",
 		"context": null,
 		"maxLen": 26,
-		"render": "src/lib/components/docs/InstallationPage.svelte:62"
+		"render": "src/lib/components/docs/InstallationPage.svelte:63"
 	},
 	"install.pill.node": {
 		"en": "Node.js 20.19+",
 		"context": null,
 		"maxLen": 26,
-		"render": "src/lib/components/docs/InstallationPage.svelte:64"
+		"render": "src/lib/components/docs/InstallationPage.svelte:65"
 	},
 	"install.pill.typescript": {
 		"en": "TypeScript",
 		"context": null,
 		"maxLen": 22,
-		"render": "src/lib/components/docs/InstallationPage.svelte:67"
+		"render": "src/lib/components/docs/InstallationPage.svelte:68"
 	},
 	"install.prerequisites.heading": {
 		"en": "Prerequisites",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:72"
+		"render": "src/lib/components/docs/InstallationPage.svelte:73"
 	},
 	"install.prerequisites.body": {
 		"en": "FancyUI targets current toolchains. Check these three before installing.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:73"
+		"render": "src/lib/components/docs/InstallationPage.svelte:74"
 	},
 	"install.prerequisites.card1.title": {
 		"en": "SvelteKit",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:31"
+		"render": "src/lib/components/docs/InstallationPage.svelte:32"
 	},
 	"install.prerequisites.card1.version": {
 		"en": "Svelte 5",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:32"
+		"render": "src/lib/components/docs/InstallationPage.svelte:33"
 	},
 	"install.prerequisites.card1.desc": {
 		"en": "Components are written with runes, so Svelte 5 is required. Svelte 4 projects will not compile them.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:33"
+		"render": "src/lib/components/docs/InstallationPage.svelte:34"
 	},
 	"install.prerequisites.card2.title": {
 		"en": "Tailwind CSS",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:84"
+		"render": "src/lib/components/docs/InstallationPage.svelte:85"
 	},
 	"install.prerequisites.card2.version": {
 		"en": "v4",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:85"
+		"render": "src/lib/components/docs/InstallationPage.svelte:86"
 	},
 	"install.prerequisites.card2.desc": {
 		"en": "Styling relies on Tailwind v4 utilities and CSS custom properties.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:87"
+		"render": "src/lib/components/docs/InstallationPage.svelte:88"
 	},
 	"install.prerequisites.card3.title": {
 		"en": "Node.js",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:91"
+		"render": "src/lib/components/docs/InstallationPage.svelte:92"
 	},
 	"install.prerequisites.card3.version": {
 		"en": "20.19+",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:92"
+		"render": "src/lib/components/docs/InstallationPage.svelte:93"
 	},
 	"install.prerequisites.card3.desc": {
 		"en": "Required by the current build tooling FancyUI is tested against.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:94"
+		"render": "src/lib/components/docs/InstallationPage.svelte:95"
 	},
 	"install.steps.heading": {
 		"en": "Install",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:103"
+		"render": "src/lib/components/docs/InstallationPage.svelte:104"
 	},
 	"install.steps.body": {
 		"en": "Pick your package manager, wire up the stylesheet, then render your first component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:104"
+		"render": "src/lib/components/docs/InstallationPage.svelte:105"
 	},
 	"install.step1.title": {
 		"en": "Install the package",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:109"
+		"render": "src/lib/components/docs/InstallationPage.svelte:110"
 	},
 	"install.step1.desc": {
 		"en": "One package for every component. Switch tabs to copy the command for your package manager.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:110"
+		"render": "src/lib/components/docs/InstallationPage.svelte:111"
 	},
 	"install.step2.title": {
 		"en": "Import the stylesheet",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:117"
+		"render": "src/lib/components/docs/InstallationPage.svelte:118"
 	},
 	"install.step2.desc": {
 		"en": "Add the FancyUI stylesheet right after your Tailwind import.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:118"
+		"render": "src/lib/components/docs/InstallationPage.svelte:119"
 	},
 	"install.step2.caption": {
 		"en": "In your global stylesheet, usually src/app.css.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:120"
+		"render": "src/lib/components/docs/InstallationPage.svelte:121"
 	},
 	"install.step3.title": {
 		"en": "Render a component",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:126"
+		"render": "src/lib/components/docs/InstallationPage.svelte:127"
 	},
 	"install.step3.desc": {
 		"en": "Import from the package root and drop it into your markup.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:127"
+		"render": "src/lib/components/docs/InstallationPage.svelte:128"
 	},
 	"install.tailwind.heading": {
 		"en": "Tailwind CSS setup",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:135"
+		"render": "src/lib/components/docs/InstallationPage.svelte:136"
 	},
 	"install.tailwind.body": {
 		"en": "FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:136"
+		"render": "src/lib/components/docs/InstallationPage.svelte:137"
 	},
 	"install.tailwind.order": {
 		"en": "Import order matters: Tailwind first, FancyUI second. Place the FancyUI import before your own @custom-variant dark, otherwise FancyUI's replaces yours.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:137"
+		"render": "src/lib/components/docs/InstallationPage.svelte:138"
 	},
 	"install.tailwind.note": {
 		"en": "The entry provides default colour tokens (background, primary, border and the rest) and a dark variant. Your own :root and .dark blocks override them: redefine the CSS variables and your values win.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:140"
+		"render": "src/lib/components/docs/InstallationPage.svelte:141"
 	},
 	"install.usage.heading": {
 		"en": "Usage",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:145"
+		"render": "src/lib/components/docs/InstallationPage.svelte:146"
 	},
 	"install.usage.body": {
 		"en": "Every component is a named export of the package root, so there are no per-component import paths to remember.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:146"
+		"render": "src/lib/components/docs/InstallationPage.svelte:147"
 	},
 	"install.usage.note": {
 		"en": "Each component's page lists its props, live examples and accessibility notes.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:148"
+		"render": "src/lib/components/docs/InstallationPage.svelte:149"
 	},
 	"install.typescript.heading": {
 		"en": "TypeScript",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:152"
+		"render": "src/lib/components/docs/InstallationPage.svelte:153"
 	},
 	"install.typescript.body": {
 		"en": "Prop types are exported next to each component, so you can type wrappers and shared presets.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:153"
+		"render": "src/lib/components/docs/InstallationPage.svelte:154"
 	},
 	"install.typescript.note": {
 		"en": "Types ship inside the package. There is no separate types package to install.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:155"
+		"render": "src/lib/components/docs/InstallationPage.svelte:156"
 	},
 	"install.peerDeps.heading": {
 		"en": "Peer dependencies",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:159"
+		"render": "src/lib/components/docs/InstallationPage.svelte:160"
 	},
 	"install.peerDeps.body": {
 		"en": "FancyUI expects these to already exist in your project:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:160"
+		"render": "src/lib/components/docs/InstallationPage.svelte:161"
 	},
 	"install.peerDeps.colPackage": {
 		"en": "Package",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:165"
+		"render": "src/lib/components/docs/InstallationPage.svelte:166"
 	},
 	"install.peerDeps.colVersion": {
 		"en": "Version",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:166"
+		"render": "src/lib/components/docs/InstallationPage.svelte:167"
 	},
 	"install.peerDeps.bundled": {
 		"en": "A few components need extra runtime libraries. These ship with the package, so there is nothing more to install:",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:188"
+		"render": "src/lib/components/docs/InstallationPage.svelte:189"
 	},
 	"install.peerDeps.bundledNote": {
 		"en": "They are only pulled in by the components that use them.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:196"
+		"render": "src/lib/components/docs/InstallationPage.svelte:197"
 	},
 	"install.nextSteps.heading": {
 		"en": "Next steps",
 		"context": null,
 		"maxLen": 22,
-		"render": "src/lib/components/docs/InstallationPage.svelte:200"
+		"render": "src/lib/components/docs/InstallationPage.svelte:233"
 	},
 	"install.nextSteps.components.title": {
 		"en": "Browse components",
 		"context": null,
 		"maxLen": 29,
-		"render": "src/lib/components/docs/InstallationPage.svelte:204"
+		"render": "src/lib/components/docs/InstallationPage.svelte:237"
 	},
 	"install.nextSteps.components.desc": {
 		"en": "{count} components with live previews, props and copy-paste examples.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:208"
+		"render": "src/lib/components/docs/InstallationPage.svelte:241"
 	},
 	"install.nextSteps.theming.title": {
 		"en": "Theming",
 		"context": null,
 		"maxLen": 19,
-		"render": "src/lib/components/docs/InstallationPage.svelte:216"
+		"render": "src/lib/components/docs/InstallationPage.svelte:249"
 	},
 	"install.nextSteps.theming.desc": {
 		"en": "Override the design tokens so every component matches your brand in light and dark mode.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:219"
+		"render": "src/lib/components/docs/InstallationPage.svelte:252"
 	},
 	"theming.metaTitle": {
 		"en": "Theming",
@@ -1605,13 +1605,13 @@
 		"en": "Start",
 		"context": null,
 		"maxLen": 17,
-		"render": "src/lib/components/docs/retro/RetroTaskbar.svelte:27"
+		"render": "src/lib/components/docs/retro/RetroTaskbar.svelte:92"
 	},
 	"retro.tagline": {
 		"en": "Animated components for Svelte 5 — copy-paste friendly.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/retro/RetroTaskbar.svelte:32"
+		"render": "src/lib/components/docs/retro/RetroTaskbar.svelte:101"
 	},
 	"comp.snippetSvelteOnly": {
 		"en": "A full example for this framework is not written yet; only the Svelte version has one for now.",
@@ -1653,61 +1653,61 @@
 		"en": "Add FancyUI to a React project in three steps: install the package, import the stylesheet, render a component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:36"
+		"render": "src/lib/components/docs/InstallationPage.svelte:37"
 	},
 	"install.lead.vue": {
 		"en": "Add FancyUI to a Vue project in three steps: install the package, import the stylesheet, render a component.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:43"
+		"render": "src/lib/components/docs/InstallationPage.svelte:44"
 	},
 	"install.pill.react": {
 		"en": "React 18+",
 		"context": null,
 		"maxLen": 21,
-		"render": "src/lib/components/docs/InstallationPage.svelte:37"
+		"render": "src/lib/components/docs/InstallationPage.svelte:38"
 	},
 	"install.pill.vue": {
 		"en": "Vue 3.5+",
 		"context": null,
 		"maxLen": 20,
-		"render": "src/lib/components/docs/InstallationPage.svelte:44"
+		"render": "src/lib/components/docs/InstallationPage.svelte:45"
 	},
 	"install.prerequisites.card1.title.react": {
 		"en": "React",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:38"
+		"render": "src/lib/components/docs/InstallationPage.svelte:39"
 	},
 	"install.prerequisites.card1.version.react": {
 		"en": "18 / 19",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:39"
+		"render": "src/lib/components/docs/InstallationPage.svelte:40"
 	},
 	"install.prerequisites.card1.desc.react": {
 		"en": "Supports React 18 and 19. Components ship as client modules, so Server Components can import them directly.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:40"
+		"render": "src/lib/components/docs/InstallationPage.svelte:41"
 	},
 	"install.prerequisites.card1.title.vue": {
 		"en": "Vue",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:45"
+		"render": "src/lib/components/docs/InstallationPage.svelte:46"
 	},
 	"install.prerequisites.card1.version.vue": {
 		"en": "3.5+",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:46"
+		"render": "src/lib/components/docs/InstallationPage.svelte:47"
 	},
 	"install.prerequisites.card1.desc.vue": {
 		"en": "Components are Vue 3.5 single-file components, so Vue 3.5.2 or later is required.",
 		"context": null,
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:47"
+		"render": "src/lib/components/docs/InstallationPage.svelte:48"
 	},
 	"a11y.skipToContent": {
 		"en": "Skip to content",
@@ -1835,11 +1835,53 @@
 		"maxLen": null,
 		"render": "src/lib/components/docs/IntroductionPage.svelte:129"
 	},
+	"install.astro.heading": {
+		"en": "Astro",
+		"context": "Installation page, heading of the Astro section (shown with the Svelte framework only). Product name.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:202"
+	},
+	"install.astro.body": {
+		"en": "FancyUI runs in Astro through the official Svelte integration, with no extra package. Add the integration and Tailwind, install the package, then import the stylesheet from step 2 in your layout.",
+		"context": "Astro section intro, above the install commands. 'step 2' is the numbered stylesheet step earlier on the page.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:203"
+	},
+	"install.astro.static": {
+		"en": "A component used without a {directive} directive renders to HTML and CSS and ships no JavaScript. BorderBeam, Marquee, Meteors, and buttons without a handler work this way.",
+		"context": "Astro section, above a static example. {directive} is the code token client:* (an Astro attribute).",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:206"
+	},
+	"install.astro.island": {
+		"en": "To hydrate a component, import it in a local {svelte} file and put the directive on that file. Handlers, state and snippets go in that file too: from {astro}, only the default slot reaches an island.",
+		"context": "Astro section, above the island example. {svelte} is '.svelte' and {astro} is '.astro' (file extensions). An island is Astro's hydrated component.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:209"
+	},
+	"install.astro.why": {
+		"en": "Do not put the directive on a component imported from the package root in an {astro} file: the island would load the whole library. For one RainbowButton island, the local file ships {wrapped} of JavaScript and the package root {barrel}, with three.js and GSAP, a chunk then shared by every island page of the site.",
+		"context": "Astro section warning. {astro} is '.astro'; {wrapped} and {barrel} are measured sizes such as '88 KB (32 KB gzip)'.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:216"
+	},
+	"install.astro.router": {
+		"en": "{router} is supported: islands are destroyed on each navigation, and {persist} keeps one alive across pages.",
+		"context": "Astro section. {router} is 'ClientRouter' and {persist} is 'transition:persist' (Astro code tokens).",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:220"
+	},
+	"install.astro.versions": {
+		"en": "Tested with astro {astroVersion} and @astrojs/svelte {integrationVersion}, which need Node {node} or later.",
+		"context": "Astro section caption. {astroVersion}, {integrationVersion} and {node} are version numbers.",
+		"maxLen": null,
+		"render": "src/lib/components/docs/InstallationPage.svelte:223"
+	},
 	"install.kitOptional": {
 		"en": "SvelteKit is optional: FancyUI works in any Svelte 5 project built with Vite.",
 		"context": "Installation prerequisites note about the optional SvelteKit peer dependency.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:98"
+		"render": "src/lib/components/docs/InstallationPage.svelte:99"
 	},
 	"theming.cssPerFramework": {
 		"en": "Import the stylesheet for your framework: each package ships its own.",
@@ -1875,7 +1917,7 @@
 		"en": "optional",
 		"context": "Small tag after a peer dependency that is optional, in the Installation peer table.",
 		"maxLen": null,
-		"render": "src/lib/components/docs/InstallationPage.svelte:181"
+		"render": "src/lib/components/docs/InstallationPage.svelte:182"
 	},
 	"status.planned": {
 		"en": "Planned",

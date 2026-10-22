@@ -394,6 +394,19 @@ export default {
 	"intro.lead":
 		"adalah kumpulan <grad>{count}</grad> komponen UI beranimasi dan interaktif untuk Svelte 5, React, dan Vue, yang dibangun di atas token desain yang sama.",
 	"intro.importHint": "Impor komponen yang Anda butuhkan. Jalur impor mengikuti framework Anda.",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"FancyUI berjalan di Astro melalui integrasi Svelte resmi, tanpa paket tambahan. Tambahkan integrasi tersebut dan Tailwind, instal paketnya, lalu impor stylesheet dari langkah 2 di layout Anda.",
+	"install.astro.static":
+		"Komponen yang dipakai tanpa direktif {directive} dirender menjadi HTML dan CSS serta tidak mengirim JavaScript. BorderBeam, Marquee, Meteors, dan tombol tanpa handler bekerja dengan cara ini.",
+	"install.astro.island":
+		"Untuk menghidrasi komponen, impor komponen itu di file {svelte} lokal dan pasang direktif pada file tersebut. Handler, state, dan snippet juga ditulis di file itu: dari {astro}, hanya slot default yang sampai ke sebuah island.",
+	"install.astro.why":
+		"Jangan pasang direktif pada komponen yang diimpor dari root paket di file {astro}: island akan memuat seluruh pustaka. Dengan satu island RainbowButton, file lokal mengirim {wrapped} JavaScript, sedangkan root paket mengirim {barrel} termasuk three.js dan GSAP, dan chunk itu lalu dipakai bersama oleh semua halaman ber-island di situs.",
+	"install.astro.router":
+		"{router} didukung: island dihancurkan di setiap navigasi, dan {persist} menjaga satu island tetap hidup antarhalaman.",
+	"install.astro.versions":
+		"Diuji dengan astro {astroVersion} dan @astrojs/svelte {integrationVersion}, yang memerlukan Node {node} atau lebih baru.",
 	"install.kitOptional":
 		"SvelteKit bersifat opsional: FancyUI berjalan di proyek Svelte 5 apa pun yang dibangun dengan Vite.",
 	"theming.cssPerFramework":

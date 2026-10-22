@@ -407,6 +407,19 @@ export default {
 		"est une collection de <grad>{count}</grad> composants d'interface animés et interactifs pour Svelte 5, React et Vue, construits sur les mêmes jetons de design.",
 	"intro.importHint":
 		"Importez les composants dont vous avez besoin. Le chemin d'import dépend de votre framework.",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"FancyUI fonctionne dans Astro grâce à l'intégration Svelte officielle, sans paquet supplémentaire. Ajoutez l'intégration et Tailwind, installez le paquet, puis importez la feuille de style de l'étape 2 dans votre layout.",
+	"install.astro.static":
+		"Un composant utilisé sans directive {directive} est rendu en HTML et CSS et n'envoie aucun JavaScript. BorderBeam, Marquee, Meteors et les boutons sans gestionnaire fonctionnent ainsi.",
+	"install.astro.island":
+		"Pour hydrater un composant, importez-le dans un fichier {svelte} local et placez la directive sur ce fichier. Les gestionnaires, l'état et les snippets vont aussi dans ce fichier : depuis {astro}, seul le slot par défaut atteint un îlot.",
+	"install.astro.why":
+		"Ne placez pas la directive sur un composant importé depuis la racine du paquet dans un fichier {astro} : l'îlot chargerait toute la bibliothèque. Pour un seul îlot RainbowButton, le fichier local envoie {wrapped} de JavaScript et la racine du paquet {barrel}, avec three.js et GSAP, un chunk ensuite partagé par toutes les pages à îlots du site.",
+	"install.astro.router":
+		"{router} est pris en charge : les îlots sont détruits à chaque navigation, et {persist} en garde un actif d'une page à l'autre.",
+	"install.astro.versions":
+		"Testé avec astro {astroVersion} et @astrojs/svelte {integrationVersion}, qui demandent Node {node} ou plus récent.",
 	"install.kitOptional":
 		"SvelteKit est facultatif : FancyUI fonctionne dans tout projet Svelte 5 construit avec Vite.",
 	"theming.cssPerFramework":

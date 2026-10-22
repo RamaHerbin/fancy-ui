@@ -392,6 +392,19 @@ export default {
 		"مجموعة من مكوّنات الواجهة المتحرّكة والتفاعلية لـ Svelte 5 وReact وVue، عددها <grad>{count}</grad>، وكلها مبنية على رموز التصميم نفسها.",
 	"intro.importHint":
 		"استورد المكوّنات التي تحتاج إليها. يتبع مسار الاستيراد إطار العمل الذي تستخدمه.",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"يعمل FancyUI في Astro عبر تكامل Svelte الرسمي، دون حزمة إضافية. أضف التكامل وTailwind، وثبّت الحزمة، ثم استورد ملف الأنماط من الخطوة 2 في التخطيط الخاص بك.",
+	"install.astro.static":
+		"المكوّن المستخدم دون التوجيه {directive} يُعرض بصيغة HTML وCSS ولا يرسل أي JavaScript. تعمل BorderBeam وMarquee وMeteors والأزرار التي بلا معالج بهذه الطريقة.",
+	"install.astro.island":
+		"لترطيب مكوّن، استورده في ملف {svelte} محلي وضع التوجيه على هذا الملف. توضع المعالجات والحالة والمقتطفات في هذا الملف أيضًا: من {astro} لا يصل إلى الجزيرة إلا الفتحة الافتراضية.",
+	"install.astro.why":
+		"لا تضع التوجيه على مكوّن مستورد من جذر الحزمة في ملف {astro}: ستحمّل الجزيرة حينها المكتبة كلها. مع جزيرة RainbowButton واحدة، يرسل الملف المحلي {wrapped} من JavaScript، ويرسل جذر الحزمة {barrel} بما فيها three.js وGSAP، ثم تتشارك هذا الجزء كل صفحات الموقع التي تحتوي على جزر.",
+	"install.astro.router":
+		"{router} مدعوم: تُتلف الجزر عند كل تنقّل، ويُبقي {persist} إحداها حية بين الصفحات.",
+	"install.astro.versions":
+		"تم الاختبار مع astro {astroVersion} و@astrojs/svelte {integrationVersion}، اللذين يتطلبان Node {node} أو أحدث.",
 	"install.kitOptional": "SvelteKit اختياري: يعمل FancyUI في أي مشروع Svelte 5 مبني باستخدام Vite.",
 	"theming.cssPerFramework":
 		"استورد ملف الأنماط الخاص بإطار العمل لديك: لكل حزمة ملف أنماطها الخاص.",

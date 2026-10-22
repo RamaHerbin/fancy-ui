@@ -398,6 +398,19 @@ export default {
 		"は、Svelte 5、React、Vue 向けのアニメーション付きインタラクティブ UI コンポーネント <grad>{count}</grad> 個からなるコレクションです。すべて共通のデザイントークンの上に構築されています。",
 	"intro.importHint":
 		"必要なコンポーネントをインポートします。インポートパスはお使いのフレームワークによって異なります。",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"FancyUI は公式の Svelte インテグレーションを通じて Astro で動作し、追加のパッケージは不要です。インテグレーションと Tailwind を追加し、パッケージをインストールしてから、手順 2 のスタイルシートをレイアウトでインポートします。",
+	"install.astro.static":
+		"{directive} ディレクティブなしで使うコンポーネントは HTML と CSS にレンダリングされ、JavaScript を一切送りません。BorderBeam、Marquee、Meteors、ハンドラーのないボタンはこの方法で動作します。",
+	"install.astro.island":
+		"コンポーネントをハイドレートするには、ローカルの {svelte} ファイルでインポートし、そのファイルにディレクティブを付けます。ハンドラー、状態、スニペットもそのファイルに書きます。{astro} からアイランドに渡せるのはデフォルトのスロットだけです。",
+	"install.astro.why":
+		"{astro} ファイルでパッケージのルートからインポートしたコンポーネントにディレクティブを付けないでください。アイランドがライブラリ全体を読み込んでしまいます。RainbowButton のアイランド 1 つの場合、ローカルファイルは {wrapped} の JavaScript を送り、パッケージのルートは three.js と GSAP を含む {barrel} を送ります。このチャンクはサイト内のアイランドを持つすべてのページで共有されます。",
+	"install.astro.router":
+		"{router} に対応しています。ナビゲーションのたびにアイランドは破棄され、{persist} を使うと 1 つをページ間で維持できます。",
+	"install.astro.versions":
+		"astro {astroVersion} と @astrojs/svelte {integrationVersion} で検証済みです。どちらも Node {node} 以降が必要です。",
 	"install.kitOptional":
 		"SvelteKit は必須ではありません。FancyUI は、Vite でビルドする Svelte 5 プロジェクトであれば動作します。",
 	"theming.cssPerFramework":

@@ -395,6 +395,19 @@ export default {
 		"<grad>{count}</grad> एनिमेटेड, इंटरैक्टिव UI कंपोनेंट का संग्रह है, जो Svelte 5, React और Vue के लिए उपलब्ध हैं और एक ही डिज़ाइन टोकन पर बने हैं।",
 	"intro.importHint":
 		"अपनी ज़रूरत के कंपोनेंट इम्पोर्ट करें। इम्पोर्ट पाथ आपके फ़्रेमवर्क पर निर्भर करता है।",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"FancyUI आधिकारिक Svelte इंटीग्रेशन के ज़रिए Astro में चलता है, किसी अतिरिक्त पैकेज की ज़रूरत नहीं। इंटीग्रेशन और Tailwind जोड़ें, पैकेज इंस्टॉल करें, फिर चरण 2 की स्टाइलशीट को अपने लेआउट में इम्पोर्ट करें।",
+	"install.astro.static":
+		"{directive} डायरेक्टिव के बिना इस्तेमाल किया गया कंपोनेंट HTML और CSS में रेंडर होता है और कोई JavaScript नहीं भेजता। BorderBeam, Marquee, Meteors और बिना हैंडलर वाले बटन इसी तरह काम करते हैं।",
+	"install.astro.island":
+		"किसी कंपोनेंट को हाइड्रेट करने के लिए उसे एक लोकल {svelte} फ़ाइल में इम्पोर्ट करें और डायरेक्टिव उसी फ़ाइल पर लगाएँ। हैंडलर, स्टेट और स्निपेट भी उसी फ़ाइल में रखें: {astro} से किसी आइलैंड तक सिर्फ़ डिफ़ॉल्ट स्लॉट पहुँचता है।",
+	"install.astro.why":
+		"{astro} फ़ाइल में पैकेज रूट से इम्पोर्ट किए गए कंपोनेंट पर डायरेक्टिव न लगाएँ: तब आइलैंड पूरी लाइब्रेरी लोड करेगा। एक RainbowButton आइलैंड के साथ लोकल फ़ाइल {wrapped} JavaScript भेजती है और पैकेज रूट three.js और GSAP सहित {barrel} भेजता है, और यह चंक फिर साइट के सभी आइलैंड वाले पेजों में साझा होता है।",
+	"install.astro.router":
+		"{router} समर्थित है: हर नेविगेशन पर आइलैंड नष्ट होते हैं, और {persist} एक आइलैंड को पेजों के बीच जीवित रखता है।",
+	"install.astro.versions":
+		"astro {astroVersion} और @astrojs/svelte {integrationVersion} के साथ परखा गया, जिन्हें Node {node} या नया संस्करण चाहिए।",
 	"install.kitOptional":
 		"SvelteKit वैकल्पिक है: FancyUI, Vite से बने किसी भी Svelte 5 प्रोजेक्ट में काम करता है।",
 	"theming.cssPerFramework":

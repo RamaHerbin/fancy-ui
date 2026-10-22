@@ -4,6 +4,7 @@
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
 	import { INSTALL_SNIPPETS, INSTALL_VARIANTS } from "$lib/docs/install-snippets.js";
+	import { ASTRO_ISLAND_COST, ASTRO_SNIPPETS, ASTRO_VERSIONS } from "$lib/docs/astro-snippets.js";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
 	import type { Framework } from "$lib/inspiration/types.js";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
@@ -195,6 +196,38 @@
 		</div>
 		<p class="caption">{t("install.peerDeps.bundledNote")}</p>
 	</section>
+
+	{#if framework === "svelte"}
+		<section class="sec">
+			<h2 id="astro">{t("install.astro.heading")}</h2>
+			<p class="sec-body">{t("install.astro.body")}</p>
+			<CodeBlock lang="bash" code={ASTRO_SNIPPETS.install} />
+			<CodeBlock lang="js" code={ASTRO_SNIPPETS.config} />
+			<p class="sec-body astro-gap">{t("install.astro.static", { directive: "client:*" })}</p>
+			<CodeBlock lang="astro" code={ASTRO_SNIPPETS.staticUsage} />
+			<p class="sec-body astro-gap">
+				{t("install.astro.island", { svelte: ".svelte", astro: ".astro" })}
+			</p>
+			<CodeBlock lang="svelte" code={ASTRO_SNIPPETS.island} />
+			<CodeBlock lang="astro" code={ASTRO_SNIPPETS.islandUsage} />
+			<div class="note astro-gap">
+				<span class="note-ic" aria-hidden="true">✦</span>
+				<p class="note-body">
+					{t("install.astro.why", { astro: ".astro", ...ASTRO_ISLAND_COST })}
+				</p>
+			</div>
+			<p class="sec-body astro-gap">
+				{t("install.astro.router", { router: "ClientRouter", persist: "transition:persist" })}
+			</p>
+			<p class="caption">
+				{t("install.astro.versions", {
+					astroVersion: ASTRO_VERSIONS.astro,
+					integrationVersion: ASTRO_VERSIONS.integration,
+					node: ASTRO_VERSIONS.node,
+				})}
+			</p>
+		</section>
+	{/if}
 
 	<section class="sec">
 		<h2 id="next-steps">{t("install.nextSteps.heading")}</h2>
@@ -492,6 +525,12 @@
 		flex-wrap: wrap;
 		gap: 8px;
 		margin-bottom: 8px;
+	}
+
+	/* Astro ----------------------------------------------------------------- */
+	.install p.astro-gap,
+	.install .note.astro-gap {
+		margin-top: 16px;
 	}
 
 	/* Next steps ------------------------------------------------------------ */

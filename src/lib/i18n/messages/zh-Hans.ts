@@ -356,6 +356,19 @@ export default {
 	"intro.lead":
 		"是一个包含 <grad>{count}</grad> 个动画交互式 UI 组件的组件库，支持 Svelte 5、React 和 Vue，所有组件共用同一套设计令牌。",
 	"intro.importHint": "导入你需要的组件。导入路径取决于你使用的框架。",
+	"install.astro.heading": "Astro",
+	"install.astro.body":
+		"FancyUI 通过官方 Svelte 集成在 Astro 中运行，无需额外的包。添加该集成和 Tailwind，安装包，然后在布局中导入第 2 步的样式表。",
+	"install.astro.static":
+		"不带 {directive} 指令使用的组件会渲染为 HTML 和 CSS，不发送任何 JavaScript 代码。像 BorderBeam, Marquee, Meteors 以及没有处理函数的按钮，都是这样工作的。",
+	"install.astro.island":
+		"要水合一个组件，请在本地的 {svelte} 文件中导入它，并把指令加在这个文件上。处理函数、状态和 snippet 也写在这个文件里：从 {astro} 传入岛屿的只有默认插槽。",
+	"install.astro.why":
+		"不要在 {astro} 文件中给从包根导入的组件加指令：岛屿会加载整个库。以一个 RainbowButton 岛屿为例，本地文件发送 {wrapped} 的 JavaScript，包根则发送包含 three.js 和 GSAP 的 {barrel}，而且这个 chunk 会被站点中所有带岛屿的页面共享。",
+	"install.astro.router":
+		"支持 {router}：每次导航都会销毁岛屿，{persist} 可以让一个岛屿在页面之间保持存活。",
+	"install.astro.versions":
+		"已在 astro {astroVersion} 和 @astrojs/svelte {integrationVersion} 上验证，它们需要 Node {node} 或更高版本。",
 	"install.kitOptional": "SvelteKit 是可选的：FancyUI 可用于任何使用 Vite 构建的 Svelte 5 项目。",
 	"theming.cssPerFramework": "导入与你的框架对应的样式表：每个包都自带样式表。",
 	"status.planned": "计划中",
