@@ -36,9 +36,9 @@
  *   - `dependencies` names a package the stack's package.json does not
  *     depend on (`react/package.json` / the root `package.json` /
  *     `vue/package.json`);
- *   - the item count is not the stack's (React 151 = 145 components + 6
- *     shared modules; Svelte 148 = 145 components + 3 shared modules; Vue 150
- *     = 145 components + 5 shared modules), or (Svelte, Vue) the total file
+ *   - the item count is not the stack's (React 157 = 151 components + 6
+ *     shared modules; Svelte 154 = 151 components + 3 shared modules; Vue 156
+ *     = 151 components + 5 shared modules), or (Svelte, Vue) the total file
  *     count drifts from the pinned one.
  *
  * Usage:
@@ -78,8 +78,8 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
-/** Vue files over all 150 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 481;
+/** Vue files over all 156 items; the generator's real-tree test reports the same. */
+const VUE_EXPECTED_FILES = 511;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
@@ -93,7 +93,7 @@ const STACKS = {
 		id: "react",
 		dir: PAGES_R,
 		urlPath: "/r",
-		expectedCount: 151,
+		expectedCount: 157,
 		targetPrefix: "@ui/fancy/",
 		pathPrefix: "react/src/",
 		excluded: EXCLUDED,
@@ -108,9 +108,9 @@ const STACKS = {
 		id: "svelte",
 		dir: join(PAGES_R, "svelte"),
 		urlPath: "/r/svelte",
-		expectedCount: 148,
+		expectedCount: 154,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 453,
+		expectedFiles: 482,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
@@ -127,7 +127,7 @@ const STACKS = {
 		id: "vue",
 		dir: join(PAGES_R, "vue"),
 		urlPath: "/r/vue",
-		expectedCount: 150,
+		expectedCount: 156,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
 		expectedFiles: VUE_EXPECTED_FILES,
 		/** No `target`: the Vue CLI places a file from its `path` (see the header). */
@@ -189,6 +189,12 @@ function creditUrls() {
 		for (const u of src.slice(m.index, end).matchAll(/url:\s*"([^"]+)"/g)) urls.add(u[1]);
 	}
 	return urls;
+}
+
+/** `name@range` → `name` (a scope's leading "@" is not a range separator). */
+function packageName(entry) {
+	const at = entry.indexOf("@", 1);
+	return at === -1 ? entry : entry.slice(0, at);
 }
 
 function packageDependencies(stack) {
@@ -449,12 +455,14 @@ export function findProblems(snap) {
 			if (re.test(text)) problems.push(`${where}: product name matching ${re.source}`);
 		}
 
-		for (const dep of item.dependencies ?? []) {
+		for (const entry of item.dependencies ?? []) {
+			const dep = packageName(entry);
 			if (!snap.deps.has(dep)) {
 				problems.push(`${where}: dependency ${dep} is not a ${pkgLabel} dependency`);
 			}
 		}
-		for (const dep of item.devDependencies ?? []) {
+		for (const entry of item.devDependencies ?? []) {
+			const dep = packageName(entry);
 			if (!snap.allDeps.has(dep)) {
 				problems.push(`${where}: devDependency ${dep} is not in ${pkgLabel}`);
 			}
@@ -956,6 +964,21 @@ function svelteCases() {
 		[
 			"svelte: dependency outside package.json",
 			(s) => (rb(s).dependencies = ["left-pad"]),
+			"dependency left-pad is not a package.json dependency",
+		],
+		[
+			"svelte: pinned scoped and plain dependencies pass",
+			(s) => {
+				s.deps.add("@scope/pkg");
+				const pinned = ["three@^0.160.0", "@scope/pkg@^1.2.0"];
+				rb(s).dependencies = pinned;
+				s.index.items.find((i) => i.name === "rainbow-button").dependencies = pinned;
+			},
+			null,
+		],
+		[
+			"svelte: pinned unknown dependency is flagged",
+			(s) => (rb(s).dependencies = ["left-pad@^1.0.0"]),
 			"dependency left-pad is not a package.json dependency",
 		],
 		[

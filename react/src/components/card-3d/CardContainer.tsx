@@ -65,7 +65,7 @@ export function CardContainer({
 			<div
 				ref={containerRef}
 				className={cn(
-					"relative flex items-center justify-center transition-all duration-200 ease-linear",
+					"relative flex items-center justify-center ease-linear motion-safe:transition-all motion-safe:duration-200",
 					className
 				)}
 				style={{ transformStyle: "preserve-3d" }}

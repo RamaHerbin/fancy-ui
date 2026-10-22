@@ -9,7 +9,7 @@ Canvas-based grid of squares with flickering opacity. Uses ResizeObserver, Inter
 | `squareSize`    | `number` | `4`          | Size of each grid square in pixels               |
 | `gridGap`       | `number` | `6`          | Gap between squares in pixels                    |
 | `flickerChance` | `number` | `0.3`        | Probability of opacity change per second (0-1)   |
-| `color`         | `string` | `'#000000'`  | Color of the squares (hex format)                |
+| `color`         | `string` | `'currentColor'` | Color of the squares: a hex string, or `currentColor` to follow the text colour |
 | `maxOpacity`    | `number` | `0.3`        | Maximum opacity of squares (0-1)                 |
 | `width`         | `number` | `undefined`  | Fixed width (defaults to container width)        |
 | `height`        | `number` | `undefined`  | Fixed height (defaults to container height)      |

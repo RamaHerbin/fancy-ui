@@ -1,5 +1,5 @@
 import { forwardRef, useRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
@@ -8,7 +8,7 @@ import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./checkbox.css";
 
-export interface CheckboxProps {
+interface CheckboxOwnProps {
 	/**
 	 * Whether the box is checked. Controlled when supplied: pair it with
 	 * `onCheckedChange`, the React counterpart of the Svelte source's
@@ -64,6 +64,11 @@ export interface CheckboxProps {
 	sound?: boolean;
 }
 
+export interface CheckboxProps
+	extends
+		Omit<ComponentPropsWithoutRef<"input">, keyof CheckboxOwnProps | "type">,
+		CheckboxOwnProps {}
+
 /**
  * A native `<input type="checkbox">` with a drawn tick, a real indeterminate
  * state and full FormField integration.
@@ -88,6 +93,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 			children,
 			className,
 			sound = false,
+			onChange,
+			"aria-label": ariaLabel,
+			"aria-describedby": ariaDescribedby,
+			"aria-invalid": ariaInvalid,
+			...rest
 		},
 		forwardedRef
 	) => {
@@ -162,6 +172,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 			setIndeterminate(false);
 			playCue(next ? "toggle-on" : "toggle-off");
 			onCheckedChange?.(next);
+			onChange?.(event);
 		}
 
 		const wrapperClasses = cn(
@@ -184,6 +195,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 				*/}
 				<span className="ft-checkbox-box">
 					<input
+						{...rest}
 						ref={composedRef}
 						type="checkbox"
 						className="ft-checkbox-control border-input"
@@ -194,10 +206,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 						disabled={effectiveDisabled}
 						required={effectiveRequired}
 						aria-checked={indeterminate ? "mixed" : checked}
-						aria-invalid={effectiveInvalid ? "true" : undefined}
-						aria-describedby={field?.describedBy}
-						aria-label={label}
-						data-invalid={effectiveInvalid ? "true" : undefined}
+						aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
+						aria-describedby={
+							[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") || undefined
+						}
+						aria-label={label ?? ariaLabel}
+						{...(effectiveInvalid ? { "data-invalid": "true" } : {})}
 						onChange={handleChange}
 					/>
 					{/*

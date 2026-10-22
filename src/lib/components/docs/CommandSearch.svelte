@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import { searchComponents, getAllComponents } from "$lib/fancy-ui/registry.js";
+	import { getAllComponents } from "$lib/fancy-ui/registry.js";
+	import { rankComponents } from "$lib/docs/search-rank.js";
+	import { JOBS } from "$lib/docs/jobs.js";
 	import { t, tCategory } from "$lib/stores";
+	import { en, type MessageKey } from "$lib/i18n/messages/en.js";
 
 	interface Props {
 		open?: boolean;
@@ -34,8 +37,19 @@
 		{ nameKey: "page.changelog", slug: "changelog", href: "/docs/getting-started/changelog" },
 	] as const;
 
+	// Suggestions are searches: each chip inserts its own translated label, and that label is
+	// indexed below (category names and job titles), so what you read is what gets searched.
+	const suggestionKeys = ["category.buttons", "jobs.navigate", "jobs.attention"] as const;
+
+	const fold = (s: string) =>
+		s
+			.toLowerCase()
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "");
+
 	let results = $derived.by(() => {
 		const q = query.trim().toLowerCase();
+		const fq = fold(q);
 		const gsCategory = t("nav.gettingStarted");
 		const pageResult = (p: (typeof gettingStartedPages)[number]) => ({
 			name: t(p.nameKey),
@@ -60,18 +74,42 @@
 		}
 
 		const pages = gettingStartedPages
-			.filter((p) => t(p.nameKey).toLowerCase().includes(q) || p.slug.includes(q))
+			.filter(
+				(p) =>
+					fold(t(p.nameKey)).includes(fq) || fold(en[p.nameKey]).includes(fq) || p.slug.includes(q)
+			)
 			.map(pageResult);
 
-		const components = searchComponents(q)
-			.slice(0, 10)
-			.map((c) => ({
-				name: c.name,
-				slug: c.slug,
-				href: `/docs/components/${c.slug}`,
-				category: tCategory(c.category),
-				type: "component" as const,
-			}));
+		// Registry search is English; also admit components whose translated or English category
+		// label matches, so a query like "bouton" finds the Buttons category.
+		const ranked = rankComponents(q);
+		const seen = new Set(ranked.map((c) => c.slug));
+		const byCategory = getAllComponents().filter(
+			(c) =>
+				!seen.has(c.slug) &&
+				(fold(tCategory(c.category)).includes(fq) ||
+					fold(en[`category.${c.category}`]).includes(fq))
+		);
+
+		// A job title (translated or English) admits that job's components.
+		const jobSlugs = new Set(
+			JOBS.filter(
+				(j) =>
+					fold(t(`jobs.${j.id}` as MessageKey)).includes(fq) ||
+					fold(en[`jobs.${j.id}` as MessageKey]).includes(fq)
+			).flatMap((j) => j.slugs)
+		);
+		const byJob = getAllComponents().filter(
+			(c) => jobSlugs.has(c.slug) && !seen.has(c.slug) && !byCategory.includes(c)
+		);
+
+		const components = [...ranked, ...byCategory, ...byJob].slice(0, 10).map((c) => ({
+			name: c.name,
+			slug: c.slug,
+			href: `/docs/components/${c.slug}`,
+			category: tCategory(c.category),
+			type: "component" as const,
+		}));
 
 		return [...pages, ...components];
 	});
@@ -132,7 +170,7 @@
 				open = false;
 				onclose?.();
 			}}
-			aria-label="Close search"
+			aria-label={t("search.a11y.close")}
 		></button>
 	</div>
 
@@ -173,10 +211,28 @@
 			<!-- Results -->
 			<div class="max-h-[300px] overflow-y-auto p-2">
 				{#if results.length === 0}
-					<p class="text-muted-foreground px-3 py-6 text-center text-sm">{t("search.noResults")}</p>
+					<div class="px-3 py-6 text-center" data-testid="search-no-results">
+						<p class="text-muted-foreground text-sm">{t("search.noResults")}</p>
+						<p class="text-muted-foreground mt-3 text-xs">{t("search.tryInstead")}</p>
+						<div class="mt-2 flex flex-wrap justify-center gap-2">
+							{#each suggestionKeys as suggestionKey (suggestionKey)}
+								<button
+									type="button"
+									class="border-border hover:bg-muted min-h-11 rounded-full border px-4 text-sm"
+									onclick={() => {
+										query = t(suggestionKey);
+										inputEl?.focus();
+									}}
+								>
+									{t(suggestionKey)}
+								</button>
+							{/each}
+						</div>
+					</div>
 				{:else}
 					{#each results as result, i}
 						<button
+							data-result={result.type}
 							onclick={() => navigate(result.href)}
 							onmouseenter={() => (selectedIndex = i)}
 							class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors {selectedIndex ===

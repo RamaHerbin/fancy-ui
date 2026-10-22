@@ -39,7 +39,7 @@ export interface RadioGroupProps {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, provide, useTemplateRef } from "vue";
+import { computed, nextTick, provide, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -47,6 +47,8 @@ import { useSoundCue } from "../../sound/use-sound.js";
 import { RADIO_GROUP_KEY, type RadioGroupContext } from "./types.js";
 
 defineOptions({ name: "RadioGroup", inheritAttrs: false });
+
+const attrs = useAttrs() as Record<string, string | undefined>;
 
 const {
 	onValueChange,
@@ -175,16 +177,23 @@ const classes = computed(() =>
 -->
 <template>
 	<div
+		v-bind="attrs"
 		ref="el"
-		:id="field?.controlId"
+		:id="field?.controlId ?? attrs.id"
 		:class="classes"
 		role="radiogroup"
 		:data-orientation="orientation"
-		:aria-label="field?.labelId ? undefined : label"
-		:aria-labelledby="field?.labelId"
-		:aria-describedby="field?.describedBy"
-		:aria-invalid="effectiveInvalid ? 'true' : undefined"
-		:aria-required="effectiveRequired ? 'true' : undefined"
+		:aria-label="field?.labelId ? undefined : (label ?? attrs['aria-label'])"
+		:aria-labelledby="field?.labelId ?? attrs['aria-labelledby']"
+		:aria-describedby="
+			[field?.describedBy, attrs['aria-describedby']].filter(Boolean).join(' ') || undefined
+		"
+		:aria-invalid="
+			effectiveInvalid ? 'true' : (attrs['aria-invalid'] as 'true' | 'false' | undefined)
+		"
+		:aria-required="
+			effectiveRequired ? 'true' : (attrs['aria-required'] as 'true' | 'false' | undefined)
+		"
 	>
 		<slot />
 	</div>

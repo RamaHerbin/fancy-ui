@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { cn } from "../../utils.js";
@@ -128,6 +128,24 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 	const titleId = title ? `${uid}-title` : undefined;
 	const descriptionId = description ? `${uid}-description` : undefined;
 
+	// Same disclosure wiring as Dialog's: the state goes on the real button
+	// inside the semantics-free wrapper, `aria-controls` only while the panel
+	// exists.
+	const panelId = `${uid}-panel`;
+	useEffect(() => {
+		const el = triggerRef.current?.firstElementChild;
+		if (!el) return;
+		el.setAttribute("aria-haspopup", "dialog");
+		el.setAttribute("aria-expanded", String(open));
+		if (open) el.setAttribute("aria-controls", panelId);
+		else el.removeAttribute("aria-controls");
+		return () => {
+			el.removeAttribute("aria-haspopup");
+			el.removeAttribute("aria-expanded");
+			el.removeAttribute("aria-controls");
+		};
+	}, [open, panelId, trigger]);
+
 	const panelContent = (
 		<>
 			<div className="flex items-center gap-2">
@@ -187,6 +205,7 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 			<DialogSurface
 				ref={forwardedRef}
 				open={open}
+				id={panelId}
 				role="alertdialog"
 				titleId={titleId}
 				descriptionId={descriptionId}

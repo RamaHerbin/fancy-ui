@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { t, tCategory, componentDocTitle, createSkinState } from "$lib/stores";
+	import { t, tCategory, componentDocTitle, createSkinState, getLocale } from "$lib/stores";
+	import { formatList } from "$lib/i18n/format.js";
 	// The group badge composes its key at runtime, so the cast needs the key union.
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
@@ -11,18 +12,34 @@
 		defaultProps,
 	} from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
-	import Breadcrumbs from "$lib/components/docs/Breadcrumbs.svelte";
+	import PageActions from "$lib/components/docs/PageActions.svelte";
 	import RelatedComponents from "$lib/components/docs/RelatedComponents.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
 	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
 	import { hasSoundProp } from "$lib/fancy-ui/registry.js";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
-	import { SITE_URL, SITE_NAME } from "$lib/site.js";
+	import { SITE_URL, SITE_NAME, GITHUB_URL, SOURCE_BRANCH, sourceTreeUrl } from "$lib/site.js";
+	import { componentBadges, fillBadge, type BadgeTone } from "$lib/docs/component-badges.js";
+	import { sourcePathForRoute } from "$lib/docs/page-sources.js";
 	import { toConsumerImports } from "$lib/docs/code.js";
+	import { getUsageSnippet } from "$lib/docs/framework-snippets.js";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import type { Framework } from "$lib/inspiration/types.js";
+	import { portEventName, portSlotName } from "$lib/docs/port-names.js";
+	import PortName from "$lib/components/docs/PortName.svelte";
+	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
 
-	const REPO_URL = "https://github.com/RamaHerbin/fancy-ui";
+	const REPO_URL = GITHUB_URL;
+
+	const BADGE_TONE_CLASS: Record<BadgeTone, string> = {
+		success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+		warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+		neutral: "bg-muted text-muted-foreground",
+		info: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+		danger: "bg-red-500/10 text-red-600 dark:text-red-400",
+	};
 
 	let { data }: { data: PageData } = $props();
 
@@ -32,11 +49,53 @@
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 
+	// The framework store hydrates from localStorage; read it after mount so the
+	// prerendered markup (Svelte) matches the first client render.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const framework = $derived(mounted ? frameworkState.framework : "svelte");
+	const variant = $derived(data.variants.find((v) => v.framework === framework) ?? null);
+
+	// React and Vue show their own compiled example, or the import line plus a
+	// note when none exists; never another framework's code.
+	const frameworkSnippet = $derived(getUsageSnippet(component.slug, framework));
+	const fallbackCode = $derived(variant?.importLine ?? "");
+
 	let sourceUrl = $derived(
-		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
+		framework !== "svelte" && variant
+			? variant.sourceUrl
+			: sourceTreeUrl(`src/lib/fancy-ui/${component.slug}`)
 	);
 	let path = $derived(`/docs/components/${component.slug}`);
+	let badges = $derived(componentBadges(component));
+
+	// Which ports exist, written into the prerendered markup: the framework
+	// switch only changes the page after mount, so this sentence is what a
+	// crawler (or a reader without scripts) learns about the React and Vue
+	// editions, in the order of the switch. The list is joined for the active
+	// locale ("Svelte 5, React et Vue 3"), since it lands inside a translated sentence.
+	const FRAMEWORK_EDITIONS: Record<Framework, string> = {
+		svelte: "Svelte 5",
+		react: "React",
+		vue: "Vue 3",
+	};
+	let availableEditions = $derived(
+		formatList(
+			data.variants
+				.filter((v) => v.availability !== "unavailable")
+				.map((v) => FRAMEWORK_EDITIONS[v.framework]),
+			getLocale()
+		)
+	);
+	let sourcePath = $derived(sourcePathForRoute(path));
 	let markdownPath = $derived(`${path}.md`);
+	// The export link carries the framework so it can serve that edition. Until
+	// the Markdown route reads the parameter, every edition is the Svelte one and
+	// the button keeps saying so (flip this once the route is framework-aware).
+	const MARKDOWN_FOLLOWS_FRAMEWORK = false;
+	let markdownHref = $derived(`${markdownPath}?framework=${framework}`);
+	let markdownSvelteOnly = $derived(framework !== "svelte" && !MARKDOWN_FOLLOWS_FRAMEWORK);
 	let pageUrl = $derived(`${SITE_URL}${path}`);
 	let ogImage = $derived(`/og/${component.slug}.jpg`);
 
@@ -45,7 +104,7 @@
 	let metaDescription = $derived.by(() => {
 		const base = component.description.trim();
 		const sentence = /[.!?]$/.test(base) ? base : `${base}.`;
-		return `${sentence} Svelte 5 component — live preview, props and copy-paste examples.`;
+		return `${sentence} Component for Svelte 5, React and Vue — live preview, props and copy-paste examples.`;
 	});
 
 	let breadcrumbLd = $derived({
@@ -73,11 +132,11 @@
 			"@type": "SoftwareSourceCode",
 			name: component.name,
 			description: component.description,
-			programmingLanguage: ["Svelte", "TypeScript"],
-			runtimePlatform: "Svelte 5",
+			programmingLanguage: ["Svelte", "TypeScript", "React", "Vue"],
+			runtimePlatform: ["Svelte 5", "React", "Vue"],
 			codeRepository: REPO_URL,
 			codeSampleType: "code snippet",
-			license: `${REPO_URL}/blob/main/LICENSE`,
+			license: `${REPO_URL}/blob/${SOURCE_BRANCH}/LICENSE`,
 			keywords: component.tags?.join(", "),
 		},
 		encoding: {
@@ -156,13 +215,28 @@
 
 	let markdownCopied = $state(false);
 	async function copyMarkdown() {
-		const res = await fetch(markdownPath);
+		const res = await fetch(markdownHref);
 		if (!res.ok) return;
 		await navigator.clipboard.writeText(await res.text());
 		markdownCopied = true;
 		setTimeout(() => (markdownCopied = false), 2000);
 	}
 </script>
+
+{#snippet snippetBlock(svelteCode: string, active: boolean)}
+	{#if framework === "svelte"}
+		<CodeBlock code={svelteCode} lang="svelte" {active} />
+	{:else if frameworkSnippet}
+		<CodeBlock code={frameworkSnippet.code} lang={frameworkSnippet.lang} {active} />
+	{:else}
+		{#if fallbackCode}
+			<CodeBlock code={fallbackCode} lang="ts" {active} />
+		{/if}
+		<p class="text-muted-foreground px-4 py-3 text-sm" data-snippet-missing>
+			{variant && !variant.importLine ? t("install.unavailable") : t("comp.snippetSvelteOnly")}
+		</p>
+	{/if}
+{/snippet}
 
 <svelte:head>
 	<link
@@ -171,6 +245,22 @@
 		href={markdownPath}
 		title="{component.name} (Markdown)"
 	/>
+	{#if data.markdown.react}
+		<link
+			rel="alternate"
+			type="text/markdown"
+			href={data.markdown.react}
+			title="{component.name} for React (Markdown)"
+		/>
+	{/if}
+	{#if data.markdown.vue}
+		<link
+			rel="alternate"
+			type="text/markdown"
+			href={data.markdown.vue}
+			title="{component.name} for Vue (Markdown)"
+		/>
+	{/if}
 </svelte:head>
 
 <Seo
@@ -184,8 +274,6 @@
 <JsonLd data={articleLd} />
 
 <div class="max-w-4xl">
-	<Breadcrumbs current={component.name} />
-
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
 		<span
@@ -201,19 +289,16 @@
 		>
 			{t(`group.${component.group}` as MessageKey)}
 		</span>
-		{#if component.status === "done"}
+		{#each badges as badge (badge.id)}
 			<span
-				class="retro-tag retro-tag-stable rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+				data-badge={badge.id}
+				class="rounded-full px-2.5 py-0.5 text-xs font-medium {badge.id === 'stable'
+					? 'retro-tag retro-tag-stable '
+					: ''}{BADGE_TONE_CLASS[badge.tone]}"
 			>
-				{t("status.stable")}
+				{fillBadge(t(badge.key), badge.vars)}
 			</span>
-		{:else if component.status === "in-progress"}
-			<span
-				class="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
-			>
-				{t("status.inProgress")}
-			</span>
-		{/if}
+		{/each}
 	</div>
 
 	<div class="mb-2 flex flex-wrap items-center justify-between gap-3">
@@ -222,6 +307,8 @@
 			<button
 				type="button"
 				onclick={copyMarkdown}
+				title={markdownSvelteOnly ? t("comp.markdownSvelteOnly") : undefined}
+				data-markdown-copy
 				class="retro-btn border-border text-muted-foreground hover:text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium transition-colors"
 			>
 				<svg
@@ -236,16 +323,40 @@
 						d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
 					/></svg
 				>
-				{markdownCopied ? t("action.copied") : t("comp.copyMarkdown")}
+				{markdownCopied
+					? t("action.copied")
+					: markdownSvelteOnly
+						? t("comp.copyMarkdownSvelte")
+						: t("comp.copyMarkdown")}
 			</button>
 			<a
-				href={markdownPath}
+				href={markdownHref}
+				data-markdown-link
+				title={markdownSvelteOnly ? t("comp.markdownSvelteOnly") : undefined}
+				aria-label={markdownSvelteOnly
+					? `.md (Svelte). ${t("comp.markdownSvelteOnly")}`
+					: undefined}
 				class="text-muted-foreground hover:text-foreground font-mono underline-offset-2 hover:underline"
-				>.md</a
+				>.md{markdownSvelteOnly ? " (Svelte)" : ""}</a
 			>
 		</div>
 	</div>
-	<p class="text-muted-foreground mb-6">{component.description}</p>
+	<div class="mb-4"><PageActions {sourcePath} name={component.name} /></div>
+	{#if component.deprecated}
+		<p
+			role="note"
+			data-deprecated-notice
+			class="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300"
+		>
+			{t("comp.deprecatedNotice")}
+		</p>
+	{/if}
+	<p class="text-muted-foreground mb-2">{component.description}</p>
+	{#if availableEditions}
+		<p class="text-muted-foreground mb-6 text-sm" data-editions>
+			{t("comp.editions", { editions: availableEditions })}
+		</p>
+	{/if}
 
 	<!-- ═══ PREVIEW ═══ -->
 	<section class="mb-10">
@@ -304,7 +415,7 @@
 				     prerendered HTML instead of appearing solely after a client-side tab switch.
 				     Highlighting still waits for the tab to be opened. -->
 				<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
-					<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
+					{@render snippetBlock(previewCode, previewTab === "code")}
 				</div>
 			</div>
 		</div>
@@ -321,18 +432,33 @@
 	<!-- ═══ USAGE ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="usage">{t("comp.usage")}</h2>
-		<CodeBlock code={basicUsageCode} lang="svelte" />
+		{@render snippetBlock(previewCode, true)}
 	</section>
 
 	<!-- ═══ EXAMPLES ═══ -->
-	<ExamplesSection slug={component.slug} />
+	<ExamplesSection slug={component.slug} showCode={framework === "svelte"} />
+
+	{#if framework !== "svelte" && ((component.props?.length ?? 0) > 0 || (component.slots?.length ?? 0) > 0 || (component.events?.length ?? 0) > 0)}
+		<p
+			class="text-muted-foreground border-border mb-6 rounded-lg border px-4 py-3 text-sm"
+			data-api-notice
+		>
+			{framework === "react" ? t("comp.apiNoticeReact") : t("comp.apiNoticeVue")}
+			<a
+				href="{REPO_URL}/blob/{SOURCE_BRANCH}/{framework}/README.md#divergences-from-the-svelte-api"
+				class="text-foreground underline underline-offset-2"
+				target="_blank"
+				rel="noopener noreferrer">{t("comp.apiNoticeLink")}</a
+			>
+		</p>
+	{/if}
 
 	<!-- ═══ PROPS ═══ -->
 	{#if component.props && component.props.length > 0}
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
 			<div class="retro-props border-border overflow-hidden rounded-lg border">
-				<PropsTable props={component.props} />
+				<PropsTable props={component.props} {framework} ports={data.ports} />
 			</div>
 		</section>
 	{/if}
@@ -358,6 +484,11 @@
 									>
 										{slot.name}
 									</code>
+									<PortName
+										{framework}
+										name={slot.name}
+										port={framework === "svelte" ? slot.name : portSlotName(slot.name, framework)}
+									/>
 								</td>
 								<td class="text-muted-foreground px-4 py-3 text-xs">{slot.description}</td>
 							</tr>
@@ -390,6 +521,13 @@
 									>
 										{event.name}
 									</code>
+									<PortName
+										{framework}
+										name={event.name}
+										port={framework === "svelte"
+											? event.name
+											: portEventName(event.name, framework, data.ports)}
+									/>
 								</td>
 								<td class="px-4 py-3"><code class="font-mono text-xs">{event.detail}</code></td>
 								<td class="text-muted-foreground px-4 py-3 text-xs">{event.description}</td>
@@ -430,6 +568,12 @@
 							{t("comp.inspiredBy")}
 							{credit.source}
 						</a>
+					{:else}
+						<span
+							class="border-border text-muted-foreground inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm"
+						>
+							{t("comp.inspiredByNoLink").replace("{name}", credit.source)}
+						</span>
 					{/if}
 				{/each}
 			{/if}

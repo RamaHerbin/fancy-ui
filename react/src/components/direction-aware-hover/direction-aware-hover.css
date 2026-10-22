@@ -21,11 +21,3 @@
 		min-width: 44px;
 	}
 }
-
-/* Smooth transitions for reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-	.direction-aware-hover,
-	.direction-aware-hover * {
-		transition-duration: 0.1s !important;
-	}
-}

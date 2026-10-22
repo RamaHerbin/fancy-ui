@@ -336,11 +336,7 @@ describe("Sheet", () => {
 
 	it("renders body and footer content", () => {
 		render(
-			<Sheet
-				open
-				title="Settings"
-				footer={<button type="button">Save</button>}
-			>
+			<Sheet open title="Settings" footer={<button type="button">Save</button>}>
 				<p>Body</p>
 			</Sheet>
 		);
@@ -557,6 +553,11 @@ describe("Sheet", () => {
 		unmount();
 		await waitFor(() => expect(document.body.style.position).toBe(""));
 		expect(__dismissableLayerCount()).toBe(0);
+	});
+
+	it("puts the id prop on the panel, for a trigger's aria-controls", () => {
+		render(<Sheet open id="settings-panel" />);
+		expect(dialog()!.id).toBe("settings-panel");
 	});
 
 	// R9: a modal dialog with no `title` had no way to carry an accessible

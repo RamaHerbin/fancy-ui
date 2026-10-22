@@ -83,6 +83,16 @@
 		}
 	},
 	{
+		"id": "mosaic-glow/mosaic-glow-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/mosaic-glow/mosaic-glow-hdr.ts",
+			"react": "react/src/components/mosaic-glow/mosaic-glow-hdr.ts",
+			"vue": "vue/src/components/mosaic-glow/mosaic-glow-hdr.ts"
+		}
+	},
+	{
 		"id": "mosaic-glow/mosaic-glow-core.ts",
 		"kind": "engine-core",
 		"shared": true,
@@ -949,6 +959,26 @@
 		}
 	},
 	{
+		"id": "tick-nav/tick-nav-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/tick-nav/tick-nav-core.ts",
+			"react": "react/src/components/tick-nav/tick-nav-core.ts",
+			"vue": "vue/src/components/tick-nav/tick-nav-core.ts"
+		}
+	},
+	{
+		"id": "tick-nav/tick-nav-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/tick-nav/tick-nav-hdr.ts",
+			"react": "react/src/components/tick-nav/tick-nav-hdr.ts",
+			"vue": "vue/src/components/tick-nav/tick-nav-hdr.ts"
+		}
+	},
+	{
 		"id": "fluid-cursor/fluid-cursor-core.ts",
 		"kind": "engine-core",
 		"shared": true,
@@ -1000,6 +1030,46 @@
 			"svelte": "src/lib/fancy-ui/datamosh-transition/datamosh-transition-core.ts",
 			"react": "react/src/components/datamosh-transition/datamosh-transition-core.ts",
 			"vue": "vue/src/components/datamosh-transition/datamosh-transition-core.ts"
+		}
+	},
+	{
+		"id": "collapsible/collapsible-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/collapsible/collapsible-core.ts",
+			"react": "react/src/components/collapsible/collapsible-core.ts",
+			"vue": "vue/src/components/collapsible/collapsible-core.ts"
+		}
+	},
+	{
+		"id": "accordion/accordion-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/accordion/accordion-core.ts",
+			"react": "react/src/components/accordion/accordion-core.ts",
+			"vue": "vue/src/components/accordion/accordion-core.ts"
+		}
+	},
+	{
+		"id": "follow-button/follow-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/follow-button/follow-core.ts",
+			"react": "react/src/components/follow-button/follow-core.ts",
+			"vue": "vue/src/components/follow-button/follow-core.ts"
+		}
+	},
+	{
+		"id": "avatar/avatar-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/avatar/avatar-core.ts",
+			"react": "react/src/components/avatar/avatar-core.ts",
+			"vue": "vue/src/components/avatar/avatar-core.ts"
 		}
 	}
 ]

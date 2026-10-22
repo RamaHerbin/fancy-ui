@@ -1,6 +1,6 @@
 {
 	"name": "fancy-ui-vue",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Animated UI components for Vue — the Vue counterpart of fancy-ui-svelte. WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"license": "MIT",
 	"author": "Rama Herbin",
@@ -31,7 +31,7 @@
 	},
 	"scripts": {
 		"build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/strip-dts-css-imports.mjs && node scripts/check-dist-names.mjs && node scripts/prune-orphan-dts.mjs && node scripts/check-dist-shape.mjs && node scripts/smoke-dist.mjs && node scripts/ensure-styles-css.mjs",
-		"check": "vue-tsc --noEmit -p tsconfig.json",
+		"check": "vue-tsc --noEmit -p tsconfig.json && node scripts/check-docs-examples.mjs",
 		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",

@@ -109,6 +109,22 @@ function byLabel(container: HTMLElement, label: string): HTMLInputElement {
 	) as HTMLInputElement;
 }
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("RadioGroup", () => {
 	afterEach(cleanup);
 
@@ -237,9 +253,7 @@ describe("RadioGroup", () => {
 
 	it("works with a plain non-bound value plus a callback", () => {
 		const onValueChange = vi.fn();
-		const { container } = render(
-			<Harness items={ITEMS} value="a" onValueChange={onValueChange} />
-		);
+		const { container } = render(<Harness items={ITEMS} value="a" onValueChange={onValueChange} />);
 
 		expect(byLabel(container, "Option A").checked).toBe(true);
 
@@ -254,9 +268,7 @@ describe("RadioGroup", () => {
 		// the browser never fires `change` when the checked state does not
 		// actually change.
 		const onValueChange = vi.fn();
-		const { container } = render(
-			<Harness items={ITEMS} value="b" onValueChange={onValueChange} />
-		);
+		const { container } = render(<Harness items={ITEMS} value="b" onValueChange={onValueChange} />);
 
 		fireEvent.click(byLabel(container, "Option B"));
 		expect(onValueChange).not.toHaveBeenCalled();
@@ -585,6 +597,102 @@ describe("RadioGroup", () => {
 
 			expect(play).toHaveBeenNthCalledWith(1, "select", undefined);
 			expect(play).toHaveBeenNthCalledWith(2, "select", undefined);
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		function Pair(props: {
+			groupProps?: Record<string, unknown>;
+			itemProps?: Record<string, unknown>;
+			onValueChange?: (value: string) => void;
+		}) {
+			return (
+				<RadioGroup
+					name="pick"
+					label="Pick"
+					onValueChange={props.onValueChange}
+					{...props.groupProps}
+				>
+					<RadioGroupItem value="a" label="Option A" {...props.itemProps} />
+					<RadioGroupItem value="b" label="Option B" />
+				</RadioGroup>
+			);
+		}
+
+		it("forwards aria-label, id and data-* to the group root", () => {
+			const { container } = render(
+				<Pair groupProps={{ id: "pick-group", "aria-label": "Plan", "data-testid": "grp" }} />
+			);
+			const root = group(container);
+			expect(root.id).toBe("pick-group");
+			expect(root.getAttribute("data-testid")).toBe("grp");
+			expect(root.getAttribute("role")).toBe("radiogroup");
+		});
+
+		it("merges a consumer aria-describedby on the root with the FormField one", () => {
+			const { container } = render(
+				<FieldReactContext.Provider value={FWD_CONTEXT}>
+					<Pair groupProps={{ "aria-describedby": "mine" }} />
+				</FieldReactContext.Provider>
+			);
+			expect(group(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("forwards attributes and listeners to each item's own input", () => {
+			const onBlur = vi.fn();
+			const onKeyDown = vi.fn();
+			const { container } = render(
+				<Pair
+					itemProps={{
+						id: "opt-a",
+						"data-testid": "opt",
+						"aria-describedby": "hint",
+						onBlur,
+						onKeyDown,
+					}}
+				/>
+			);
+			const a = byLabel(container, "Option A");
+			expect(a.id).toBe("opt-a");
+			expect(a.getAttribute("data-testid")).toBe("opt");
+			expect(a.getAttribute("aria-describedby")).toBe("hint");
+			fireEvent.keyDown(a, { key: "x" });
+			fireEvent.blur(a);
+			expect(onKeyDown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs an item's consumer onChange once, after the group selection", () => {
+			const order: string[] = [];
+			const onChange = vi.fn(() => order.push("consumer"));
+			const onValueChange = vi.fn(() => order.push("internal"));
+			const { container } = render(<Pair itemProps={{ onChange }} onValueChange={onValueChange} />);
+			fireEvent.click(byLabel(container, "Option A"));
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer"]);
+		});
+
+		it("does not let a consumer override the managed attributes", () => {
+			const { container } = render(
+				<Pair
+					groupProps={{ role: "group", "aria-required": "false" }}
+					itemProps={{ type: "text", checked: true, name: "other" }}
+				/>
+			);
+			expect(group(container).getAttribute("role")).toBe("radiogroup");
+			const a = byLabel(container, "Option A");
+			expect(a.type).toBe("radio");
+			expect(a.checked).toBe(false);
+			expect(a.name).toBe("pick");
+		});
+
+		it("takes part in a form through each item's form attribute", () => {
+			const form = formOf("rg-form");
+			const { container } = render(<Pair itemProps={{ form: "rg-form" }} />);
+			fireEvent.click(byLabel(container, "Option A"));
+			expect(byLabel(container, "Option A").form).toBe(form);
+			expect(new FormData(form).get("pick")).toBe("a");
+			form.remove();
 		});
 	});
 });

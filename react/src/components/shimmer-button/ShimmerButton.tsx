@@ -8,6 +8,8 @@ import type {
 } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import "./shimmer-button.css";
 
 type BaseProps = {
@@ -26,8 +28,8 @@ type BaseProps = {
 	/** Button content */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 };
@@ -62,6 +64,14 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 
 		const playCue = useSoundCue(sound);
 
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: restProps.disabled,
+		});
+		const composedRef = useComposedRefs(ref, soundRef);
+
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (sound && !restProps.disabled) playCue("press");
 			onClick?.(event);
@@ -78,10 +88,10 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 
 		return (
 			<button
-				ref={ref}
+				ref={composedRef}
 				className={cn(
 					"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
-					"transform-gpu transition-[transform,color] duration-300 ease-out hover:text-white active:scale-[0.98]",
+					"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
 					className
 				)}
 				style={styleVars}

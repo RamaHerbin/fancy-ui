@@ -4,6 +4,8 @@
 declare global {
 	/** Injected by Vite `define` from package.json (see vite.config.ts). */
 	const __PKG_VERSION__: string;
+	const __REACT_PKG_VERSION__: string;
+	const __VUE_PKG_VERSION__: string;
 
 	namespace App {
 		// interface Error {}

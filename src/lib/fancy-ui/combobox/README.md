@@ -89,6 +89,8 @@ and `disabled`, the same as `Input`:
 | `ref`           | `HTMLInputElement \| null`                           | `null`                                | Bindable reference to the input element                                  |
 | `sound`         | `boolean`                                            | `false`                               | Plays the `select` cue through the sound controller. See [Sound](#sound) |
 
+**Native attributes** go to the text `<input>`: `aria-*`, `data-*`, `autocomplete`, `inputmode` and listeners such as `onfocus`, `onblur` and `onkeydown` are forwarded, and the managed ARIA (`role`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup`, `aria-autocomplete`, `aria-invalid`) stays the component's own. A consumer `aria-describedby` is merged with the one a surrounding `FormField` supplies, and `name`/`form` reach the hidden input that carries the option's value, while `required` stays on the visible input. Keys the component handles (Enter/arrows while the panel is open) reach your `onkeydown` already prevented; check `event.defaultPrevented` before acting on them.
+
 `ComboboxOption` is `{ value: string; label: string; disabled?: boolean }`.
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are

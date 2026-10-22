@@ -689,6 +689,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Disabled State",
 			description: "Disabled on the button vs. the anchor — two different mechanisms.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"icon-button": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -767,6 +768,19 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "One item unavailable; the keyboard model skips it.",
 		},
 	],
+	"follow-button": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A bindable toggle that commits at once when nothing needs to be awaited.",
+		},
+		{
+			name: "AsyncServer",
+			title: "Async Server",
+			description:
+				"A fake 800 ms server and a switch that makes the next request fail: watch the optimistic flip, the rollback, and the retry.",
+		},
+	],
 	"copy-button": [
 		{
 			name: "BasicUsage",
@@ -788,6 +802,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Variants",
 			description: "Four Button variants used as the idle skin.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	label: [
@@ -965,6 +980,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Custom Initial Focus",
 			description: "Sends focus to a specific field instead of the default close button.",
 		},
+		{
+			name: "WithPopover",
+			title: "With Popover",
+			description: "A popover opened inside the dialog — Escape closes one layer at a time.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"alert-dialog": [
 		{
@@ -1065,6 +1086,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Persistent",
 			description: "duration: Infinity — dismissed only by the user, never automatically.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	select: [
@@ -1088,6 +1110,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Placement",
 			description: "The panel anchored on all four sides of the trigger.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	combobox: [
 		{
@@ -1206,6 +1229,24 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Pinned to the top of a scrolling container with a blurred background.",
 		},
 	],
+	"tick-nav": [
+		{
+			name: "BasicUsage",
+			title: "Neon",
+			description:
+				"Glowing lines and a beam of light riding every pluck. On an HDR display the light runs brighter than white.",
+		},
+		{
+			name: "WithPreview",
+			title: "With Preview",
+			description: "A card that follows the pointer while a row is hovered.",
+		},
+		{
+			name: "Classic",
+			title: "Classic",
+			description: "The plain ruler: no glow, accent lines only.",
+		},
+	],
 	sidebar: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{
@@ -1249,6 +1290,40 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "DisabledTab",
 			title: "Disabled Tab",
 			description: "One trigger unavailable — skipped by the arrows and Home/End.",
+		},
+	],
+	accordion: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "One item open at a time, and the open item can be closed again.",
+		},
+		{
+			name: "Multiple",
+			title: "Multiple",
+			description: "Any number of items open at once, with one item disabled.",
+		},
+		{
+			name: "Controlled",
+			title: "Controlled",
+			description: "The open item driven from outside through a bound value.",
+		},
+	],
+	collapsible: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A trigger that reveals extra rows beneath a short list.",
+		},
+		{
+			name: "Multiple",
+			title: "Multiple",
+			description: "Several independent panels, each with its own open state.",
+		},
+		{
+			name: "Controlled",
+			title: "Controlled",
+			description: "Open state shared with a button outside the component.",
 		},
 	],
 	breadcrumb: [
@@ -1506,6 +1581,32 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "WithChildren",
 			title: "With Children",
 			description: "Wrapping mode: real content swaps in once loading is false.",
+		},
+	],
+	badge: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "The five variants, each with a visible word.",
+		},
+		{
+			name: "Sizes",
+			title: "Sizes",
+			description: "Compact and regular, beside the rows they describe.",
+		},
+	],
+	avatar: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"An image, then initials on a colour fixed by the name, in a few shapes and sizes.",
+		},
+		{
+			name: "Fallbacks",
+			title: "Fallbacks",
+			description:
+				"Initials per name, a broken image, no name at all, and a decorative avatar beside a visible name.",
 		},
 	],
 	"status-morph": [

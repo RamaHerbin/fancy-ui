@@ -1,12 +1,15 @@
 import { forwardRef, type MouseEvent, type ReactNode } from "react";
 import { cn } from "../../utils.js";
-import { Button } from "../button/index.js";
+import { Button, type ButtonProps } from "../button/Button.js";
 import type { ButtonVariant, ButtonSize } from "../button/types.js";
 
 /** `"square"` keeps the size's own radius; `"circle"` rounds it fully. */
 export type IconButtonShape = "square" | "circle";
 
-export interface IconButtonProps {
+export interface IconButtonProps extends Omit<
+	ButtonProps,
+	"iconStart" | "iconEnd" | "fullWidth" | "label" | "children"
+> {
 	/**
 	 * Accessible name. Required, not optional: an icon-only control has no
 	 * visible text to fall back on, so without this the control would have
@@ -42,8 +45,8 @@ export interface IconButtonProps {
 	/** Additional CSS classes. */
 	className?: string;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
@@ -78,10 +81,10 @@ export const IconButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Icon
 			href = undefined,
 			target = undefined,
 			rel = undefined,
-			onClick,
 			children,
 			className,
 			sound = false,
+			...restProps
 		},
 		ref
 	) => {
@@ -95,6 +98,7 @@ export const IconButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Icon
 
 		return (
 			<Button
+				{...restProps}
 				ref={ref}
 				variant={variant}
 				size={size}
@@ -105,7 +109,6 @@ export const IconButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Icon
 				target={target}
 				rel={rel}
 				label={label}
-				onClick={onClick}
 				sound={sound}
 				iconStart={children}
 				className={classes}

@@ -22,16 +22,31 @@ export interface ToggleProps {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Form field name. When set, a hidden input named `name` is rendered inside
+	 * the button and submits `value` (default `"on"`) while pressed, nothing
+	 * while off or disabled, like a checkbox. The button is `type="button"` and never submits.
+	 */
+	name?: string;
+	/** Value submitted under `name` while pressed. Defaults to `"on"`. */
+	value?: string;
+	/** `id` of the `<form>` the hidden input belongs to, when not nested in it. */
+	form?: string;
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 
 defineOptions({ name: "Toggle", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const props = withDefaults(defineProps<ToggleProps>(), {
 	disabled: false,
@@ -77,26 +92,40 @@ const classes = computed(() =>
 // The only place `pressed` changes. Never inside a watcher — that would mean
 // reading and writing the same state in one pass and would fight a caller's
 // own v-model write.
-function toggle() {
+function toggle(event: MouseEvent) {
 	if (props.disabled) return;
 	const next = !pressed.value;
 	pressed.value = next;
 	if (props.sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 	props.onPressedChange?.(next);
+	callListener(props.onClick, event);
 }
 </script>
 
 <template>
 	<button
 		ref="ref"
+		@click="toggle"
+		v-bind="attrs"
 		type="button"
 		:class="classes"
 		:aria-pressed="pressed"
-		:aria-label="label"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
 		:disabled="disabled"
-		@click="toggle"
 	>
 		<slot />
+		<!--
+			Inside the button so the component keeps a single element root (v-show,
+			transitions and `$el` keep working); a hidden input is not interactive
+			content, and it still joins the form.
+		-->
+		<input
+			v-if="name && pressed && !disabled"
+			type="hidden"
+			:name="name"
+			:value="value ?? 'on'"
+			:form="form"
+		/>
 	</button>
 </template>
 

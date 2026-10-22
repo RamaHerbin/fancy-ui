@@ -2,62 +2,45 @@
 /**
  * i18n parity check.
  *
- * Verifies that four sources of truth agree:
+ * Verifies that the sources of truth agree:
  *   1. Locale entries in `src/lib/i18n/locales.ts` (the `locales` array)
  *   2. Message catalogs in `src/lib/i18n/messages/<code>.ts`
- *   3. The key set of every catalog vs `en.ts` (the source of truth)
- *   4. The pre-paint RTL map in `src/app.html` vs `dir: "rtl"` locales
+ *   3. The key set of every catalog vs `en.ts` (the source of truth), with
+ *      plural messages (`<base>.<category>`) checked against the CLDR
+ *      categories each locale needs instead of against English's two
+ *   4. The pre-paint maps in `src/app.html` (supported locales, RTL locales)
+ *      vs `locales.ts`
+ *   5. `messages/context.json` is the current output of scripts/i18n-context.mjs
  *
  * Also requires every non-en catalog to carry `satisfies Catalog`, which is
  * what gives svelte-check compile-time key checking — this script guards the
- * guard. Exits non-zero on any drift.
+ * guard. Exits non-zero on any drift. Quality (placeholders, markup,
+ * punctuation, length, review manifests) is src/lib/i18n/catalog-quality.test.ts.
  */
 
-import { readFileSync, readdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { isCurrent } from "./i18n-context.mjs";
+import {
+	PLURAL_CATEGORIES,
+	REQUIRED_PLURALS,
+	OPTIONAL_PLURALS,
+	appHtmlPath,
+	contextPath,
+	listCatalogFiles,
+	parseCatalog,
+	parseLocales,
+	pluralBasesOf,
+	splitPluralKey,
+} from "./lib/i18n-parse.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, "..");
-const localesPath = join(repoRoot, "src", "lib", "i18n", "locales.ts");
-const messagesDir = join(repoRoot, "src", "lib", "i18n", "messages");
-const appHtmlPath = join(repoRoot, "src", "app.html");
-
-function parseLocales() {
-	const src = readFileSync(localesPath, "utf8");
-	const bodyMatch = src.match(/export\s+const\s+locales[^=]*=\s*\[([\s\S]*?)^\];/m);
-	if (!bodyMatch) throw new Error("Could not locate `export const locales` in locales.ts");
-	const entries = [];
-	const re = /\{\s*code:\s*"([^"]+)"[^}]*?dir:\s*"(ltr|rtl)"[^}]*\}/g;
-	let m;
-	while ((m = re.exec(bodyMatch[1])) !== null) {
-		entries.push({ code: m[1], dir: m[2] });
-	}
-	if (entries.length === 0) throw new Error("Parsed zero locale entries from locales.ts");
-	return entries;
-}
-
-function listCatalogFiles() {
-	return readdirSync(messagesDir)
-		.filter((name) => name.endsWith(".ts") && name !== "index.ts")
-		.map((name) => name.replace(/\.ts$/, ""))
-		.sort();
-}
-
-function parseCatalogKeys(code) {
-	const src = readFileSync(join(messagesDir, `${code}.ts`), "utf8");
-	const keys = [];
-	const re = /^[\t ]*"([^"]+)"\s*:/gm;
-	let m;
-	while ((m = re.exec(src)) !== null) keys.push(m[1]);
-	return { keys, src };
-}
-
-function parseAppHtmlRtl() {
+/** Keys of the object literal assigned to `var <name> = { ... }` in app.html. */
+function parseAppHtmlMap(name) {
 	const src = readFileSync(appHtmlPath, "utf8");
-	const mapMatch = src.match(/var\s+RTL\s*=\s*\{([^}]*)\}/);
-	if (!mapMatch) throw new Error("Could not locate `var RTL = {...}` in src/app.html");
-	return [...mapMatch[1].matchAll(/([a-zA-Z-]+)\s*:/g)].map((m) => m[1]).sort();
+	const m = src.match(new RegExp(`var\\s+${name}\\s*=\\s*\\{([^}]*)\\}`));
+	if (!m) throw new Error(`Could not locate \`var ${name} = {...}\` in src/app.html`);
+	return [...m[1].matchAll(/(?:^|,)\s*(?:"([^"]+)"|([A-Za-z][\w-]*))\s*:/g)]
+		.map((x) => x[1] ?? x[2])
+		.sort();
 }
 
 function diff(expected, actual) {
@@ -82,39 +65,93 @@ function main() {
 		);
 	}
 
-	// 2. Key parity + duplicates + `satisfies Catalog`
-	const { keys: enKeys } = parseCatalogKeys("en");
+	// 2. Key parity + plural categories + duplicates + `satisfies Catalog`
+	const enParsed = parseCatalog("en");
+	const bases = pluralBasesOf(enParsed.entries);
+	const enKeys = enParsed.entries.map((e) => e.key);
+	const enFlat = enKeys.filter((k) => !splitPluralKey(k, bases));
+	const enDupes = [...new Set(enKeys.filter((k, i) => enKeys.indexOf(k) !== i))];
+	if (enDupes.length) issues.push(`[en.ts] duplicate keys: ${enDupes.join(", ")}`);
+	for (const base of bases) {
+		for (const c of ["one", "other"]) {
+			if (!enKeys.includes(`${base}.${c}`)) {
+				issues.push(`[en.ts] plural message "${base}" has no ".${c}" variant`);
+			}
+		}
+	}
+
 	for (const code of catalogFiles) {
-		const { keys, src } = parseCatalogKeys(code);
+		if (code === "en") continue;
+		const { entries, src } = parseCatalog(code);
+		const keys = entries.map((e) => e.key);
 		const dupes = [...new Set(keys.filter((k, i) => keys.indexOf(k) !== i))];
 		if (dupes.length) issues.push(`[${code}.ts] duplicate keys: ${dupes.join(", ")}`);
-		if (code === "en") continue;
-		const keyDiff = diff(enKeys, keys);
+
+		const flat = keys.filter((k) => !splitPluralKey(k, bases));
+		const keyDiff = diff(enFlat, flat);
 		if (keyDiff) {
 			issues.push(
 				`[${code}.ts vs en.ts]\n    missing: ${keyDiff.missing.join(", ") || "-"}\n    extra:   ${keyDiff.extra.join(", ") || "-"}`
 			);
 		}
+
+		const required = REQUIRED_PLURALS[code];
+		if (!required) {
+			issues.push(
+				`[${code}.ts] no CLDR plural categories pinned for this locale (scripts/lib/i18n-parse.mjs)`
+			);
+		} else {
+			const optional = OPTIONAL_PLURALS[code] ?? [];
+			for (const base of bases) {
+				const have = PLURAL_CATEGORIES.filter((c) => keys.includes(`${base}.${c}`));
+				const missing = required.filter((c) => !have.includes(c));
+				const extra = have.filter((c) => !required.includes(c) && !optional.includes(c));
+				if (missing.length || extra.length) {
+					issues.push(
+						`[${code}.ts plural "${base}"]\n    missing categories: ${missing.join(", ") || "-"}\n    not in ${code}: ${extra.join(", ") || "-"} (CLDR: ${required.join("/")})`
+					);
+				}
+			}
+		}
+
 		if (!src.includes("satisfies Catalog")) {
 			issues.push(`[${code}.ts] catalog does not end with \`satisfies Catalog\``);
 		}
 	}
 
-	// 3. app.html pre-paint RTL map <-> locales.ts dir fields
+	// 3. app.html pre-paint maps <-> locales.ts
 	const rtlFromLocales = locales
 		.filter((l) => l.dir === "rtl")
 		.map((l) => l.code)
 		.sort();
-	const rtlFromHtml = parseAppHtmlRtl();
-	const rtlDiff = diff(rtlFromLocales, rtlFromHtml);
+	const rtlDiff = diff(rtlFromLocales, parseAppHtmlMap("RTL"));
 	if (rtlDiff) {
 		issues.push(
 			`[app.html RTL map vs locales.ts]\n    missing in app.html: ${rtlDiff.missing.join(", ") || "-"}\n    extra in app.html:   ${rtlDiff.extra.join(", ") || "-"}`
 		);
 	}
+	const localeDiff = diff(codes, parseAppHtmlMap("LOCALES"));
+	if (localeDiff) {
+		issues.push(
+			`[app.html LOCALES map vs locales.ts]\n    missing in app.html: ${localeDiff.missing.join(", ") || "-"}\n    extra in app.html:   ${localeDiff.extra.join(", ") || "-"}`
+		);
+	}
+
+	// 4. translator context export is current
+	let onDisk = "";
+	try {
+		onDisk = readFileSync(contextPath, "utf8");
+	} catch {
+		/* missing counts as stale */
+	}
+	if (!isCurrent(onDisk)) {
+		issues.push("[messages/context.json] out of date. Run: node scripts/i18n-context.mjs");
+	}
 
 	if (issues.length === 0) {
-		console.log(`i18n parity OK (${catalogFiles.length} locales x ${enKeys.length} keys).`);
+		console.log(
+			`i18n parity OK (${catalogFiles.length} locales x ${enFlat.length} messages, ${bases.size} plural).`
+		);
 		process.exit(0);
 	}
 

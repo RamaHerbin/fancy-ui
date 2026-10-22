@@ -13,6 +13,7 @@
 
 	let {
 		open,
+		id,
 		role,
 		titleId,
 		descriptionId,
@@ -109,6 +110,7 @@
 	-->
 	<div
 		bind:this={ref}
+		{id}
 		{role}
 		aria-modal="true"
 		aria-labelledby={titleId}
@@ -129,7 +131,14 @@
 				rearmFocusTrap = rearm;
 			},
 		}}
-		use:dismissable={{ onDismiss, escape, outsideClick, exclude, active: () => open }}
+		use:dismissable={{
+			onDismiss,
+			escape,
+			outsideClick,
+			exclude,
+			active: () => open,
+			keepFocus: true,
+		}}
 		transition:anchored={{
 			entering: open,
 			duration: DURATIONS.base,

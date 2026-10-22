@@ -2,6 +2,8 @@
 
 Staggered letter pull-up animation. Each character pulls up from below with a configurable delay between letters, creating a wave-like entrance effect.
 
+Native attributes and listeners go to the root `<div>`. `class` still styles each letter.
+
 ## Props
 
 | Prop    | Type     | Default | Description                                 |

@@ -31,6 +31,11 @@
 		footer?: Snippet;
 		/** Additional CSS classes merged onto the panel. */
 		class?: string;
+		/**
+		 * The panel's `id`. A trigger the caller renders outside the component
+		 * points its `aria-controls` at it while the panel is open.
+		 */
+		id?: string;
 		/** Bindable element reference to the panel. */
 		ref?: HTMLDivElement | null;
 		/**
@@ -69,6 +74,7 @@
 		children,
 		footer,
 		class: className,
+		id,
 		ref = $bindable(null),
 		sound = false,
 	}: SheetProps = $props();
@@ -245,6 +251,7 @@
 	-->
 	<div
 		bind:this={ref}
+		{id}
 		class={panelClasses}
 		role="dialog"
 		aria-modal="true"
@@ -264,6 +271,7 @@
 			escape: dismissible,
 			outsideClick: dismissible,
 			active: () => open,
+			keepFocus: true,
 		}}
 		transition:edgeSlide={{ side, entering: open }}
 		data-state="open"

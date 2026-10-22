@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-145-8B5CF6)
+![Components](https://img.shields.io/badge/Components-151-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **145 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **151 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 145 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 151 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -88,6 +88,8 @@ export function Hero() {
 ```
 
 Props keep their Svelte names; `class` becomes `className` and snippets become `ReactNode` (render functions when the snippet takes arguments). Every deliberate difference is listed under [Divergences](#divergences-from-the-svelte-api).
+
+Importing one component from the package root costs the same as importing its own file: the rest tree-shakes away, so there are no per-component subpaths. The four entry points are listed under [Package shape](#package-shape).
 
 **Or copy the source into your project:** see [Copy the source](#copy-the-source-into-your-project) below.
 
@@ -140,7 +142,7 @@ Each component imports its own CSS, so the `fancy-ui-react` imports from [Quick 
 import "fancy-ui-react/styles.css"; // keyframes + component-scoped CSS
 ```
 
-Those two imports are the whole setup. `tailwind.css` also declares every semantic colour the components spend, the standard 18-token set a project scaffolded with `npx shadcn@latest init` already defines: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so the utilities resolve the variables at use time: an app that already defines that token set keeps its own colours automatically. The defaults ship in `@layer base`, which an unlayered `:root` in your app overrides whatever the import order.
+Those two imports are the whole setup. `tailwind.css` also declares every semantic colour the components spend, the standard 18-token set that most themed projects already define: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so the utilities resolve the variables at use time: an app that already defines that token set keeps its own colours automatically. The defaults ship in `@layer base`, which an unlayered `:root` in your app overrides whatever the import order.
 
 ### Dark mode
 
@@ -188,8 +190,8 @@ The docs site serves documentation built for coding agents, following the [llms.
 
 - [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) &mdash; setup guide, usage rules, a React section and an index of every component
 - [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) &mdash; full reference: import, props and a working example per component
-- `https://fancy-ui.rama.app/docs/components/<slug>.md` &mdash; one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
-- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: import names, props, snippets, links
+- `https://fancy-ui.rama.app/docs/components/react/<slug>.md` &mdash; one component as Markdown, written for React: the names the React port takes, its props and its React example when there is one (e.g. [react/compare.md](https://fancy-ui.rama.app/docs/components/react/compare.md)); each docs page also has a **Copy as Markdown** button
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: for each framework (Svelte, React, Vue) the import names, Markdown page, copy-source item and availability, plus props, snippets and links
 
 To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
 
@@ -286,10 +288,6 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **Bare `<Select>` shows the first option** (native uncontrolled behavior).
   The Svelte one renders blank, because `$bindable("")` matches no option —
   that quirk was not imported.
-- **`RainbowButton` accepts no extra DOM props** (`onClick` included) — the
-  Svelte source reads only its declared props and spreads nothing, and its own
-  README example inherits that bug. Ported as-is per the fidelity law; fix it
-  upstream first if it bothers you.
 - Compiler-scoped selectors with no root anchor in the source gained one
   (`line-reveal`) so their CSS does not leak into consumer
   pages — see PORTING.md, styling rule 2.
@@ -311,10 +309,11 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **approval-card**: Svelte's bind:state two-way binding becomes a controlled/uncontrolled prop pair: `state` + `onStateChange` (React's counterpart, following the Stepper.tsx precedent), rather than a bindable ref. Consumers driving state from outside now pass both props instead of `bind:state`.
 - **approval-card**: children (Snippet) becomes ReactNode children as usual for the detail region.
 - **bento-grid**: BentoGridItemProps uses Omit<HTMLAttributes<HTMLDivElement>, 'title'> to avoid a TS conflict between the DOM 'title' attribute and the Svelte 'title' snippet prop (same intersection pattern PORTING.md prescribes for RainbowButton).
-- **bento-grid**: BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop; the Svelte parts declare a closed prop list.
+- **bento-grid**: BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop. The Svelte parts forward native attributes to the same tile root but type `children` out (it is not a prop there).
 - **bento-grid**: BentoFrame's compiler-scoped `.bento-panel`, `.bento-glow` and `.bento-edge` rules are anchored as descendants of `.bento-tile` in bento-frame.css (port-added anchor, since plain CSS is global); cascade outcomes match the Svelte source, including the reduced-motion glow fade.
-- **bento-grid**: BentoGrid spreads rest props onto the grid root like the rest of the React port; a consumer `style` is merged with the `accent` prop, with `--bento-accent` from `accent` taking precedence as the Svelte `style:` directive does, and a consumer `onFocus` is chained after the focus-reveal handler.
+- **bento-grid**: BentoGrid spreads rest props onto the grid root, as the Svelte and Vue components do; a consumer `style` is merged with the `accent` prop, with `--bento-accent` from `accent` taking precedence, and a consumer `onFocus` is chained after the focus-reveal handler. The reveal `data-state` is managed by the component and cannot be overridden while revealing; with `reveal` off, a consumer `data-state` is passed through.
 - **bento-grid**: The focus-in reveal uses React's `onFocus`, which React delivers as a bubbling focusin, in place of the Svelte `onfocusin` attribute.
+- **book**: Book, BookHeader, BookTitle and BookDescription spread rest onto their own element (div, div, h1, p); the Svelte and Vue parts forward native attributes to the same elements.
 - **bg-falling-stars**: Added optional `seed?: number` (default 1) + mulberry32 PRNG replacing every `Math.random()` (star layout and respawn), per PORTING.md's randomisation rule; consequence: two `<FallingStarsBg />` with no seed show an identical sky, where the Svelte side gave each instance a different one.
 - **bg-falling-stars**: `count` re-initialises the starfield in React (it is a dependency of the canvas effect); the Svelte side reads `count` only inside `onMount`, so a later `count` change there is silently ignored. `color` keeps Svelte's behaviour exactly (live, next-frame, no re-seed) via a ref rather than an effect dependency.
 - **bg-stars**: Added a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's Math.random() star scatter — required by the SSR/hydration rule (PORTING.md, C-7); same seed = same sky.
@@ -324,7 +323,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **border-beam**: The compiler-scoped `bb-*` rules are anchored under the root class `.border-beam` in plain CSS (for example `.border-beam .bb-ride`), and the dark theme reads `.dark .border-beam`. Specificity keeps the same relative order, so the render is identical.
 - **border-beam**: The keyframes `bb-travel` and `bb-ignite` ship under those exact names as global keyframes, where the Svelte compiler hashes them. They are only referenced from inside `.border-beam` rules.
 - **border-beam**: The tail and bloom piece lists (`tailSegments(18)` / `tailSegments(8)`) are computed once at module load instead of once per instance. The values are the same and nothing visible changes.
-- **box-reveal**: Rest props: React BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div; the Svelte BoxRevealProps declares only color/duration/delay/class and spreads nothing, so the React component accepts id/onClick/data-* attributes the Svelte one silently drops. Kept per PORTING.md's general 'rest props spread onto the root element' rule, recorded here because it is consumer-visible.
+- **box-reveal**: Rest props: BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, as the Svelte and Vue components do.
 - **breadcrumb**: `class` becomes `className` (standard rename).
 - **breadcrumb**: `item` snippet prop (`Snippet<[BreadcrumbItem, number]>`) becomes a render-prop function: `item?: (item: BreadcrumbItem, index: number) => ReactNode`.
 - **breadcrumb**: `ref` bindable prop becomes `forwardRef<HTMLElement, BreadcrumbProps>` — the nav element arrives through the React ref channel instead of a `ref` prop.
@@ -346,7 +345,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **compare**: StarField gains a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's render-path Math.random(), per PORTING.md's SSR rule; two StarFields with the same starsCount and seed render identical skies, and stars only reshuffle when starsCount or seed changes.
 - **compare**: StarField's root cn() gains the port-added anchor class `fancy-star-field` (PORTING.md styling rule 2 sanctioned addition) so the formerly compiler-scoped `.star` rules don't leak globally; keyframe names `twinkle`/`drift` kept identical.
 - **confetti**: Context key stays private. Svelte publishes on the string key `"ConfettiContext"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.
-- **confetti**: No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`.
+- **confetti**: No behavioural divergence in `ConfettiButton`: `type` defaults to `"button"`, `className` and native button attributes are forwarded, and `onClick` runs once after the burst, as in Svelte.
 - **confetti**: `Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.
 - **confetti**: `fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.
 - **container-scroll**: The first measurement runs in an isomorphic layout effect rather than a passive effect. This matches the Svelte effect, which measures before paint, so a card that is already in view never paints one shut frame.
@@ -388,8 +387,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **line-reveal**: Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally; README's 'Compiler-scoped selectors ... gained one' bullet lists `line-reveal` too.
 - **line-reveal**: `class` -> `className` (standard PORTING.md rename); no ref/forwardRef and no rest-prop spread, matching the Svelte source which declares neither.
 - **line-reveal**: LineReveal creates one ResizeObserver per mounted instance where the Svelte `bind:clientWidth` routes through the framework's process-wide observer singleton; each disconnects on unmount and nothing leaks.
-- **link**: Native click handler is `onClick` (React convention/rest-props spread) rather than Svelte's `onclick` prop name.
-- **link**: Props extend AnchorHTMLAttributes (minus className) and spread ...rest onto the <a>, per PORTING.md's rest-props-spread rule; Svelte side only exposed a fixed prop list plus onclick.
+- **link**: Link, LineHoverLink, NavbarLink, NavigationMenuLink and InlineCitation forward native attributes and listeners to their anchor in Svelte, React and Vue.
 - **liquid-glass**: Filter id: minted with the internals' `uid("lg")` inside the mount effect instead of `Math.random().toString(36).slice(2, 8)`. Same client-only timing as `onMount` (no filter and no `backdrop-filter` in the server HTML, exactly as Svelte SSR) and the same per-instance uniqueness, but the ids read `lg-1`, `lg-2`, … per page load instead of random 6-char suffixes. No `seed` prop was added: a shared default seed would give every instance on a page the same SVG filter id, which is the one thing the Svelte randomisation exists to prevent, and `uid()` is the sanctioned generator for an id minted in an effect (internals-api §C-6 / use-id.ts).
 - **liquid-glass**: Inline style is a React style object rather than the Svelte raw style-attribute string, so a declaration the CSSOM does not recognise is dropped instead of surviving verbatim in the `style` attribute. Only observable where `backdrop-filter` is unsupported (jsdom drops it from the serialised attribute; the four CSS custom properties and `border-radius` are unaffected). No browser effect: engines that ignore `backdrop-filter` ignore it in the Svelte string form too, and Safari is served by the `@supports (background: -webkit-named-image(i))` fallback block regardless.
 - **liquid-glass**: No rest-props spread and no `forwardRef` — the Svelte source declares neither `$restProps` nor `ref = $bindable`, so the API surface stays exactly the Svelte one.
@@ -408,7 +406,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **mosaic-glow**: `MosaicGlowProps` extends `Omit<HTMLAttributes<HTMLDivElement>, "color" | "children">` rather than omitting every `keyof BaseProps` — those two are the only names that actually collide in `@types/react`, so the surviving attribute surface is one entry wider than the Svelte type (e.g. `title`, `role` were never omitted on either side anyway). No runtime effect.
 - **navbar**: NavbarLink's onclick prop is renamed onClick (React event-prop casing convention, consistent with other ports)
 - **navbar**: Svelte source had two <style> blocks (one per .svelte file); ported as two colocated CSS files, navbar.css and navbar-link.css, each imported by its own component
-- **neon-border**: NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so id/role/onClick/data-* reach the element; the Svelte component declares a closed six-prop list and spreads nothing.
+- **neon-border**: NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, like the Svelte and Vue components. A consumer `style` is merged; the component's own `--neon-*` custom properties win over a consumer declaration of the same property.
 - **noise-reveal**: `class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical.
 - **noise-reveal**: The viewport-trigger effect lists `delay` in its dependency array, which the Svelte `$effect` does not track, so changing `delay` after the element has intersected cancels a reveal already waiting out its delay and re-observes; `delay` is a mount-time setting.
 - **pagination**: Pagination: Svelte's `bind:page` becomes the standard controlled/uncontrolled split — uncontrolled by default (internal page state starting at 1), controlled when the `page` prop is passed; `onPageChange` fires with the same value either way.
@@ -459,6 +457,10 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **text-reveal-card**: TextRevealCard takes a `starsSeed?: number` prop forwarded to the star field so card consumers can vary the layout (the Svelte side reshuffles randomly per mount).
 - **text-reveal-card**: TextRevealStars takes a `seed?: number` prop (default 1) with a deterministic mulberry32 PRNG in place of Math.random() in the render path (SSR/hydration safety, per PORTING.md seed rule); same seed = same star field, call order matches the Svelte generator.
 - **text-reveal-card**: touchmove is attached natively via useEffect with { passive: false } instead of React's onTouchMove: the handler calls preventDefault() and React registers its touchmove root listener as passive. Same listener semantics as the Svelte attribute; behavior identical.
+- **tick-nav**: `value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.
+- **tick-nav**: `preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.
+- **tick-nav**: `class` → `className` (PORTING.md).
+- **tick-nav**: All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame).
 - **timeline**: `class` prop becomes `className` (standard port convention)
 - **timeline**: `content` snippet becomes a `content?: (item: TimelineItem) => ReactNode` render prop
 - **timeline**: The Svelte `<style>` block ships as the colocated `timeline.css`. Every selector is anchored under the source's own root class `.tl-root`, so no anchor class was added, and `:global(.dark) .tl-root` becomes `.dark .tl-root`. The custom property names, the `tl-ignite` keyframes, the `prefers-reduced-motion` block and the reduced-motion trail are all copied verbatim.
@@ -535,7 +537,6 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **context-menu**: ContextMenuRootContext.close() is typed with the shared MenuCloseOptions ({ returnFocus?, silent? }) instead of the Svelte side's narrower { returnFocus?: boolean }. `silent` is ignored (this family plays no sound), so behaviour is identical; the widening is what lets MenuContext.closeAll forward its options object unchanged, exactly as the Svelte source does at runtime.
 - **context-menu**: ContextMenuTrigger is forwardRef<HTMLDivElement> and ContextMenuContent forwardRef<HTMLDivElement> (both Svelte sides declare `ref = $bindable(null)`); ContextMenu itself takes no ref, as in the source. Neither trigger nor content spreads rest props — the Svelte sources declare none.
 - **context-menu**: Post-open focus is moved in a passive effect where the source moves it in a `tick()` microtask, so the panel paints one frame before the focus ring lands on the first or last item; the anchored entrance is still animating at that point.
-- **copy-button**: No rest-prop spread, deliberately: the Svelte `CopyButtonProps` interface declares an explicit prop list with no `...restProps`, so the React `CopyButtonProps` is a standalone interface rather than one extending `ButtonHTMLAttributes`. Fidelity to the Svelte API surface, but a departure from PORTING.md's general "rest props spread onto the root element" default — worth a line in react/README.md.
 - **copy-button**: StatusMorph's inline `style` string becomes a module-scope `CSSProperties` object (React accepts no style strings). The serialized attribute is equivalent — `width: 1rem; height: 1rem; font-size: calc(1rem - 1px); --ft-statusmorph-error: var(--ft-status-error, light-dark(...))` — and both assertions on that attribute pass unchanged.
 - **copy-button**: The Svelte `<style>` block's two `:global()` wrappers are dropped in copy-button.css: plain CSS is already global, and both selectors (`.ft-copybtn--copied`, `.ft-copybtn--failed`) are root-class modifiers, so no port-added anchor class was needed.
 - **copy-button**: `bind:state={morphState}` on StatusMorph becomes `state={morphState}` + `onStateChange={setMorphState}` — the two-way-binding stand-in the already-ported StatusMorph declares. Behaviour is identical: the morph's own `resetAfter` timer still writes "idle" back into CopyButton's state.
@@ -584,6 +585,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **input**: `bind:ref` becomes `forwardRef`, pointing at the native `<input>`.
 - **input**: `bind:value` becomes the standard React controlled/uncontrolled split: `value` + `onValueChange` when controlled, new `defaultValue` prop (default "") for the uncontrolled initial value — a `value` prop passed alone now pins the input instead of seeding it.
 - **input**: `class` becomes `className`; the `autocomplete` prop is typed as React's `HTMLInputAutoCompleteAttribute` instead of Svelte's `FullAutoFill` (same DOM token set).
+- **input**: Input, Textarea, PasswordInput, SearchInput and NumberInput forward native attributes to the inner <input>/<textarea>; React onChange from rest runs after internal handling and onValueChange; readOnly/autoComplete/maxLength are accepted next to the lowercase props.
 - **label**: Label: the Svelte `for` prop is `htmlFor` in React (JSX reserved-word convention); rendered DOM still carries the `for` attribute.
 - **magnetic**: reduced motion is read via useReducedMotion() (useSyncExternalStore); the Svelte createReducedMotion().start() lifecycle has no counterpart (internals contract D-4) — observable behavior identical, including runtime flips tearing the field down
 - **magnetic**: style merging: the inline --ft-magnetic-radius var merges into React's style object (a consumer-passed `style` prop is spread first, the var wins), instead of Svelte's style-attribute + style: directive merge
@@ -600,6 +602,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **number-input**: `bind:ref` becomes `forwardRef`, pointing at the native `<input>`.
 - **number-input**: `bind:value` becomes the standard controlled/uncontrolled split: controlled via `value` + `onValueChange` when the `value` prop is passed (`null` counts as a value meaning empty), uncontrolled via `defaultValue` (default `null`) otherwise — matching the convention Input established.
 - **number-input**: `class` becomes `className`.
+- **number-input**: Input, Textarea, PasswordInput, SearchInput and NumberInput forward native attributes to the inner <input>/<textarea>; React onChange from rest runs after internal handling and onValueChange; readOnly/autoComplete/maxLength are accepted next to the lowercase props.
 - **password-input**: Svelte's `await tick()` selection restore becomes a layout effect keyed on `revealed`: selection captured in the click handler, restored after the new `type` commits — same setSelectionRange(start, end, direction) call
 - **password-input**: The closing icon layer gets `inert` set by usePresence's default during its 80ms exit (mirrors Svelte 5's own outro inert behaviour; both glyphs are aria-hidden so it is observable only as an attribute)
 - **password-input**: The icon cross-fade's bidirectional `transition:` pair is reproduced with two `usePresence` clocks feeding the same `preset("fade")` through the WAAPI sampler — same 80ms micro duration, same reduced-motion duration-0 instant-swap path, both layers animate during the swap
@@ -655,6 +658,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **skeleton**: style is a React CSSProperties object; the internal --ft-skeleton-phase custom property is merged into it (caller keys preserved, phase wins on collision) rather than written as a style: directive — same rendered style attribute
 - **slider**: SliderHarness.tsx and SliderFieldHarness.tsx replace the .test.svelte harnesses (React components instead of Svelte rigs); not exported from index.ts, matching the Svelte originals' non-export.
 - **slider**: value is not a true two-way bindable prop (React has no bind:); mirrors the Input.tsx pattern instead — value prop seeds internal state, resynced on prop identity change, corrected via onValueChange. Observable behavior is unchanged.
+- **slider**: Slider: React's `onChange` (the native input event, forwarded after the internal update) fires on every input event, the React idiom. Svelte's `onchange` and Vue's `@change` fire once per committed value. Use `onValueChange` for the per-input value in all three.
 - **sources**: Snippet props become ReactNode: `SourceCard.icon` is `ReactNode`, `SourcesList.item` is `(source: SourceData, index: number) => ReactNode`, and `Sources.children` is React `children`.
 - **sources**: `SOURCES_CONTEXT_KEY` is exported as a `React.Context<SourcesContext | undefined>` object (read with `useContext`), not a Svelte `Symbol` context key. Name kept per the barrel contract.
 - **sources**: `SourcesContext.open` keeps its `{ current: boolean }` box shape from the Svelte getter contract, but it is a snapshot on a context value rebuilt when `open`/`sources`/`listId`/`onToggle` change — not a live getter.
@@ -676,7 +680,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **tabs**: TabsTrigger: the focus reclaim waits for `focusedValue` to stop naming this trigger before acting, because React lands the unregister state update one render after the commit that disabled the button, where Svelte's cleanup has already completed by the time its effect body runs. Same observable behaviour; the flag is now consumed on the empty-registry answer too, so no reclaim can survive into a later re-enable.
 - **tabs**: `TABS_KEY` is a `React.Context<TabsContext | undefined>` object (displayName "TabsContext") rather than the Svelte `unique symbol` context key — read it with `useContext(TABS_KEY)`. `TabsContext`'s `value`, `orientation`, `activation`, `variant` and `focusedValue` are plain readonly fields on an object the root rebuilds every render, not Svelte getters.
 - **terminal-block**: No consumer-visible divergence: header snippet becomes ReactNode; ref becomes forwardRef per PORTING.md; autoscroll uses react/src/internals/use-autoscroll.js's useAutoscroll(node, options) hook (already implemented for this repo) instead of the Svelte `use:autoscroll` action, targeting the log div via useElementRef.
-- **terminal-block**: TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte source declares a closed prop list and forwards nothing.
+- **terminal-block**: TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte and Vue components forward native attributes to the same outer element, not to the inner log region.
 - **text-roll**: Mid-roll DOM order inside the aria-hidden cell layer: exiting cells are appended after the current cells instead of holding their original sibling position (explicit grid-column/grid-row placement makes the painted result identical; only DOM inspection during the roll window can tell)
 - **text-roll**: On a length-changing update the generation bump lands in a post-commit effect (mirroring the source's after-DOM-update $effect), so one committed frame may briefly reuse a positionally-matching node before the full re-roll — same two-phase behavior as Svelte, but the intermediate frame is a real React commit
 - **text-roll**: rollIn/rollOut return the package's local TransitionSpec (delay always present) instead of svelte/transition's TransitionConfig — visible only to direct importers of roll-transitions.ts, which neither package exports from its index
@@ -759,7 +763,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **compare**: The beam/autoplay/glide loops read live values from refs that mirror the state; the observable behaviour is the same as the reference's closures reading $state.
 - **compare**: compare.css anchors every component rule under the root `.compare` class, because plain CSS is global where the reference's rules were compiler-scoped. Class names, keyframes (cmp-pulse, cmp-spin), @property --cmp-angle and custom properties are unchanged.
 - **compare**: Compare no longer renders StarField, matching the reference. StarField is still exported on its own, as the Svelte index does.
-- **container-text-flip**: ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root, so id/onClick/data-*/aria-* reach the element where the Svelte component drops them; the inherited `children` is type-accepted and dropped, since the component renders its own.
+- **container-text-flip**: ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root `<p>`, like the Svelte and Vue components; the inherited `children` is type-accepted and dropped.
 - **flip-card**: `bind:flipped` becomes a seed-and-resync prop: `flipped` sets the starting face on mount, and a later change to it turns the card the rest of the way, calling `onFlip` as Svelte does; internal flips report only through `onFlip` (pass both for two-way behaviour).
 - **flip-card**: Svelte's `onflip` callback is named `onFlip`, following the package-wide camelCase convention for callbacks; same signature, fires at the same times.
 - **flip-card**: The `inert` attribute on the hidden face is written by `useInertAttribute` at commit, not rendered inline, because no JSX spelling works on both React 18 and 19; it is therefore missing from server HTML until hydration.
@@ -767,8 +771,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **gradient-button**: GradientButton forwards a ref to the underlying `<button>` even though the Svelte source declares no bindable ref; additive only, recorded rather than removed.
 - **interactive-hover-button**: forwardRef to the <button> kept although the Svelte source exposes no bindable ref (pre-existing React API, same as the other button ports).
 - **interactive-hover-button**: The React tests keep four sound tests (press cue on click, silent by default, silent while disabled, silent on hover) that the Svelte test file does not have; the sound behaviour is identical.
-- **letter-pullup**: LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, so id/style/onClick/role/aria-*/data-* reach the element; the Svelte component's surface is exactly {words, delay, class} and it spreads nothing.
-- **line-hover-link**: Props extend AnchorHTMLAttributes minus className and spread ...rest onto the `<a>`, per PORTING.md's rest-props-spread rule; the Svelte side exposed a fixed prop list and spread nothing.
+- **letter-pullup**: LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, like the Svelte and Vue components (`class` still styles each letter).
 - **marquee**: `ReviewCardProps` is exported as a named type from the folder barrel; the Svelte README states the prop shape is deliberately not re-exported, so a consumer writing their own card need not match it.
 - **marquee**: The per-instance conveyor state (engaged flag, eased factor, live animations, rAF id, resume point) lives in one lazily created ref object instead of loose component-scoped variables. `speed` and `pauseOnHover` are mirrored into it from effects, so an enter or leave event reads the value from the last commit. The easing maths are unchanged: time constant 140 ms, settle epsilon 0.002, dt capped at 64 ms.
 - **marquee**: The Svelte `onfocusin`/`onfocusout` handlers map to React `onFocus`/`onBlur`, which React attaches as focusin/focusout. The relatedTarget containment check is kept as-is.
@@ -776,7 +779,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **marquee**: ReviewCard's style block ships as its own colocated `review-card.css`, imported by ReviewCard.tsx, so the card is styled even when it is used without a Marquee. `:global(.dark) .review-card` becomes `.dark .review-card`.
 - **number-ticker**: Duration and delay are captured when the animation starts; the Svelte source re-reads both props each frame, so a mid-animation duration change re-times the count there and not here.
 - **number-ticker**: The re-animate effect depends on the animation target only; the Svelte $effect also re-runs on displayValue and on delay, so a delay-only change restarts the count in Svelte and not in React.
-- **pixel-loader**: PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so a consumer's `style` can override the component's own `--ft-pixel-*` custom properties; the Svelte component accepts exactly nine props and spreads nothing.
+- **pixel-loader**: PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, like the Svelte and Vue components. `role="status"` and `aria-live` stay managed. A consumer `style` is merged after the component's own, so it can override the `--ft-pixel-*` custom properties.
 - **ripple-button**: Port-added `ref`: RippleButton is a forwardRef publishing the root `<button>`, which the Svelte source does not expose; the consumer's ref is composed through `useComposedRefs`, so it attaches once and is never churned by the ripple state.
 - **ripple-button**: inner `.ripple-hover` / `.ripple-animation` rules are anchored under the source's root class `.ripple-button`, since plain CSS is global.
 - **shimmer-button**: React keeps forwardRef<HTMLButtonElement> (pre-existing public API); the Svelte source exposes no bindable ref.
@@ -784,7 +787,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **toast**: A dismissed toast is `inert` for the length of its exit (the presence clock's default), so its Retry and Dismiss buttons stop answering clicks and focus inside it is released; the Svelte toast root carries no `inert` and stays interactive until the outro destroys it.
 - **tracing-beam**: Per-frame spring values are written imperatively to the gradient node in the rAF loop (setAttribute "y1"/"y2") instead of round-tripping through state, so the component and its children never re-render during the animation; the rendered JSX keeps y1/y2 at their 0 seed, which is also what the server markup emits.
 - **tracing-beam**: The SVG gradient id is minted per instance with useFancyId("tracing-beam-gradient") and referenced as url(#id), where the source hardcodes the id; the React side therefore supports several beams on one page.
-- **typing-indicator**: TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, so a consumer can pass id/onClick/data-* or override role/aria-live/style; the Svelte component declares a fixed prop list and spreads nothing.
+- **typing-indicator**: TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, like the Svelte and Vue components. `role="status"` and `aria-live="polite"` are no longer overridable, and the component's own `--ft-typing-*` styles win over a consumer `style`.
 
 ## Tech Stack
 

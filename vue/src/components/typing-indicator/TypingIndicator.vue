@@ -16,7 +16,7 @@ export interface TypingIndicatorProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "TypingIndicator", inheritAttrs: false });
@@ -28,6 +28,8 @@ const {
 	label = "Typing",
 	class: className,
 } = defineProps<TypingIndicatorProps>();
+
+const attrs = useAttrs();
 
 const el = useTemplateRef<HTMLDivElement>("el");
 defineExpose({ ref: el });
@@ -54,8 +56,21 @@ const dotStyles = computed(() =>
 </script>
 
 <template>
-	<div ref="el" :class="cn('inline-flex items-center', className)" :style="rootStyle" role="status" aria-live="polite">
-		<span v-for="(dotStyle, i) in dotStyles" :key="i" class="ft-dot" :style="dotStyle" aria-hidden="true"></span>
+	<div
+		v-bind="attrs"
+		ref="el"
+		:class="cn('inline-flex items-center', className)"
+		:style="rootStyle"
+		role="status"
+		aria-live="polite"
+	>
+		<span
+			v-for="(dotStyle, i) in dotStyles"
+			:key="i"
+			class="ft-dot"
+			:style="dotStyle"
+			aria-hidden="true"
+		></span>
 		<span class="sr-only">{{ label }}</span>
 	</div>
 </template>

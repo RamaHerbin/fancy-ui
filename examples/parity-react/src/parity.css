@@ -1,0 +1,12 @@
+/*
+ * Visual baseline of the parity stage: the docs site's own stylesheet, imported
+ * rather than copied, so the tokens (--background, --foreground… in :root and
+ * .dark), the `dark` variant, the @theme colour names, the base layer and the
+ * default font stack are byte-for-byte the ones the Svelte stage renders with.
+ */
+@import "../../../src/routes/layout.css";
+
+/* The component sources live outside this app; scan them (and the scenarios)
+   so every utility class they spend is generated. */
+@source "../../../react/src";
+@source "./";

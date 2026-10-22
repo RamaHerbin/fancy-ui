@@ -16,7 +16,7 @@ export interface ContainerTextFlipProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, onMounted, onBeforeUnmount, useAttrs } from "vue";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "ContainerTextFlip", inheritAttrs: false });
@@ -28,6 +28,8 @@ const {
 	class: className,
 	textClass,
 } = defineProps<ContainerTextFlipProps>();
+
+const attrs = useAttrs();
 
 const currentWordIndex = ref(0);
 const currentWord = computed(() => words[currentWordIndex.value] ?? "");
@@ -44,6 +46,7 @@ onMounted(() => {
 
 <template>
 	<p
+		v-bind="attrs"
 		:class="
 			cn(
 				'relative inline-block rounded-lg px-4 pt-2 pb-3 text-center text-4xl font-bold text-black md:text-7xl dark:text-white',

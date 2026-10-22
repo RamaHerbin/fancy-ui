@@ -23,6 +23,11 @@ export interface CopyButtonProps {
 	iconOnly?: boolean;
 	/** Called with the value and whether the write actually succeeded */
 	onCopy?: (value: string, ok: boolean) => void;
+	/**
+	 * Fires on activation, right after the copy starts. Never called while
+	 * `disabled`. `@click` reaches it.
+	 */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
 	/**
@@ -67,10 +72,12 @@ const MORPH_STYLE: CSSProperties = {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useSlots, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useAttrs, useSlots, useTemplateRef, watch } from "vue";
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { useCopy } from "../../internals/use-copy.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { Button } from "../button/index.js";
 import { StatusMorph, type StatusMorphState } from "../status-morph/index.js";
 
@@ -87,6 +94,7 @@ const {
 	disabled = false,
 	iconOnly = false,
 	onCopy,
+	onClick,
 	class: className,
 	sound = false,
 } = defineProps<CopyButtonProps>();
@@ -102,6 +110,11 @@ defineSlots<{
 }>();
 
 const slots = useSlots();
+
+// Native attributes and listeners ride through to Button, which lands them on
+// its `<button>`. `onClick` is a declared prop (above) so it can run after the
+// copy starts rather than merging into Button's own listener.
+const attrs = useAttrs();
 
 // The element Button itself published. Read through Button's own exposed `ref`
 // so it tracks the control across a swap between the `<a>` and `<button>`
@@ -169,7 +182,7 @@ const classes = computed(() =>
 	)
 );
 
-async function handleClick() {
+async function handleClick(event: MouseEvent) {
 	// This click is the only user gesture in the interaction, and the outcome
 	// cue below plays after an await: on a reload with sound already enabled no
 	// AudioContext exists yet, and by then the transient activation may be
@@ -191,7 +204,10 @@ async function handleClick() {
 	// change while the clipboard write is pending would otherwise make `onCopy`
 	// report a different string than the one actually copied.
 	const attempted = value;
-	const ok = await copyState.copy(attempted);
+	const pending = copyState.copy(attempted);
+	// The consumer click runs now, while the event is still live.
+	callListener(onClick, event);
+	const ok = await pending;
 	// `onCopy` still fires for every attempt, stale or not — it reports what
 	// that call did, matching `copy()`'s own honest return. Only the visible and
 	// audible cues, which describe the button's CURRENT state, are dropped when
@@ -202,6 +218,37 @@ async function handleClick() {
 	}
 	onCopy?.(attempted, ok);
 }
+
+// Out 80 ms, in 160 ms: a label change keeps the OUTGOING text alive for the
+// out beat as a second, `aria-hidden` layer in the same grid cell, while the
+// keyed live span fades in after that beat. `prefersReducedMotion()` is read
+// once per swap: under reduced motion there is no outgoing layer and the text
+// snaps. The watch is `pre`-flushed so the outgoing text is in the very render
+// that shows the new one.
+const LEAVE_MS = 80;
+const swapped = ref(false);
+const leaving = ref<string | null>(null);
+let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(currentLabel, (next, previous) => {
+	if (next === previous) return;
+	swapped.value = true;
+	// A second swap inside the out beat: `previous` was still in its delayed
+	// fade-in and never painted, so keep the layer that is on screen (and its
+	// timer) rather than replacing it with text the user never saw.
+	if (leaving.value !== null) return;
+	clearTimeout(leaveTimer);
+	if (prefersReducedMotion()) {
+		leaving.value = null;
+		return;
+	}
+	leaving.value = previous;
+	leaveTimer = setTimeout(() => {
+		leaving.value = null;
+	}, LEAVE_MS);
+});
+
+onBeforeUnmount(() => clearTimeout(leaveTimer));
 
 // StatusMorph's `resetAfter` is what normally walks `morphState` back to
 // "idle", and custom default-slot content replaces the whole icon slot — so in
@@ -228,12 +275,14 @@ watch(
 <template>
 	<Button
 		ref="btn"
+		v-bind="attrs"
+		type="button"
 		:variant="variant"
 		:size="size"
 		:disabled="disabled"
 		:label="iconOnly ? currentLabel : undefined"
 		:class="classes"
-		:onclick="handleClick"
+		@click="handleClick"
 	>
 		<!--
 			`resetAfter` is clamped away from 0 for a vocabulary clash, not a whim:
@@ -274,25 +323,88 @@ watch(
 			</StatusMorph>
 		</template>
 		<slot />
-		<!-- Purely the visible label: the announcement is StatusMorph's job, through
-		     the `role="status"` region it portals to `document.body` (which is also
-		     why it never joins this button's accessible name), and two live regions
-		     would double-announce every copy. The one case with no StatusMorph at
-		     all is custom default-slot content, which replaces `iconStart` — there
-		     this span keeps the announcement, because custom content has no way of
-		     its own to say the copy landed and colour alone is a sighted-only
-		     signal. Hidden whenever something else already owns the visible label
-		     (icon-only, or custom content); otherwise this span *is* the visible
-		     label. -->
+		<!-- The announcement is StatusMorph's job, through the `role="status"` region
+		     it portals to `document.body` (which is also why it never joins this
+		     button's accessible name), and two live regions would double-announce
+		     every copy. The one case with no StatusMorph at all is custom
+		     default-slot content, which replaces `iconStart` — there the span keeps
+		     the announcement, because custom content has no way of its own to say
+		     the copy landed and colour alone is a sighted-only signal. When
+		     something else already owns the visible label (icon-only, or custom
+		     content) the span is `sr-only` and there is nothing to reserve width
+		     for.
+
+		     Otherwise the label sits in a one-cell grid stacking three `aria-hidden`
+		     ghosts (idle, copied, failed) under the live span: the cell is as wide
+		     as the widest of them, in pure CSS, so the button never changes width
+		     when the text swaps and nothing is measured (SSR-safe). -->
 		<span
+			v-if="iconOnly || $slots.default"
+			class="ft-copybtn__live sr-only"
 			:aria-live="$slots.default ? (morphState === 'error' ? 'assertive' : 'polite') : undefined"
-			v-bind="iconOnly || $slots.default ? { class: 'sr-only' } : {}"
 			>{{ currentLabel }}</span
 		>
+		<span v-else class="ft-copybtn__label">
+			<span class="ft-copybtn__ghost" aria-hidden="true">{{ label }}</span>
+			<span class="ft-copybtn__ghost" aria-hidden="true">{{ copiedLabel }}</span>
+			<span class="ft-copybtn__ghost" aria-hidden="true">{{ errorLabel }}</span>
+			<span v-if="leaving !== null" class="ft-copybtn__leave" aria-hidden="true">{{
+				leaving
+			}}</span>
+			<span :key="currentLabel" class="ft-copybtn__live" :data-swapped="swapped ? '' : undefined">{{
+				currentLabel
+			}}</span>
+		</span>
 	</Button>
 </template>
 
 <style scoped>
+.ft-copybtn__label {
+	display: inline-grid;
+	text-align: start;
+}
+
+.ft-copybtn__label > * {
+	grid-area: 1 / 1;
+	white-space: nowrap;
+}
+
+.ft-copybtn__ghost {
+	visibility: hidden;
+	pointer-events: none;
+	user-select: none;
+}
+
+.ft-copybtn__leave {
+	pointer-events: none;
+}
+
+/* transform / opacity only ever run under `no-preference`; under reduce the
+   text snaps and the component never renders the outgoing layer. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-copybtn__leave {
+		animation: ft-copybtn-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+	}
+
+	.ft-copybtn__live[data-swapped] {
+		animation: ft-copybtn-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+	}
+}
+
+@keyframes ft-copybtn-out {
+	to {
+		opacity: 0;
+		transform: translateY(-2px);
+	}
+}
+
+@keyframes ft-copybtn-in {
+	from {
+		opacity: 0;
+		transform: translateY(2px);
+	}
+}
+
 /*
  * `--ft-status-done` / `--ft-status-error` are the family's actual
  * "operation landed" and "operation failed" vocabulary — the same tokens

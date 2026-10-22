@@ -39,7 +39,7 @@ function parseSections(body: string): ChangelogSection[] {
 }
 
 /** Parse the root CHANGELOG.md (changesets format) into renderable versions, newest first. */
-export function parseChangelog(raw: string): ChangelogVersion[] {
+export function parseChangelog(raw: string, idPrefix = ""): ChangelogVersion[] {
 	const versions: ChangelogVersion[] = [];
 	const re = /^## (.+)$/gm;
 	const matches = [...raw.matchAll(re)];
@@ -53,7 +53,7 @@ export function parseChangelog(raw: string): ChangelogVersion[] {
 		versions.push({
 			version,
 			date: date?.trim(),
-			anchor: `v${version.replaceAll(".", "-")}`,
+			anchor: `${idPrefix ? `${idPrefix}-` : ""}v${version.replaceAll(".", "-")}`,
 			sections: parseSections(raw.slice(start, end)),
 		});
 	}

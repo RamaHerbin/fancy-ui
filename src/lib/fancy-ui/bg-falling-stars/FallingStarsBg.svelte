@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	export interface FallingStarsBgProps {
-		/** Star color as hex string */
+		/** Star color: a hex string, or `currentColor` (default) to follow the text colour */
 		color?: string;
 		/** Number of stars */
 		count?: number;
@@ -14,7 +14,11 @@
 	import { onMount, untrack } from "svelte";
 	import { createFallingStars, type FallingStarsEngine } from "./bg-falling-stars-core.js";
 
-	let { color = "#FFF", count = 200, class: className = "" }: FallingStarsBgProps = $props();
+	let {
+		color = "currentColor",
+		count = 200,
+		class: className = "",
+	}: FallingStarsBgProps = $props();
 
 	let canvas: HTMLCanvasElement;
 	let engine: FallingStarsEngine | null = null;

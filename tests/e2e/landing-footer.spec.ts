@@ -14,6 +14,12 @@ test.describe("Site footer on the home page", () => {
 			}
 		});
 
+		// The star counter calls the public API, which answers 403 once a shared
+		// runner is rate limited: keep the test off the network.
+		await page.route("https://api.github.com/**", (route) =>
+			route.fulfill({ json: { stargazers_count: 0 } })
+		);
+
 		await page.setViewportSize({ width: 1440, height: 900 });
 		await page.goto("/");
 

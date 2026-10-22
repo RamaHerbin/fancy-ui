@@ -107,6 +107,7 @@ export * from "./link/index.js";
 export * from "./toggle/index.js";
 export * from "./toggle-group/index.js";
 export * from "./copy-button/index.js";
+export * from "./follow-button/index.js";
 
 // Core — forms
 export * from "./label/index.js";
@@ -142,7 +143,10 @@ export * from "./time-picker/index.js";
 // Core — navigation
 export * from "./navbar/index.js";
 export * from "./sidebar/index.js";
+export * from "./tick-nav/index.js";
 export * from "./tabs/index.js";
+export * from "./accordion/index.js";
+export * from "./collapsible/index.js";
 export * from "./breadcrumb/index.js";
 export * from "./pagination/index.js";
 export * from "./stepper/index.js";
@@ -153,6 +157,10 @@ export * from "./navigation-menu/index.js";
 
 // Core — feedback
 export * from "./skeleton/index.js";
+
+// Core — data display
+export * from "./badge/index.js";
+export * from "./avatar/index.js";
 
 // Micro-interactions (share the `_internals/motion` foundation)
 export * from "./reveal/index.js";

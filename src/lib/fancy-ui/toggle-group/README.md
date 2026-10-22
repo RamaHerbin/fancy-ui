@@ -105,6 +105,27 @@ component.
   keyed `{#each}` moves to a new position after the fact, is correct on the
   very next key press.
 
+## Native attributes
+
+`ToggleGroupItem` forwards native `<button>` attributes and listeners (`id`,
+`data-*`, `aria-describedby`, `onblur`, ...) to its button. `aria-pressed`,
+`disabled`, the roving `tabindex` and the `data-*` state attributes stay the
+component's; a consumer `aria-label` is used when no `label` prop is given.
+`onclick`, `onfocus` and `onkeydown` run once after the component's own
+handling, and not at all while the item is disabled.
+
+## In a form
+
+With `name` set, the group renders one hidden input per selected value, so
+`FormData` holds `name=value` for each. Two rules to know:
+
+- **A selected item that is disabled still submits.** Disabling an item only
+  stops the user from changing it; its value is still part of the selection, so
+  it is submitted, because the selection belongs to the group, not to the item.
+  This differs from a lone `Toggle`, whose own `disabled` stops it submitting.
+- **A disabled group submits nothing.** `disabled` on the group disables every
+  hidden input, like a `<fieldset disabled>`.
+
 ## Props
 
 ### ToggleGroup
@@ -122,6 +143,8 @@ component.
 | `class`         | `string`                              | —              | Additional CSS classes                                           |
 | `ref`           | `HTMLDivElement \| null`              | `null`         | Bindable element reference                                       |
 | `sound`         | `boolean`                             | `false`        | Plays toggle-on/off or select on a change, once sound is enabled |
+| `name`          | `string`                              | —              | Form field name; one hidden input per selected value             |
+| `form`          | `string`                              | —              | `id` of the form the hidden inputs belong to                     |
 
 ### ToggleGroupItem
 

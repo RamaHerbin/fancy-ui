@@ -3,10 +3,13 @@ import {
 	type AnchorHTMLAttributes,
 	type ButtonHTMLAttributes,
 	type MouseEvent,
+	type Ref,
 	type ReactNode,
 } from "react";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import type { ButtonVariant, ButtonSize } from "./types.js";
 import "./button.css";
 
@@ -49,8 +52,8 @@ export interface ButtonProps extends Omit<
 	/** Additional CSS classes. */
 	className?: string;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
@@ -108,7 +111,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 			// `data-disabled` covers the anchor branch, which has no native `:disabled`
 			// pseudo-class to hang the same dimmed treatment off. It tracks `disabled`
 			// alone, never `loading` — `aria-disabled` also goes true while loading (see
-			// `anchorInert` below), but the mockup's loading swatch is explicitly not
+			// `anchorBlocked` below), but the mockup's loading swatch is explicitly not
 			// dimmed, so the visual hook and the a11y attribute must stay two different
 			// things even though they overlap when `disabled` is set.
 			"disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -130,21 +133,38 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 			return [...tokens].join(" ");
 		})();
 
-		// An <a> has no native `disabled` state, and `href`/`target` drive browser
-		// behaviour that never reaches `handleClick` at all — middle-click firing
-		// `auxclick`, "open link in new tab" from the context menu, a screen reader's
-		// own link-activation gesture. `loading` has to block activation exactly like
-		// `disabled` does, so on this branch that can only be done by stripping the
-		// attributes that make those paths possible, not by adding another JS guard:
-		// there is no event to guard on until after the browser has already acted on
-		// `href`. Kept as one flag so `href`, `target`, `aria-disabled` and `tabindex`
-		// can't drift out of sync with each other.
-		const anchorInert = disabled || loading;
+		// An <a> has no native `disabled` state. `disabled` strips `href`/`target`
+		// and leaves the tab order (nothing to activate, nothing to read). `loading`
+		// is different: the control is busy, not unavailable, so it keeps its `href`
+		// and its tab stop — focus must not vanish under a keyboard user mid-request —
+		// and activation is blocked in the handlers instead (`click` for keyboard and
+		// primary pointer, `auxclick` for middle-click). `aria-busy` + `aria-disabled`
+		// tell assistive tech why nothing happens.
+		const anchorInert = disabled;
+		const anchorBlocked = disabled || loading;
+
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: anchorBlocked,
+		});
+		const composedRef = useComposedRefs(ref as Ref<HTMLElement>, soundRef);
 
 		// The single guard both branches funnel through. A native `disabled` button
 		// already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 		// an anchor, which has no disabled state at all) walks straight past that —
 		// this is what actually keeps the callback from firing.
+		// Middle-click guard for the anchor branch: internal first, then the consumer's
+		// own `onAuxClick` (never overwritten), skipped while blocked like `onClick`.
+		function handleAuxClick(event: MouseEvent<HTMLAnchorElement>) {
+			if (disabled || loading) {
+				event.preventDefault();
+				return;
+			}
+			(restProps as AnchorHTMLAttributes<HTMLAnchorElement>).onAuxClick?.(event);
+		}
+
 		function handleClick(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
 			if (disabled || loading) {
 				event.preventDefault();
@@ -156,7 +176,19 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
 		const content = (
 			<>
-				{loading ? <span className="ft-btn-spinner" aria-hidden="true"></span> : iconStart}
+				{/* The lead slot: one fixed cell for the spinner or iconStart, so a
+				    loading swap never moves the label and an icon centres exactly as
+				    in the Svelte and Vue buttons. aria-hidden only while loading:
+				    the caller's own icon keeps whatever treatment they gave it. */}
+				{loading || (iconStart != null && iconStart !== false) ? (
+					<span className="ft-btn-lead" aria-hidden={loading ? "true" : undefined}>
+						{loading ? (
+							<span className="ft-btn-spinner"></span>
+						) : (
+							<span className="ft-btn-lead-icon">{iconStart}</span>
+						)}
+					</span>
+				) : null}
 				{children}
 				{iconEnd}
 			</>
@@ -165,18 +197,23 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 		if (href) {
 			return (
 				<a
-					ref={ref as React.Ref<HTMLAnchorElement>}
+					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
+					ref={composedRef as Ref<HTMLAnchorElement>}
 					className={classes}
 					href={anchorInert ? undefined : href}
 					target={anchorInert ? undefined : target}
 					rel={resolvedRel}
-					aria-label={label}
-					data-disabled={disabled ? "true" : undefined}
-					aria-disabled={anchorInert ? "true" : undefined}
-					aria-busy={loading ? "true" : undefined}
-					tabIndex={anchorInert ? -1 : undefined}
+					aria-label={label ?? restProps["aria-label"]}
+					data-disabled={
+						disabled
+							? "true"
+							: ((restProps as Record<string, unknown>)["data-disabled"] as string | undefined)
+					}
+					aria-disabled={anchorBlocked ? "true" : restProps["aria-disabled"]}
+					aria-busy={loading ? "true" : restProps["aria-busy"]}
+					tabIndex={anchorInert ? -1 : restProps.tabIndex}
 					onClick={handleClick}
-					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
+					onAuxClick={handleAuxClick}
 				>
 					{content}
 				</a>
@@ -185,14 +222,14 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
 		return (
 			<button
-				ref={ref as React.Ref<HTMLButtonElement>}
+				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
+				ref={composedRef as Ref<HTMLButtonElement>}
 				className={classes}
 				type={type}
 				disabled={disabled}
-				aria-label={label}
-				aria-busy={loading ? "true" : undefined}
+				aria-label={label ?? restProps["aria-label"]}
+				aria-busy={loading ? "true" : restProps["aria-busy"]}
 				onClick={handleClick}
-				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 			>
 				{content}
 			</button>

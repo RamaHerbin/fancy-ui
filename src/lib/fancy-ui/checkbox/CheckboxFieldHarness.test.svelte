@@ -13,14 +13,25 @@
 
 	interface Props {
 		context: FieldContext;
+		attrs?: Record<string, unknown>;
 		sound?: boolean;
 	}
 
-	let { context, sound = false }: Props = $props();
+	let { context, sound = false, attrs = {} }: Props = $props();
 
+	// Test rig: the field context is published once and tests never swap it.
+	// svelte-ignore state_referenced_locally
 	setContext(FIELD_KEY, context);
 </script>
 
 <!-- Deliberately passed own props that disagree with the context, so a test
      can prove the context wins rather than merely matching by coincidence. -->
-<Checkbox id="own-id" invalid={false} required={false} disabled={false} label="Agree" {sound} />
+<Checkbox
+	id="own-id"
+	invalid={false}
+	required={false}
+	disabled={false}
+	label="Agree"
+	{sound}
+	{...attrs}
+/>

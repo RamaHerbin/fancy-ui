@@ -1,10 +1,11 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	export type ToggleSize = "sm" | "md" | "lg";
 	export type ToggleVariant = "ghost" | "outline";
 
-	export interface ToggleProps {
+	export interface ToggleOwnProps {
 		/** Whether the toggle is currently pressed (active) */
 		pressed?: boolean;
 		/** Called with the new pressed state whenever the toggle is activated */
@@ -28,7 +29,21 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/**
+		 * Form field name. When set, a hidden input named `name` is rendered inside
+		 * the button and submits `value` (default `"on"`) while pressed, nothing
+		 * while off or disabled, like a checkbox. The button is `type="button"`
+		 * and never submits.
+		 */
+		name?: string;
+		/** Value submitted under `name` while pressed. Defaults to `"on"`. */
+		value?: string;
+		/** `id` of the `<form>` the hidden input belongs to, when not nested in it. */
+		form?: string;
 	}
+
+	/** Other native `<button>` attributes and listeners are forwarded to the toggle; `aria-pressed`, `disabled` and `type` stay the component's, and `name`, `value` and `form` feed the hidden form input instead of the button. */
+	export type ToggleProps = ToggleOwnProps & Omit<HTMLButtonAttributes, keyof ToggleOwnProps>;
 </script>
 
 <script lang="ts">
@@ -46,6 +61,11 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onclick,
+		name = undefined,
+		value = undefined,
+		form = undefined,
+		...rest
 	}: ToggleProps = $props();
 
 	const SIZE_CLASSES: Record<ToggleSize, string> = {
@@ -76,25 +96,36 @@
 	// The only place `pressed` changes. Doing this in an $effect instead would
 	// mean reading and writing the same state in one pass — here it is a plain
 	// event handler, so a caller's own `bind:pressed` write is never fought.
-	function toggle() {
+	function toggle(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (disabled) return;
 		const next = !pressed;
 		pressed = next;
 		if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 		onPressedChange?.(next);
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 </script>
 
 <button
+	{...rest}
 	bind:this={ref}
 	type="button"
 	class={classes}
 	aria-pressed={pressed}
-	aria-label={label}
+	aria-label={label ?? rest["aria-label"]}
 	{disabled}
 	onclick={toggle}
 >
 	{@render children?.()}
+	<!--
+		Inside the button, not beside it: the component keeps a single root
+		element (so directives, transitions and `ref` land on the button), and a
+		hidden input is not interactive content, so the nesting is valid. A
+		descendant of a form owner still joins the form's data set.
+	-->
+	{#if name && pressed && !disabled}
+		<input type="hidden" {name} value={value ?? "on"} {form} />
+	{/if}
 </button>
 
 <style>

@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import type { ButtonVariant, ButtonSize } from "../button/types.js";
 
 	/** `"square"` keeps the size's own radius; `"circle"` rounds it fully. */
@@ -43,11 +44,19 @@
 		/** Element reference. */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * `IconButtonProps` plus every native attribute and listener of the
+	 * `<button>` / `<a>` Button renders. Own props win.
+	 */
+	export type IconButtonAttributes = IconButtonProps &
+		Omit<HTMLButtonAttributes, keyof IconButtonProps> &
+		Omit<HTMLAnchorAttributes, keyof IconButtonProps>;
 </script>
 
 <script lang="ts">
@@ -70,7 +79,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
-	}: IconButtonProps = $props();
+		...restProps
+	}: IconButtonAttributes = $props();
 
 	// A fixed square replaces Button's own horizontal padding — an icon-only
 	// control centres on its glyph rather than growing to fit a label. Each
@@ -102,6 +112,7 @@
 
 <Button
 	bind:ref
+	{...restProps}
 	{variant}
 	{size}
 	{type}

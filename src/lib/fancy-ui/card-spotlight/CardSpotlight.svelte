@@ -19,7 +19,11 @@
 		children,
 	}: Props = $props();
 
+	// Hidden-spotlight offset seeds the pointer position; pointer events own it afterwards.
+	// svelte-ignore state_referenced_locally
 	let mouseX = $state(-gradientSize * 10);
+	// Hidden-spotlight offset seeds the pointer position; pointer events own it afterwards.
+	// svelte-ignore state_referenced_locally
 	let mouseY = $state(-gradientSize * 10);
 
 	function handleMouseMove(e: MouseEvent) {
@@ -39,6 +43,9 @@
 	);
 </script>
 
+<!-- Pointer-only spotlight effect; the content stays fully usable without it. -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+
 <div
 	class={cn(
 		"group relative flex size-full overflow-hidden rounded-xl border bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white",
@@ -53,7 +60,7 @@
 		{/if}
 	</div>
 	<div
-		class="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+		class="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 		style="background: {backgroundStyle}; opacity: {gradientOpacity}"
 	></div>
 </div>

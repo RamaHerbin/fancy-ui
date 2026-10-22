@@ -20,6 +20,9 @@ const GETTING_STARTED = [
 	{ href: "/docs/getting-started/changelog", key: "page.changelog" },
 ] as const;
 
+/** Top-level docs sections that sit beside Getting Started and Components in the sidebar. */
+export const DOCS_SECTION_LINKS = [{ href: "/docs/recipes", key: "nav.recipes" }] as const;
+
 /**
  * The page that follows `pathname` in reading order, or undefined when there
  * is no meaningful "next" (component pages already carry PrevNextNav, so they

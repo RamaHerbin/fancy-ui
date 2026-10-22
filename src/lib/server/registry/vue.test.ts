@@ -275,10 +275,10 @@ describe("buildRegistry with the vue stack on the real vue/src tree", () => {
 	const base = "https://fancy-ui.rama.app/r/vue";
 	const all = Object.values(out.items).flatMap((i) => i.files);
 
-	it("emits 150 items (145 components + 5 shared)", () => {
-		expect(Object.keys(out.items)).toHaveLength(150);
-		expect(out.index.items).toHaveLength(150);
-		expect(Object.values(out.items).filter((i) => i.type === "registry:ui")).toHaveLength(145);
+	it("emits 156 items (151 components + 5 shared)", () => {
+		expect(Object.keys(out.items)).toHaveLength(156);
+		expect(out.index.items).toHaveLength(156);
+		expect(Object.values(out.items).filter((i) => i.type === "registry:ui")).toHaveLength(151);
 		expect(
 			Object.values(out.items)
 				.filter((i) => i.type === "registry:lib")
@@ -286,9 +286,9 @@ describe("buildRegistry with the vue stack on the real vue/src tree", () => {
 		).toEqual(["internals", "internals-dom", "internals-motion", "sound", "utils"]);
 	});
 
-	// Observed on 2026-10-20: 481 shipped files. The gate pins the exact number.
-	it("ships 481 files, every one registry:ui under the steering path, no target", () => {
-		expect(all).toHaveLength(481);
+	// Observed with accordion, collapsible, follow-button, badge and avatar: 511 shipped files. The gate pins the exact number.
+	it("ships 511 files, every one registry:ui under the steering path, no target", () => {
+		expect(all).toHaveLength(511);
 		for (const f of all) {
 			expect(f.type, f.path).toBe("registry:ui");
 			expect(f.path.startsWith(VUE_PATH_PREFIX), f.path).toBe(true);

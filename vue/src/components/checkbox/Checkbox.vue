@@ -4,6 +4,8 @@ import type { HTMLAttributes } from "vue";
 export interface CheckboxProps {
 	/** Called with the new checked value whenever the box is activated. */
 	onCheckedChange?: (checked: boolean) => void;
+	/** A consumer `@change`, run once after the internal toggle. */
+	onChange?: (event: Event) => void;
 	/** Blocks interaction; excluded from form submission. Overridden by a surrounding FormField. */
 	disabled?: boolean;
 	/** Native `required`. Overridden by a surrounding FormField. */
@@ -38,7 +40,7 @@ export interface CheckboxProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onMounted, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -46,8 +48,11 @@ import { sound as soundFx } from "../../sound/sound.js";
 
 defineOptions({ name: "Checkbox", inheritAttrs: false });
 
+const attrs = useAttrs() as Record<string, string | undefined>;
+
 const {
 	onCheckedChange,
+	onChange,
 	disabled = false,
 	required = false,
 	invalid = false,
@@ -113,6 +118,19 @@ watch([el, indeterminate], syncIndeterminate, { flush: "post" });
 // already resolves an indeterminate box to a real boolean on interaction;
 // `indeterminate` is still cleared explicitly below so the model mirrors
 // that outcome regardless of how faithfully a given environment applies it.
+/**
+ * A consumer listener rides a declared camelCase prop (not the fall-through
+ * attrs) so a guarded activation can skip it; Vue hands several `@event`
+ * bindings over as an array.
+ */
+function callListener(listener: unknown, ...args: unknown[]) {
+	if (Array.isArray(listener)) {
+		for (const fn of listener) if (typeof fn === "function") fn(...args);
+	} else if (typeof listener === "function") {
+		listener(...args);
+	}
+}
+
 function handleChange(event: Event) {
 	const input = event.currentTarget as HTMLInputElement;
 	if (effectiveDisabled.value) {
@@ -130,6 +148,7 @@ function handleChange(event: Event) {
 	indeterminate.value = false;
 	if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 	onCheckedChange?.(next);
+	callListener(onChange, event);
 }
 
 const wrapperClasses = computed(() =>
@@ -154,6 +173,7 @@ const wrapperClasses = computed(() =>
 		-->
 		<span class="ft-checkbox-box">
 			<input
+				v-bind="attrs"
 				ref="ref"
 				type="checkbox"
 				class="ft-checkbox-control border-input"
@@ -164,10 +184,14 @@ const wrapperClasses = computed(() =>
 				:disabled="effectiveDisabled"
 				:required="effectiveRequired"
 				:aria-checked="indeterminate ? 'mixed' : checked"
-				:aria-invalid="effectiveInvalid ? 'true' : undefined"
-				:aria-describedby="field?.describedBy"
-				:aria-label="label"
-				:data-invalid="effectiveInvalid ? 'true' : undefined"
+				:aria-invalid="
+					effectiveInvalid ? 'true' : (attrs['aria-invalid'] as 'true' | 'false' | undefined)
+				"
+				:aria-describedby="
+					[field?.describedBy, attrs['aria-describedby']].filter(Boolean).join(' ') || undefined
+				"
+				:aria-label="label ?? attrs['aria-label']"
+				:data-invalid="effectiveInvalid ? 'true' : attrs['data-invalid']"
 				@change="handleChange"
 			/>
 			<!--

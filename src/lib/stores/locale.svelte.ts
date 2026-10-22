@@ -8,7 +8,8 @@
 
 import { browser } from "$app/environment";
 import { locales, defaultLocale, getLocaleDef, type Dir } from "$lib/i18n/locales.js";
-import { en, type MessageKey } from "$lib/i18n/messages/en.js";
+import { formatPlural, interpolate, parseRich, type Segment, type Vars } from "$lib/i18n/format.js";
+import { en, type MessageKey, type PluralKey } from "$lib/i18n/messages/en.js";
 import { catalogs } from "$lib/i18n/messages/index.js";
 import type { ComponentCategory } from "$lib/types.js";
 
@@ -109,13 +110,41 @@ export function getDir(): Dir {
 	return getLocaleDef(current)?.dir ?? "ltr";
 }
 
+const enLookup = (key: string): string | undefined => (en as Record<string, string>)[key];
+const catalogLookup =
+	(code: string) =>
+	(key: string): string | undefined =>
+		(catalogs[code] as Record<string, string> | undefined)?.[key];
+
 /**
  * Translate a key for the active locale, falling back to English.
  * Reads the reactive `current`, so template usages re-render on locale change.
+ * With `vars`, `{name}` placeholders are filled (numbers formatted for the
+ * locale); without, the message is returned as written.
  */
-export function t(key: MessageKey): string {
+export function t(key: MessageKey, vars?: Vars): string {
 	const code = current;
-	return catalogs[code]?.[key] ?? en[key];
+	const raw = catalogLookup(code)(key) ?? en[key];
+	return vars ? interpolate(raw, vars, code) : raw;
+}
+
+/**
+ * Translate a plural message for the active locale: picks `<key>.<category>`
+ * from the CLDR category of `n`, falls back to `<key>.other`, then English.
+ * `{count}` is `n` formatted for the locale; `vars` fills the other placeholders.
+ */
+export function tn(key: PluralKey, n: number, vars?: Vars): string {
+	const code = current;
+	return formatPlural(catalogLookup(code), enLookup, key, n, code, vars);
+}
+
+/**
+ * Translate a message that carries inline markup (`<b>`, `<grad>`, `<solid>`,
+ * `<link>`) into typed segments, rendered by `<RichText>` — never `{@html}`.
+ */
+export function tx(key: MessageKey, vars?: Vars): Segment[] {
+	const code = current;
+	return parseRich(catalogLookup(code)(key) ?? en[key], vars, code);
 }
 
 /**
@@ -134,8 +163,8 @@ export function docTitle(pageTitle: string): string {
 
 /**
  * Singular noun a component page's <title> uses to describe its category, e.g.
- * "RainbowButton — Svelte button component". Keyed by `ComponentCategory`; a
- * category without an entry falls back to its own name.
+ * "RainbowButton — button component for Svelte, React and Vue". Keyed by
+ * `ComponentCategory`; a category without an entry falls back to its own name.
  */
 const categoryTerms: Record<string, string> = {
 	buttons: "button",
@@ -151,15 +180,22 @@ const categoryTerms: Record<string, string> = {
 };
 
 /**
- * Compose a component page's <title>: "<Name> — Svelte <term> component | FancyUI".
+ * Compose a component page's <title>:
+ * "<Name> — <term> component for Svelte, React and Vue | FancyUI".
  *
  * Deliberately NOT locale-reactive. The title is the search-result headline, and
- * the query it has to match ("svelte button component") is English regardless of
- * which locale the reader happens to have selected.
+ * the query it has to match ("react button component") is English regardless of
+ * which locale the reader happens to have selected. The optional `framework` is
+ * accepted for call sites that have one but does not change the title: the page
+ * is prerendered once and serves all three frameworks.
  */
-export function componentDocTitle(name: string, category: string): string {
+export function componentDocTitle(
+	name: string,
+	category: string,
+	_framework?: "svelte" | "react" | "vue"
+): string {
 	const term = categoryTerms[category] ?? category;
-	return `${name} — Svelte ${term} component | FancyUI`;
+	return `${name} — ${term} component for Svelte, React and Vue | FancyUI`;
 }
 
 /** Reactive accessor for components (locale + dir + translator + list). */
@@ -175,6 +211,8 @@ export function createI18n() {
 			return locales;
 		},
 		t,
+		tn,
+		tx,
 		setLocale,
 	};
 }

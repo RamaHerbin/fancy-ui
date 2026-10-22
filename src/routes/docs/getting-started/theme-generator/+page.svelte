@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { GradientButton, ShimmerButton, BorderBeam } from "$lib/fancy-ui";
 	import Seo from "$lib/components/Seo.svelte";
-	import { t, docTitle } from "$lib/stores";
+	import { t, tx, docTitle } from "$lib/stores";
+	import RichText from "$lib/components/docs/RichText.svelte";
 
 	// ─── Base light/dark token sets (mirror src/routes/layout.css) ──────────────
 	const bases = {
@@ -127,8 +128,10 @@
 	const cssOutput = $derived(
 		`@import "tailwindcss";
 @import "fancy-ui-svelte/tailwind.css";
-/* Assumes a shadcn-svelte-style setup that maps these tokens to Tailwind theme
-   colors via @theme inline (e.g. --color-primary: var(--primary)). See Theming. */
+/* The entry already maps these tokens to Tailwind colors (@theme inline) and ships
+   defaults in a low-priority layer, so the values below simply win. See Theming.
+   Put "light" or "dark" on <html> to pin the mode; with neither, the OS preference
+   picks the light-dark() branch. */
 
 ${selector} {
 	/* Surface (base: ${base}) */
@@ -178,9 +181,7 @@ ${selector} {
 <h1>{t("page.themeGenerator")}</h1>
 
 <p>
-	{t("tg.intro")}{" "}{t("tg.seeTheming")}{" "}<a href="/docs/getting-started/theming"
-		>{t("page.theming")}</a
-	>.
+	<RichText segments={tx("tg.intro")} links="/docs/getting-started/theming" />
 </p>
 
 <!-- ─── Presets ─────────────────────────────────────────────────────────────── -->
@@ -388,7 +389,9 @@ ${selector} {
 				borderWidth={1.5}
 			/>
 			<div class="text-foreground text-sm font-semibold">BorderBeam</div>
-			<div class="text-muted-foreground text-xs">{t("tg.beamDesc")}</div>
+			<div class="text-muted-foreground text-xs">
+				{t("tg.beamDesc", { primary: t("tg.primary"), accent: t("tg.accent") })}
+			</div>
 		</div>
 
 		<!-- Rainbow palette — swatches (direct) + GradientButton (consumes the palette) -->

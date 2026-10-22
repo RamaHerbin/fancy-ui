@@ -6,7 +6,7 @@ Canvas-based 3D starfield background with perspective projection, motion trails,
 
 | Prop    | Type     | Default  | Description           |
 |---------|----------|----------|-----------------------|
-| `color` | `string` | `"#FFF"` | Star color (hex)      |
+| `color` | `string` | `"currentColor"` | Star color: a hex string, or `currentColor` to follow the text colour |
 | `count` | `number` | `200`    | Number of stars       |
 | `class` | `string` | `""`     | Additional CSS classes |
 
@@ -18,5 +18,5 @@ Canvas-based 3D starfield background with perspective projection, motion trails,
 - Glow layers: multiple strokes with decreasing opacity (`[0.08, 0.14, 0.22]`) plus a sharp center line and dot.
 - HiDPI: uses `devicePixelRatio` for crisp rendering on Retina displays.
 - Uses `ResizeObserver` instead of window resize listener for better responsiveness.
-- `$derived` used for cached RGB conversion so it updates reactively when `color` prop changes.
+- The colour is resolved once per frame: a hex value is parsed once, `currentColor` is re-read from the canvas's computed text colour so a light/dark switch lands on the next frame.
 - Cleanup: animation frame and resize observer are cleaned up on unmount via `onMount` return.

@@ -13,9 +13,10 @@
 
 	interface Props {
 		context: FieldContext;
+		attrs?: Record<string, unknown>;
 	}
 
-	let { context }: Props = $props();
+	let { context, attrs = {} }: Props = $props();
 
 	// Getters, not the object itself: setContext runs once at mount, so a
 	// direct reference would freeze whatever `context` pointed to at that
@@ -44,4 +45,4 @@
 
 <!-- Deliberately passed own props that disagree with the context, so a test
      can prove the context wins rather than merely matching by coincidence. -->
-<FileUpload id="own-id" invalid={false} required={false} disabled={false} />
+<FileUpload id="own-id" invalid={false} required={false} disabled={false} {...attrs} />

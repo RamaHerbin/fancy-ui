@@ -9,14 +9,16 @@ export interface RippleButtonProps {
 	/** Animation duration in milliseconds */
 	duration?: number;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
-	/** Native click handler, called after the ripple is created. */
-	onclick?: (event: MouseEvent) => void;
+	/** Click handler, called after the sound cue. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 
 interface Ripple {
@@ -46,9 +48,11 @@ export function rippleGeometry(
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { ref, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 
 defineOptions({ name: "RippleButton", inheritAttrs: false });
 
@@ -58,6 +62,7 @@ const {
 	duration = 900,
 	sound = false,
 	disabled = false,
+	onClick,
 	onclick,
 } = defineProps<RippleButtonProps>();
 
@@ -66,16 +71,21 @@ defineSlots<{ default?: () => unknown }>();
 const attrs = useAttrs();
 
 const buttonRef = useTemplateRef<HTMLButtonElement>("buttonRef");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(buttonRef, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled,
+}));
 const ripples = ref<Ripple[]>([]);
 let nextRippleKey = 0;
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
 	createRipple(event);
-	// Call the original onclick handler if provided
-	if (onclick && typeof onclick === "function") {
-		onclick(event);
-	}
+	// `onClick` wins; the deprecated lowercase prop is only a fallback.
+	callListener(onClick ?? onclick, event);
 }
 
 // The hover glow follows the pointer: two CSS variables, no re-render.
@@ -116,7 +126,7 @@ function createRipple(event: MouseEvent) {
 				'ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden',
 				'bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium',
 				'shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]',
-				'transition-[transform,border-color,background-color] duration-300 ease-out',
+				'duration-300 ease-out transition-[border-color,background-color] motion-safe:transition-[transform,border-color,background-color]',
 				'hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
 				className
 			)
@@ -158,7 +168,6 @@ function createRipple(event: MouseEvent) {
 	inset: 0;
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 0.3s ease;
 	background: radial-gradient(
 		80px circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
 		color-mix(in srgb, var(--ripple-color) 20%, transparent),
@@ -286,6 +295,13 @@ function createRipple(event: MouseEvent) {
 			transform: scale(1);
 			opacity: 0;
 		}
+	}
+}
+
+/* The fade is motion: it only runs when the visitor has not asked for less. */
+@media (prefers-reduced-motion: no-preference) {
+	.ripple-hover {
+		transition: opacity 0.3s ease;
 	}
 }
 </style>

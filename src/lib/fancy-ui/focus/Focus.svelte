@@ -82,7 +82,7 @@
 			class:active={index === currentIndex && !manualMode}
 			style="filter: {index === currentIndex
 				? 'blur(0px)'
-				: `blur(${blurAmount}px)`}; transition: filter {animationDuration}s ease; --border-color: {borderColor};"
+				: `blur(${blurAmount}px)`}; --focus-duration: {animationDuration}s; --border-color: {borderColor};"
 			onmouseenter={() => handleMouseEnter(index)}
 			onmouseleave={handleMouseLeave}
 		>
@@ -95,7 +95,7 @@
 		style="transform: translate({focusRect.x}px, {focusRect.y}px); width: {focusRect.width}px; height: {focusRect.height}px; opacity: {currentIndex >=
 		0
 			? 1
-			: 0}; transition: all {animationDuration}s ease; --border-color: {borderColor};"
+			: 0}; --focus-duration: {animationDuration}s; --border-color: {borderColor};"
 	>
 		<span class="corner top-left"></span>
 		<span class="corner top-right"></span>
@@ -119,13 +119,23 @@
 		font-size: 3rem;
 		font-weight: 900;
 		cursor: pointer;
-		transition:
-			filter 0.3s ease,
-			color 0.3s ease;
+		transition: color 0.3s ease;
 	}
 
 	.focus-word.active {
 		filter: blur(0);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.focus-word {
+			transition:
+				filter var(--focus-duration, 0.3s) ease,
+				color 0.3s ease;
+		}
+
+		.focus-frame {
+			transition: all var(--focus-duration, 0.5s) ease;
+		}
 	}
 
 	.focus-frame {

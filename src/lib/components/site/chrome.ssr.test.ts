@@ -4,6 +4,8 @@ import { render } from "svelte/server";
 import SiteHeader from "./SiteHeader.svelte";
 import FrameworkSwitch from "./FrameworkSwitch.svelte";
 import SectionHeading from "./SectionHeading.svelte";
+import SiteFooter from "./SiteFooter.svelte";
+import SiteFonts from "./SiteFonts.svelte";
 
 describe("SiteHeader (SSR)", () => {
 	it("links the three destinations and Saved", () => {
@@ -42,5 +44,29 @@ describe("SectionHeading (SSR)", () => {
 		});
 		expect(body).toMatch(/<h2[^>]*>.*01.*Previews/s);
 		expect(body).toContain('href="/inspiration"');
+	});
+});
+
+describe("SiteFooter (SSR)", () => {
+	it("links only community channels the repository actually runs", () => {
+		const { body } = render(SiteFooter);
+		expect(body).toContain("/issues");
+		expect(body).toContain("CONTRIBUTING.md");
+		expect(body).not.toContain("/discussions");
+		expect(body).not.toContain(">Discussions<");
+	});
+});
+
+describe("SiteFonts (SSR)", () => {
+	it("preloads the sans face only by default", () => {
+		const { head } = render(SiteFonts);
+		expect(head).toContain('href="/fonts/Geist-Variable.woff2"');
+		expect(head).not.toContain("InstrumentSerif-Italic.woff2");
+	});
+
+	it("preloads the italic serif when asked", () => {
+		const { head } = render(SiteFonts, { props: { serif: true } });
+		expect(head).toContain('href="/fonts/Geist-Variable.woff2"');
+		expect(head).toContain('href="/fonts/InstrumentSerif-Italic.woff2"');
 	});
 });

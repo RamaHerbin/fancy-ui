@@ -37,6 +37,14 @@ Or handle the change yourself instead of binding:
 </Toggle>
 ```
 
+## Native attributes
+
+`Toggle` forwards native `<button>` attributes and listeners (`id`, `data-*`,
+`aria-describedby`, `onkeydown`, ...) to its button. `type`, `aria-pressed`
+and `disabled` stay the component's; a consumer `aria-label` is used when no
+`label` prop is given. `onclick` runs once after the pressed state changed, and
+not at all while the toggle is disabled.
+
 ## Props
 
 | Prop              | Type                         | Default   | Description                                                         |
@@ -51,6 +59,13 @@ Or handle the change yourself instead of binding:
 | `class`           | `string`                     | —         | Additional CSS classes                                              |
 | `ref`             | `HTMLButtonElement \| null`  | `null`    | Bindable element reference                                          |
 | `sound`           | `boolean`                    | `false`   | Plays `toggle-on`/`toggle-off` on activation, once sound is enabled |
+| `name`            | `string`                     | —         | Form field name; renders a hidden input that submits while pressed  |
+| `value`           | `string`                     | `"on"`    | Value submitted under `name` while pressed                          |
+| `form`            | `string`                     | —         | `id` of the form the hidden input belongs to                        |
+
+When `name` is set the hidden input is rendered inside the `<button>` (the component keeps a single root element) and submits `value` while pressed. `form`, `name` and `value` are Toggle's own props, not forwarded to the button.
+
+A disabled toggle submits nothing, even while pressed. Inside a `ToggleGroup` the rule is different: a selected item that is disabled still submits, and only a disabled group submits nothing.
 
 ## Theming
 

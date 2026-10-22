@@ -221,6 +221,35 @@ describe("Dialog", () => {
 		expect(document.activeElement).toBe(trigger);
 	});
 
+	it("puts aria-haspopup, aria-expanded and aria-controls on the rendered trigger", async () => {
+		render(Dialog, {
+			props: {
+				title: "Invite",
+				trigger: snippet('<button type="button" data-testid="open-trigger">Invite</button>'),
+			},
+		});
+		await tick();
+
+		const trigger = document.body.querySelector<HTMLButtonElement>('[data-testid="open-trigger"]')!;
+		expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		expect(trigger.hasAttribute("aria-controls")).toBe(false);
+
+		await fireEvent.click(trigger);
+		await tick();
+
+		expect(trigger.getAttribute("aria-expanded")).toBe("true");
+		const controls = trigger.getAttribute("aria-controls");
+		expect(controls).toBeTruthy();
+		expect(panel()?.id).toBe(controls);
+
+		pressEscape();
+		await tick();
+
+		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		expect(trigger.hasAttribute("aria-controls")).toBe(false);
+	});
+
 	// `focus-trap.ts`'s `previouslyFocused` is a raw reference captured once
 	// at mount — if the trigger (and the wrapper Dialog rendered it in)
 	// leaves the document while the dialog stays open, `.focus()` on it

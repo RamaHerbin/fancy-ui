@@ -1,0 +1,294 @@
+[
+	{
+		"framework": "svelte",
+		"chromium": "145.0.7632.6",
+		"run": {
+			"measuredCommit": "1dc211a1",
+			"toolCommit": "1dc211a1",
+			"loadAvgAtEnd": [8.6181640625, 7.49365234375, 6.24267578125],
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"quietWait": {
+				"quiet": true,
+				"waitedMs": 0,
+				"load1": 5.01416015625,
+				"polls": 1
+			}
+		},
+		"rows": [
+			{
+				"name": "none",
+				"idle": {
+					"cpuMsPerSec": 0.02759448110377922,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 0.023195360927814393,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "fluid-cursor",
+				"idle": {
+					"cpuMsPerSec": 7.404519096180763,
+					"scriptMsPerSec": 2.857028594281143,
+					"rafPerSec": 46.6,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 8.359696425004994,
+					"scriptMsPerSec": 2.281566911910917,
+					"rafPerSec": 30.35749950069902,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "border-beam",
+				"idle": {
+					"cpuMsPerSec": 37.45370925814838,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 43.045190961807634,
+					"scriptMsPerSec": 0.2109578084383123,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "displacement-text",
+				"idle": {
+					"cpuMsPerSec": 19.3062,
+					"scriptMsPerSec": 8.712400000000004,
+					"rafPerSec": 118.95241903238704,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 23.644839289279297,
+					"scriptMsPerSec": 9.050908364943105,
+					"rafPerSec": 117.22488038277513,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "mosaic-glow",
+				"idle": {
+					"cpuMsPerSec": 11.902,
+					"scriptMsPerSec": 5.148999999999999,
+					"rafPerSec": 120.1759648070386,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 15.29735112527385,
+					"scriptMsPerSec": 5.287736789631106,
+					"rafPerSec": 120.23928215353938,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "toast",
+				"idle": {
+					"cpuMsPerSec": 0.044191161767646266,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 5.772073511785857,
+					"scriptMsPerSec": 0.21554135037954447,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			}
+		]
+	},
+	{
+		"framework": "react",
+		"chromium": "145.0.7632.6",
+		"run": {
+			"measuredCommit": "1dc211a1",
+			"toolCommit": "1dc211a1",
+			"loadAvgAtEnd": [8.416015625, 9.66259765625, 7.64404296875],
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"quietWait": {
+				"quiet": true,
+				"waitedMs": 25013,
+				"load1": 6.83935546875,
+				"polls": 6
+			}
+		},
+		"rows": [
+			{
+				"name": "none",
+				"idle": {
+					"cpuMsPerSec": 0.017196560687862454,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 0.012397520495900816,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "fluid-cursor",
+				"idle": {
+					"cpuMsPerSec": 7.5882000000000005,
+					"scriptMsPerSec": 2.88,
+					"rafPerSec": 45.79084183163367,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 9.520103503184714,
+					"scriptMsPerSec": 2.9122213375796173,
+					"rafPerSec": 31.39372125574885,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "border-beam",
+				"idle": {
+					"cpuMsPerSec": 34.41591681663667,
+					"scriptMsPerSec": 0.05198960207958404,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 45.1974445997205,
+					"scriptMsPerSec": 0.9648632461569173,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "displacement-text",
+				"idle": {
+					"cpuMsPerSec": 16.83583283343331,
+					"scriptMsPerSec": 7.493101379724056,
+					"rafPerSec": 120.2,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 24.19233073696825,
+					"scriptMsPerSec": 9.437787098062715,
+					"rafPerSec": 117.23586978230477,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "mosaic-glow",
+				"idle": {
+					"cpuMsPerSec": 12.580683863227353,
+					"scriptMsPerSec": 5.507498500299939,
+					"rafPerSec": 120.1759648070386,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 15.83885121659354,
+					"scriptMsPerSec": 5.94565000995421,
+					"rafPerSec": 120.05593288054335,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			},
+			{
+				"name": "toast",
+				"idle": {
+					"cpuMsPerSec": 0.03599999999999992,
+					"scriptMsPerSec": 0,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"active": {
+					"cpuMsPerSec": 10.399481451934582,
+					"scriptMsPerSec": 0.8546071001196649,
+					"rafPerSec": 0,
+					"longTasks": 0,
+					"longTaskMs": 0,
+					"longTaskMaxMs": 0
+				},
+				"reps": 3
+			}
+		]
+	}
+]

@@ -17,14 +17,16 @@ export interface GradientButtonProps {
 	/** Custom CSS class */
 	class?: HTMLAttributes["class"];
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
-	/** Native click handler, kept as a prop and re-dispatched after the cue. */
-	onclick?: (event: MouseEvent) => void;
+	/** Click handler, called after the sound cue. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 
 /**
@@ -47,9 +49,11 @@ export function beamGradient(colors: string[]): string {
 </script>
 
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
+import { callListener } from "../../internals/call-listener.js";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 
 defineOptions({ name: "GradientButton", inheritAttrs: false });
 
@@ -61,10 +65,19 @@ const {
 	borderRadius = 12,
 	blur = 4,
 	bgColor = "#161616",
+	onClick,
 	onclick,
 	sound = false,
 	disabled = false,
 } = defineProps<GradientButtonProps>();
+const el = useTemplateRef<HTMLButtonElement>("el");
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled,
+}));
 
 defineSlots<{ default?: () => unknown }>();
 
@@ -82,7 +95,7 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	callListener(onClick ?? onclick, event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds
@@ -93,6 +106,7 @@ function handleClick(event: MouseEvent) {
 
 <template>
 	<button
+		ref="el"
 		:class="
 			cn(
 				'gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white',

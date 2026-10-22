@@ -81,6 +81,14 @@
 		return Array.from(listEl.querySelectorAll<HTMLElement>("[data-ft-nav-trigger]"));
 	}
 
+	// The roving order: triggers a keyboard can actually land on. A consumer
+	// can forward the native `disabled` attribute to a trigger, and a disabled
+	// button cannot take focus, so it never holds the tab stop and arrows
+	// skip it.
+	function navigableTriggers(): HTMLElement[] {
+		return triggerButtons().filter((el) => !(el as HTMLButtonElement).disabled);
+	}
+
 	function getTriggerElement(itemValue: string): HTMLElement | null {
 		return triggerButtons().find((el) => el.dataset.value === itemValue) ?? null;
 	}
@@ -190,7 +198,7 @@
 	}
 
 	function move(from: string, delta: number) {
-		const buttons = triggerButtons();
+		const buttons = navigableTriggers();
 		if (buttons.length === 0) return;
 		const fromIndex = buttons.findIndex((el) => el.dataset.value === from);
 		const base = fromIndex === -1 ? 0 : fromIndex;
@@ -199,7 +207,7 @@
 	}
 
 	function moveToEdge(edge: "first" | "last") {
-		const buttons = triggerButtons();
+		const buttons = navigableTriggers();
 		if (buttons.length === 0) return;
 		goTo(edge === "first" ? buttons[0] : buttons[buttons.length - 1]);
 	}
@@ -230,7 +238,7 @@
 			// fallback, same reasoning as ToggleGroup: a trigger that mounts
 			// later but renders first on screen still becomes the first tab
 			// stop.
-			return triggerButtons()[0]?.dataset.value ?? order[0];
+			return navigableTriggers()[0]?.dataset.value ?? order[0];
 		},
 		setListRef(el) {
 			listEl = el;

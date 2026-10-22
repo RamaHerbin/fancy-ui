@@ -1,0 +1,26 @@
+{
+	"name": "fancy-ui-consumer-sveltekit",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"preview": "vite preview --port 4173 --strictPort"
+	},
+	"dependencies": {
+		"fancy-ui-svelte": "file:.tarball/fancy-ui-svelte.tgz"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/kit": "^2.49.1",
+		"@sveltejs/vite-plugin-svelte": "^6.2.1",
+		"@tailwindcss/vite": "^4.1.17",
+		"svelte": "^5.20.0",
+		"svelte-check": "^4.3.4",
+		"tailwindcss": "^4.1.17",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
+	}
+}

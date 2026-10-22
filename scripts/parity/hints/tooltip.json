@@ -1,0 +1,22 @@
+{
+	"hover": [0.5, 0.5],
+	"moments": [0, 800],
+	"states": {
+		"open": {
+			"steps": [{ "hover": { "role": "button", "name": "Add to favorites" } }, { "wait": 600 }],
+			"expect": [{ "role": "tooltip", "in": "page", "inStage": true }]
+		},
+		"focus": {
+			"steps": [{ "focus": { "role": "button", "name": "Add to favorites" } }],
+			"expect": [
+				{ "role": "button", "name": "Add to favorites", "focusVisible": true },
+				{ "role": "tooltip", "in": "page", "inStage": true }
+			]
+		},
+		"long": {
+			"variant": "long",
+			"steps": [{ "hover": { "role": "button", "name": "Share" } }, { "wait": 600 }],
+			"expect": [{ "role": "tooltip", "in": "page", "inStage": true }]
+		}
+	}
+}

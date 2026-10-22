@@ -51,7 +51,8 @@ reduced-motion gate, visibility gating and sound hooks — nothing else.
   argument order and literals.
 - **`defineOptions({ name: '<Name>', inheritAttrs: false })` on every SFC**; the
   name is read by a dist gate, closed attrs match Svelte. `v-bind="attrs"` goes
-  **only** on the element Svelte spreads `{...restProps}` onto.
+  **only** on the element Svelte spreads `{...restProps}` onto (see "Native
+  attributes" below).
 - **`defineExpose({ ref })` exactly where Svelte has `ref = $bindable(null)`**,
   on the same node, exposing nothing else; no Svelte ref, no Vue ref. `ref` is a
   reserved vnode key: neither prop nor model, absent from `<Name>Props`.
@@ -72,6 +73,53 @@ reduced-motion gate, visibility gating and sound hooks — nothing else.
   deterministic PRNG, with the React package's defaults. Media queries and the
   sound store hydrate in `onMounted`; production hydration does not patch
   attribute mismatches, so a wrong value stays wrong on screen.
+- **`forceMount` on `CollapsibleContent` / `AccordionContent` defaults to
+  `true`** (closed content stays in the DOM, `inert` and hidden, rendered on the
+  server; `forceMount={false}` unmounts it once the collapse has finished). It
+  is the inverse of `TabsContent` and of common expectations: stable
+  `aria-controls` targets, SSR, no height measurement. State the default and
+  the reason in the prop's JSDoc, and keep the same default in all three
+  packages.
+
+## Native attributes
+
+Components that render a native element let consumers pass what they would put
+on it: `id`, `name`, `aria-*`, `data-*`, `autocomplete`, `@blur`, `@keydown`.
+Svelte is the reference: open it there, then spread at the same position here.
+
+- **Target.** `v-bind="attrs"` goes on the primary native element: the
+  `<button>` / `<a>` of a button, the `<input>` / `<textarea>` of a field, the
+  focusable trigger of a choice control. `class` keeps its current target.
+- **Order.** Bind `attrs` first, then everything the component needs for
+  correctness (`role`, computed `aria-*`, inert `tabindex`, fixed `type`, id
+  links, controlled `value`), so consumers can add but not break. Where a
+  consumer value is legitimate and unmanaged, fall back to it
+  (`:tabindex="inert ? -1 : attrs.tabindex"`); never overwrite it with
+  `undefined`, which Vue treats as a value.
+- **Handlers.** A listener the component does not handle just rides in `attrs`.
+  One it handles itself is written `@event` BEFORE `v-bind="attrs"`, so Vue
+  merges both, internal first. Only when a guard must block the consumer
+  (disabled, loading) declare a camelCase prop (`onClick`) and call it through
+  `callListener` (`internals/call-listener.ts`), never a lowercase prop. Modified
+  forms (`@click.once`, `.capture`) compile to `onClickOnce` and the like, which
+  bind past that guard, so drop every `onClick*` attr while the control is inert.
+- **Order, in practice.** Write `@event` before `v-bind="attrs"`, and the
+  managed bindings after it. Where a managed binding has a legitimate consumer
+  value, fall back per key (`:tabindex="inert ? -1 : attrs.tabindex"`,
+  `$attrs['aria-label']`), never by overwriting with `undefined`.
+- **Reading `attrs`.** Never wrap `useAttrs()` in `computed` or `watch`: the
+  proxy has no `ownKeys` trap, so a derived value goes stale. Read it inside
+  the template or in a plain function called from it.
+- **Pickers.** Select, Combobox, Autocomplete, DatePicker and TimePicker bind
+  the result of a function that merges the component's invariants after
+  `attrs`; their listeners are written before it.
+- **Descriptions.** A consumer `aria-describedby` is merged (space-joined) with
+  the component's own description or error id, not replaced.
+- **Types.** Props stay own-only; native attributes are untyped, as above.
+- **Tests.** Per component, with the consumer form `attrs: { ... }`: `id`,
+  `aria-describedby` and `data-testid` reach the element, an unhandled listener
+  fires once, a handled one fires once after the internal logic, and invariants
+  survive a consumer override.
 
 ## Rune → Composition API
 
@@ -147,11 +195,63 @@ hydration and media-query `start()` in `onMounted`.
    stock Tailwind either, but unlike rule 4's per-component utilities they are a
    shared vocabulary — redeclaring them per component would fight itself. The
    package stylesheet maps them with `@theme inline` and ships defaults in
-   `@layer base`. A new semantic name in a ported component is added there too.
+   `@layer base`. A new semantic name in a ported component is added to all
+   three entries (see [What a consumer imports](#what-a-consumer-imports)).
 
 The shared stylesheets that are not SFC-scoped (markdown, stream-text, sound
 toggle, cameleon, the skin sheets) stay plain `import "./x.css"` from their
 `.ts` module, anchored on a root class.
+
+## What a consumer imports
+
+The distribution contract. It is the same for the three packages, so a porter
+who adds a file, a stylesheet or a module-scope statement knows which promise
+it touches. `pnpm check:dist-env` (after the builds), `pnpm check:tailwind` and
+publint enforce the mechanical half.
+
+| Specifier            | Svelte                                                                                    | React          | Vue            |
+| -------------------- | ----------------------------------------------------------------------------------------- | -------------- | -------------- |
+| `<pkg>`              | every component, hook, `sound`, `toast`                                                   | same           | same           |
+| `<pkg>/cameleon`     | `FancyProvider`, primitives, skins; plus `cameleon/retro-kit` and a `cameleon/*` wildcard | barrel only    | barrel only    |
+| `<pkg>/tailwind.css` | `@source` + dark variant + 18 tokens                                                      | same body      | same body      |
+| `<pkg>/styles.css`   | none: each component's styles compile with it                                             | required, once | required, once |
+| `<pkg>/package.json` | yes                                                                                       | yes            | yes            |
+
+- **CSS entry.** `tailwind.css` is the only file a consumer's Tailwind reads.
+  Below their `@source` lines the three entries are one body, byte for byte
+  (`pnpm check:tailwind` fails on drift), so a token, a variant or a comment
+  changes in all three in the same commit. No comment in a shipped file names a
+  third-party product: describe the behaviour instead.
+- **`styles.css`.** Vue component CSS is aggregated into `dist/styles.css` at
+  build time; no shipped JavaScript module imports CSS, which is why
+  `sideEffects` lists `**/*.css` and nothing else. Keep it that way: a CSS
+  import inside a component module would land in the consumer's graph twice.
+- **Cameleon subpath.** `fancy-ui-vue/cameleon` is a barrel: engine, primitives
+  and the five skins. It must run in any Vue app, with or without a
+  meta-framework, so it imports nothing framework-private
+  (`pnpm check:dist-env` rejects `$app/*` and `$env/*` in the Svelte tarball,
+  where that bug happened once).
+- **No environment reads.** No raw `import.meta.env` in shipped code: dev-only
+  branches read the literal `process.env.NODE_ENV` inside a `try`, as
+  `internals/env.ts` does.
+- **SSR: nothing at module or setup time touches the browser.** Importing any
+  module, and running a component's `setup()`, must not read `window`,
+  `document`, `navigator`, `matchMedia` or storage, nor register a listener.
+  Browser work starts in `onMounted`. `scripts/smoke-dist.mjs` imports every
+  emitted module in a bare Node process and server-renders every export after
+  each build; `examples/nuxt-app` is generated in CI with `failOnError` on.
+- **Import cost: the barrel is the API.** There are no per-component subpaths,
+  on purpose. Measured on 2026-10-21 against packed tarballs in a bare Vite
+  app, `import { Button } from "<pkg>"` and an import of the component's own
+  dist file emit the same JavaScript to within 0.1 kB gzip in all three
+  packages (Svelte 30.8 vs 30.7, React 82.1 vs 82.1, Vue 42.6 vs 42.6 kB gzip,
+  framework runtime included), and a WebGL component pulls `three` only when it
+  is imported. That holds only while component modules have no module-scope
+  side effects: a top-level registration, a global listener or a polyfill in
+  one component would be paid by every barrel import. The Svelte manifest also
+  lists `**/*.svelte` in `sideEffects`, so no bundler drops a used component's
+  style request; the same measurement with CSS alone listed gives identical
+  output, so that entry costs nothing.
 
 ## Tests
 
@@ -207,3 +307,24 @@ Run with `npx vitest run src/components/<slug>` from `vue/`.
   silently changing the API.
 - Before reporting done: the component appears in `vue/src/index.ts` and passes
   `npx vue-tsc --noEmit` plus its own vitest file.
+
+## Interaction contracts
+
+The rules live in `src/lib/fancy-ui/_internals/CONTRACTS.md` (state ownership, async feedback,
+live announcements, keyboard and touch, reduced motion, width stability). This is how each one
+lands in Vue.
+
+| Contract                    | Svelte                                             | Vue                                                                                                                                                                                                                      |
+| --------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Consumer-ownable state      | `value = $bindable(d)` + `onValueChange`           | `defineModel<T>("value", { default: d })` → `v-model:value`, plus the `onValueChange` prop, called after the model write; a consumer that omits `v-model` gets the uncontrolled copy, so there is no `defaultValue` prop |
+| Mount-only prop             | `untrack(() => resetMs)`                           | read the destructured prop once in setup (`const resetWindow = resetMs`), never through `computed` or `watch`                                                                                                            |
+| Attempt ticket              | plain `let attempt = 0`                            | plain `let attempt = 0` in setup; destructured props are live getters, so snapshot the value before the first `await`                                                                                                    |
+| Timer and instance teardown | `$effect` cleanup                                  | `onScopeDispose` in composables (`vue/src/internals/use-copy.ts`), `onBeforeUnmount` in components, `onCleanup` in `watch`                                                                                               |
+| Live region                 | `use:portal`                                       | `<Portal>` from `vue/src/internals/Portal.vue`                                                                                                                                                                           |
+| Reduced motion in JS        | `createReducedMotion()` / `prefersReducedMotion()` | `useReducedMotion()` from `vue/src/internals/motion/use-media-query.ts` (started in `onMounted`) / `prefersReducedMotion()` from `vue/src/internals/motion/anchored.ts`                                                  |
+| Pending                     | `aria-busy`, guard in the handler                  | same: `:aria-busy`, guard in the `@click` handler, never `:disabled="pending"`                                                                                                                                           |
+
+The full triad is `vue/src/components/switch/Switch.vue` (`v-model:checked` + `onCheckedChange`);
+`vue/src/components/copy-button/CopyButton.vue` shows the ticket and the value snapshot. CSS
+gating (`no-preference`, `(hover: hover)`, grid-cell width reservation) moves verbatim into
+`<style scoped>`.

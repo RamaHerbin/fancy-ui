@@ -2,6 +2,8 @@
 
 Thanks for your interest in contributing! This guide covers everything you need to get started.
 
+Questions, ideas and show-and-tell belong in [GitHub Discussions](https://github.com/RamaHerbin/fancy-ui/discussions); bugs and concrete feature requests go through the [issue forms](https://github.com/RamaHerbin/fancy-ui/issues/new/choose). The getting-started and component docs pages carry an "Edit this page" and a "Report an issue" link (the `PageActions` component, `src/lib/components/docs/PageActions.svelte`): the first opens the page source on `develop` in the GitHub editor, the second opens a bug report with the page name, the page URL and your selected framework filled in. By taking part you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md); security problems follow [SECURITY.md](./SECURITY.md), never a public issue.
+
 ## Getting started
 
 ```bash
@@ -62,20 +64,119 @@ pnpm check:i18n      # message catalog parity — run it when you touch i18n
 
 All of these run in CI and must pass. When you touch `react/` or `vue/`, also run that package's own gates (`pnpm --filter fancy-ui-react run check`, `run test`, `run build`, and the same for `fancy-ui-vue`).
 
-`pnpm test:e2e` (Playwright) is not part of CI — run it manually when a change affects the docs site or page-level behaviour.
+### Browser suite (e2e)
+
+`pnpm test:e2e` runs the Playwright suite in `tests/e2e/`. The `E2E` workflow (`.github/workflows/e2e.yml`) runs a stable subset on every pull request to `develop` or `main` and on pushes to both: `docs-framework`, `components-gallery`, `home`, `landing-footer`, `overlays-keyboard` and `touch-scroll`. It starts the dev server in test mode, runs Chromium with two retries, and uploads the HTML report and the traces as artifacts when it fails. Download them from the run page and open a trace with `pnpm exec playwright show-trace <trace.zip>`.
+
+The other specs (`builder-*`, `inspiration`, `sound-lab`) are not run there yet. Run them locally with `pnpm test:e2e` when a change touches the builder, the Inspiration gallery or the sound lab. Keep specs offline: stub third-party requests with `page.route` instead of reaching the network.
 
 ## Docs translations (i18n)
 
-The docs site is localized through a single mechanism: **message catalogs** in `src/lib/i18n/messages/`. `en.ts` is the source of truth; every other `<code>.ts` file translates the exact same keys and is looked up at runtime by `t()` (from `$lib/stores`), which falls back to English per key.
+The docs site is localized through a single mechanism: **message catalogs** in `src/lib/i18n/messages/`. `en.ts` is the source of truth; every other `<code>.ts` file translates the same keys. The catalog is a flat object of string messages, read at runtime with three helpers from `$lib/stores`, each falling back to English per key:
 
-**Adding a UI string:** add the key to `en.ts` first, then add its translation to all other catalogs. Two gates keep the catalogs honest:
+| Helper              | Use it for                      | Example                                        |
+| ------------------- | ------------------------------- | ---------------------------------------------- |
+| `t(key, vars?)`     | a message, with `{name}` values | `t("table.portName", { framework: "React" })`  |
+| `tn(key, n, vars?)` | a count (plural message)        | `tn("gallery.results", 12)`                    |
+| `tx(key, vars?)`    | a message with inline tags      | `<RichText segments={tx("intro.cta.body")} />` |
 
-- `satisfies Catalog` on every translated catalog makes a missing, extra, or typo'd key a compile error (`pnpm check`).
-- `pnpm check:i18n` verifies locale registry ↔ catalog files ↔ key parity ↔ the RTL map in `src/app.html`, and runs in CI.
+Never build a sentence from fragments and never call `.replace("{count}", …)` at a call site: word order differs between languages, and plural rules differ again. One sentence is one message.
 
-**Adding a locale:** add an entry to `src/lib/i18n/locales.ts`, drop a full `src/lib/i18n/messages/<code>.ts` catalog (`export default { … } satisfies Catalog;`), and if the language is RTL, mirror it in the pre-paint `RTL` map in `src/app.html`.
+### Adding or changing a UI string
 
-**What stays English:** component names, and the registry descriptions in `src/lib/fancy-ui/registry.ts` (including `categoryLabels`/`categoryDescriptions`) — they are the machine-facing source feeding `/llms.txt` and the Component Copilot. Docs UI must not render them as display text; use the translated `category.*` keys (via `tCategory()`) instead.
+1. Add the key to `en.ts` with a `/** @context … */` comment above it saying where the text appears and what its variables are. Translators work from that comment, not from the code.
+2. Add the key to every other catalog (`pnpm check` fails on a missing, extra or typo'd key through `satisfies Catalog`). A translation you cannot write yourself must still be a real translation in every strict locale (see "Strict locales" below): the English text there fails the `untranslated` check, and a key without a current manifest entry fails the manifest check. Ask the locale's reviewer to supply the text on your branch. Only a locale that is not strict yet (still a machine draft) may carry the English text as a placeholder, and the quality test only warns about it.
+3. Run `node scripts/i18n-context.mjs` to refresh `messages/context.json` (English, context, length budget and where the key renders), then `pnpm check:i18n` and `pnpm test`.
+4. If you change the English of an existing key, or add one, every strict locale needs a re-review before the pull request can merge: see "When the English changes".
+
+Do not add a key nothing reads. The quality test fails on dead keys; a key that is registered ahead of the component that will use it is listed in `deadKeys.pendingConsumers` in `messages/quality-allowlist.json` until that component lands.
+
+### Messages with values, counts and tags
+
+- **Values** are `{name}` placeholders. Every translation must carry exactly the placeholders of the English text. Numbers passed to `t()` are formatted for the active locale; pass a string (a version, a name) to keep it as written.
+- **Counts** are plural messages: flat keys `<base>.<category>`, read with `tn(base, n)`. `{count}` is always available. A catalog provides the CLDR cardinal categories of its language, and `.other` is always required: `en`, `de`, `es`, `it`, `pt`, `fr`, `tr`, `hi`, `fa` have `one` and `other`; `pl` and `cs` have `one`, `few`, `many`, `other`; `ar` has `zero`, `one`, `two`, `few`, `many`, `other`; `ja`, `ko`, `zh-Hans`, `id` have only `other`. `fr`, `es`, `it` and `pt` may add `many` (exact millions) but do not have to. Languages where `one` covers 0 as well (`fr`, `pt`, `hi`, `fa`) must keep `{count}` in `one`; where `one` is exactly 1 and for `zero`/`two`, the number may be said in words. `pnpm check:i18n` enforces the category set per locale.
+- **Tags** in a message are a closed set: `<b>`, `<grad>`, `<solid>`, `<link>…</link>`. They render through `tx()` and `<RichText>`; there is no raw HTML anywhere. A translation keeps the same tags, properly nested, and may move them to follow the sentence. Never translate or rename a tag.
+
+### Registers and glossary
+
+Each locale has one register, applied consistently:
+
+| Locale           | Register                                   |
+| ---------------- | ------------------------------------------ |
+| `fr`, `tr`       | formal vous / siz                          |
+| `de`, `it`, `es` | informal du / tu / tú                      |
+| `pt`             | você                                       |
+| `pl`, `cs`       | neutral, no direct address where avoidable |
+| `ja`             | です/ます                                  |
+| `ko`             | 합니다                                     |
+| `zh-Hans`        | 你                                         |
+| `id`             | Anda                                       |
+| `hi`             | आप                                         |
+| `ar`, `fa`       | formal                                     |
+
+Terminology follows `src/lib/i18n/messages/reviewed/glossary.md`; the words in the `jobs.*` labels and the `category.*` labels must stay in the same family.
+
+### Script and typography rules
+
+The quality test checks these per script, so write them as native typography would:
+
+- `fr`: a no-break space (U+00A0 or U+202F) before `:` `;` `!` `?` and inside « ».
+- `pl`, `cs`: a no-break space after single-letter words (`w`, `z`, `i`, `a`, `o`, `u`, and in Czech `k`, `s`, `v`) so they never end a line.
+- `ja`, `zh-Hans`: full-width punctuation next to CJK text, half-width inside Latin runs.
+- `ar`, `fa`: the Arabic comma `،`, semicolon `؛` and question mark `؟`.
+- Every locale: the sentence ends with the same kind of mark as the English one (full stop, colon, question or exclamation mark, ellipsis), expressed in the script's own form; no doubled punctuation, no stray double spaces.
+- Short labels have a **length budget**: a key whose prefix is in the budgeted list (`nav.`, `a11y.`, `header.`, `status.`, `table.`, `footer.`, `jobs.`, `category.`, `comp.`, `tg.`, `search.`, … see `scripts/lib/i18n-budget.mjs`) and whose English is at most 40 characters may be at most `max(⌈1.6 × English⌉, English + 12)` characters long, counted in code points. `messages/context.json` lists the budget per key as `maxLen`. If a correct translation cannot fit, add a per-key override in the `length` section of `quality-allowlist.json` (`"<code>": { "<key>": <absolute maximum> }`, or `"*"` for every locale) instead of abbreviating badly, and keep the reason in the pull request. Sentences and paragraphs are not budgeted.
+- A value identical to the English one fails the `untranslated` check unless the term genuinely stays (a product name, a technical word, a cognate). Those exceptions live in `quality-allowlist.json`, each with a reason.
+
+### Review workflow
+
+A message exists in one of two states: a machine draft, or text a native reviewer has read. They are told apart by a **review manifest**, `src/lib/i18n/messages/reviewed/<code>.json`: `{ "<key>": sha1(English) }` for every key the reviewer has read. A catalog starts with the line `// <Language> (<code>) — machine-translated draft…`; the reviewer reads the whole catalog against the current English and `messages/context.json`, removes that header line, then runs
+
+```bash
+node scripts/i18n-manifest.mjs <code>          # write the manifest
+node scripts/i18n-manifest.mjs <code> --check  # verify it
+```
+
+From then on the locale is strict: the quality test fails on a missing, stale or extra manifest entry, on a leftover draft header, and on every style check (untranslated, punctuation, script hygiene, length), so changing the English of a key (or adding one) sends it back to every reviewer. A reviewer owns exactly two files, `messages/<code>.ts` and `messages/reviewed/<code>.json`, and reports English that is ambiguous instead of "fixing" it in translation. Never write a manifest by hand and never regenerate one without reading the keys it marks.
+
+`pnpm vitest run src/lib/i18n/catalog-quality.test.ts` runs the whole gate. The structural checks (keys, plural categories, placeholders, tags, dead keys, literal English in the docs chrome, the runtime helpers) always block. The style checks block for a locale with a manifest and only warn for the others; to see them as failures while you review one locale:
+
+```bash
+I18N_STRICT=fr pnpm vitest run src/lib/i18n/catalog-quality.test.ts -t "catalog fr"
+```
+
+**Strict locales.** The locales that have been reviewed are listed in `REVIEWED_LOCALES` in `src/lib/i18n/catalog-quality.test.ts`; that list is the single source of truth, so this page does not repeat it. Their manifests are pinned there: deleting one fails the gate even though `manifestMode` is `"warn"`. A locale not in the list is still a machine draft (no manifest, draft header kept) and only warns. When a review lands, the same pull request adds the code to `REVIEWED_LOCALES`; once every locale in `locales.ts` is listed, set `"manifestMode": "fail"` in `messages/quality-allowlist.json`.
+
+**When the English changes.** Editing the English of a key, or adding a key, makes it stale (or unreviewed) in every strict locale, and CI runs `pnpm test`, so such a pull request is red until every strict locale has been re-reviewed. It cannot merge on its own. To get it green, the same branch must contain, for each strict locale:
+
+1. the new or corrected translation in `messages/<code>.ts`;
+2. the refreshed `messages/reviewed/<code>.json`, written by `node scripts/i18n-manifest.mjs <code>` only after a reviewer has read the listed keys;
+3. the refreshed `messages/context.json` (`node scripts/i18n-context.mjs`).
+
+The author of the English change asks each locale's reviewer to push step 1 and 2 to the branch (or opens the review as a stacked branch merged into it) before requesting merge. If a reviewer is unavailable, the repository owner decides whether to wait or to merge with a known red window; do not work around the gate by deleting a manifest, removing a code from `REVIEWED_LOCALES`, or adding an allowlist entry. To find the keys for one locale:
+
+```bash
+node scripts/i18n-manifest.mjs <code> --check   # lists "not reviewed" and "English changed" keys
+```
+
+The reviewer re-reads exactly those keys against the new English and `messages/context.json`, fixes the translation, then reruns `node scripts/i18n-manifest.mjs <code>`, which prints the keys it is re-marking so they can be checked once more. For a plural message, every English variant counts as one group: editing `.one` also marks `.other` (and the other categories) stale.
+
+### Adding a locale
+
+Add an entry to `src/lib/i18n/locales.ts`, drop a full `src/lib/i18n/messages/<code>.ts` catalog (`export default { … } satisfies Catalog;`), pin its plural categories in `scripts/lib/i18n-parse.mjs` (`REQUIRED_PLURALS`), and mirror the code in the pre-paint `LOCALES` map in `src/app.html` (plus `RTL` if the language is right-to-left). `pnpm check:i18n` fails until all of that agrees. The pre-paint script sets `lang` and `dir` before first paint only from a persisted choice (`?lang=` or the saved preference); a locale guessed from the browser language is applied after hydration, so a first visit never mirrors English text.
+
+### What stays English
+
+Translate the docs chrome, not the library's own content. These stay English on purpose and are never added to a catalog:
+
+- registry descriptions, `categoryLabels` and `categoryDescriptions` (machine-facing, feed `/llms.txt` and the Component Copilot);
+- prop, slot, event and CSS-variable names and their descriptions in the API tables;
+- component example titles and descriptions;
+- changelog entries and release notes;
+- recipe content (titles, steps, pitfalls and code), while the recipe page headings come from the catalog;
+- the page `<title>` of component and recipe pages.
+
+Everything else visible in the docs chrome is a message: the quality test scans `src/lib/components/docs/**` and `src/routes/docs/**` for literal English text, `aria-label`, `title` and `placeholder`, and fails on it unless the entry is listed with a reason in `quality-allowlist.json`. Any Latin word of three or more letters counts, lower case or Capitalised (`Previous`, `Copy`, `Browse Components`); only brand names, acronyms and code identifiers (`FancyUI`, `CLI`, `FluidCursor`) are exempt.
 
 ## Storybook
 
@@ -136,7 +237,7 @@ Rules: use **real props only** (check the component's exported `Props` type); de
 2. Keep commits focused — one logical change per commit with a clear message.
 3. **Add a changeset** (see below) — CI will block merging without one.
 4. Include a link to the live demo page in the PR description.
-5. Fill out the pull request template checklist.
+5. Fill out the pull request template checklist (tests, the three ports, a changeset, and no third-party product names).
 
 Once your PR is merged into `develop`, see the [Release process](#release-process) section for what happens next.
 
@@ -152,6 +253,11 @@ pnpm changeset
 
 You'll be prompted to pick a bump type (`patch` / `minor` / `major`) and write a
 short summary. Commit the generated `.changeset/*.md` file alongside your code.
+
+A PR that changes nothing users can see (tests, CI, internal docs) still carries a
+changeset: run `pnpm changeset --empty` to write one with no package in it. `pnpm test`
+audits the pending files (known package names, a real summary for every bump) and accepts
+that empty form.
 
 ### What to write
 

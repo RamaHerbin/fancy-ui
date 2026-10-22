@@ -390,9 +390,9 @@
 		"attempts": 1,
 		"divergences": [
 			"BentoGridItemProps uses Omit<HTMLAttributes<HTMLDivElement>, 'title'> to avoid a TS conflict between the DOM 'title' attribute and the Svelte 'title' snippet prop (same intersection pattern PORTING.md prescribes for RainbowButton).",
-			"BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop; the Svelte parts declare a closed prop list.",
+			"BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop. The Svelte parts forward native attributes to the same tile root but type `children` out (it is not a prop there).",
 			"BentoFrame's compiler-scoped `.bento-panel`, `.bento-glow` and `.bento-edge` rules are anchored as descendants of `.bento-tile` in bento-frame.css (port-added anchor, since plain CSS is global); cascade outcomes match the Svelte source, including the reduced-motion glow fade.",
-			"BentoGrid spreads rest props onto the grid root like the rest of the React port; a consumer `style` is merged with the `accent` prop, with `--bento-accent` from `accent` taking precedence as the Svelte `style:` directive does, and a consumer `onFocus` is chained after the focus-reveal handler.",
+			"BentoGrid spreads rest props onto the grid root, as the Svelte and Vue components do; a consumer `style` is merged with the `accent` prop, with `--bento-accent` from `accent` taking precedence, and a consumer `onFocus` is chained after the focus-reveal handler. The reveal `data-state` is managed by the component and cannot be overridden while revealing; with `reveal` off, a consumer `data-state` is passed through.",
 			"The focus-in reveal uses React's `onFocus`, which React delivers as a bubbling focusin, in place of the Svelte `onfocusin` attribute."
 		],
 		"lastFailure": null
@@ -542,7 +542,9 @@
 		"testFiles": ["Book.test.ts"],
 		"svelteFiles": 4,
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"Book, BookHeader, BookTitle and BookDescription spread rest onto their own element (div, div, h1, p); the Svelte and Vue parts forward native attributes to the same elements."
+		],
 		"lastFailure": null
 	},
 	{
@@ -609,7 +611,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"Rest props: React BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div; the Svelte BoxRevealProps declares only color/duration/delay/class and spreads nothing, so the React component accepts id/onClick/data-* attributes the Svelte one silently drops. Kept per PORTING.md's general 'rest props spread onto the root element' rule, recorded here because it is consumer-visible."
+			"Rest props: BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, as the Svelte and Vue components do."
 		],
 		"lastFailure": null
 	},
@@ -1270,8 +1272,7 @@
 		"divergences": [
 			"`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
 			"Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
-			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
-			"No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`."
+			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -1346,7 +1347,7 @@
 		"svelteFiles": 1,
 		"attempts": 2,
 		"divergences": [
-			"ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root, so id/onClick/data-*/aria-* reach the element where the Svelte component drops them; the inherited `children` is type-accepted and dropped, since the component renders its own."
+			"ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root `<p>`, like the Svelte and Vue components; the inherited `children` is type-accepted and dropped."
 		],
 		"lastFailure": null
 	},
@@ -1464,7 +1465,6 @@
 			"`bind:state={morphState}` on StatusMorph becomes `state={morphState}` + `onStateChange={setMorphState}` — the two-way-binding stand-in the already-ported StatusMorph declares. Behaviour is identical: the morph's own `resetAfter` timer still writes \"idle\" back into CopyButton's state.",
 			"`untrack(() => resetMs)` becomes `useConstant(() => resetMs)` (internals/dom/ssr.js), and `createCopy(resetWindow)` + `$effect(() => copyState.destroy)` becomes `useCopy(resetWindow)` (internals/use-copy.js), which owns arm/destroy. Same observable contract: the window is fixed at mount, a later `resetMs` change is ignored by both skin and glyph, and unmount cancels the pending timer (both asserted).",
 			"StatusMorph's inline `style` string becomes a module-scope `CSSProperties` object (React accepts no style strings). The serialized attribute is equivalent — `width: 1rem; height: 1rem; font-size: calc(1rem - 1px); --ft-statusmorph-error: var(--ft-status-error, light-dark(...))` — and both assertions on that attribute pass unchanged.",
-			"No rest-prop spread, deliberately: the Svelte `CopyButtonProps` interface declares an explicit prop list with no `...restProps`, so the React `CopyButtonProps` is a standalone interface rather than one extending `ButtonHTMLAttributes`. Fidelity to the Svelte API surface, but a departure from PORTING.md's general \"rest props spread onto the root element\" default — worth a line in react/README.md.",
 			"The Svelte `<style>` block's two `:global()` wrappers are dropped in copy-button.css: plain CSS is already global, and both selectors (`.ft-copybtn--copied`, `.ft-copybtn--failed`) are root-class modifiers, so no port-added anchor class was needed."
 		],
 		"lastFailure": null,
@@ -2162,6 +2162,38 @@
 		"lastFailure": null
 	},
 	{
+		"slug": "follow-button",
+		"sveltePath": "src/lib/fancy-ui/follow-button",
+		"reactPath": "react/src/components/follow-button",
+		"status": "ported",
+		"wave": "B2",
+		"tier": 3,
+		"group": "composite",
+		"model": "sonnet",
+		"effort": "high",
+		"complexity": "composite",
+		"deps": {
+			"internals": ["use-live-ref", "ssr", "follow-core"],
+			"motion": [],
+			"sound": true,
+			"components": ["button", "status-morph"]
+		},
+		"browserAPIs": ["matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["FollowButton"],
+		"loc": 330,
+		"testFiles": ["FollowButton.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null,
+		"minors": []
+	},
+	{
 		"slug": "form-field",
 		"sveltePath": "src/lib/fancy-ui/form-field",
 		"reactPath": "react/src/components/form-field",
@@ -2624,6 +2656,7 @@
 			"`bind:value` becomes the standard React controlled/uncontrolled split: `value` + `onValueChange` when controlled, new `defaultValue` prop (default \"\") for the uncontrolled initial value — a `value` prop passed alone now pins the input instead of seeding it.",
 			"`bind:ref` becomes `forwardRef`, pointing at the native `<input>`.",
 			"`class` becomes `className`; the `autocomplete` prop is typed as React's `HTMLInputAutoCompleteAttribute` instead of Svelte's `FullAutoFill` (same DOM token set).",
+			"Input, Textarea, PasswordInput, SearchInput and NumberInput forward native attributes to the inner <input>/<textarea>; React onChange from rest runs after internal handling and onValueChange; readOnly/autoComplete/maxLength are accepted next to the lowercase props.",
 			"The Svelte `oninput` handler becomes React `onChange` (fires per keystroke, identical observable behaviour); while disabled, a synthetic input event additionally has the DOM value restored to the model value, mirroring the Checkbox port's guard."
 		],
 		"lastFailure": null,
@@ -2771,7 +2804,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, so id/style/onClick/role/aria-*/data-* reach the element; the Svelte component's surface is exactly {words, delay, class} and it spreads nothing."
+			"LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, like the Svelte and Vue components (`class` still styles each letter)."
 		],
 		"lastFailure": null
 	},
@@ -2803,9 +2836,7 @@
 		"testFiles": ["LineHoverLink.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
-		"divergences": [
-			"Props extend AnchorHTMLAttributes minus className and spread ...rest onto the `<a>`, per PORTING.md's rest-props-spread rule; the Svelte side exposed a fixed prop list and spread nothing."
-		],
+		"divergences": [],
 		"lastFailure": null
 	},
 	{
@@ -2904,8 +2935,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"Native click handler is `onClick` (React convention/rest-props spread) rather than Svelte's `onclick` prop name.",
-			"Props extend AnchorHTMLAttributes (minus className) and spread ...rest onto the <a>, per PORTING.md's rest-props-spread rule; Svelte side only exposed a fixed prop list plus onclick.",
+			"Link, LineHoverLink, NavbarLink, NavigationMenuLink and InlineCitation forward native attributes and listeners to their anchor in Svelte, React and Vue.",
 			"The new-tab announcement and the safe-`rel` tokens are gated on the RESOLVED target, not on the bare `external` flag, so an `external` link whose `target` is overridden to `_self`/`_parent`/`_top` stays silent and keeps the caller's own `rel`; the Svelte source announces a new tab whenever `external` is set."
 		],
 		"lastFailure": null
@@ -3325,7 +3355,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so id/role/onClick/data-* reach the element; the Svelte component declares a closed six-prop list and spreads nothing."
+			"NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, like the Svelte and Vue components. A consumer `style` is merged; the component's own `--neon-*` custom properties win over a consumer declaration of the same property."
 		],
 		"lastFailure": null,
 		"minors": []
@@ -3400,7 +3430,8 @@
 		"divergences": [
 			"`bind:value` becomes the standard controlled/uncontrolled split: controlled via `value` + `onValueChange` when the `value` prop is passed (`null` counts as a value meaning empty), uncontrolled via `defaultValue` (default `null`) otherwise — matching the convention Input established.",
 			"`bind:ref` becomes `forwardRef`, pointing at the native `<input>`.",
-			"`class` becomes `className`."
+			"`class` becomes `className`.",
+			"Input, Textarea, PasswordInput, SearchInput and NumberInput forward native attributes to the inner <input>/<textarea>; React onChange from rest runs after internal handling and onValueChange; readOnly/autoComplete/maxLength are accepted next to the lowercase props."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -3570,7 +3601,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so a consumer's `style` can override the component's own `--ft-pixel-*` custom properties; the Svelte component accepts exactly nine props and spreads nothing."
+			"PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, like the Svelte and Vue components. `role=\"status\"` and `aria-live` stay managed. A consumer `style` is merged after the component's own, so it can override the `--ft-pixel-*` custom properties."
 		],
 		"lastFailure": null
 	},
@@ -4330,6 +4361,7 @@
 		"attempts": 1,
 		"divergences": [
 			"value is not a true two-way bindable prop (React has no bind:); mirrors the Input.tsx pattern instead — value prop seeds internal state, resynced on prop identity change, corrected via onValueChange. Observable behavior is unchanged.",
+			"Slider: React's `onChange` (the native input event, forwarded after the internal update) fires on every input event, the React idiom. Svelte's `onchange` and Vue's `@change` fire once per committed value. Use `onValueChange` for the per-input value in all three.",
 			"SliderHarness.tsx and SliderFieldHarness.tsx replace the .test.svelte harnesses (React components instead of Svelte rigs); not exported from index.ts, matching the Svelte originals' non-export."
 		],
 		"lastFailure": null
@@ -4873,7 +4905,7 @@
 		"attempts": 1,
 		"divergences": [
 			"No consumer-visible divergence: header snippet becomes ReactNode; ref becomes forwardRef per PORTING.md; autoscroll uses react/src/internals/use-autoscroll.js's useAutoscroll(node, options) hook (already implemented for this repo) instead of the Svelte `use:autoscroll` action, targeting the log div via useElementRef.",
-			"TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte source declares a closed prop list and forwards nothing."
+			"TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte and Vue components forward native attributes to the same outer element, not to the inner log region."
 		],
 		"lastFailure": null
 	},
@@ -5154,6 +5186,42 @@
 				"severity": "minor"
 			}
 		]
+	},
+	{
+		"slug": "tick-nav",
+		"sveltePath": "src/lib/fancy-ui/tick-nav",
+		"reactPath": "react/src/components/tick-nav",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "trivial",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "raf-field",
+		"deps": {
+			"internals": ["media-query", "use-element-ref", "use-live-ref", "tick-nav-core"],
+			"motion": [],
+			"sound": true,
+			"components": []
+		},
+		"browserAPIs": ["requestAnimationFrame", "matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["TickNav"],
+		"loc": 330,
+		"testFiles": ["TickNav.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.",
+			"`preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.",
+			"`class` → `className` (PORTING.md).",
+			"All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame)."
+		],
+		"lastFailure": null
 	},
 	{
 		"slug": "time-picker",
@@ -5545,7 +5613,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, so a consumer can pass id/onClick/data-* or override role/aria-live/style; the Svelte component declares a fixed prop list and spreads nothing."
+			"TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, like the Svelte and Vue components. `role=\"status\"` and `aria-live=\"polite\"` are no longer overridable, and the component's own `--ft-typing-*` styles win over a consumer `style`."
 		],
 		"lastFailure": null
 	},
@@ -5613,6 +5681,144 @@
 		"exports": ["WebSearch"],
 		"loc": 339,
 		"testFiles": ["WebSearch.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null
+	},
+	{
+		"slug": "accordion",
+		"sveltePath": "src/lib/fancy-ui/accordion",
+		"reactPath": "react/src/components/accordion",
+		"status": "ported",
+		"wave": "C",
+		"tier": 2,
+		"group": "compound",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "compound-context",
+		"deps": {
+			"internals": ["accordion-core"],
+			"motion": [],
+			"sound": false,
+			"components": ["collapsible"]
+		},
+		"browserAPIs": ["focus-management"],
+		"runtimeDeps": [],
+		"setContext": true,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": [
+			"Accordion",
+			"AccordionItem",
+			"AccordionTrigger",
+			"AccordionContent",
+			"ACCORDION_KEY",
+			"ACCORDION_ITEM_KEY"
+		],
+		"loc": 526,
+		"testFiles": ["Accordion.test.ts", "AccordionHarness.test.svelte", "ForwardAttrs.test.ts"],
+		"svelteFiles": 4,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null,
+		"minors": []
+	},
+	{
+		"slug": "collapsible",
+		"sveltePath": "src/lib/fancy-ui/collapsible",
+		"reactPath": "react/src/components/collapsible",
+		"status": "ported",
+		"wave": "C",
+		"tier": 2,
+		"group": "compound",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "compound-context",
+		"deps": {
+			"internals": ["collapsible-core", "use-composed-refs", "use-inert-attribute"],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": ["matchMedia", "getComputedStyle", "transitionend"],
+		"runtimeDeps": [],
+		"setContext": true,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["Collapsible", "CollapsibleTrigger", "CollapsibleContent", "COLLAPSIBLE_KEY"],
+		"loc": 390,
+		"testFiles": ["Collapsible.test.ts", "CollapsibleHarness.test.svelte", "ForwardAttrs.test.ts"],
+		"svelteFiles": 3,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null,
+		"minors": []
+	},
+	{
+		"slug": "badge",
+		"sveltePath": "src/lib/fancy-ui/badge",
+		"reactPath": "react/src/components/badge",
+		"status": "ported",
+		"wave": "F3",
+		"tier": 1,
+		"group": "trivial",
+		"model": null,
+		"effort": "low",
+		"complexity": "css-trivial",
+		"deps": {
+			"internals": [],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["Badge"],
+		"loc": 70,
+		"testFiles": ["Badge.test.ts", "Badge.attrs.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null
+	},
+	{
+		"slug": "avatar",
+		"sveltePath": "src/lib/fancy-ui/avatar",
+		"reactPath": "react/src/components/avatar",
+		"status": "ported",
+		"wave": "F3",
+		"tier": 2,
+		"group": "stateful",
+		"model": null,
+		"effort": "medium",
+		"complexity": "stateful",
+		"deps": {
+			"internals": ["avatar-core"],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": ["img.complete"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["Avatar"],
+		"loc": 130,
+		"testFiles": [
+			"Avatar.test.ts",
+			"Avatar.attrs.test.ts",
+			"Avatar.ssr.test.ts",
+			"avatar-core.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],

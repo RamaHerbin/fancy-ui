@@ -9,6 +9,8 @@
 
 	let { value, schema, onchange }: Props = $props();
 
+	// Initial mode is derived from the incoming value once; the user toggles it afterwards.
+	// svelte-ignore state_referenced_locally
 	let mode = $state<"url" | "page">(value?.pageSlug ? "page" : "url");
 	let pages = $state<{ slug: string; title: string }[]>([]);
 	let loaded = $state(false);

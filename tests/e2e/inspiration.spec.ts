@@ -149,7 +149,7 @@ test.describe("inspiration detail", () => {
 		expect(missing.status()).toBe(404);
 	});
 
-	test("the variant panel follows the framework switch and never prints a Vue install", async ({
+	test("the variant panel follows the framework switch and prints each framework install", async ({
 		page,
 	}) => {
 		await page.goto("/inspiration/pulse-beam");
@@ -160,8 +160,7 @@ test.describe("inspiration detail", () => {
 		await expect(panel).not.toContainText("fancy-ui-svelte");
 		await panel.getByRole("radio", { name: "Vue" }).click();
 		await expect(panel).toContainText('from "fancy-ui-vue"');
-		await expect(panel).not.toContainText("pnpm add fancy-ui-vue");
-		await expect(panel).toContainText("not on npm yet");
+		await expect(panel).toContainText("pnpm add fancy-ui-vue");
 	});
 
 	test("Copy brief writes the brief to the clipboard", async ({ page, context }) => {
@@ -229,6 +228,87 @@ test.describe("detail → related", () => {
 		const mounted = await stage.locator("[data-demo-mounted]").getAttribute("data-demo-mounted");
 		expect(mounted).not.toBe("pulse-beam");
 		await expect(page.locator(".frame [data-demo-mounted]")).toHaveCount(1);
+	});
+});
+
+test.describe("gooey action bar (prototype)", () => {
+	const bar = (page: Page) => page.locator("[data-gooey-bar]");
+
+	test("keeps real buttons in the sharp layer, in focus order", async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: "no-preference" });
+		await page.goto("/inspiration/gooey-action-bar");
+		await expect(bar(page)).toBeVisible();
+		// Nothing readable or focusable lives under the filter.
+		await expect(bar(page).locator(".goo")).toHaveAttribute("aria-hidden", "true");
+		await expect(bar(page).locator(".goo button, .goo [tabindex]")).toHaveCount(0);
+		const labels = bar(page).locator(".sharp button");
+		await expect(labels).toHaveText(["Copy", "Share", "Save", "Delete"]);
+		await labels.first().focus();
+		for (const name of ["Share", "Save", "Delete"]) {
+			await page.keyboard.press("Tab");
+			await expect(bar(page).getByRole("button", { name })).toBeFocused();
+		}
+		// The focus ring is drawn by the real button, not by a blob.
+		const outline = await bar(page)
+			.getByRole("button", { name: "Delete" })
+			.evaluate((el) => getComputedStyle(el).outlineStyle);
+		expect(outline).toBe("solid");
+	});
+
+	test("blobs stay opaque enough to survive the alpha threshold", async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: "no-preference" });
+		await page.goto("/_capture/gooey-action-bar");
+		await expect(bar(page)).toBeVisible();
+		// The filter keeps pixels whose blurred alpha is >= 7/18 (~0.39): a blob
+		// painted with a translucent fill would be wiped out and never render.
+		const alphas = await bar(page)
+			.locator(".blob")
+			.evaluateAll((nodes) =>
+				nodes.map((n) => {
+					const c = document.createElement("canvas").getContext("2d")!;
+					c.clearRect(0, 0, 1, 1);
+					c.fillStyle = getComputedStyle(n).backgroundColor;
+					c.fillRect(0, 0, 1, 1);
+					return c.getImageData(0, 0, 1, 1).data[3] / 255;
+				})
+			);
+		expect(alphas.length).toBe(4);
+		for (const a of alphas) expect(a).toBeGreaterThanOrEqual(0.5);
+	});
+
+	test("the filtered layer really paints: blobs at rest, highlight on hover", async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: "no-preference" });
+		await page.goto("/_capture/gooey-action-bar");
+		await expect(bar(page)).toBeVisible();
+		await page.mouse.move(2, 2);
+		const box = (await bar(page).boundingBox())!;
+		const pixel = (x: number, y: number) =>
+			page.screenshot({ clip: { x, y, width: 1, height: 1 } });
+		const bg = await pixel(box.x - 12, box.y + box.height / 2);
+		// Centre of the first blob, away from any label glyph, and the bridge gap.
+		const blob = await pixel(box.x + 10, box.y + box.height / 2);
+		expect(blob.equals(bg)).toBe(false);
+		// Hover the second button: its highlight must paint above the blobs.
+		await bar(page).getByRole("button", { name: "Share" }).hover();
+		await expect(bar(page).locator(".hl")).toHaveClass(/on/);
+		await page.waitForTimeout(700);
+		const hl = await pixel(box.x + 90 + 8, box.y + box.height / 2);
+		expect(hl.equals(blob)).toBe(false);
+	});
+
+	test("reduced motion snaps: no blob transition", async ({ page }) => {
+		// The site pauses live demos under reduced motion, so mount the demo alone
+		// on the dev-only capture route to inspect its own reduced-motion branch.
+		await page.emulateMedia({ reducedMotion: "reduce" });
+		await page.goto("/_capture/gooey-action-bar");
+		await expect(bar(page)).toBeVisible();
+		const durations = await bar(page)
+			.locator(".blob, .hl")
+			.evaluateAll((nodes) => nodes.map((n) => getComputedStyle(n).transitionDuration));
+		expect(durations.length).toBeGreaterThan(0);
+		for (const d of durations) expect(d.split(",").every((x) => parseFloat(x) === 0)).toBe(true);
+		await bar(page).getByRole("button", { name: "Save" }).hover();
+		await expect(bar(page).locator(".hl")).toHaveClass(/on/);
 	});
 });
 

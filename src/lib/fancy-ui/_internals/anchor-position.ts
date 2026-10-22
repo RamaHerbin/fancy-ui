@@ -279,6 +279,15 @@ export const anchorPosition: AnchorPositionAction = (node, opts) => {
 		if (!anchorEl) return;
 
 		const anchorRect = anchorEl.getBoundingClientRect();
+		// Measured as the box it is about to become. Before the first update
+		// a portalled node is a static block as wide as its container, so a
+		// panel with no width of its own would centre on the full page width
+		// and clamp to the left edge. Parked at the origin, a fixed box
+		// shrinks to its content with the whole viewport to grow into,
+		// wherever the last update left it.
+		node.style.position = "fixed";
+		node.style.left = "0px";
+		node.style.top = "0px";
 		const { x, y, side, align } = computePosition(anchorRect, measureFloating(), {
 			side: options.side,
 			align: options.align,

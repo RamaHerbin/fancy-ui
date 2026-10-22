@@ -11,7 +11,7 @@ it directly).
 ```
 
 ```ts
-import { toast } from "$lib/fancy-ui/toast";
+import { toast } from "fancy-ui-svelte";
 
 toast({ title: "Theme saved", description: "CSS copied to the clipboard.", variant: "success" });
 ```
@@ -115,10 +115,21 @@ loading toast and raise a fresh one. No positioning per-toast; `<Toaster>`'s
 | `variant`     | `"success" \| "error" \| "info" \| "loading"` | `"info"`                            | Icon, accent color, and which live region it announces through — `error` is assertive, the rest are polite |
 | `duration`    | `number`                                      | `5000` (`Infinity` for `"loading"`) | Milliseconds before auto-dismiss. `Infinity` means sticky                                                  |
 | `action`      | `ToastAction`                                 | —                                   | A single optional action button                                                                            |
+| `onClose`     | `(reason: ToastCloseReason) => void`          | —                                   | Called exactly once when the toast closes, with why (see below)                                            |
+| `progress`    | `boolean`                                     | `false`                             | A thin bar that drains over `duration`. Ignored for a sticky toast                                         |
 
 `ToastAction` is `{ label: string; onClick: () => void }`. `onClick` does not
 dismiss the toast on its own — call `dismissToast` from inside it if the
 action should also close the toast.
+
+`ToastCloseReason` is `"timeout"` (unpaused on-screen time ran out),
+`"dismiss"` (the close button or `dismissToast`), `"action"` (the action was
+pressed) or `"evicted"` (pushed out by a newer toast past the limit of 4).
+`onClose` fires once per toast: pressing the action settles it as `"action"`
+before the action's `onClick` runs, and a later `dismissToast` on that toast
+does not fire it again. An undo flow commits on every reason except
+`"action"`. The `progress` bar pauses while the toast is paused and stays full
+under reduced motion. See the [undo recipe](/docs/recipes/undo-toast).
 
 Returns the new toast's `id` (usable with `dismissToast`), or `""` if called
 outside the browser.

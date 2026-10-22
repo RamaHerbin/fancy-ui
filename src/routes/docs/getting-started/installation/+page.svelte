@@ -6,7 +6,7 @@
 
 <Seo
 	title={docTitle(t("install.metaTitle"))}
-	description="Install FancyUI in a Svelte 5 project: add the package, wire up the Tailwind CSS v4 stylesheet, and import your first component."
+	description={t("seo.installation")}
 	path="/docs/getting-started/installation"
 />
 

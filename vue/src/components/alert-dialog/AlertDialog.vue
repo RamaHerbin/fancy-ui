@@ -35,7 +35,7 @@ export interface AlertDialogProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -136,6 +136,28 @@ const excludeTrigger = () => [triggerRef.value];
 const uid = useFancyId();
 const titleId = computed(() => (title ? `${uid}-title` : undefined));
 const descriptionId = computed(() => (description ? `${uid}-description` : undefined));
+
+// Same disclosure wiring as Dialog.vue's: the state goes on the real button
+// inside the semantics-free wrapper, `aria-controls` only while the panel
+// exists.
+const panelId = `${uid}-panel`;
+watch(
+	[triggerRef, open],
+	([wrapper, isOpen], _prev, onCleanup) => {
+		const el = wrapper?.firstElementChild;
+		if (!el) return;
+		el.setAttribute("aria-haspopup", "dialog");
+		el.setAttribute("aria-expanded", String(isOpen));
+		if (isOpen) el.setAttribute("aria-controls", panelId);
+		else el.removeAttribute("aria-controls");
+		onCleanup(() => {
+			el.removeAttribute("aria-haspopup");
+			el.removeAttribute("aria-expanded");
+			el.removeAttribute("aria-controls");
+		});
+	},
+	{ immediate: true, flush: "post" }
+);
 </script>
 
 <template>
@@ -151,6 +173,7 @@ const descriptionId = computed(() => (description ? `${uid}-description` : undef
 	</span>
 	<DialogSurface
 		ref="surface"
+		:id="panelId"
 		:open="open"
 		role="alertdialog"
 		:title-id="titleId"
@@ -189,8 +212,8 @@ const descriptionId = computed(() => (description ? `${uid}-description` : undef
 				play exactly one cue, this component's own, not that plus a Button
 				`press`.
 			-->
-			<Button variant="outline" size="sm" :onclick="handleCancel">{{ cancelLabel }}</Button>
-			<Button variant="destructive" size="sm" :onclick="handleConfirm">{{ confirmLabel }}</Button>
+			<Button variant="outline" size="sm" @click="handleCancel">{{ cancelLabel }}</Button>
+			<Button variant="destructive" size="sm" @click="handleConfirm">{{ confirmLabel }}</Button>
 		</div>
 	</DialogSurface>
 </template>

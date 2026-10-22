@@ -1,0 +1,20 @@
+{
+	"states": {
+		"open": {
+			"steps": [{ "click": { "role": "tab", "name": "Security" } }],
+			"expect": [{ "role": "tab", "name": "Security", "selected": true }, { "role": "tabpanel" }]
+		},
+		"focus": {
+			"steps": [{ "focus": { "role": "tab", "name": "Account" } }],
+			"expect": [{ "role": "tab", "name": "Account", "focusVisible": true }]
+		},
+		"long": {
+			"variant": "long",
+			"steps": [{ "click": { "role": "tab", "name": "Notifications and alerts" } }],
+			"expect": [
+				{ "role": "tab", "name": "Notifications and alerts", "selected": true },
+				{ "role": "tabpanel" }
+			]
+		}
+	}
+}

@@ -4,14 +4,14 @@
 
 # fancy-ui
 
-Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Tailwind CSS v4.
+Fancy UI (FancyUI): animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Tailwind CSS v4.
 
 [![npm fancy-ui-svelte](https://img.shields.io/npm/v/fancy-ui-svelte?label=fancy-ui-svelte&color=FF3E00)](https://www.npmjs.com/package/fancy-ui-svelte)
 [![npm fancy-ui-react](https://img.shields.io/npm/v/fancy-ui-react?label=fancy-ui-react&color=149ECA)](https://www.npmjs.com/package/fancy-ui-react)
 [![npm fancy-ui-vue](https://img.shields.io/npm/v/fancy-ui-vue?label=fancy-ui-vue&color=42B883)](https://www.npmjs.com/package/fancy-ui-vue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-146-8B5CF6)
+![Components](https://img.shields.io/badge/Components-151-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -41,7 +41,7 @@ Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Ta
 
 ## Features
 
-- **146 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **151 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Svelte 5 runes** &mdash; built with `$state`, `$derived`, `$effect` and `$props`; snippets, no legacy syntax
 - **React and Vue editions** &mdash; [`fancy-ui-react`](./react/README.md) (React 18 and 19) and [`fancy-ui-vue`](./vue/README.md) (Vue 3.5+) ship the same components under the same names, ported from the Svelte source and kept at parity by CI
@@ -59,6 +59,8 @@ Animated UI components for **Svelte 5**, **React** and **Vue 3**, styled with Ta
 npm install fancy-ui-svelte
 ```
 
+Peer dependencies: `svelte` 5.20 or later, `tailwindcss` 4 (`@sveltejs/kit` is declared as an optional peer, any version from 2 up, only so the packager stays quiet about docs site code that does not ship; nothing in the package imports it). It works in SvelteKit and in a plain Svelte + Vite app alike.
+
 Add the Tailwind integration to your app's CSS (e.g. `src/app.css`):
 
 ```css
@@ -67,6 +69,18 @@ Add the Tailwind integration to your app's CSS (e.g. `src/app.css`):
 ```
 
 This single import tells Tailwind v4 to scan the library's components so all utility classes are generated automatically. No manual `@source` path needed.
+
+### Tailwind and colour tokens
+
+`tailwind.css` also declares the 18 semantic colours the components spend (`background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring` and their `-foreground` pairs). None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so utilities resolve the variables at use time: an app that already defines these tokens keeps its own colours. The defaults ship in `@layer base`, which an unlayered `:root` or `.dark` block in your app overrides whatever the import order.
+
+If your own tokens live inside `@layer base`, keep that block after the import so it wins over the defaults.
+
+Dark mode follows the operating-system preference out of the box. To control it yourself, put `dark` or `light` on `<html>` (or any ancestor); both the `dark:` utilities and the components' `light-dark()` colours follow the class. The entry defines the `.light` class too (it forces light), so an app that already uses `.light` for something else should know.
+
+The entry sets `:root { color-scheme: light dark }`, which is what lets `light-dark()` colours, scrollbars and form controls follow the OS. An app that switches theme only with a `.dark` class would therefore see dark branches on a light page on a dark-OS machine. Either put `light` on `<html>` in light mode, or declare, unlayered in your own CSS, both `:root { color-scheme: light }` and `.dark { color-scheme: dark }` (both declarations are needed).
+
+Place the `fancy-ui-svelte/tailwind.css` import before your own `@custom-variant dark`; otherwise the entry's definition replaces yours.
 
 Then import any component:
 
@@ -80,6 +94,8 @@ Then import any component:
 	<BorderBeam />
 </div>
 ```
+
+The package exports `fancy-ui-svelte` for the components, `fancy-ui-svelte/tailwind.css` for Tailwind, `fancy-ui-svelte/cameleon` for the skin engine (`FancyProvider` and the skins), `fancy-ui-svelte/cameleon/retro-kit` for the retro-os skin's own components, a `fancy-ui-svelte/cameleon/*` wildcard into the engine's own files, and `fancy-ui-svelte/package.json` for tooling that resolves a manifest by specifier. There is no stylesheet to import, since each component's styles compile with it, and importing one component from the package root costs the same as importing its own file: the rest tree-shakes away.
 
 <details>
 <summary>Alternative: manual @source (without the CSS import)</summary>
@@ -172,7 +188,7 @@ The docs site serves documentation built for coding agents, following the [llms.
 - [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) — setup guide, usage rules, and an index of every component
 - [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) — full reference: import, props and a working example per component
 - `https://fancy-ui.rama.app/docs/components/<slug>.md` — one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
-- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) — every component as JSON: import names (Svelte and React), props, snippets, links
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) — every component as JSON: for each framework (Svelte, React, Vue) the import names, Markdown page, copy-source item and availability, plus props, snippets and links
 
 To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
 
@@ -235,7 +251,7 @@ Component tests are colocated with their component (see `RainbowButton.test.ts` 
 
 ## Contributing
 
-Contributions are welcome! 146 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
+Contributions are welcome! 151 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 

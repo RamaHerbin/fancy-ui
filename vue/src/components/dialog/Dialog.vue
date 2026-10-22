@@ -25,7 +25,7 @@ export interface DialogProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -127,6 +127,30 @@ const excludeTrigger = () => [triggerRef.value];
 const uid = useFancyId();
 const titleId = computed(() => (props.title ? `${uid}-title` : undefined));
 const descriptionId = computed(() => (props.description ? `${uid}-description` : undefined));
+
+// The wrapper carries no semantics, so the disclosure state goes on what the
+// caller rendered inside it — the real button a keyboard or screen-reader user
+// lands on. Written imperatively because slot content cannot be handed props
+// from here. `aria-controls` only while the panel exists, so it never points at
+// an id that is not in the document. Post-flush, so the slot is in the DOM.
+const panelId = `${uid}-panel`;
+watch(
+	[triggerRef, open],
+	([wrapper, isOpen], _prev, onCleanup) => {
+		const el = wrapper?.firstElementChild;
+		if (!el) return;
+		el.setAttribute("aria-haspopup", "dialog");
+		el.setAttribute("aria-expanded", String(isOpen));
+		if (isOpen) el.setAttribute("aria-controls", panelId);
+		else el.removeAttribute("aria-controls");
+		onCleanup(() => {
+			el.removeAttribute("aria-haspopup");
+			el.removeAttribute("aria-expanded");
+			el.removeAttribute("aria-controls");
+		});
+	},
+	{ immediate: true, flush: "post" }
+);
 </script>
 
 <template>
@@ -143,6 +167,7 @@ const descriptionId = computed(() => (props.description ? `${uid}-description` :
 	</span>
 	<DialogSurface
 		ref="surface"
+		:id="panelId"
 		:open="open"
 		role="dialog"
 		:title-id="titleId"

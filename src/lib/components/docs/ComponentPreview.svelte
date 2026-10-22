@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import CodeBlock from "./CodeBlock.svelte";
+	import { t } from "$lib/stores";
 	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
 
 	interface Props {
@@ -14,6 +15,12 @@
 	let { code = "", title = "", sound = false, preview }: Props = $props();
 
 	let activeTab = $state<"preview" | "code">("preview");
+
+	// The Code tab disappears when the source does (a framework switch blanks it); fall back to
+	// the preview rather than leaving an empty pane selected.
+	$effect(() => {
+		if (!code && activeTab === "code") activeTab = "preview";
+	});
 </script>
 
 <div class="retro-window-shadow">
@@ -33,7 +40,7 @@
 						? 'border-foreground text-foreground border-b-2'
 						: 'text-muted-foreground hover:text-foreground'}"
 				>
-					Preview
+					{t("comp.preview")}
 				</button>
 				{#if code}
 					<button
@@ -42,7 +49,7 @@
 							? 'border-foreground text-foreground border-b-2'
 							: 'text-muted-foreground hover:text-foreground'}"
 					>
-						Code
+						{t("comp.code")}
 					</button>
 				{/if}
 			</div>

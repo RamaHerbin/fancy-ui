@@ -1,0 +1,543 @@
+[
+	{
+		"framework": "svelte",
+		"chromium": "145.0.7632.6",
+		"run": {
+			"measuredCommit": "1dc211a1",
+			"toolCommit": "1dc211a1",
+			"loadAvgAtEnd": [8.59619140625, 8.88330078125, 7.70458984375],
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"quietWait": {
+				"quiet": true,
+				"waitedMs": 95025,
+				"load1": 6.61669921875,
+				"polls": 20
+			}
+		},
+		"rows": [
+			{
+				"name": "fluid-cursor",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 442048,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 50,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 652716,
+					"nodes": 50,
+					"cdpListeners": 153,
+					"persistentListeners": 123,
+					"persistentListenersByType": {
+						"mousemove": 20,
+						"touchstart": 20,
+						"touchend": 10,
+						"touchcancel": 10,
+						"mousedown": 10,
+						"mouseup": 10,
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1,
+						"change": 10,
+						"resize": 10,
+						"scroll": 10,
+						"touchmove": 10
+					},
+					"observers": 10,
+					"intervals": 0,
+					"contextsCreated": 10,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 1.5651449516828302,
+					"rafPerSec": 31.9893368877041
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 468800,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "border-beam",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 214928,
+					"nodes": -57,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 672160,
+					"nodes": 523,
+					"cdpListeners": 33,
+					"persistentListeners": 3,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1
+					},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 37.13095634788403,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 227864,
+					"nodes": -57,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "displacement-text",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 1026164,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 100,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 2243692,
+					"nodes": 60,
+					"cdpListeners": 103,
+					"persistentListeners": 23,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1,
+						"change": 10,
+						"resize": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 20,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 6.011996001333297,
+					"rafPerSec": 119.96001332889037
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 1117064,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "mosaic-glow",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 411060,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 766392,
+					"nodes": 100,
+					"cdpListeners": 73,
+					"persistentListeners": 13,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1,
+						"change": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 24.130333333333326,
+					"rafPerSec": 962.6666666666666
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 446292,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "toast",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 467072,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 520828,
+					"nodes": 104,
+					"cdpListeners": 14,
+					"persistentListeners": 3,
+					"persistentListenersByType": {
+						"click": 1,
+						"focusin": 1,
+						"focusout": 1
+					},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 0.07330889703432122,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 480688,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			}
+		]
+	},
+	{
+		"framework": "react",
+		"chromium": "145.0.7632.6",
+		"run": {
+			"measuredCommit": "1dc211a1",
+			"toolCommit": "1dc211a1",
+			"loadAvgAtEnd": [6.19140625, 7.93359375, 7.47412109375],
+			"cores": 14,
+			"machine": "Apple M4 Pro, 14 cores, 24 GB",
+			"os": "Darwin 25.5.0",
+			"node": "v24.13.0",
+			"versions": {
+				"fancy-ui-svelte": "0.16.0",
+				"fancy-ui-react": "0.5.0",
+				"fancy-ui-vue": "0.2.0"
+			},
+			"quietWait": {
+				"quiet": true,
+				"waitedMs": 25006,
+				"load1": 6.7001953125,
+				"polls": 6
+			}
+		},
+		"rows": [
+			{
+				"name": "fluid-cursor",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 632296,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 50,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 950356,
+					"nodes": 30,
+					"cdpListeners": 1550,
+					"persistentListeners": 120,
+					"persistentListenersByType": {
+						"mousemove": 20,
+						"touchstart": 20,
+						"touchend": 10,
+						"touchcancel": 10,
+						"mousedown": 10,
+						"mouseup": 10,
+						"change": 10,
+						"resize": 10,
+						"scroll": 10,
+						"touchmove": 10
+					},
+					"observers": 10,
+					"intervals": 0,
+					"contextsCreated": 10,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 2.1542819060308602,
+					"rafPerSec": 45.31822725758081
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 653760,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "border-beam",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 429308,
+					"nodes": -46,
+					"cdpListeners": -143,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 720848,
+					"nodes": 414,
+					"cdpListeners": 1287,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 38.71019320453031,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 451064,
+					"nodes": -46,
+					"cdpListeners": -143,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "displacement-text",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 1168600,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 100,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 2451044,
+					"nodes": 40,
+					"cdpListeners": 1500,
+					"persistentListeners": 20,
+					"persistentListenersByType": {
+						"change": 10,
+						"resize": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 20,
+					"contextsConnected": 10,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 5.995669553630798,
+					"rafPerSec": 126.58227848101266
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 1275844,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "mosaic-glow",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 597868,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 1073780,
+					"nodes": 50,
+					"cdpListeners": 1470,
+					"persistentListeners": 10,
+					"persistentListenersByType": {
+						"change": 10
+					},
+					"observers": 20,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 15.456514495168282,
+					"rafPerSec": 962.3458847050983
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 631072,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			},
+			{
+				"name": "toast",
+				"cycles": 50,
+				"afterCycles": {
+					"heapBytes": 466480,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextsRetained": 0,
+					"contextWarnings": 0,
+					"rafAfterUnmount": 0
+				},
+				"tenInstances": {
+					"heapBytes": 521900,
+					"nodes": 59,
+					"cdpListeners": 146,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsCreated": 0,
+					"contextsConnected": 0,
+					"contextWarnings": 0,
+					"cpuMsPerSec": 0.02366666666666258,
+					"rafPerSec": 0
+				},
+				"afterTenUnmounted": {
+					"heapBytes": 485312,
+					"nodes": 0,
+					"cdpListeners": 0,
+					"persistentListeners": 0,
+					"persistentListenersByType": {},
+					"observers": 0,
+					"intervals": 0,
+					"contextsConnected": 0,
+					"rafAfterUnmount": 0
+				},
+				"errors": []
+			}
+		]
+	}
+]

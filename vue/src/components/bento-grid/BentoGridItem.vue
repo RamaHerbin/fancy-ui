@@ -7,11 +7,15 @@ export interface BentoGridItemProps {
 </script>
 
 <script setup lang="ts">
+import { useAttrs } from "vue";
+
 import BentoFrame from "./BentoFrame.vue";
 
 defineOptions({ name: "BentoGridItem", inheritAttrs: false });
 
 const { class: className = "" } = defineProps<BentoGridItemProps>();
+
+const attrs = useAttrs();
 
 defineSlots<{
 	header?: () => unknown;
@@ -23,6 +27,7 @@ defineSlots<{
 
 <template>
 	<BentoFrame
+		v-bind="attrs"
 		:class="['group/bento row-span-1', className]"
 		panel-class="justify-between gap-4 p-4"
 	>

@@ -171,6 +171,12 @@ describe("Sheet", () => {
 		expect(dialog()!.hasAttribute("aria-labelledby")).toBe(false);
 	});
 
+	it("puts the id prop on the panel, for a trigger's aria-controls", async () => {
+		render(Sheet, { props: { open: true, id: "settings-panel" } });
+		await nextTick();
+		expect(dialog()!.id).toBe("settings-panel");
+	});
+
 	it("falls back to aria-label when there is no title", async () => {
 		render(Sheet, { props: { open: true, ariaLabel: "Filters" } });
 		await nextTick();

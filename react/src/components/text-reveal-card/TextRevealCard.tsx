@@ -65,20 +65,18 @@ export function TextRevealCard({
 		setIsMouseOver(true);
 	}
 
-	// touchmove is attached natively: the handler calls `preventDefault()`
-	// (to stop the page scrolling while scrubbing the card, as the Svelte
-	// source does), and React registers its touchmove root listener as
-	// passive, where preventDefault is a no-op.
+	// touchmove is attached natively and passive: the card only tracks the
+	// finger, it never cancels the gesture, so the page keeps scrolling
+	// vertically (`touch-pan-y`).
 	useEffect(() => {
 		const card = cardRef.current;
 		if (!card) return;
 		const touchMoveHandler = (event: TouchEvent) => {
-			event.preventDefault();
 			const rect = card.getBoundingClientRect();
 			const relativeX = event.touches[0]!.clientX - rect.left;
 			setWidthPercentage((relativeX / rect.width) * 100);
 		};
-		card.addEventListener("touchmove", touchMoveHandler, { passive: false });
+		card.addEventListener("touchmove", touchMoveHandler, { passive: true });
 		return () => card.removeEventListener("touchmove", touchMoveHandler);
 	}, []);
 
@@ -86,7 +84,7 @@ export function TextRevealCard({
 		<div
 			ref={cardRef}
 			className={cn(
-				"relative w-full max-w-[40rem] overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8",
+				"relative w-full max-w-[40rem] touch-pan-y touch-pinch-zoom overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8",
 				className
 			)}
 			role="presentation"

@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "Velocity, not position, drives each splat, so a fast flick throws a long plume and a slow drag leaves a soft wisp. Dye and velocity dissipate at different rates, which is what makes the trail curl before it fades.",
 		whenToUse: "A playful hero or a portfolio splash where the cursor is the toy.",
 		watch:
-			"A WebGL simulation on window-level mouse and touch listeners. It does not honour reduced motion on its own, and it is a singleton by default — one per page. Blank until the pointer moves.",
+			"A WebGL simulation on window-level mouse and touch listeners. Under reduced motion it stays an empty canvas, and it is a singleton by default — one per page. Blank until the pointer moves.",
 		clues: [
 			"WebGL fluid sim",
 			"splat force from pointer velocity",

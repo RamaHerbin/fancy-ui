@@ -3,14 +3,29 @@
 	import Sidebar from "$lib/components/docs/Sidebar.svelte";
 	import DocHeader from "$lib/components/docs/DocHeader.svelte";
 	import TableOfContents from "$lib/components/docs/TableOfContents.svelte";
+	import DocsFooter from "$lib/components/docs/DocsFooter.svelte";
 	import CommandSearch from "$lib/components/docs/CommandSearch.svelte";
 	import RetroTaskbar from "$lib/components/docs/retro/RetroTaskbar.svelte";
 	import { FancyProvider, brutalSkin, defaultSkin, retroOsSkin, type Skin } from "$lib/cameleon";
 	import { createSkinState, t, type DocsSkin } from "$lib/stores";
 	import { nextDocsPage } from "$lib/components/docs/docs-nav.js";
 	import "$lib/components/docs/docs-skin.css";
+	import { afterNavigate } from "$app/navigation";
+	import { followUrl } from "$lib/stores/framework.svelte.js";
 
 	let { children } = $props();
+
+	// A shared docs link may name a framework (`?framework=react`); the store reads
+	// it on first load, this covers the links followed inside the app afterwards.
+	afterNavigate(({ to }) => {
+		if (to?.url) followUrl(to.url);
+	});
+
+	// A bare hash jump would also move the URL; focus the landmark directly.
+	function skipToMain(event: MouseEvent) {
+		event.preventDefault();
+		document.getElementById("main")?.focus();
+	}
 
 	let sidebarOpen = $state(false);
 	let searchOpen = $state(false);
@@ -34,7 +49,8 @@
 	<div class="docs-shell mx-auto max-w-7xl px-4 py-8 lg:px-8">
 		<div class="docs-content-row flex gap-10">
 			<!-- Main content -->
-			<main class="min-w-0 flex-1" data-doc-content>
+			<main id="main" tabindex="-1" class="min-w-0 flex-1 outline-none" data-doc-content>
+				<TableOfContents compact />
 				{@render children()}
 			</main>
 
@@ -72,10 +88,12 @@
 				{/if}
 			</div>
 		</div>
+		<DocsFooter />
 	</div>
 {/snippet}
 
 <FancyProvider skin={activeSkin} class="docs-skin min-h-svh">
+	<a href="#main" class="docs-skip-link" onclick={skipToMain}>{t("a11y.skipToContent")}</a>
 	{#if isRetro}
 		<!-- Retro OS: desk + window frame; menubar spans the frame, the explorer
 		     sidebar joins the body grid, and the taskbar sits in-flow at the

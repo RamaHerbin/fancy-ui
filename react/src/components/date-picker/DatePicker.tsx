@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useMemo, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { ComponentPropsWithoutRef, KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 
 import { cn } from "../../utils.js";
 import { Portal } from "../../internals/Portal.js";
@@ -33,7 +33,16 @@ import {
 } from "./date-utils.js";
 import "./date-picker.css";
 
-export interface DatePickerProps {
+/**
+ * Every other native `<button>` attribute and listener (`aria-*`, `data-*`,
+ * `onFocus`, `onBlur`, `onKeyDown`, `form`, ...) is forwarded to the trigger
+ * button. The managed ARIA (`role`, `aria-expanded`, `aria-controls`,
+ * `aria-haspopup`, `aria-invalid`, `aria-required`) stays the component's own.
+ */
+export interface DatePickerProps extends Omit<
+	ComponentPropsWithoutRef<"button">,
+	"className" | "id" | "name" | "value" | "disabled" | "type" | "role" | "children"
+> {
 	/**
 	 * The selected date, or `null` for none. Always a local-midnight `Date` —
 	 * see the README.
@@ -86,9 +95,8 @@ export interface DatePickerProps {
  * The trigger button arrives through the ref channel rather than a `ref`
  * prop, per PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  *
- * Rest props are not spread: the source reads only these props off `$props()`
- * and has no `...restProps`, so the port carries no wider attribute surface
- * than the component it mirrors.
+ * Rest props are spread onto the trigger `<button>` BEFORE the invariants, as the
+ * source spreads `...restProps` there.
  */
 export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(function DatePicker(
 	{
@@ -108,6 +116,8 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 		isDateDisabled,
 		className,
 		sound = false,
+		onClick,
+		...restProps
 	},
 	forwardedRef
 ) {
@@ -166,10 +176,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 	// Memoised like the source's own `$derived`: an arrow-key focus move within
 	// the same month re-renders but must not reallocate the grid or reformat
 	// these locale-derived labels, since neither actually changed.
-	const weekdayNames = useMemo(
-		() => getWeekdayNames(weekStartsOn, locale),
-		[weekStartsOn, locale]
-	);
+	const weekdayNames = useMemo(() => getWeekdayNames(weekStartsOn, locale), [weekStartsOn, locale]);
 	const monthLabel = useMemo(
 		() => (viewDate ? formatMonthYear(viewDate, locale) : ""),
 		[viewDate, locale]
@@ -359,6 +366,18 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 		presence.register(anchored, (entering) => ({ side: resolvedSide, entering }))
 	);
 
+	// Internal handling first, the consumer's listener once after it. A disabled
+	// control runs neither (a disabled <button> would not fire them anyway).
+	function handleClick(event: ReactMouseEvent<HTMLButtonElement>): void {
+		if (effectiveDisabled) return;
+		toggle();
+		onClick?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy =
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+
 	const classes = cn(
 		"ft-date-picker-trigger flex w-full items-center justify-between gap-2 rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-left text-[13px] text-foreground transition-colors",
 		"focus-visible:outline-none",
@@ -372,8 +391,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 	// must not reallocate the 6x7 grid, exactly as the source's `$derived`
 	// only recomputes on a real dependency change.
 	const weeks = useMemo(
-		() =>
-			viewDate ? getMonthGrid(viewDate.getFullYear(), viewDate.getMonth(), weekStartsOn) : [],
+		() => (viewDate ? getMonthGrid(viewDate.getFullYear(), viewDate.getMonth(), weekStartsOn) : []),
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[viewDate?.getFullYear(), viewDate?.getMonth(), weekStartsOn]
 	);
@@ -395,6 +413,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 	return (
 		<>
 			<button
+				{...restProps}
 				ref={triggerRef}
 				type="button"
 				role="combobox"
@@ -405,11 +424,11 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 				aria-haspopup="grid"
 				aria-expanded={open}
 				aria-controls={open ? panelId : undefined}
-				aria-required={effectiveRequired ? "true" : undefined}
-				aria-invalid={effectiveInvalid ? "true" : undefined}
-				aria-describedby={field?.describedBy}
-				aria-label={label}
-				onClick={toggle}
+				aria-required={effectiveRequired ? "true" : restProps["aria-required"]}
+				aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+				aria-describedby={describedBy}
+				aria-label={label ?? restProps["aria-label"]}
+				onClick={handleClick}
 			>
 				<span className={triggerLabel ? undefined : "text-muted-foreground"}>
 					{triggerLabel ?? placeholder}
@@ -431,6 +450,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 					type="hidden"
 					name={name}
 					value={value ? formatISODate(value) : ""}
+					form={restProps.form}
 					disabled={effectiveDisabled}
 				/>
 			) : null}

@@ -1,14 +1,27 @@
-import { forwardRef, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+	forwardRef,
+	useEffect,
+	useRef,
+	useState,
+	type ButtonHTMLAttributes,
+	type CSSProperties,
+	type MouseEvent,
+	type ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { useConstant } from "../../internals/dom/ssr.js";
 import { useCopy } from "../../internals/use-copy.js";
 import { sound as soundFx } from "../../sound/sound.js";
-import { Button } from "../button/Button.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
+import { Button, type ButtonProps } from "../button/Button.js";
 import type { ButtonVariant, ButtonSize } from "../button/types.js";
 import { StatusMorph, type StatusMorphState } from "../status-morph/StatusMorph.js";
 import "./copy-button.css";
 
-export interface CopyButtonProps {
+export interface CopyButtonProps extends Omit<
+	ButtonHTMLAttributes<HTMLButtonElement>,
+	"onClick" | "onCopy" | "className" | "type" | "children" | "value" | "disabled"
+> {
 	/** The text written to the clipboard on activation */
 	value: string;
 	/** Idle label */
@@ -36,6 +49,8 @@ export interface CopyButtonProps {
 	 * so the button keeps an accessible name.
 	 */
 	children?: ReactNode;
+	/** Fires on activation, right after the copy starts. Never called while `disabled`. */
+	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/** Additional CSS classes */
 	className?: string;
 	/**
@@ -44,6 +59,9 @@ export interface CopyButtonProps {
 	 */
 	sound?: boolean;
 }
+
+/** How long the outgoing label stays on screen, in milliseconds. */
+const LEAVE_MS = 80;
 
 /**
  * The copy glyph handed to StatusMorph's `idle` slot. A module-scope constant
@@ -112,6 +130,8 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			children,
 			className,
 			sound = false,
+			onClick,
+			...restProps
 		},
 		ref
 	) {
@@ -166,7 +186,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			className
 		);
 
-		async function handleClick() {
+		async function handleClick(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
 			// This click is the only user gesture in the interaction, and the
 			// outcome cue below plays after an await: on a reload with sound
 			// already enabled no AudioContext exists yet, and by then the
@@ -186,7 +206,14 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			// honestly, not swallowed into a silent no-op, and is now shown and
 			// announced too.
 			const mine = ++attempt.current;
-			const ok = await copyState.copy(value);
+			// `value` is snapshotted: it is a live prop, and a parent that swaps it
+			// while a permission prompt holds the write open would otherwise make
+			// `onCopy` report text that was never written.
+			const attempted = value;
+			const pending = copyState.copy(attempted);
+			// The consumer click runs now, while the event is still live.
+			onClick?.(event);
+			const ok = await pending;
 			// `onCopy` still fires for every attempt, stale or not — it reports
 			// what that call did, matching `copy()`'s own honest return. Only the
 			// visible and audible cues, which describe the button's CURRENT state,
@@ -195,8 +222,38 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 				setMorphState(ok ? "success" : "error");
 				if (sound) soundFx.play(ok ? "copy" : "error");
 			}
-			onCopy?.(value, ok);
+			onCopy?.(attempted, ok);
 		}
+
+		// Out 80 ms, in 160 ms: a label change keeps the OUTGOING text alive for the
+		// out beat as a second, `aria-hidden` layer in the same grid cell, while
+		// the keyed live span fades in after that beat. Derived during render (the
+		// documented "adjust state on prop change" pattern) so the outgoing text
+		// is in the very commit that shows the new one. `prefersReducedMotion()`
+		// is read once per swap: under reduced motion there is no outgoing layer
+		// and the text snaps.
+		const [swap, setSwap] = useState<{
+			shown: string;
+			leaving: string | null;
+			swapped: boolean;
+		}>({ shown: currentLabel, leaving: null, swapped: false });
+		if (swap.shown !== currentLabel) {
+			setSwap({
+				shown: currentLabel,
+				// A second swap inside the out beat: `swap.shown` was still in its
+				// delayed fade-in and never painted, so keep the layer that is on
+				// screen (and its timer) rather than replacing it with unseen text.
+				leaving: swap.leaving !== null ? swap.leaving : prefersReducedMotion() ? null : swap.shown,
+				swapped: true,
+			});
+		}
+		useEffect(() => {
+			if (swap.leaving === null) return;
+			const timer = setTimeout(() => {
+				setSwap((current) => ({ ...current, leaving: null }));
+			}, LEAVE_MS);
+			return () => clearTimeout(timer);
+		}, [swap.leaving]);
 
 		// StatusMorph's `resetAfter` is what normally walks `morphState` back to
 		// "idle", and custom `children` replace the whole icon slot — so in that
@@ -237,6 +294,8 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 
 		return (
 			<Button
+				{...(restProps as Partial<ButtonProps>)}
+				type="button"
 				ref={ref}
 				variant={variant}
 				size={size}
@@ -248,23 +307,55 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			>
 				{children}
 				{/*
-					Purely the visible label: the announcement is StatusMorph's job,
-					through the `role="status"` region it portals to `document.body`
-					(which is also why it never joins this button's accessible name),
-					and two live regions would double-announce every copy. The one case
-					with no StatusMorph at all is custom `children`, which replace
-					`iconStart` — there this span keeps the announcement, because custom
-					content has no way of its own to say the copy landed and colour
-					alone is a sighted-only signal. Hidden whenever something else
-					already owns the visible label (icon-only, or custom `children`);
-					otherwise this span *is* the visible label.
+					The announcement is StatusMorph's job, through the `role="status"`
+					region it portals to `document.body` (which is also why it never
+					joins this button's accessible name), and two live regions would
+					double-announce every copy. The one case with no StatusMorph at all
+					is custom `children`, which replace `iconStart` — there the span
+					keeps the announcement, because custom content has no way of its
+					own to say the copy landed and colour alone is a sighted-only
+					signal. When something else already owns the visible label
+					(icon-only, or custom `children`) the span is `sr-only` and there
+					is nothing to reserve width for.
+
+					Otherwise the label sits in a one-cell grid stacking three
+					`aria-hidden` ghosts (idle, copied, failed) under the live span: the
+					cell is as wide as the widest of them, in pure CSS, so the button
+					never changes width when the text swaps and nothing is measured
+					(SSR-safe).
 				*/}
-				<span
-					aria-live={hasChildren ? (morphState === "error" ? "assertive" : "polite") : undefined}
-					className={iconOnly || hasChildren ? "sr-only" : undefined}
-				>
-					{currentLabel}
-				</span>
+				{iconOnly || hasChildren ? (
+					<span
+						className="ft-copybtn__live sr-only"
+						aria-live={hasChildren ? (morphState === "error" ? "assertive" : "polite") : undefined}
+					>
+						{currentLabel}
+					</span>
+				) : (
+					<span className="ft-copybtn__label">
+						<span className="ft-copybtn__ghost" aria-hidden="true">
+							{label}
+						</span>
+						<span className="ft-copybtn__ghost" aria-hidden="true">
+							{copiedLabel}
+						</span>
+						<span className="ft-copybtn__ghost" aria-hidden="true">
+							{errorLabel}
+						</span>
+						{swap.leaving !== null && (
+							<span className="ft-copybtn__leave" aria-hidden="true">
+								{swap.leaving}
+							</span>
+						)}
+						<span
+							key={currentLabel}
+							className="ft-copybtn__live"
+							data-swapped={swap.swapped ? "" : undefined}
+						>
+							{currentLabel}
+						</span>
+					</span>
+				)}
 			</Button>
 		);
 	}

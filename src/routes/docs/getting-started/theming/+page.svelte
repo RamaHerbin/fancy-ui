@@ -6,7 +6,7 @@
 
 <Seo
 	title={docTitle(t("theming.metaTitle"))}
-	description="Theme FancyUI with CSS custom properties: colors, radius, motion duration and the rainbow palette, in light and dark mode."
+	description={t("seo.theming")}
 	path="/docs/getting-started/theming"
 />
 

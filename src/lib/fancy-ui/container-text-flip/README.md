@@ -2,6 +2,8 @@
 
 A text container that cycles through words with per-character blur-to-clear animation.
 
+Native attributes and listeners go to the root `<p>`. `class` keeps its current target.
+
 ## Props
 
 | Prop                | Type       | Default                                    | Description               |

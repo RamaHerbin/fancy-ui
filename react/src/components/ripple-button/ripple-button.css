@@ -9,7 +9,6 @@
 	inset: 0;
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 0.3s ease;
 	background: radial-gradient(
 		80px circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
 		color-mix(in srgb, var(--ripple-color) 20%, transparent),
@@ -137,5 +136,12 @@
 			transform: scale(1);
 			opacity: 0;
 		}
+	}
+}
+
+/* The fade is motion: it only runs when the visitor has not asked for less. */
+@media (prefers-reduced-motion: no-preference) {
+	.ripple-button .ripple-hover {
+		transition: opacity 0.3s ease;
 	}
 }

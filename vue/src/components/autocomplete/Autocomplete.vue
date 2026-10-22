@@ -39,7 +39,7 @@ export interface AutocompleteProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, useAttrs, ref, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -48,6 +48,10 @@ import { useFancyId } from "../../internals/use-id.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import AutocompletePanel from "./AutocompletePanel.vue";
 import { AUTOCOMPLETE_CONTEXT, type AutocompleteContext } from "./types.js";
+
+// Every other native `<input>` attribute and listener lands on the text input
+// through `v-bind="inputAttrs()"` below.
+const attrs = useAttrs();
 
 defineOptions({ name: "Autocomplete", inheritAttrs: false });
 
@@ -279,35 +283,49 @@ const classes = computed(() =>
 		className
 	)
 );
+
+// The consumer's attributes first, the component's invariants after, so a
+// consumer can add but never break (`role`, `type`, the managed `aria-*`). A
+// function, not a `computed`: `attrs` is not reactive, so it is re-read on every
+// render. The template writes the `@input`/`@focus`/`@blur`/`@keydown` handlers
+// BEFORE `v-bind`, so Vue runs the internal handler first and the consumer's
+// listener (in `attrs`) after it.
+function inputAttrs(): Record<string, unknown> {
+	const describedBy =
+		[field?.describedBy, attrs["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+	return {
+		...attrs,
+		type: "text",
+		role: "combobox",
+		"aria-invalid": effectiveInvalid.value ? "true" : attrs["aria-invalid"],
+		"aria-describedby": describedBy,
+		"aria-label": field?.labelId ? undefined : (label ?? attrs["aria-label"]),
+		"aria-expanded": open.value,
+		"aria-haspopup": "listbox",
+		"aria-autocomplete": "list",
+		"aria-controls": open.value ? panelId : undefined,
+		"aria-activedescendant":
+			open.value && listbox.activeIndex >= 0 ? optionId(listbox.activeIndex) : undefined,
+	};
+}
 </script>
 
 <template>
 	<div class="ft-autocomplete-wrapper relative">
 		<input
 			ref="el"
-			type="text"
-			role="combobox"
 			:id="effectiveId"
 			:name="name"
 			:placeholder="placeholder"
 			:value="value"
 			:disabled="effectiveDisabled"
 			:required="effectiveRequired"
-			:aria-invalid="effectiveInvalid ? 'true' : undefined"
-			:aria-describedby="field?.describedBy"
-			:aria-label="field?.labelId ? undefined : label"
-			:aria-expanded="open"
-			aria-haspopup="listbox"
-			aria-autocomplete="list"
-			:aria-controls="open ? panelId : undefined"
-			:aria-activedescendant="
-				open && listbox.activeIndex >= 0 ? optionId(listbox.activeIndex) : undefined
-			"
 			:class="classes"
 			@input="handleInput"
 			@focus="handleFocus"
 			@blur="handleBlur"
 			@keydown="handleKeydown"
+			v-bind="inputAttrs()"
 		/>
 
 		<!-- Always mounted, whether or not the panel is open — see Combobox's

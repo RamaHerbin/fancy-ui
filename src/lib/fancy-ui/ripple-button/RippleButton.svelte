@@ -12,8 +12,8 @@
 		/** Button content */
 		children?: Snippet;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	}
@@ -47,6 +47,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 
 	let {
 		class: className,
@@ -58,6 +59,13 @@
 		sound = false,
 		...restProps
 	}: RippleButtonProps = $props();
+
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: !!restProps.disabled,
+	});
 
 	let buttonRef: HTMLButtonElement;
 	let ripples = $state<Ripple[]>([]);
@@ -97,11 +105,12 @@
 
 <button
 	bind:this={buttonRef}
+	use:soundFeedback={hoverFeedback}
 	class={cn(
 		"ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden",
 		"bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium",
 		"shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]",
-		"transition-[transform,border-color,background-color] duration-300 ease-out",
+		"duration-300 ease-out transition-[border-color,background-color] motion-safe:transition-[transform,border-color,background-color]",
 		"hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
 		className
 	)}
@@ -140,7 +149,6 @@
 		inset: 0;
 		pointer-events: none;
 		opacity: 0;
-		transition: opacity 0.3s ease;
 		background: radial-gradient(
 			80px circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
 			color-mix(in srgb, var(--ripple-color) 20%, transparent),
@@ -268,6 +276,13 @@
 				transform: scale(1);
 				opacity: 0;
 			}
+		}
+	}
+
+	/* The fade is motion: it only runs when the visitor has not asked for less. */
+	@media (prefers-reduced-motion: no-preference) {
+		.ripple-hover {
+			transition: opacity 0.3s ease;
 		}
 	}
 </style>

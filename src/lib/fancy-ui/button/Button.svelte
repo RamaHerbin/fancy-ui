@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import type { ButtonVariant, ButtonSize } from "./types.js";
 
 	export interface ButtonProps {
@@ -40,17 +41,26 @@
 		/** Element reference. */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * `ButtonProps` plus every native attribute and listener of the `<button>` /
+	 * `<a>` it renders (`id`, `aria-*`, `data-*`, `onfocus`, ...). Own props win.
+	 */
+	export type ButtonAttributes = ButtonProps &
+		Omit<HTMLButtonAttributes, keyof ButtonProps> &
+		Omit<HTMLAnchorAttributes, keyof ButtonProps>;
 </script>
 
 <script lang="ts">
 	import { fade } from "svelte/transition";
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
 
@@ -72,7 +82,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
-	}: ButtonProps = $props();
+		...restProps
+	}: ButtonAttributes = $props();
 
 	const SIZE_CLASSES: Record<ButtonSize, string> = {
 		sm: "rounded-[6px] px-[12px] py-[5px] text-[12px]",
@@ -108,7 +119,7 @@
 			// `data-disabled` covers the anchor branch, which has no native `:disabled`
 			// pseudo-class to hang the same dimmed treatment off. It tracks `disabled`
 			// alone, never `loading` — `aria-disabled` also goes true while loading (see
-			// `anchorInert` below), but the mockup's loading swatch is explicitly not
+			// `anchorBlocked` below), but the mockup's loading swatch is explicitly not
 			// dimmed, so the visual hook and the a11y attribute must stay two different
 			// things even though they overlap when `disabled` is set.
 			"disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -131,16 +142,22 @@
 		return [...tokens].join(" ");
 	});
 
-	// An <a> has no native `disabled` state, and `href`/`target` drive browser
-	// behaviour that never reaches `handleClick` at all — middle-click firing
-	// `auxclick`, "open link in new tab" from the context menu, a screen reader's
-	// own link-activation gesture. `loading` has to block activation exactly like
-	// `disabled` does, so on this branch that can only be done by stripping the
-	// attributes that make those paths possible, not by adding another JS guard:
-	// there is no event to guard on until after the browser has already acted on
-	// `href`. Kept as one flag so `href`, `target`, `aria-disabled` and `tabindex`
-	// can't drift out of sync with each other.
-	const anchorInert = $derived(disabled || loading);
+	// An <a> has no native `disabled` state. `disabled` strips `href`/`target`
+	// and leaves the tab order (nothing to activate, nothing to read). `loading`
+	// is different: the control is busy, not unavailable, so it keeps its `href`
+	// and its tab stop — focus must not vanish under a keyboard user mid-request —
+	// and activation is blocked in the handlers instead (`click` for keyboard and
+	// primary pointer, `auxclick` for middle-click). `aria-busy` + `aria-disabled`
+	// tell assistive tech why nothing happens.
+	const anchorInert = $derived(disabled);
+	const anchorBlocked = $derived(disabled || loading);
+
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: disabled || loading,
+	});
 
 	// The one duration the lead slot's cross-fade runs on: `DURATIONS.micro`, the
 	// glyph-scale rung, collapsed to 0 when the user has asked for less motion —
@@ -161,29 +178,42 @@
 	// already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 	// an anchor, which has no disabled state at all) walks straight past that —
 	// this is what actually keeps the callback from firing.
+	// Middle-click guard for the anchor branch: internal first, then the consumer's
+	// own `onauxclick` (never overwritten), which is skipped while blocked like `onclick`.
+	function handleAuxClick(event: MouseEvent) {
+		if (disabled || loading) {
+			event.preventDefault();
+			return;
+		}
+		(restProps as { onauxclick?: (event: MouseEvent) => void }).onauxclick?.(event);
+	}
+
 	function handleClick(event: MouseEvent) {
 		if (disabled || loading) {
 			event.preventDefault();
 			return;
 		}
 		if (sound) soundFx.play("press");
-		onclick?.(event);
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 </script>
 
 {#if href}
 	<a
 		bind:this={ref}
+		{...restProps as HTMLAnchorAttributes}
+		use:soundFeedback={hoverFeedback}
 		class={classes}
 		href={anchorInert ? undefined : href}
 		target={anchorInert ? undefined : target}
 		rel={resolvedRel}
-		aria-label={label}
-		data-disabled={disabled ? "true" : undefined}
-		aria-disabled={anchorInert ? "true" : undefined}
-		aria-busy={loading ? "true" : undefined}
-		tabindex={anchorInert ? -1 : undefined}
+		aria-label={label ?? restProps["aria-label"]}
+		data-disabled={disabled ? "true" : restProps["data-disabled"]}
+		aria-disabled={anchorBlocked ? "true" : restProps["aria-disabled"]}
+		aria-busy={loading ? "true" : restProps["aria-busy"]}
+		tabindex={anchorInert ? -1 : restProps.tabindex}
 		onclick={handleClick}
+		onauxclick={handleAuxClick}
 	>
 		<!--
 			The lead slot. Both branches of this component render it identically —
@@ -217,11 +247,13 @@
 {:else}
 	<button
 		bind:this={ref}
+		{...restProps as HTMLButtonAttributes}
+		use:soundFeedback={hoverFeedback}
 		class={classes}
 		{type}
 		{disabled}
-		aria-label={label}
-		aria-busy={loading ? "true" : undefined}
+		aria-label={label ?? restProps["aria-label"]}
+		aria-busy={loading ? "true" : restProps["aria-busy"]}
 		onclick={handleClick}
 	>
 		<!--

@@ -132,6 +132,7 @@ export const fixtures: Record<string, Record<string, unknown>> = {
 	"root:TextRoll": {"value":"42"},
 	"root:ThinkingIndicator": {"status":"Reading files"},
 	"root:ThreadList": {"threads":[{"id":"t1","title":"Retry policy for billing webhooks","preview":"So a 429 should back off exponentially…","updatedAt":1767225360000,"unread":true},{"id":"t2","title":"Migration plan","updatedAt":1767214800000}],"activeId":"t1"},
+	"root:TickNav": {"items":[{"id":"a","label":"Alpha"},{"id":"b","label":"Beta"}],"value":"a"},
 	"root:Timeline": {"items":[{"id":"one","label":"2020"},{"id":"two","label":"2021"},{"id":"three","label":"2022"}],"title":"My Timeline","description":"A short subheading."},
 	"root:Toast": {"item":{"id":"toast-1","title":"Theme saved","description":"CSS copied to the clipboard.","variant":"info","duration":5000}},
 	"root:ToggleGroupItem": {"value":"left"},

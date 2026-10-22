@@ -69,6 +69,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
 			onDismiss: () => root.close(),
 			exclude: () => [root.triggerRef],
 			active: root.open,
+			keepFocus: true,
 		});
 
 		// Identity-stable for the life of the root, so this level's own context

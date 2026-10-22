@@ -50,8 +50,8 @@
 	}: Props = $props();
 
 	let cardEl: HTMLDivElement;
-	let dialogEl: HTMLDivElement;
-	let closeBtn: HTMLButtonElement;
+	let dialogEl: HTMLDivElement | undefined = $state();
+	let closeBtn: HTMLButtonElement | undefined = $state();
 	let rect = $state<{ top: number; left: number; width: number; height: number } | null>(null);
 	let overlayVisible = $state(false);
 	let fullyExpanded = $state(false);
@@ -154,7 +154,7 @@
 	<img
 		src={card.src}
 		alt={card.title}
-		class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+		class="absolute inset-0 h-full w-full object-cover motion-safe:duration-500 hover:scale-105 motion-safe:transition-transform"
 		draggable="false"
 	/>
 	<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>

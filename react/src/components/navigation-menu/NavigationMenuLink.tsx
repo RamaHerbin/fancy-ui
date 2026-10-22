@@ -1,9 +1,12 @@
-import type { ReactNode } from "react";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import "./navigation-menu-link.css";
 
-export interface NavigationMenuLinkProps {
+export interface NavigationMenuLinkProps extends Omit<
+	AnchorHTMLAttributes<HTMLAnchorElement>,
+	"className" | "href" | "title" | "children"
+> {
 	/** Destination URL. */
 	href: string;
 	/** Marks this as the current page: sets `aria-current="page"` and the current-row styling. */
@@ -38,6 +41,7 @@ export function NavigationMenuLink({
 	external = false,
 	children,
 	className,
+	...rest
 }: NavigationMenuLinkProps) {
 	const classes = cn(
 		"ft-navigation-menu-link flex flex-col gap-0.5 rounded-lg px-2.5 py-2 text-left no-underline transition-colors",
@@ -48,11 +52,12 @@ export function NavigationMenuLink({
 
 	return (
 		<a
+			{...rest}
 			href={href}
 			className={classes}
-			aria-current={current ? "page" : undefined}
-			target={external ? "_blank" : undefined}
-			rel={external ? "noopener noreferrer" : undefined}
+			aria-current={current ? "page" : rest["aria-current"]}
+			target={external ? "_blank" : rest.target}
+			rel={external ? "noopener noreferrer" : rest.rel}
 		>
 			{children ? (
 				children

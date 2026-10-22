@@ -12,7 +12,7 @@ ceiling.
 
 ```svelte
 <script lang="ts">
-	import { Reveal } from "$lib/fancy-ui/reveal";
+	import { Reveal } from "fancy-ui-svelte";
 </script>
 
 <Reveal preset="fade-up">

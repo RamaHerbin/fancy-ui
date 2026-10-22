@@ -27,22 +27,26 @@ export interface ButtonProps {
 	fullWidth?: boolean;
 	/** Accessible name for a button whose content is icon-only. */
 	label?: string;
-	/** Fires on activation. Never called while `disabled` or `loading`. */
-	onclick?: (event: MouseEvent) => void;
+	/** Fires on activation. Never called while `disabled` or `loading`. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { callListener } from "../../internals/call-listener.js";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { linear } from "../../internals/motion/easing.js";
@@ -62,10 +66,40 @@ const {
 	rel = undefined,
 	fullWidth = false,
 	label = undefined,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
 } = defineProps<ButtonProps>();
+
+// Every attribute and listener that is not a declared prop lands on the
+// rendered `<button>` / `<a>`, spread BEFORE the attributes this component
+// manages so a consumer can add to them but never break them. `onClick` is a
+// declared prop, so it runs once through the guard in `handleClick`; the
+// modified forms (`@click.once`, `.capture`, `.passive`) compile to
+// `onClickOnce` / `onClickCapture` / `onClickPassive` and would bind straight
+// to the element past that guard, so they are dropped while the button is inert.
+//
+// A plain function called from the template, never a `computed`: the
+// `useAttrs()` proxy only tracks on a property GET, so a computed built while
+// `attrs` was empty would never see an attribute the parent adds later. A
+// parent-driven attrs change always re-renders this component.
+const attrs = useAttrs();
+function forwarded() {
+	const blocked = disabled || loading;
+	if (!blocked && !href) return attrs;
+	// On the link branch `auxclick` runs once through `handleAuxClick` (internal
+	// guard first, then the consumer's listener); its modified forms are dropped
+	// while the link is blocked, like the click ones.
+	return Object.fromEntries(
+		Object.entries(attrs).filter(
+			([key]) =>
+				!(blocked && /^onClick/.test(key)) &&
+				!(href && (/^onAuxclick$/i.test(key) || (blocked && /^onAuxclick/i.test(key))))
+		)
+	);
+}
+type AriaFlag = boolean | "true" | "false" | undefined;
 
 defineSlots<{
 	/** The button's label / content. */
@@ -113,7 +147,7 @@ const classes = computed(() =>
 		// `data-disabled` covers the anchor branch, which has no native `:disabled`
 		// pseudo-class to hang the same dimmed treatment off. It tracks `disabled`
 		// alone, never `loading` — `aria-disabled` also goes true while loading (see
-		// `anchorInert` below), but the mockup's loading swatch is explicitly not
+		// `anchorBlocked` below), but the mockup's loading swatch is explicitly not
 		// dimmed, so the visual hook and the a11y attribute must stay two different
 		// things even though they overlap when `disabled` is set.
 		"disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -136,16 +170,22 @@ const resolvedRel = computed(() => {
 	return [...tokens].join(" ");
 });
 
-// An <a> has no native `disabled` state, and `href`/`target` drive browser
-// behaviour that never reaches `handleClick` at all — middle-click firing
-// `auxclick`, "open link in new tab" from the context menu, a screen reader's
-// own link-activation gesture. `loading` has to block activation exactly like
-// `disabled` does, so on this branch that can only be done by stripping the
-// attributes that make those paths possible, not by adding another JS guard:
-// there is no event to guard on until after the browser has already acted on
-// `href`. Kept as one flag so `href`, `target`, `aria-disabled` and `tabindex`
-// can't drift out of sync with each other.
-const anchorInert = computed(() => disabled || loading);
+// An <a> has no native `disabled` state. `disabled` strips `href`/`target`
+// and leaves the tab order (nothing to activate, nothing to read). `loading`
+// is different: the control is busy, not unavailable, so it keeps its `href`
+// and its tab stop — focus must not vanish under a keyboard user mid-request —
+// and activation is blocked in the handlers instead (`click` for keyboard and
+// primary pointer, `auxclick` for middle-click). `aria-busy` + `aria-disabled`
+// tell assistive tech why nothing happens.
+const anchorInert = computed(() => disabled);
+const anchorBlocked = computed(() => disabled || loading);
+
+// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+// off (and never the default click → press, which `handleClick` already plays).
+useSoundFeedback(el, () => ({
+	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+	disabled: anchorBlocked.value,
+}));
 
 // The one duration the lead slot's cross-fade runs on: `DURATIONS.micro`, the
 // glyph-scale rung, collapsed to 0 when the user has asked for less motion —
@@ -199,13 +239,21 @@ function leadCancelled(node: Element) {
 // already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 // an anchor, which has no disabled state at all) walks straight past that —
 // this is what actually keeps the callback from firing.
+function handleAuxClick(event: MouseEvent) {
+	if (disabled || loading) {
+		event.preventDefault();
+		return;
+	}
+	callListener((attrs.onAuxclick ?? attrs.onAuxClick) as never, event);
+}
+
 function handleClick(event: MouseEvent) {
 	if (disabled || loading) {
 		event.preventDefault();
 		return;
 	}
 	if (sound) soundFx.play("press");
-	onclick?.(event);
+	callListener(onClick ?? onclick, event);
 }
 </script>
 
@@ -213,16 +261,18 @@ function handleClick(event: MouseEvent) {
 	<a
 		v-if="href"
 		ref="el"
+		v-bind="forwarded()"
 		:class="classes"
 		:href="anchorInert ? undefined : href"
 		:target="anchorInert ? undefined : target"
 		:rel="resolvedRel"
-		:aria-label="label"
-		:data-disabled="disabled ? 'true' : undefined"
-		:aria-disabled="anchorInert ? 'true' : undefined"
-		:aria-busy="loading ? 'true' : undefined"
-		:tabindex="anchorInert ? -1 : undefined"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
+		:data-disabled="disabled ? 'true' : (attrs['data-disabled'] as string | undefined)"
+		:aria-disabled="anchorBlocked ? 'true' : (attrs['aria-disabled'] as AriaFlag)"
+		:aria-busy="loading ? 'true' : (attrs['aria-busy'] as AriaFlag)"
+		:tabindex="anchorInert ? -1 : (attrs.tabindex as number | string | undefined)"
 		@click="handleClick"
+		@auxclick="handleAuxClick"
 	>
 		<!--
 			The lead slot. Both branches of this component render it identically —
@@ -253,11 +303,12 @@ function handleClick(event: MouseEvent) {
 	<button
 		v-else
 		ref="el"
+		v-bind="forwarded()"
 		:class="classes"
 		:type="type"
 		:disabled="disabled"
-		:aria-label="label"
-		:aria-busy="loading ? 'true' : undefined"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
+		:aria-busy="loading ? 'true' : (attrs['aria-busy'] as AriaFlag)"
 		@click="handleClick"
 	>
 		<!--
@@ -320,8 +371,7 @@ function handleClick(event: MouseEvent) {
 	   tokens.EASINGS.inout — the reversible-state pair. It runs the colour
 	   channel, and the release half of the press: letting go settles, it
 	   does not snap back. */
-	--ft-btn-motion: var(--ft-duration-fast, 150ms)
-		var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	--ft-btn-motion: var(--ft-duration-fast, 150ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	/* The down-stroke only. 150ms = tokens.DURATIONS.fast,
 	   cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out — the arrival
 	   curve, which spends most of the scale in the first frames. Same clock

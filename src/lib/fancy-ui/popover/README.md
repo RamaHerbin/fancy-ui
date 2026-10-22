@@ -80,6 +80,14 @@ one this component actually wires up.
   stays scrollable and clickable (an outside click just closes the panel
   first) the whole time it's open.
 
+## Native attributes
+
+Attributes and listeners that are not props (`id`, `data-*`, `aria-label`,
+`aria-describedby`, `onkeydown`, ...) go to the trigger `<button>`, the element
+a consumer reaches for; the panel keeps `class` and `ref`. `type`,
+`aria-expanded` and `aria-controls` stay the component's, and `onclick` runs
+once after the panel has toggled.
+
 ## Props
 
 ### Popover

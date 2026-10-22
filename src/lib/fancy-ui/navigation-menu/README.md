@@ -147,6 +147,14 @@ by a panel already on its way to nowhere — it reaches whatever dismissable
 surface sits underneath. See Motion for the rest of what happens in that
 window.
 
+## Native attributes
+
+`NavigationMenuTrigger` forwards native `<button>` attributes and listeners
+(`data-*`, `aria-label`, `aria-describedby`, `title`, `onfocus`, ...) to its
+button. `id`, `aria-expanded`, `aria-controls` and the roving `tabindex` stay
+the component's. `onclick`, `onkeydown`, `onpointerenter` and `onpointerleave`
+run once after the component's own handling.
+
 ## Props
 
 ### NavigationMenu
@@ -205,6 +213,8 @@ window.
 | `external`    | `boolean` | `false` | Opens in a new tab with a safe `rel`, and adds an sr-only note                    |
 | `children`    | `Snippet` | —       | Full override for the row's content — e.g. the feature tile's icon + title layout |
 | `class`       | `string`  | —       | Additional CSS classes                                                            |
+
+Any other native anchor attribute or listener goes to the inner `<a>`. `aria-current`, `target` and `rel` stay managed by `current` and `external` while those apply; otherwise the value you pass is used.
 
 ## Theming
 

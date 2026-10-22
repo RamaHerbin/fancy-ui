@@ -65,7 +65,7 @@ describe("Compare", () => {
 		expect(slider).toHaveAttribute("aria-valuemax", "100");
 	});
 
-	it("calls the lowercase callbacks passed as props; the @-spellings (onDragstart…) never reach them", async () => {
+	it("calls the deprecated lowercase callbacks passed as props; the run-together @-spellings (onDragstart…) are undeclared and never reach them", async () => {
 		const names = [
 			"onpercentagechange",
 			"ondragstart",
@@ -74,7 +74,7 @@ describe("Compare", () => {
 			"onhoverleave",
 		];
 		const lower = Object.fromEntries(names.map((n) => [n, vi.fn()]));
-		// `@drag-start` / `@dragstart` compile to `onDragStart` / `onDragstart`: undeclared attrs.
+		// `@dragstart` compiles to `onDragstart`, an undeclared attr (the declared name is `onDragStart`, i.e. `@drag-start`).
 		const camel = Object.fromEntries(
 			names.map((n) => ["on" + n[2]!.toUpperCase() + n.slice(3), vi.fn()])
 		);
@@ -121,6 +121,77 @@ describe("Compare", () => {
 		} finally {
 			vi.unstubAllGlobals();
 		}
+	});
+
+	describe("camelCase listeners", () => {
+		it("calls onDragStart, onDragEnd and onHoverLeave once each", async () => {
+			const onDragStart = vi.fn();
+			const onDragEnd = vi.fn();
+			const onHoverLeave = vi.fn();
+			const { container } = render(Compare, {
+				props: { slideMode: "drag" },
+				attrs: { onDragStart, onDragEnd, onHoverLeave },
+			});
+			const slider = container.querySelector('[role="slider"]')!;
+			await fireEvent.mouseEnter(slider);
+			await fireEvent.mouseDown(slider);
+			expect(onDragStart).toHaveBeenCalledTimes(1);
+			await fireEvent.mouseUp(slider);
+			expect(onDragEnd).toHaveBeenCalledTimes(1);
+			await fireEvent.mouseLeave(slider);
+			expect(onHoverLeave).toHaveBeenCalledTimes(1);
+			expect(onDragStart).toHaveBeenCalledTimes(1);
+			expect(onDragEnd).toHaveBeenCalledTimes(1);
+		});
+
+		it("calls onPercentageChange, and the lowercase alias only when it is absent", async () => {
+			const queue = new Map<number, FrameRequestCallback>();
+			let nextId = 1;
+			vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+				const id = nextId++;
+				queue.set(id, cb);
+				return id;
+			});
+			vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+				queue.delete(id);
+			});
+			try {
+				const onPercentageChange = vi.fn();
+				const onpercentagechange = vi.fn();
+				const { container } = render(Compare, {
+					props: { initialSliderPercentage: 30, onpercentagechange },
+					attrs: { onPercentageChange },
+				});
+				const slider = container.querySelector('[role="slider"]')!;
+				onPercentageChange.mockClear();
+				await fireEvent.mouseEnter(slider);
+				await fireEvent.mouseLeave(slider);
+				const pending = [...queue.values()];
+				queue.clear();
+				for (const cb of pending) cb(performance.now() + 1000);
+				expect(onPercentageChange).toHaveBeenLastCalledWith(30);
+				expect(onpercentagechange).not.toHaveBeenCalled();
+			} finally {
+				vi.unstubAllGlobals();
+			}
+		});
+
+		it("still calls the deprecated lowercase drag / hover props once", async () => {
+			const ondragstart = vi.fn();
+			const ondragend = vi.fn();
+			const onhoverleave = vi.fn();
+			const { container } = render(Compare, {
+				props: { slideMode: "drag", ondragstart, ondragend, onhoverleave },
+			});
+			const slider = container.querySelector('[role="slider"]')!;
+			await fireEvent.mouseEnter(slider);
+			await fireEvent.mouseDown(slider);
+			await fireEvent.mouseUp(slider);
+			await fireEvent.mouseLeave(slider);
+			expect(ondragstart).toHaveBeenCalledTimes(1);
+			expect(ondragend).toHaveBeenCalledTimes(1);
+			expect(onhoverleave).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	describe("autoplay runs a single frame loop", () => {
@@ -286,5 +357,16 @@ describe("keyStep", () => {
 		expect(keyStep("ArrowLeft", true, 5)).toBe(0);
 		expect(keyStep("PageUp", false, 50)).toBe(60);
 		expect(keyStep("Enter", false, 50)).toBeNull();
+	});
+});
+
+describe("Compare touch", () => {
+	afterEach(cleanup);
+
+	it("keeps vertical page scroll while a horizontal drag stays ours", () => {
+		const { container } = render(Compare);
+		const slider = container.querySelector('[role="slider"]') as HTMLElement;
+		expect(slider.className).toContain("touch-pan-y");
+		expect(slider.className).toContain("touch-pinch-zoom");
 	});
 });

@@ -9,6 +9,7 @@
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
 	import type { Framework } from "$lib/inspiration/types.js";
 	import {
+		CONTRIBUTING_URL,
 		GITHUB_URL,
 		LICENSE_URL,
 		PACKAGE_NAME,
@@ -54,9 +55,8 @@
 		{
 			title: "Community",
 			links: [
-				{ label: "Contribute", href: `${GITHUB_URL}/blob/main/CONTRIBUTING.md`, external: true },
+				{ label: "Contribute", href: CONTRIBUTING_URL, external: true },
 				{ label: "Issues", href: `${GITHUB_URL}/issues`, external: true },
-				{ label: "Discussions", href: `${GITHUB_URL}/discussions`, external: true },
 				{ label: "Sponsors", href: "https://github.com/sponsors/RamaHerbin", external: true },
 			],
 		},

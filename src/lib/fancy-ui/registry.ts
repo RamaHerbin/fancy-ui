@@ -319,7 +319,12 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		tags: ["background", "stars", "canvas", "animation", "3d", "space"],
 		props: [
-			{ name: "color", type: "string", default: '"#FFF"', description: "Star color as hex string" },
+			{
+				name: "color",
+				type: "string",
+				default: '"currentColor"',
+				description: "Star color: a hex string, or currentColor to follow the text colour",
+			},
 			{ name: "count", type: "number", default: "200", description: "Number of stars" },
 		],
 	},
@@ -902,7 +907,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "RainbowButton",
 		slug: "rainbow-button",
 		description:
-			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo",
+			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo. Other native attributes are forwarded to the rendered element",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -927,6 +932,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "disabled",
 				type: "boolean",
 				description: "Disables the button and suppresses the press cue",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Called once per activation, after the optional sound cue; never while disabled.",
 			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],
@@ -1730,8 +1741,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "color",
 				type: "string",
-				default: '"#000000"',
-				description: "Color of the squares (hex format)",
+				default: '"currentColor"',
+				description:
+					"Color of the squares: a hex string, or currentColor to follow the text colour",
 			},
 			{
 				name: "maxOpacity",
@@ -1910,6 +1922,13 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds the light above SDR white in a WebGPU layer with extended tone mapping: the hottest tiles peak around 1000 nits and the halo gets a hot core. Elsewhere nothing starts and the mosaic is unchanged",
+			},
 			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
 			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
 			{
@@ -3089,7 +3108,8 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "particleColor",
 				type: "string",
 				default: '"#ffffff"',
-				description: "Color of the particles",
+				description:
+					"Color of the particles: a hex string, or currentColor to follow the text colour",
 			},
 			{
 				name: "minSize",
@@ -3317,6 +3337,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"#ffffff"',
 				description: "Text color in dark mode",
+			},
+			{
+				name: "maxDpr",
+				type: "number",
+				default: "2",
+				description: "Upper bound for the renderer's device pixel ratio",
 			},
 		],
 	},
@@ -5760,6 +5786,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Called with the value and whether the write actually succeeded",
 			},
 			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Click handler, called right after the copy starts; never called while disabled",
+			},
+			{
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes",
@@ -5779,6 +5811,112 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
+	},
+
+	"follow-button": {
+		name: "FollowButton",
+		slug: "follow-button",
+		description:
+			"A follow toggle that shows the result at once, then commits when the server agrees or rolls back and says so, with the width held steady across every label",
+		category: "actions",
+		group: "core",
+		status: "done",
+		dependencies: ["button", "status-morph"],
+		tags: ["follow", "subscribe", "toggle", "async", "optimistic", "button"],
+		props: [
+			{
+				name: "following",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the viewer follows (bindable). The committed value is written back when onToggle resolves, never before; a write from the parent while an attempt is pending wins and drops that attempt",
+			},
+			{
+				name: "onToggle",
+				type: "(next: boolean) => void | Promise<unknown>",
+				description:
+					"Called with the value the click asks for. Return nothing to commit at once, or a promise: resolve commits, reject (or throw) rolls back, shows the error and announces it. Clicking again retries",
+			},
+			{
+				name: "onFollowingChange",
+				type: "(following: boolean) => void",
+				description:
+					"Called with the committed value, once per successful attempt; not called for a rolled-back or superseded one",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Stable accessible name, e.g. "Follow Rama"; it never changes with the visible text. Defaults to the idle label',
+			},
+			{
+				name: "labels",
+				type: "{ follow?: string; following?: string; unfollow?: string }",
+				default: '{ follow: "Follow", following: "Following", unfollow: "Unfollow" }',
+				description:
+					"Visible text per state. The unfollow text is previewed on hover or keyboard focus of a fine pointer, never on touch",
+			},
+			{
+				name: "errorLabel",
+				type: "string",
+				default: '"Try again"',
+				description: "Visible text and assertive announcement after a failed attempt",
+			},
+			{
+				name: "resetMs",
+				type: "number",
+				default: "2000",
+				description: "How long the error state holds before reverting, in milliseconds",
+			},
+			{
+				name: "variant",
+				type: "ButtonVariant",
+				description:
+					'Button variant. Left unset, the idle state is "primary" and the following state "outline"',
+			},
+			{
+				name: "size",
+				type: "ButtonSize",
+				default: '"md"',
+				description: "Passed straight through to the underlying Button",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the button and blocks the toggle",
+			},
+			{
+				name: "iconOnly",
+				type: "boolean",
+				default: "false",
+				description: "Drops the visible text, keeping the accessible name",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Click handler, called right after the toggle starts; never called while disabled or pending",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference, matching Button's own ref type",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on or toggle-off on a committed change and error on a failed one, with the error vibration, once the user has enabled sound",
+			},
+		],
 	},
 
 	// =========================================================================
@@ -6765,6 +6903,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Additional CSS classes merged onto the panel",
 			},
 			{
+				name: "id",
+				type: "string",
+				description:
+					"The panel's id, for the aria-controls of a trigger rendered outside the component",
+			},
+			{
 				name: "ref",
 				type: "HTMLDivElement | null",
 				default: "null",
@@ -6831,6 +6975,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes merged onto the panel",
+			},
+			{
+				name: "id",
+				type: "string",
+				description:
+					"The panel's id, for the aria-controls of a trigger rendered outside the component",
 			},
 			{
 				name: "ref",
@@ -8096,6 +8246,85 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"tick-nav": {
+		name: "TickNav",
+		slug: "tick-nav",
+		description:
+			"A navigation list on a ruler of tick marks: every line the pointer crosses plucks like a string, neighbouring lines and ticks stretch and light up on springs, and an optional preview card follows the pointer.",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		tags: ["nav", "sidebar", "ruler", "ticks", "proximity", "spring", "preview", "hover"],
+		props: [
+			{
+				name: "items",
+				type: "TickNavItem[]",
+				required: true,
+				description:
+					"The rows, top to bottom: `{ id, label, href?, badge?, disabled? }`. A row with `href` renders as a link, otherwise as a button.",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Id of the current item. Bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(id: string) => void",
+				description: "Called with the id of an item that is activated and not already current.",
+			},
+			{
+				name: "preview",
+				type: "Snippet<[TickNavItem]>",
+				description:
+					"Content of the card that follows the pointer while a row is hovered (or sits beside a keyboard-focused row). Leave it out and no card is rendered.",
+			},
+			{
+				name: "reach",
+				type: "number",
+				default: "4",
+				description: "Rows over which the neighbours of the hovered row still react.",
+			},
+			{
+				name: "minorTicks",
+				type: "number",
+				default: "2",
+				description: "Ruler ticks drawn between two rows.",
+			},
+			{
+				name: "variant",
+				type: '"default" | "neon"',
+				default: '"default"',
+				description:
+					"Neon turns the lines into glowing tubes: proximity raises the glow, a beam of light rides every pluck, labels glow on hover, and the current line breathes. Made for dark surfaces.",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"Neon only: on a display that reports HDR, draws the light in a WebGPU canvas with extended tone mapping, so the tubes reach SDR white and the beam peaks around 1000 nits. Elsewhere the CSS glow carries the effect alone.",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: '"Navigation"',
+				description: "Accessible name of the nav landmark.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a cue for every line a mouse or pen plucks (hover for an item, a softer tick for a ruler tick), once the user has enabled sound",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the nav.",
+			},
+		],
+	},
 	sidebar: {
 		name: "Sidebar",
 		slug: "sidebar",
@@ -8362,6 +8591,223 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "The trigger's content, typically the tab's label.",
 			},
 			{ name: "TabsContent.children", description: "The panel's content." },
+		],
+	},
+
+	accordion: {
+		name: "Accordion",
+		slug: "accordion",
+		description:
+			"A stack of headed sections where one or several open at a time, with a collapse that animates without measuring, arrow-key navigation between headers and labelled regions for assistive tech.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		dependencies: ["collapsible"],
+		tags: ["accordion", "disclosure", "faq", "collapse", "compound", "navigation"],
+		props: [
+			{
+				name: "type",
+				type: '"single" | "multiple"',
+				default: '"single"',
+				description: '"single" keeps one item open at a time, "multiple" lets any number be open.',
+			},
+			{
+				name: "value",
+				type: "string | string[]",
+				description:
+					'The open item, bindable. A string for type="single" ("" when none is open), a string array for type="multiple".',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string | string[]) => void",
+				description: "Called with the new value each time an item toggles.",
+			},
+			{
+				name: "collapsible",
+				type: "boolean",
+				default: "false",
+				description:
+					'With type="single", lets the open item be closed again. Without it one item stays open once opened.',
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every item.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"vertical"',
+				description: "The axis the items stack on, and which arrow-key pair moves focus.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "AccordionItem.value",
+				type: "string",
+				required: true,
+				description: "This item's value: what the accordion's value holds while it is open.",
+			},
+			{
+				name: "AccordionItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this item; its trigger is skipped by the arrow keys.",
+			},
+			{
+				name: "AccordionItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the item.",
+			},
+			{
+				name: "AccordionItem.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the item element.",
+			},
+			{
+				name: "AccordionTrigger.headingLevel",
+				type: "1 | 2 | 3 | 4 | 5 | 6",
+				default: "3",
+				description: "The level of the heading that wraps the trigger button.",
+			},
+			{
+				name: "AccordionTrigger.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this trigger, on top of its item and the accordion.",
+			},
+			{
+				name: "AccordionTrigger.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "AccordionTrigger.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger's button element.",
+			},
+			{
+				name: "AccordionContent.forceMount",
+				type: "boolean",
+				default: "true",
+				description:
+					"Keeps the children mounted while the item is closed. Pass false to unmount them once the collapse has finished.",
+			},
+			{
+				name: "AccordionContent.class",
+				type: "string",
+				description:
+					"Additional CSS classes, merged onto the inner body so padding collapses with the panel.",
+			},
+			{
+				name: "AccordionContent.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the region element that animates.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The AccordionItems." },
+			{
+				name: "AccordionItem.children",
+				description: "An AccordionTrigger and an AccordionContent.",
+			},
+			{ name: "AccordionTrigger.children", description: "The trigger's label." },
+			{ name: "AccordionContent.children", description: "The item's content." },
+		],
+	},
+
+	collapsible: {
+		name: "Collapsible",
+		slug: "collapsible",
+		description:
+			"A single disclosure: a trigger that expands and collapses a region, animated without measuring so an interrupted toggle simply reverses, with the closed content kept in the page.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["collapsible", "disclosure", "expand", "collapse", "compound", "navigation"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the content is expanded, bindable.",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called with the new state each time the trigger toggles it.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Makes the trigger inert. A bound open can still be changed from outside.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "CollapsibleTrigger.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables this trigger on top of the root's own disabled.",
+			},
+			{
+				name: "CollapsibleTrigger.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "CollapsibleTrigger.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger's button element.",
+			},
+			{
+				name: "CollapsibleContent.forceMount",
+				type: "boolean",
+				default: "true",
+				description:
+					"Keeps the children mounted while closed (inert and hidden). Pass false to unmount them once the collapse has finished and mount them again on open.",
+			},
+			{
+				name: "CollapsibleContent.class",
+				type: "string",
+				description:
+					"Additional CSS classes, merged onto the inner body so padding collapses with the panel.",
+			},
+			{
+				name: "CollapsibleContent.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the region element that animates.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "A CollapsibleTrigger and a CollapsibleContent." },
+			{ name: "CollapsibleTrigger.children", description: "The trigger's content." },
+			{ name: "CollapsibleContent.children", description: "The content." },
 		],
 	},
 
@@ -8797,6 +9243,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "id",
+				type: "string",
+				description:
+					"The panel's id, for the aria-controls of a trigger rendered outside the component",
 			},
 			{
 				name: "ref",
@@ -9557,6 +10009,85 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	badge: {
+		name: "Badge",
+		slug: "badge",
+		description:
+			"A short pill of status text in five treatments and two sizes, with native span attributes passed through",
+		category: "data-display",
+		group: "core",
+		status: "done",
+		tags: ["badge", "label", "status", "pill", "tag", "chip"],
+		props: [
+			{
+				name: "variant",
+				type: '"default" | "secondary" | "outline" | "destructive" | "success"',
+				default: '"default"',
+				description:
+					"Visual treatment. Always pair it with a visible word: colour is never the message",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md"',
+				default: '"md"',
+				description: "Compact or regular",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+		],
+		slots: [{ name: "children", description: "The label" }],
+	},
+
+	avatar: {
+		name: "Avatar",
+		slug: "avatar",
+		description:
+			"A person or account as an image that shows a skeleton while it loads and falls back to one or two initials on a colour fixed by the name, as a circle or a rounded square",
+		category: "data-display",
+		group: "core",
+		status: "done",
+		tags: ["avatar", "profile", "user", "initials", "image", "fallback"],
+		props: [
+			{
+				name: "src",
+				type: "string",
+				description: "Image URL. While it loads a skeleton shows; if it fails the initials show",
+			},
+			{
+				name: "alt",
+				type: "string",
+				description:
+					'The accessible name, and the one required decision whenever src is set: describe the image, or pass "" to mark the avatar decorative beside a visible name. Falls back to name',
+			},
+			{
+				name: "name",
+				type: "string",
+				description:
+					"Who this is. Gives one or two initials for the fallback and a colour that is always the same for the same name",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Diameter: 28, 36 or 64px",
+			},
+			{
+				name: "shape",
+				type: '"circle" | "square"',
+				default: '"circle"',
+				description: "Fully round, or a rounded square",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+		],
+	},
+
 	"status-morph": {
 		name: "StatusMorph",
 		slug: "status-morph",
@@ -9837,4 +10368,13 @@ export function getComponentCategory(slug: string): ComponentCategory | undefine
  */
 export function hasSoundProp(slug: string): boolean {
 	return registry[slug]?.props?.some((prop) => /^(?:[A-Za-z]+\.)?sound$/.test(prop.name)) ?? false;
+}
+
+/**
+ * Components that are still part of the public surface: everything except the
+ * entries kept as deprecated aliases. Galleries, related lists and prev/next
+ * navigation read this instead of the raw registry.
+ */
+export function getListedComponents(): ComponentMeta[] {
+	return Object.values(registry).filter((c) => !c.deprecated);
 }

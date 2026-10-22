@@ -1,7 +1,8 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 
 import { cn } from "../../utils.js";
-import { dismissToast, pauseToast, resumeToast } from "./store.js";
+import { dismissToast, pauseToast, resumeToast, settleToastAction } from "./store.js";
 import type { ToastItem } from "./store.js";
 import "./toast.css";
 
@@ -41,9 +42,14 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast(
 	// source keeps them non-reactive.
 	const hovering = useRef(false);
 	const focusedWithin = useRef(false);
+	// Mirrors the pause state for the progress bar's `data-paused` — the only
+	// thing in the markup that reads it, hence the one piece of state.
+	const [paused, setPaused] = useState(false);
 
 	function syncTimer() {
-		if (hovering.current || focusedWithin.current) {
+		const isPaused = hovering.current || focusedWithin.current;
+		setPaused(isPaused);
+		if (isPaused) {
 			pauseToast(item.id);
 		} else {
 			resumeToast(item.id);
@@ -71,6 +77,9 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast(
 	}
 
 	function handleAction() {
+		// Settle first: an `onClick` that dismisses the toast must not turn
+		// the close reason into "dismiss".
+		settleToastAction(item.id);
 		item.action?.onClick();
 	}
 
@@ -81,6 +90,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast(
 	const classes = cn(
 		"ft-toast bg-popover text-popover-foreground border-border flex w-[300px] items-center gap-3 rounded-xl border p-3 shadow-[0_12px_32px_rgba(0,0,0,.5)]",
 		item.variant === "error" && "border-destructive/30",
+		item.progress && "relative overflow-hidden",
 		className
 	);
 
@@ -138,6 +148,15 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast(
 			>
 				✕
 			</button>
+
+			{item.progress ? (
+				<div
+					className="ft-toast-progress"
+					aria-hidden="true"
+					data-paused={paused ? "true" : "false"}
+					style={{ "--toast-duration": `${item.duration}ms` } as CSSProperties}
+				></div>
+			) : null}
 		</div>
 	);
 });

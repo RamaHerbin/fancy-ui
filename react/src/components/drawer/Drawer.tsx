@@ -35,6 +35,11 @@ export interface DrawerProps {
 	children?: ReactNode;
 	/** Content pinned below the body, e.g. actions. */
 	footer?: ReactNode;
+	/**
+	 * The panel's `id`. A trigger the caller renders outside the component
+	 * points its `aria-controls` at it while the panel is open.
+	 */
+	id?: string;
 	/** Additional CSS classes merged onto the panel. */
 	className?: string;
 	/**
@@ -70,6 +75,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(function Drawer(
 		swipeToClose = true,
 		children,
 		footer,
+		id,
 		className,
 		ariaLabel,
 		sound = false,
@@ -239,6 +245,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(function Drawer(
 		escape: dismissible,
 		outsideClick: dismissible,
 		active: open,
+		keepFocus: true,
 	});
 
 	// Convention C-2: composed ABOVE the conditional below.
@@ -363,6 +370,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(function Drawer(
 					/>
 					<div
 						ref={panelRef}
+						id={id}
 						className={panelClasses}
 						role="dialog"
 						aria-modal="true"
@@ -407,7 +415,9 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(function Drawer(
 						<div className="ft-drawer-body flex flex-1 flex-col gap-3 overflow-y-auto">
 							{children}
 						</div>
-						{footer ? <div className="ft-drawer-footer flex justify-end gap-2">{footer}</div> : null}
+						{footer ? (
+							<div className="ft-drawer-footer flex justify-end gap-2">{footer}</div>
+						) : null}
 					</div>
 				</>
 			) : null}

@@ -8,6 +8,36 @@ function root(container: HTMLElement) {
 	return container.firstElementChild as HTMLElement;
 }
 
+/**
+ * jsdom marks `isTrusted` unforgeable and the hover gate rejects untrusted
+ * events, so the `pointerenter` listeners bound on a node are captured and
+ * invoked with a trusted-looking event instead.
+ */
+const enterListeners: Array<[EventTarget, EventListener]> = [];
+function captureEnterListeners() {
+	const original = EventTarget.prototype.addEventListener;
+	return vi.spyOn(EventTarget.prototype, "addEventListener").mockImplementation(function (
+		this: EventTarget,
+		type,
+		listener,
+		options
+	) {
+		if (type === "pointerenter" && typeof listener === "function") {
+			enterListeners.push([this, listener as EventListener]);
+		}
+		return original.call(this, type, listener, options);
+	});
+}
+
+/** A real hover: pointer movement first, then a trusted pointerenter. */
+function hover(node: Element, pointerType = "mouse") {
+	document.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+	const event = { type: "pointerenter", isTrusted: true, pointerType, relatedTarget: null };
+	for (const [target, listener] of enterListeners) {
+		if (target === node) listener(event as unknown as Event);
+	}
+}
+
 describe("Button", () => {
 	afterEach(cleanup);
 
@@ -185,11 +215,10 @@ describe("Button", () => {
 		expect(onClick).not.toHaveBeenCalled();
 	});
 
-	it("makes a loading anchor inert: strips href, marks it aria-disabled, and drops it from the tab order", () => {
-		// This is the regression case for the anchor-branch loading bug: href and
-		// target drive real browser behaviour — middle-click, "open link in new
-		// tab" from the context menu — that never reaches `onClick` at all, so
-		// `disabled ? undefined : href` alone left a loading link fully navigable.
+	it("keeps a loading anchor in the tab order and blocks its activation: href stays, aria-disabled/aria-busy are set, click and middle-click are prevented", () => {
+		// A busy control is not an unavailable one: the link keeps its href and
+		// its tab stop so keyboard focus survives the request, and activation is
+		// blocked in the handlers instead.
 		const onClick = vi.fn();
 		const { container } = render(
 			<Button href="https://example.com" loading onClick={onClick}>
@@ -198,13 +227,18 @@ describe("Button", () => {
 		);
 		const el = root(container);
 
-		expect(el.getAttribute("href")).toBeNull();
+		expect(el.getAttribute("href")).toBe("https://example.com");
 		expect(el.getAttribute("target")).toBeNull();
 		expect(el.getAttribute("aria-disabled")).toBe("true");
-		expect(el.getAttribute("tabindex")).toBe("-1");
+		expect(el.hasAttribute("tabindex")).toBe(false);
 		expect(el.getAttribute("aria-busy")).toBe("true");
 
-		el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+		el.dispatchEvent(click);
+		expect(click.defaultPrevented).toBe(true);
+		const aux = new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 });
+		el.dispatchEvent(aux);
+		expect(aux.defaultPrevented).toBe(true);
 		expect(onClick).not.toHaveBeenCalled();
 	});
 
@@ -284,11 +318,16 @@ describe("Button", () => {
 	describe("sound", () => {
 		let play: ReturnType<typeof vi.spyOn>;
 
+		let listenerSpy: ReturnType<typeof captureEnterListeners>;
+
 		beforeEach(() => {
 			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			enterListeners.length = 0;
+			listenerSpy = captureEnterListeners();
 		});
 
 		afterEach(() => {
+			listenerSpy.mockRestore();
 			play.mockRestore();
 		});
 
@@ -303,6 +342,34 @@ describe("Button", () => {
 
 			expect(play).toHaveBeenCalledTimes(1);
 			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays the hover cue on a mouse pointerenter when sound is enabled, then press once on click", async () => {
+			const { container } = render(<Button sound>Go</Button>);
+
+			hover(root(container));
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play.mock.calls[0][0]).toBe("hover");
+
+			play.mockClear();
+			await fireEvent.click(root(container));
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("does not play hover for touch pointers, without sound, or while disabled", () => {
+			const on = render(<Button sound>Go</Button>);
+			hover(root(on.container), "touch");
+			const off = render(<Button>Go</Button>);
+			hover(root(off.container));
+			const dis = render(
+				<Button sound disabled>
+					Go
+				</Button>
+			);
+			hover(root(dis.container));
+
+			expect(play).not.toHaveBeenCalled();
 		});
 
 		it("plays nothing by default (sound prop omitted)", async () => {
@@ -369,6 +436,53 @@ describe("Button", () => {
 			);
 
 			expect(root(container).hasAttribute("sound")).toBe(false);
+		});
+	});
+
+	// The Svelte and Vue buttons hold the leading icon in one fixed
+	// calc(1em + 1px) cell, the size of the spinner that replaces it. Without
+	// that cell the icon sat a pixel off centre in every IconButton (the
+	// parity bench's tooltip trigger), and a loading swap moved the label.
+	describe("lead slot", () => {
+		it("wraps iconStart in the shared lead cell, exposed to assistive tech", () => {
+			const { container } = render(
+				<Button iconStart={<span className="my-icon-start">+</span>}>Save</Button>
+			);
+			const lead = container.querySelector(".ft-btn-lead");
+
+			expect(lead).toBeTruthy();
+			expect(lead?.querySelector(":scope > .ft-btn-lead-icon > .my-icon-start")).toBeTruthy();
+			expect(lead?.hasAttribute("aria-hidden")).toBe(false);
+		});
+
+		it("renders no lead cell at all when there is neither a spinner nor an iconStart", () => {
+			const { container } = render(<Button>Save</Button>);
+			expect(container.querySelector(".ft-btn-lead")).toBeNull();
+		});
+
+		it("keeps aria-busy on the control and aria-hidden on the cell, never the other way round", () => {
+			const { container } = render(
+				<Button loading iconStart={<span className="my-icon-start">+</span>}>
+					Save
+				</Button>
+			);
+			const el = root(container);
+			const lead = container.querySelector(".ft-btn-lead")!;
+
+			expect(el.getAttribute("aria-busy")).toBe("true");
+			expect(el.hasAttribute("aria-hidden")).toBe(false);
+			expect(lead.getAttribute("aria-hidden")).toBe("true");
+			expect(lead.querySelector(":scope > .ft-btn-spinner")).toBeTruthy();
+		});
+
+		it("renders the same lead cell on the anchor branch", () => {
+			const { container } = render(
+				<Button href="https://example.com" iconStart={<span className="my-icon-start">+</span>}>
+					Save
+				</Button>
+			);
+			expect(root(container).tagName).toBe("A");
+			expect(container.querySelector(".ft-btn-lead .my-icon-start")).toBeTruthy();
 		});
 	});
 });

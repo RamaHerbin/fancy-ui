@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, KeyboardEvent, MouseEvent, ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import { useMenuItemRef } from "../../internals/menu.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useMenuContext, useSubContext } from "./types.js";
 
-export interface DropdownMenuSubTriggerProps {
+interface DropdownMenuSubTriggerOwnProps {
 	/** Disables the row: skipped by keyboard navigation and typeahead, inert to click/hover. */
 	disabled?: boolean;
 	/** Leading icon. */
@@ -16,6 +16,15 @@ export interface DropdownMenuSubTriggerProps {
 	/** Additional CSS classes. */
 	className?: string;
 }
+
+/**
+ * Native `<button>` attributes and listeners are forwarded to the button; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface DropdownMenuSubTriggerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof DropdownMenuSubTriggerOwnProps>,
+		DropdownMenuSubTriggerOwnProps {}
 
 // Open-intent delay, mirroring `DropdownMenuSub`'s close-intent one: a pointer
 // merely passing over this row on its way somewhere else shouldn't pop the
@@ -32,6 +41,11 @@ export function DropdownMenuSubTrigger({
 	icon,
 	children,
 	className,
+	onClick,
+	onMouseEnter,
+	onMouseLeave,
+	onKeyDown,
+	...rest
 }: DropdownMenuSubTriggerProps) {
 	const parentMenu = useMenuContext();
 	const sub = useSubContext();
@@ -76,16 +90,17 @@ export function DropdownMenuSubTrigger({
 	// row it belongs to is gone.
 	useEffect(() => clearOpenIntent, [clearOpenIntent]);
 
-	function handleClick(): void {
+	function handleClick(event: MouseEvent<HTMLButtonElement>): void {
 		if (disabled) return;
 		// Same reasoning as `DropdownMenuItem`'s own click handler: hover
 		// already syncs the parent menu's tracked focus position, but a click
 		// reached without one first (a touch tap) wouldn't otherwise.
 		if (itemRef.current) parentMenu.focus.focusItem(itemRef.current);
 		sub.openSub();
+		onClick?.(event);
 	}
 
-	function handleMouseEnter(): void {
+	function handleMouseEnter(event: MouseEvent<HTMLButtonElement>): void {
 		if (disabled || !itemRef.current) return;
 		sub.keepOpen();
 		parentMenu.focus.focusItem(itemRef.current);
@@ -94,11 +109,16 @@ export function DropdownMenuSubTrigger({
 			openIntentTimer.current = null;
 			sub.openSub();
 		}, OPEN_INTENT_MS);
+		onMouseEnter?.(event);
 	}
 
-	function handleMouseLeave(): void {
+	function handleMouseLeave(event: MouseEvent<HTMLButtonElement>): void {
 		clearOpenIntent();
 		sub.scheduleClose();
+		// The internal cleanup above still runs while disabled (the row can turn
+		// disabled while hovered); only the consumer listener is guarded.
+		if (disabled) return;
+		onMouseLeave?.(event);
 	}
 
 	// ArrowRight always means "into the submenu", regardless of which side it
@@ -111,6 +131,7 @@ export function DropdownMenuSubTrigger({
 			event.preventDefault();
 			sub.openSub();
 		}
+		onKeyDown?.(event);
 	}
 
 	// No font-size here — same reasoning as `DropdownMenuItem`'s own classes:
@@ -124,6 +145,7 @@ export function DropdownMenuSubTrigger({
 
 	return (
 		<button
+			{...rest}
 			ref={ref}
 			id={sub.triggerId}
 			type="button"

@@ -1,4 +1,4 @@
-import { redirect, error } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
 import { dev } from "$app/environment";
 import { env } from "$env/dynamic/private";
 import { verifySessionCookie, getTokenFromCookie } from "$lib/server/auth/index.js";
@@ -26,10 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			const session = verifySessionCookie(event.cookies);
 
 			if (!session) {
-				if (isBuilderApi) {
-					error(401, "Unauthorized");
-				}
-				redirect(302, "/auth/login");
+				error(401, "Sign-in required");
 			}
 
 			event.locals.user = session;
@@ -37,5 +34,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	return resolve(event);
+	const response = await resolve(event);
+
+	// /skins renders client-side only (ssr = false), so the served HTML carries
+	// no robots meta; the header is the only signal crawlers see before hydration.
+	if (pathname === "/skins" || pathname.startsWith("/skins/")) {
+		response.headers.set("X-Robots-Tag", "noindex, nofollow");
+	}
+
+	return response;
 };

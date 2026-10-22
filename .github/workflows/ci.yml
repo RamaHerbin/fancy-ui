@@ -34,9 +34,12 @@ jobs:
           # For pull_request_target, check out the actual head commit (not base)
           ref: ${{ github.event.pull_request.head.sha }}
 
+      # Same pnpm major as release.yml, which needs 11 to publish through npm
+      # trusted publishing: the install and the scripts CI checks are then the
+      # ones the release job runs. Every job in this file and e2e.yml uses it.
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -51,12 +54,25 @@ jobs:
       - run: pnpm check:props
       # The framework-free engines the three packages share must stay byte-identical.
       - run: pnpm check:cores
+      # Each package's Tailwind entry compiles to real colour rules and default tokens.
+      - run: pnpm check:tailwind
+      # The component count the READMEs and package.json state matches the registry.
+      - run: pnpm check:readme-count
       - run: pnpm check
+      # Also the gallery thumbnail gate: src/lib/components/docs/thumbs.test.ts
+      # fails when a shipped slug has no entry in thumbs.json, when a listed
+      # thumbnail file is missing, or when one is a near-blank frame.
       - run: pnpm test
       - run: pnpm build
       # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
       - run: pnpm check:registry-items
       - run: pnpm package
+      # No raw bundler environment read survives into the packaged output: a
+      # consumer's bundler may not define it, and the read then throws or
+      # leaves a branch live. The package is named and --require-built is set so
+      # a missing build fails here instead of the script finding nothing to check.
+      - name: No raw environment read in dist
+        run: node scripts/check-dist-env.mjs --require-built .
 
       # The published tarball is an allow-list (`files` in package.json) with
       # negated patterns for test rigs, the scaffold template and the per-folder
@@ -77,6 +93,85 @@ jobs:
             console.log(files.length + ' files, allow-list clean');
           "
 
+  preview-health:
+    name: Preview health
+    # Every shipped component page of the built docs site, every preview stage:
+    # resolution errors, collapsed layouts, unsized canvases, invisible demos,
+    # crashes and console errors (tests/e2e/preview-health.spec.ts). Two
+    # projects: dark with WebGL through SwiftShader, and light with reduced
+    # motion. The config builds the site and serves `vite preview` itself.
+    # Runs once `check` is green, so a failure here is about what the previews
+    # show, not about types or unit tests. The no-GPU project and the sweep of
+    # production run nightly (preview-health-nightly.yml).
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    needs: [check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Same Chromium cache key as e2e.yml and the consumers job.
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Projects gpu + gpu-light-rm (see the script in package.json).
+      - run: pnpm test:preview-health
+
+      # The merged summary grouped by failure class, plus a screenshot of every
+      # failing stage. Kept on success too: the summary also carries the notes
+      # (slow spinners) and is the baseline the next failure is read against.
+      - name: Upload the preview-health summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health
+          path: test-results/preview-health.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the failing-stage screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
   react:
     name: React package
     # Same duplicate-run guard as `check` — see the comment there.
@@ -93,7 +188,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -115,6 +210,9 @@ jobs:
       # missing artifact a failure rather than a silent half-check.
       - run: pnpm --filter fancy-ui-react exec node scripts/check-matrix.mjs --require-dist
       - run: pnpm --filter fancy-ui-react exec publint
+      # Same check as the `check` job's, on this package's build.
+      - name: No raw environment read in react/dist
+        run: node scripts/check-dist-env.mjs --require-built react
 
       - name: Pack dry-run — allow-list sanity
         working-directory: react
@@ -211,7 +309,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -278,7 +376,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -293,6 +391,9 @@ jobs:
       - run: pnpm --filter fancy-ui-vue run test:scripts
       - run: pnpm --filter fancy-ui-vue exec node scripts/check-matrix.mjs --require-dist
       - run: pnpm --filter fancy-ui-vue exec publint
+      # Same check as the `check` job's, on this package's build.
+      - name: No raw environment read in vue/dist
+        run: node scripts/check-dist-env.mjs --require-built vue
 
       - name: Pack dry-run — allow-list sanity
         working-directory: vue
@@ -346,7 +447,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -402,3 +503,79 @@ jobs:
             exit 1
           fi
           echo "✅ Changeset file present."
+
+  consumers:
+    name: Consumers
+    # Every package installed from its packed tarball into the apps under
+    # examples/consumers, each copied outside the checkout so nothing can
+    # resolve from the monorepo's node_modules: SvelteKit and Svelte + Vite for
+    # fancy-ui-svelte, React + Vite and Next for fancy-ui-react, Vue + Vite and
+    # Nuxt for fancy-ui-vue. Builds, then a Playwright smoke per app. Runs once
+    # the package jobs are green, so a failure here is about the published
+    # shape (exports, files, declared dependencies, Tailwind entry), not the
+    # source. See examples/consumers/README.md.
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    needs: [check, react, vue]
+    runs-on: ubuntu-latest
+    # About 14 minutes on a loaded laptop for all six apps (Next and Nuxt are
+    # most of it); the cap stops a hung server from holding a runner for hours.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The smokes use the repo's @playwright/test; cache its Chromium by
+      # version, under the same key as e2e.yml so both share one entry.
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      # The apps install with npm, outside the pnpm store setup-node caches.
+      # They carry no lockfile, so this only saves downloads: npm still
+      # resolves every range against the registry on each run. A saved key is
+      # never overwritten, so the key carries the ISO week: a fresh entry is
+      # saved each week from what the ranges resolve to then, and the restore
+      # stays within the week so old tarballs do not pile up from week to week.
+      - name: Read the week
+        id: week
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: consumers-npm-${{ runner.os }}-${{ steps.week.outputs.week }}-${{ hashFiles('examples/consumers/*/package.json') }}
+          restore-keys: consumers-npm-${{ runner.os }}-${{ steps.week.outputs.week }}-
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - run: pnpm consumers
