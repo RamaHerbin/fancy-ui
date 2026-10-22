@@ -399,19 +399,6 @@ export default {
 		"<grad>{count}</grad> animasyonlu ve etkileşimli arayüz bileşeninden oluşan bir koleksiyondur; Svelte 5, React ve Vue için aynı tasarım belirteçleri üzerine kurulmuştur.",
 	"intro.importHint":
 		"İhtiyacınız olan bileşenleri içe aktarın. İçe aktarma yolu kullandığınız framework'e göre değişir.",
-	"install.astro.heading": "Astro",
-	"install.astro.body":
-		"FancyUI, Astro'da resmi Svelte entegrasyonu ile çalışır, ek paket gerekmez. Entegrasyonu ve Tailwind'i ekleyin, paketi kurun, ardından 2. adımdaki stil dosyasını layout'unuzda içe aktarın.",
-	"install.astro.static":
-		"{directive} yönergesi olmadan kullanılan bir bileşen HTML ve CSS olarak işlenir ve hiç JavaScript göndermez. BorderBeam, Marquee, Meteors ve işleyicisi olmayan düğmeler bu şekilde çalışır.",
-	"install.astro.island":
-		"Bir bileşeni hydrate etmek için onu yerel bir {svelte} dosyasında içe aktarın ve yönergeyi bu dosyaya koyun. İşleyiciler, durum ve snippet'ler de bu dosyaya yazılır: {astro} dosyasından bir adaya yalnızca varsayılan slot ulaşır.",
-	"install.astro.why":
-		"Bir {astro} dosyasında paket kökünden içe aktarılan bir bileşene yönerge koymayın: ada bu durumda tüm kütüphaneyi yükler. Tek bir RainbowButton adasıyla yerel dosya {wrapped} JavaScript gönderir, paket kökü ise three.js ve GSAP dahil {barrel} gönderir; bu chunk ardından sitenin adalı tüm sayfalarınca paylaşılır.",
-	"install.astro.router":
-		"{router} desteklenir: adalar her gezinmede yok edilir ve {persist} birini sayfalar arasında canlı tutar.",
-	"install.astro.versions":
-		"astro {astroVersion} ve @astrojs/svelte {integrationVersion} ile test edildi; bunlar Node {node} veya daha yenisini gerektirir.",
 	"install.kitOptional":
 		"SvelteKit isteğe bağlıdır: FancyUI, Vite ile derlenen her Svelte 5 projesinde çalışır.",
 	"theming.cssPerFramework":

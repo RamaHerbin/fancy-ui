@@ -398,19 +398,6 @@ export default {
 		"je kolekce <grad>{count}</grad> animovaných interaktivních UI komponent pro Svelte 5, React a Vue, postavených na společných design tokenech.",
 	"intro.importHint":
 		"Stačí importovat potřebné komponenty. Cesta importu se liší podle frameworku.",
-	"install.astro.heading": "Astro",
-	"install.astro.body":
-		"FancyUI funguje v Astru díky oficiální integraci Svelte, bez dalšího balíčku. Stačí přidat integraci a Tailwind, nainstalovat balíček a v layoutu importovat styly z kroku 2.",
-	"install.astro.static":
-		"Komponenta použitá bez direktivy {directive} se vykreslí do HTML a CSS a neposílá žádný JavaScript. Takto fungují BorderBeam, Marquee, Meteors a tlačítka bez obsluhy.",
-	"install.astro.island":
-		"Pro hydrataci se komponenta importuje v lokálním souboru {svelte} a direktiva se umístí na tento soubor. Obsluhy, stav a snippety patří také do tohoto souboru: z {astro} se do ostrova dostane jen výchozí slot.",
-	"install.astro.why":
-		"Direktiva nepatří na komponentu importovanou z kořene balíčku v souboru {astro}: ostrov by pak načetl celou knihovnu. U jediného ostrova RainbowButton pošle lokální soubor {wrapped} JavaScriptu a kořen balíčku {barrel} včetně three.js a GSAP a tento chunk pak sdílejí všechny stránky webu s ostrovy.",
-	"install.astro.router":
-		"{router} je podporován: ostrovy se při každé navigaci zničí a {persist} jeden z nich udrží mezi stránkami.",
-	"install.astro.versions":
-		"Otestováno s astro {astroVersion} a @astrojs/svelte {integrationVersion}, které vyžadují Node {node} nebo novější.",
 	"install.kitOptional":
 		"SvelteKit je volitelný: FancyUI funguje v jakémkoli projektu Svelte 5 sestaveném pomocí Vite.",
 	"theming.cssPerFramework":

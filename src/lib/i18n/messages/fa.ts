@@ -396,19 +396,6 @@ export default {
 		"مجموعه‌ای از <grad>{count}</grad> کامپوننت رابط کاربری متحرک و تعاملی برای Svelte 5، React و Vue است که همگی بر پایهٔ توکن‌های طراحی یکسانی ساخته شده‌اند.",
 	"intro.importHint":
 		"کامپوننت‌های مورد نیاز خود را وارد (import) کنید. مسیر import به فریم‌ورک شما بستگی دارد.",
-	"install.astro.heading": "Astro",
-	"install.astro.body":
-		"FancyUI از طریق یکپارچه‌سازی رسمی Svelte در Astro کار می‌کند و بستهٔ اضافی لازم ندارد. یکپارچه‌سازی و Tailwind را اضافه کنید، بسته را نصب کنید و سپس شیوه‌نامهٔ گام 2 را در layout خود import کنید.",
-	"install.astro.static":
-		"کامپوننتی که بدون دستور {directive} استفاده شود به HTML و CSS رندر می‌شود و هیچ کد JavaScript نمی‌فرستد. BorderBeam، Marquee، Meteors و دکمه‌های بدون handler این‌گونه کار می‌کنند.",
-	"install.astro.island":
-		"برای hydrate کردن یک کامپوننت، آن را در یک فایل {svelte} محلی import کنید و دستور را روی همان فایل بگذارید. handlerها، state و snippetها هم در همان فایل قرار می‌گیرند: از {astro} فقط اسلات پیش‌فرض به جزیره می‌رسد.",
-	"install.astro.why":
-		"روی کامپوننتی که در فایل {astro} از ریشهٔ بسته import شده دستور نگذارید: در این صورت جزیره کل کتابخانه را بارگذاری می‌کند. با یک جزیرهٔ RainbowButton، فایل محلی {wrapped} کد JavaScript می‌فرستد و ریشهٔ بسته {barrel} به‌همراه three.js و GSAP، و این chunk سپس میان همهٔ صفحه‌های جزیره‌دار سایت مشترک می‌شود.",
-	"install.astro.router":
-		"{router} پشتیبانی می‌شود: جزیره‌ها در هر جابه‌جایی از بین می‌روند و {persist} یکی را میان صفحه‌ها زنده نگه می‌دارد.",
-	"install.astro.versions":
-		"با astro {astroVersion} و @astrojs/svelte {integrationVersion} آزموده شده است که به Node {node} یا جدیدتر نیاز دارند.",
 	"install.kitOptional":
 		"SvelteKit اختیاری است: FancyUI در هر پروژهٔ Svelte 5 که با Vite ساخته شده باشد کار می‌کند.",
 	"theming.cssPerFramework":

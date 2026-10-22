@@ -32,7 +32,10 @@ import Counter from "../islands/Counter.svelte";
 
 	<section class="flex flex-col gap-4" data-testid="islands">
 		<h2 class="text-lg font-medium">Islands: client:load</h2>
-		<RainbowCounter id="rainbow" client:load>Rainbow</RainbowCounter>
+		<RainbowCounter id="rainbow" client:load>
+			Rainbow
+			<span slot="badge" data-testid="badge">named slot</span>
+		</RainbowCounter>
 		<DialogIsland client:load />
 	</section>
 

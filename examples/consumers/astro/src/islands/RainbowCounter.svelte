@@ -7,7 +7,7 @@
 	import type { Snippet } from "svelte";
 	import { trackLifecycle } from "./lifecycle";
 
-	let { id, children }: { id: string; children?: Snippet } = $props();
+	let { id, children, badge }: { id: string; children?: Snippet; badge?: Snippet } = $props();
 	let clicks = $state(0);
 
 	trackLifecycle(`rainbow:${id}`);
@@ -16,4 +16,5 @@
 <div class="flex items-center gap-3" data-testid={id} data-hydrated="true">
 	<RainbowButton onclick={() => clicks++}>{@render children?.()}</RainbowButton>
 	<span data-testid="{id}-clicks">clicks: {clicks}</span>
+	{@render badge?.()}
 </div>

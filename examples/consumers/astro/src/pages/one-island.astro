@@ -1,0 +1,10 @@
+---
+// One hydrated RainbowButton through a local wrapper and nothing else: the
+// page whose JavaScript the smoke measures against the Installation page.
+import Base from "../layouts/Base.astro";
+import Counter from "../islands/Counter.svelte";
+---
+
+<Base title="One island">
+	<Counter client:visible />
+</Base>

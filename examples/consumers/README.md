@@ -29,7 +29,7 @@ scripts/consumers/next.sh        # one app, directly
 KEEP_CONSUMER=1 scripts/consumers/next.sh   # keep the scratch copy for debugging
 ```
 
-`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. A script that exits 77 could not run on this machine and is listed as `skip`: `astro.sh` does that on a Node older than 22.23.4, the floor Astro 7 enforces at launch. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it in the **Consumers** job, after the package jobs.
+`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. `astro.sh` exits 77 on a Node older than 22.23.4, the floor Astro 7 enforces at launch; locally it is listed as `skip`, but with `CI` set (and for any other script) exit 77 is a failure. The Consumers job uses `check-latest: true` on Node 22 so the runner always has a recent enough 22.x. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it in the **Consumers** job, after the package jobs.
 
 Prerequisites: the repo installed (`pnpm install`), Playwright's Chromium (`pnpm exec playwright install chromium`), network access for `npm install`, and `rsync`.
 
@@ -97,8 +97,9 @@ The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to 
 `astro` builds a static site with `astro build` and serves it with `astro preview` (`--ignore-lock` keeps the server in the foreground; Astro 7 otherwise detaches it when it detects a coding agent). The app is also the playground for the Astro section of the Installation page: `src/styles/global.css`, `astro.config.mjs`, `src/components/Hero.astro` and `src/islands/Counter.svelte` carry that page's snippets verbatim (`src/lib/docs/consumer-snippets.test.ts`). The smoke checks:
 
 - **Static by default**: a page whose components have no `client:*` directive downloads no script at all, and BorderBeam, Meteors and Marquee still animate from CSS.
-- **Islands**: `client:load` islands hydrate (the `astro-island` loses its `ssr` attribute), a `client:visible` one below the fold waits until scrolled to, the default slot reaches the island as `children`, and handlers, a Dialog `trigger` snippet and `onOpenChange` written in the island wrapper run.
+- **Islands**: `client:load` islands hydrate (the `astro-island` loses its `ssr` attribute), a `client:visible` one below the fold waits until scrolled to, the default slot reaches the island as `children` and a named slot as a snippet of the same name, and handlers, a Dialog `trigger` snippet and `onOpenChange` written in the island wrapper run.
 - **No library-wide chunk**: every island loads its own wrapper module, never the package root, the page's scripts stay under 250 KB, and none contains three.js or GSAP.
+- **Island cost**: the build is measured from disk against the figures on the Installation page (`ASTRO_ISLAND_COST` in `src/lib/docs/astro-snippets.ts`, within 15 %): a page with one `RainbowButton` island through a local wrapper, and, in a second build (`dist-barrel`, adding `variants/barrel.astro`), the same button hydrated from the package root, which must weigh over 1 MB with three.js and GSAP and also inflate the wrapper page of that build.
 - **Multiple instances**: two counters keep separate state, two FluidCursor islands own a WebGL canvas each, and the canvas follows a 1280 → 390 → 1280 px resize.
 - **Reduced motion**: BorderBeam and Meteors stop animating, and FluidCursor hydrates without binding a GPU context.
 - **ClientRouter**: three A → B → A round trips mount and destroy each island once per visit, leave one live WebGL context, keep the `requestAnimationFrame` rate flat, and a `transition:persist` island is mounted once and keeps its state.

@@ -24,4 +24,15 @@ consumer_install fancy-ui-svelte
 
 (cd "$APP" && npm run build)
 
+# A second build, into dist-barrel, with one extra page that hydrates a
+# component straight from the package root (variants/barrel.astro). Kept out of
+# the main build because Rollup would share its library-wide chunk with the
+# other pages' islands; the smoke measures both builds from disk.
+(
+	cd "$APP"
+	cp variants/barrel.astro src/pages/barrel.astro
+	npx astro build --outDir dist-barrel
+	rm src/pages/barrel.astro
+)
+
 consumer_smoke

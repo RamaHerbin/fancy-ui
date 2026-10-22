@@ -33,8 +33,9 @@ describe("InstallationPage", () => {
 		const { container } = render(InstallationPage);
 		expect(document.querySelector("h2#astro")).toHaveTextContent("Astro");
 		expect(container.textContent).toContain("npx astro add svelte");
-		expect(container.textContent).toContain("88 KB (32 KB gzip)");
-		expect(container.textContent).toContain("1.66 MB (481 KB gzip)");
+		expect(container.textContent).toContain("about 88 KB of JavaScript (32 KB gzipped");
+		expect(container.textContent).toContain("about 1.66 MB (481 KB gzipped)");
+		expect(container.querySelector("section[lang='en'] code.chip")).toHaveTextContent("client:*");
 		expect(container.textContent).toContain("transition:persist");
 	});
 

@@ -7,9 +7,10 @@
 //   pnpm consumers next nuxt       # only these
 //
 // Each package is built and packed once per run: the scripts share the
-// tarballs through CONSUMER_PACKS_DIR. A script that exits 77 could not run
-// here (for example astro.sh on a Node older than Astro's floor): it is listed
-// as "skip" and does not fail the run.
+// tarballs through CONSUMER_PACKS_DIR. Exit 77 means "cannot run here" (astro.sh
+// on a Node older than Astro's floor). It is honoured only for the scripts in
+// MAY_SKIP, and only locally: with CI set, a skip is a failure, so the job can
+// never go green without running every app.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -34,6 +35,9 @@ if (!names.length) {
 	process.exit(2);
 }
 
+const MAY_SKIP = new Set(["astro"]);
+const inCi = Boolean(process.env.CI);
+
 const packs = mkdtempSync(join(tmpdir(), "fancy-ui-consumer-packs-"));
 const results = [];
 try {
@@ -45,15 +49,14 @@ try {
 			env: { ...process.env, CONSUMER_PACKS_DIR: packs },
 		});
 		const seconds = Math.round((Date.now() - started) / 1000);
-		const skipped = run.status === 77;
+		const skipped = run.status === 77 && MAY_SKIP.has(name) && !inCi;
 		const ok = run.status === 0 || skipped;
-		results.push({
-			name,
-			ok,
-			skipped,
-			seconds,
-			detail: ok ? "" : run.error ? String(run.error) : `exit ${run.status ?? run.signal}`,
-		});
+		let detail = "";
+		if (!ok) {
+			detail = run.error ? String(run.error) : `exit ${run.status ?? run.signal}`;
+			if (run.status === 77) detail += inCi ? " (skip is a failure in CI)" : " (skip not allowed)";
+		}
+		results.push({ name, ok, skipped, seconds, detail });
 	}
 } finally {
 	rmSync(packs, { recursive: true, force: true });

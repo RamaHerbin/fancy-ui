@@ -1,4 +1,8 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { gzipSync } from "node:zlib";
 import { expect, test, type Page } from "@playwright/test";
+import { ASTRO_COST_TOLERANCE, ASTRO_ISLAND_COST } from "../../../../src/lib/docs/astro-snippets";
 import {
 	expectBorderBeamRunning,
 	expectGpuCanvas,
@@ -65,6 +69,8 @@ test("playground: static parts render, islands hydrate and run, styles resolve",
 
 	// The default slot crossed into the island as `children`; the handler lives in the island.
 	await expect(page.getByTestId("rainbow").getByRole("button")).toHaveText("Rainbow");
+	// A named slot arrives too, as static HTML.
+	await expect(page.getByTestId("rainbow").getByTestId("badge")).toHaveText("named slot");
 	await page.getByTestId("rainbow").getByRole("button").click();
 	await expect(page.getByTestId("rainbow-clicks")).toHaveText("clicks: 1");
 
@@ -292,4 +298,70 @@ test("ClientRouter: islands unmount on navigation, nothing accumulates, persist 
 	await expect(page.locator("canvas")).toHaveCount(1);
 
 	expect(problems).toEqual([]);
+});
+
+/**
+ * The JavaScript one page's islands load, read from the build on disk: every
+ * island's component and renderer module plus the modules they import
+ * statically, each counted once.
+ */
+function islandJs(dist: string, page: string) {
+	const html = readFileSync(join(dist, page, "index.html"), "utf8");
+	const entries = [...html.matchAll(/(?:component|renderer)-url="([^"]+)"/g)].map((m) =>
+		join(dist, m[1])
+	);
+	const seen = new Set<string>();
+	const queue = [...entries];
+	while (queue.length) {
+		const file = queue.pop()!;
+		if (seen.has(file)) continue;
+		seen.add(file);
+		const source = readFileSync(file, "utf8");
+		for (const m of source.matchAll(/(?:from|import)\s*["'](\.\/[^"']+\.js)["']/g)) {
+			queue.push(join(dirname(file), m[1]));
+		}
+	}
+	let bytes = 0;
+	let gzip = 0;
+	let three = false;
+	let gsap = false;
+	for (const file of seen) {
+		const buf = readFileSync(file);
+		bytes += buf.length;
+		gzip += gzipSync(buf).length;
+		const text = buf.toString();
+		three ||= text.includes("WebGLRenderer");
+		gsap ||= text.includes("GreenSock");
+	}
+	return { entries: entries.length, files: seen.size, bytes, gzip, three, gsap };
+}
+
+const within = (value: number, quoted: number) =>
+	Math.abs(value - quoted) <= quoted * ASTRO_COST_TOLERANCE;
+
+test("island cost: the Installation page's figures match the build", () => {
+	const app = process.env.CONSUMER_APP_DIR!;
+	const cost = ASTRO_ISLAND_COST;
+
+	// Main build: one RainbowButton through a local wrapper.
+	const wrapped = islandJs(join(app, "dist"), "one-island");
+	note("wrapped", JSON.stringify(wrapped));
+	expect(wrapped.entries).toBe(2);
+	expect(wrapped.three || wrapped.gsap).toBe(false);
+	expect(within(wrapped.bytes / 1000, cost.wrappedKB), `${wrapped.bytes} B`).toBe(true);
+	expect(within(wrapped.gzip / 1000, cost.wrappedGzipKB), `${wrapped.gzip} B gz`).toBe(true);
+
+	// Second build: the same button hydrated from the package root.
+	const barrel = islandJs(join(app, "dist-barrel"), "barrel");
+	note("barrel", JSON.stringify(barrel));
+	expect(barrel.bytes).toBeGreaterThan(1_000_000);
+	expect(barrel.three && barrel.gsap).toBe(true);
+	expect(within(barrel.bytes / 1e6, cost.barrelMB), `${barrel.bytes} B`).toBe(true);
+	expect(within(barrel.gzip / 1000, cost.barrelGzipKB), `${barrel.gzip} B gz`).toBe(true);
+
+	// In that build the wrapper page shares the library-wide chunk: the docs'
+	// "the build can then share that chunk with the other island pages".
+	const shared = islandJs(join(app, "dist-barrel"), "one-island");
+	note("wrapped, barrel build", JSON.stringify(shared));
+	expect(shared.bytes).toBeGreaterThan(1_000_000);
 });

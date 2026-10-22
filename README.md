@@ -209,7 +209,7 @@ import { BorderBeam, Meteors } from "fancy-ui-svelte";
 </div>
 ```
 
-To hydrate a component, import it in a local `.svelte` file and put the directive on that file. Handlers, state and snippets live there too, since functions and snippets other than the default slot cannot be passed from `.astro`:
+To hydrate a component, import it in a local `.svelte` file and put the directive on that file. Plain props cross from `.astro` as data and slots, default or named, arrive as static HTML, but functions do not serialize: handlers, callbacks and snippets that take arguments are written in the `.svelte` file:
 
 ```svelte
 <!-- src/islands/Counter.svelte -->
@@ -225,7 +225,7 @@ To hydrate a component, import it in a local `.svelte` file and put the directiv
 <Counter client:visible />
 ```
 
-Do not put `client:*` on a component imported from `fancy-ui-svelte` in an `.astro` file: Astro's island loads the whole module it was imported from. Measured with Astro 7.4.2 on a page with one `RainbowButton` island, the wrapper ships 88 KB of JavaScript (32 KB gzipped, Astro's Svelte runtime included); the same button hydrated from the package root ships 1.66 MB (481 KB gzipped), three.js and GSAP included, and the shared chunk then weighs on every island page of the site. `ClientRouter` (`astro:transitions`) is supported: islands are destroyed on navigation and `transition:persist` keeps one alive. Verified with `astro` 7.4.2 and `@astrojs/svelte` 9.1.1, which need Node 22.23.4 or later; the app in [`examples/consumers/astro`](./examples/consumers/astro) is the tested setup.
+Do not put `client:*` on a component imported from `fancy-ui-svelte` in an `.astro` file: Astro's island loads the whole module it was imported from. Measured with Astro 7.4.2 on a page with one `RainbowButton` island, the wrapper ships about 88 KB of JavaScript (32 KB gzipped, Astro's Svelte runtime included); the same button hydrated from the package root ships about 1.66 MB (481 KB gzipped), three.js and GSAP included, and the build can then share that chunk with the other island pages of the site. `ClientRouter` (`astro:transitions`) is supported: islands are destroyed on navigation and `transition:persist` keeps one alive. Verified with `astro` 7.4.2 and `@astrojs/svelte` 9.1.1, which need Node 22.23.4 or later; the app in [`examples/consumers/astro`](./examples/consumers/astro) is the tested setup.
 
 ## Using with AI agents (Claude Code, Cursor, Copilot)
 

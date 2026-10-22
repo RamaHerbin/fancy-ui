@@ -451,26 +451,6 @@ export const en = {
 		"is a collection of <grad>{count}</grad> animated, interactive UI components for Svelte 5, React and Vue, built on the same design tokens.",
 	/** @context Introduction quick-start step 2 text; the code sample below it changes with the selected framework. */
 	"intro.importHint": "Import the components you need. The import path follows your framework.",
-	/** @context Installation page, heading of the Astro section (shown with the Svelte framework only). Product name. */
-	"install.astro.heading": "Astro",
-	/** @context Astro section intro, above the install commands. 'step 2' is the numbered stylesheet step earlier on the page. */
-	"install.astro.body":
-		"FancyUI runs in Astro through the official Svelte integration, with no extra package. Add the integration and Tailwind, install the package, then import the stylesheet from step 2 in your layout.",
-	/** @context Astro section, above a static example. {directive} is the code token client:* (an Astro attribute). */
-	"install.astro.static":
-		"A component used without a {directive} directive renders to HTML and CSS and ships no JavaScript. BorderBeam, Marquee, Meteors, and buttons without a handler work this way.",
-	/** @context Astro section, above the island example. {svelte} is '.svelte' and {astro} is '.astro' (file extensions). An island is Astro's hydrated component. */
-	"install.astro.island":
-		"To hydrate a component, import it in a local {svelte} file and put the directive on that file. Handlers, state and snippets go in that file too: from {astro}, only the default slot reaches an island.",
-	/** @context Astro section warning. {astro} is '.astro'; {wrapped} and {barrel} are measured sizes such as '88 KB (32 KB gzip)'. */
-	"install.astro.why":
-		"Do not put the directive on a component imported from the package root in an {astro} file: the island would load the whole library. For one RainbowButton island, the local file ships {wrapped} of JavaScript and the package root {barrel}, with three.js and GSAP, a chunk then shared by every island page of the site.",
-	/** @context Astro section. {router} is 'ClientRouter' and {persist} is 'transition:persist' (Astro code tokens). */
-	"install.astro.router":
-		"{router} is supported: islands are destroyed on each navigation, and {persist} keeps one alive across pages.",
-	/** @context Astro section caption. {astroVersion}, {integrationVersion} and {node} are version numbers. */
-	"install.astro.versions":
-		"Tested with astro {astroVersion} and @astrojs/svelte {integrationVersion}, which need Node {node} or later.",
 	/** @context Installation prerequisites note about the optional SvelteKit peer dependency. */
 	"install.kitOptional":
 		"SvelteKit is optional: FancyUI works in any Svelte 5 project built with Vite.",
