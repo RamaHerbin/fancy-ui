@@ -1592,6 +1592,143 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
 	},
 
+	"sun-switch": {
+		name: "SunSwitch",
+		slug: "sun-switch",
+		description:
+			"A theme switch drawn as a pixel sun. Hover it for a lens on its true colours; click it and the new theme spreads from the sun in a dithered, grid-aligned wave.",
+		category: "buttons",
+		group: "fancy",
+		status: "done",
+		tags: ["switch", "theme", "dark mode", "pixel", "dither", "view transition", "canvas"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "true",
+				description: "Day (true) or night (false). Bindable.",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description:
+					"Called with the new value from inside the view transition's update callback. Flip your theme here; the component never changes classes on the document. Flip the theme synchronously: the new snapshot is taken as soon as it returns.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "10",
+				description: "Sun radius in cells. The canvas is 2 × radius + 1 cells square.",
+			},
+			{
+				name: "cell",
+				type: "number",
+				default: "5",
+				description: "Grid pitch in CSS pixels, shared by the sun, the wave front and its halo.",
+			},
+			{
+				name: "dot",
+				type: "number",
+				default: "4",
+				description: "Size of each square dot in CSS pixels (at most `cell`).",
+			},
+			{
+				name: "palette",
+				type: "[string, string, string, string]",
+				default: "SUN_PALETTE",
+				description:
+					"Four colours from the top of the sun to the bottom. The halo reuses them: densest rim in the last colour, sparse fringe in the first.",
+			},
+			{
+				name: "ink",
+				type: "string",
+				default: '"currentColor"',
+				description:
+					"Monochrome colour of the night sun and the horizon outside the lens. Resolved from the computed colour of the button, so it follows the theme.",
+			},
+			{
+				name: "nightAlpha",
+				type: "number",
+				default: "0.42",
+				description: "Opacity of the ink sun at night.",
+			},
+			{
+				name: "horizon",
+				type: "boolean",
+				default: "true",
+				description: "Draws a few sparse rows of dots under the sun for the lens to reveal.",
+			},
+			{
+				name: "lens",
+				type: "boolean",
+				default: "true",
+				description:
+					"On hover, a soft circular lens follows the pointer and shows the true colours under it.",
+			},
+			{
+				name: "lensRadius",
+				type: "number",
+				default: "7",
+				description: "Lens radius in cells; about two thirds of the sun reads best.",
+			},
+			{
+				name: "mode",
+				type: '"document" | "contained"',
+				default: '"document"',
+				description:
+					"`document` runs the wave as a view transition over the whole page. `contained` paints it over `scope` only, with a sheet of the old colour that the wave cuts away.",
+			},
+			{
+				name: "scope",
+				type: "HTMLElement | null",
+				description:
+					"The element the wave covers in contained mode. It needs `position: relative` and `overflow: hidden`.",
+			},
+			{
+				name: "fill",
+				type: "string",
+				description:
+					"Colour of the old-state sheet in contained mode and browsers without view transitions. Defaults to the first opaque background found from `scope` (or the body) upwards.",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "1300",
+				description: "Duration of the wave in milliseconds (ease in-out cubic).",
+			},
+			{
+				name: "haloCells",
+				type: "number",
+				default: "9",
+				description: "Thickness of the dithered halo that leads the wave front, in cells.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the toggle cue (on for day, off for night) through the sound controller, once the user has enabled sound.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Day mode"',
+				description: "Accessible name of the switch. Its checked state is announced as on or off.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the button.",
+			},
+		],
+	},
+
 	marquee: {
 		name: "Marquee",
 		slug: "marquee",

@@ -29,6 +29,7 @@ const RELEASE_MINOR: Record<string, string[]> = {
 	"overlays-keyboard-react.md": ["fancy-ui-react"],
 	"overlays-keyboard-vue.md": ["fancy-ui-vue"],
 	"sound-tap-palette.md": PUBLISHED_PACKAGES.slice(),
+	"sun-switch.md": PUBLISHED_PACKAGES.slice(),
 };
 
 describe("pending changesets in the repository", () => {
