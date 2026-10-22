@@ -246,6 +246,22 @@ test("ClientRouter: islands unmount on navigation, nothing accumulates, persist 
 		await page.waitForTimeout(1000);
 		return (await probe()).raf - before;
 	};
+	const nav = () => page.evaluate(() => (window as unknown as { __nav: string[] }).__nav);
+	// The router is ready once it has dispatched page-load for the current page.
+	const routerReady = (path: string) =>
+		page.waitForFunction(
+			(p) => (window as unknown as { __nav: string[] }).__nav.includes(`page-load ${p}`),
+			path
+		);
+	const go = async (name: "A" | "B") => {
+		const path = `/router/${name.toLowerCase()}`;
+		const before = (await nav()).length;
+		await page.getByTestId(`to-${name.toLowerCase()}`).click();
+		// A swap under software WebGL on CI can take a few seconds.
+		await expect
+			.poll(async () => (await nav()).slice(before), { timeout: 20_000 })
+			.toContain(`page-load ${path}`);
+	};
 	const onPage = async (name: "A" | "B") => {
 		await expect(page.getByTestId("page")).toHaveText(`Page ${name}`);
 		const fluid = name === "A" ? "fluid-a" : "fluid-b";
@@ -264,6 +280,7 @@ test("ClientRouter: islands unmount on navigation, nothing accumulates, persist 
 	};
 
 	await page.goto("/router/a");
+	await routerReady("/router/a");
 	await onPage("A");
 	await expectHydrated(page, "persisted");
 	await page.getByTestId("persisted").getByRole("button").click();
@@ -273,9 +290,9 @@ test("ClientRouter: islands unmount on navigation, nothing accumulates, persist 
 	const rounds = 3;
 	const rates: number[] = [await rafPerSecond()];
 	for (let i = 0; i < rounds; i++) {
-		await page.getByTestId("to-b").click();
+		await go("B");
 		await onPage("B");
-		await page.getByTestId("to-a").click();
+		await go("A");
 		await onPage("A");
 		rates.push(await rafPerSecond());
 	}

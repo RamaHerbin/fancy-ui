@@ -17,6 +17,18 @@ const { title } = Astro.props;
 		     calls and GPU contexts created / released, so the smoke can check that
 		     navigating back and forth neither stacks render loops nor leaks contexts. -->
 		<script is:inline>
+			if (!window.__nav) {
+				// Router lifecycle, in order, so a failed navigation shows where it stopped.
+				window.__nav = [];
+				for (const name of [
+					"astro:before-preparation",
+					"astro:after-preparation",
+					"astro:before-swap",
+					"astro:after-swap",
+					"astro:page-load",
+				])
+					document.addEventListener(name, () => window.__nav.push(`${name.slice(6)} ${location.pathname}`));
+			}
 			if (!window.__probe) {
 				// `live` counts WebGL contexts not lost yet: an unmounted effect is
 				// expected to release its context (WEBGL_lose_context).
