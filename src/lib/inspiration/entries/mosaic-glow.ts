@@ -13,7 +13,7 @@ const entry: FancyUIReference = {
 	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["hover"],
-	styleTags: ["glow", "retro"],
+	styleTags: ["glow", "retro", "hdr"],
 	useCaseTags: ["marketing"],
 	codeAvailability: "open-source",
 	analysis: {
