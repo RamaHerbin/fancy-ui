@@ -107,11 +107,18 @@ Dark mode follows the operating-system preference by default. To control it, put
 
 ## Compatibility
 
-<!-- COMPAT: filled by orchestrator after consumer validation -->
+Verified on 2026-10-22 against the packed tarballs installed with npm in an app outside this repo (`scripts/consumers/nuxt-module.sh`: typecheck, production build, browser smoke), and by the module's own test suite (SSR, hydration, navigation, tree-shaking):
 
-- **Nuxt 4.** The module declares `^4.0.0`; the repo test suite runs on Nuxt 4.5.2.
-- **Vue 3.5** (the `fancy-ui-vue` floor) and **Tailwind CSS 4**.
-- **Node 20.19 or later.**
+|              | Verified with                              |
+| ------------ | ------------------------------------------ |
+| Nuxt         | 4.5.2                                      |
+| Vue          | 3.5.44 (consumer app), 3.5.43 (repo)       |
+| fancy-ui-vue | 0.3.0                                      |
+| Tailwind CSS | 4.1 with `@tailwindcss/vite`               |
+| Node         | 20.19 or later (engines); runs on 22 in CI |
+
+- **Nuxt 4 only.** The module declares `^4.0.0`, and Nuxt 3 disables it with a warning. A one-off probe on Nuxt 3.21.11 with the range widened by hand (and `future.compatibilityVersion: 4`) built and passed the same smoke, but Nuxt 3 is not in CI, so it is not supported.
+- **Typed props** in `nuxt typecheck` need `typescript` and `vue-tsc` in your dev dependencies, as for any Nuxt app.
 
 ## Limits
 

@@ -591,10 +591,11 @@ jobs:
     # examples/consumers, each copied outside the checkout so nothing can
     # resolve from the monorepo's node_modules: SvelteKit and Svelte + Vite for
     # fancy-ui-svelte, React + Vite and Next for fancy-ui-react, Vue + Vite and
-    # Nuxt for fancy-ui-vue. Builds, then a Playwright smoke per app. Runs once
-    # the package jobs are green, so a failure here is about the published
-    # shape (exports, files, declared dependencies, Tailwind entry), not the
-    # source. See examples/consumers/README.md.
+    # Nuxt for fancy-ui-vue, Nuxt through the fancy-ui-nuxt module. Builds,
+    # then a Playwright smoke per app. Runs once the package jobs are green, so
+    # a failure here is about the published shape (exports, files, declared
+    # dependencies, Tailwind entry), not the source. See
+    # examples/consumers/README.md.
     #
     # Same duplicate-run guard as `check` — see the comment there.
     if: |
@@ -604,8 +605,9 @@ jobs:
       (github.event_name == 'pull_request')
     needs: [check, react, vue, nuxt-module]
     runs-on: ubuntu-latest
-    # About 14 minutes on a loaded laptop for all six apps (Next and Nuxt are
-    # most of it); the cap stops a hung server from holding a runner for hours.
+    # About 16 minutes on a loaded laptop for all seven apps (Next and the two
+    # Nuxt apps are most of it); the cap stops a hung server from holding a
+    # runner for hours.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
