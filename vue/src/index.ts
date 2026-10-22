@@ -97,6 +97,7 @@ export * from "./components/liquid-glass/index.js";
 export * from "./components/liquid-text/index.js";
 export * from "./components/logo-cloud/index.js";
 export * from "./components/magnetic/index.js";
+export * from "./components/magnetic-field/index.js";
 export * from "./components/marquee/index.js";
 export * from "./components/matrix-rain/index.js";
 export * from "./components/meteors/index.js";

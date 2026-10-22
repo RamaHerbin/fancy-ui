@@ -6870,5 +6870,60 @@
 		"divergences": [],
 		"lastFailure": null,
 		"minors": []
+	},
+	{
+		"slug": "magnetic-field",
+		"sveltePath": "src/lib/fancy-ui/magnetic-field",
+		"reactPath": "react/src/components/magnetic-field",
+		"vuePath": "vue/src/components/magnetic-field",
+		"status": "ported",
+		"wave": "C",
+		"tier": 2,
+		"group": "compound",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "js-anim",
+		"deps": {
+			"internals": ["motion", "dom/context"],
+			"motion": ["in-view", "media-query"],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [
+			"ResizeObserver",
+			"IntersectionObserver",
+			"requestAnimationFrame",
+			"matchMedia",
+			"pointer-events"
+		],
+		"runtimeDeps": [],
+		"setContext": true,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": [
+			"MagneticField",
+			"MagneticItem",
+			"MagnetPuck",
+			"MAGNETIC_FIELD_KEY",
+			"MAGNETIC_FIELD_SPRINGS"
+		],
+		"loc": 595,
+		"testFiles": ["MagneticField.test.ts", "MagnetPuck.test.ts"],
+		"svelteFiles": 3,
+		"bindables": ["position"],
+		"exposesRef": true,
+		"slotsWithParams": [],
+		"restSpread": true,
+		"multiRoot": false,
+		"usesUntrack": true,
+		"usesEffectPre": false,
+		"usesTick": false,
+		"styleHazard": null,
+		"sharedCores": ["magnetic-field-core.ts", "magnetic-field-source.ts"],
+		"attempts": 1,
+		"divergences": [],
+		"minors": [],
+		"lastFailure": null
 	}
 ]

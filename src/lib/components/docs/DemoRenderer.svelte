@@ -69,6 +69,7 @@
 	// of the generic single-tag usage.
 	export const skipDirectRender = new Set([
 		"mosaic-glow",
+		"magnetic-field",
 		"border-beam",
 		"marquee",
 		"datamosh-transition",

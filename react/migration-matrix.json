@@ -5823,5 +5823,70 @@
 		"attempts": 1,
 		"divergences": [],
 		"lastFailure": null
+	},
+	{
+		"slug": "magnetic-field",
+		"sveltePath": "src/lib/fancy-ui/magnetic-field",
+		"reactPath": "react/src/components/magnetic-field",
+		"status": "ported",
+		"wave": "C",
+		"tier": 2,
+		"group": "compound",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "raf-field",
+		"deps": {
+			"internals": [
+				"media-query",
+				"use-element-ref",
+				"use-live-ref",
+				"use-composed-refs",
+				"in-view",
+				"magnetic-field-core",
+				"magnetic-field-source"
+			],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [
+			"requestAnimationFrame",
+			"ResizeObserver",
+			"IntersectionObserver",
+			"matchMedia",
+			"pointer-events"
+		],
+		"runtimeDeps": [],
+		"setContext": true,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": [
+			"MagneticField",
+			"MagneticItem",
+			"MagnetPuck",
+			"MAGNETIC_FIELD_KEY",
+			"MAGNETIC_FIELD_SPRINGS"
+		],
+		"loc": 595,
+		"testFiles": [
+			"magnetic-field-core.test.ts",
+			"magnetic-field-source.test.ts",
+			"MagneticField.test.ts",
+			"MagnetPuck.test.ts",
+			"MagneticFieldHarness.test.svelte"
+		],
+		"svelteFiles": 3,
+		"attempts": 1,
+		"divergences": [
+			"`class` → `className` (PORTING.md).",
+			"`MagnetPuck`'s `bind:position` is the controlled/uncontrolled pair `position` + `defaultPosition` + `onPositionChange` (already a Svelte prop); `MagneticField`'s `position` is a plain read-only prop in both.",
+			"`children` is a `ReactNode` on `MagneticField`, `MagneticItem` and `MagnetPuck` instead of a `Snippet`; the puck's custom face is its `children`.",
+			"`MAGNETIC_FIELD_KEY` is a React context object (`createContext`) instead of a Svelte context symbol; its value is the same framework-free hub, created once per field and never rebuilt.",
+			"All motion, measurement, spring stepping and the per-frame CSS variables live in the shared `magnetic-field-core.ts`, and the pointer and layout listeners in `magnetic-field-source.ts`, byte-identical to the Svelte copies; the components only create the core in an effect and forward props through `update()` and `updateItem()`.",
+			"`MagnetPuck` calls a consumer's `onPointerDown`, `onPointerMove`, `onPointerUp`, `onPointerCancel`, `onLostPointerCapture`, `onKeyDown` and `onBlur` and then runs its own handling (PORTING.md \"Native attributes\"); in Svelte the puck's own handlers replace a consumer's."
+		],
+		"lastFailure": null,
+		"minors": []
 	}
 ]

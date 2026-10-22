@@ -9712,6 +9712,201 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"magnetic-field": {
+		name: "MagneticField",
+		slug: "magnetic-field",
+		description:
+			"Items are pulled toward a magnet and lean toward it, light ones more than heavy ones, then spring home. The magnet is the pointer or a draggable puck.",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["magnet", "pointer", "spring", "physics", "attract", "repel", "drag", "compound"],
+		props: [
+			{
+				name: "source",
+				type: '"pointer" | "manual"',
+				default: '"pointer"',
+				description:
+					'Where the magnet comes from. `"pointer"` follows a mouse or pen anywhere within `radius` of an item (touch is ignored); `"manual"` reads `position` instead. A `MagnetPuck` placed inside the field drives it in either mode while it is held.',
+			},
+			{
+				name: "position",
+				type: "MagneticPoint | null",
+				default: "null",
+				description:
+					"The magnet's position in px, relative to the field's padding box, used when `source` is `\"manual\"`. `null` means no magnet, and the items spring back to rest.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "220",
+				description:
+					"Falloff distance from the item's nearest edge, in px: an item pulls hardest when the magnet touches or overlaps it and stops moving once the magnet is `radius` px away. It can still lean up to twice as far.",
+			},
+			{
+				name: "strength",
+				type: "number",
+				default: "1",
+				description:
+					"Global pull multiplier, applied on top of each item's own `strength`. `0` turns the effect off without detaching anything.",
+			},
+			{
+				name: "maxTranslate",
+				type: "number",
+				default: "24",
+				description: "Largest distance, in px, that any item travels toward the magnet.",
+			},
+			{
+				name: "maxRotate",
+				type: "number",
+				default: "6",
+				description:
+					"Largest lean, in degrees. Items lean toward the magnet's side like a crowd turning its head: clockwise when it is to their left, counter-clockwise when it is to their right.",
+			},
+			{
+				name: "spring",
+				type: "MagneticSpringPreset | Partial<MagneticSpring>",
+				default: '"default"',
+				description:
+					'How items move and settle: `"soft"`, `"default"` or `"snappy"`, or your own `{ stiffness, damping, mass }` (missing keys come from `"default"`).',
+			},
+			{
+				name: "polarity",
+				type: "1 | -1",
+				default: "1",
+				description:
+					"`1` attracts and `-1` repels. Only translation flips; the lean stays the same.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Detaches every listener and springs each item back to rest.",
+			},
+			{
+				name: "onActiveChange",
+				type: "(active: boolean) => void",
+				description:
+					"Called when the field wakes up (a magnet is engaged or an item is still settling) and when it goes back to sleep.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Element reference (bindable).",
+			},
+			{
+				name: "MagneticItem.mass",
+				type: "number",
+				default: "1",
+				description:
+					"How heavy the item is. Above 1 it moves and leans less and settles more slowly; below 1 it is livelier.",
+			},
+			{
+				name: "MagneticItem.strength",
+				type: "number",
+				default: "1",
+				description: "Per-item pull multiplier, applied on top of the field's `strength`.",
+			},
+			{
+				name: "MagneticItem.pull",
+				type: "boolean",
+				default: "true",
+				description: "Whether the item moves toward the magnet.",
+			},
+			{
+				name: "MagneticItem.rotate",
+				type: "boolean",
+				default: "true",
+				description: "Whether the item leans toward the magnet.",
+			},
+			{
+				name: "MagneticItem.inline",
+				type: "boolean",
+				default: "false",
+				description:
+					"Renders `<span>` wrappers with `display: inline-block` instead of block `<div>`s, for items that sit inside a line of text or an inline row.",
+			},
+			{
+				name: "MagneticItem.class",
+				type: "string",
+				description: "Additional CSS classes, on the static outer wrapper.",
+			},
+			{
+				name: "MagneticItem.ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Reference to the static outer wrapper (bindable).",
+			},
+			{
+				name: "MagnetPuck.position",
+				type: "MagneticPoint",
+				default: "{ x: 48, y: 48 }",
+				description:
+					"The puck's centre in px, relative to its positioned parent (the field's padding box when it sits inside a `MagneticField`). Bindable; dragging and the arrow keys update it.",
+			},
+			{
+				name: "MagnetPuck.onPositionChange",
+				type: "(position: MagneticPoint) => void",
+				description:
+					"Called with each new position while the puck is dragged or moved with the keyboard.",
+			},
+			{
+				name: "MagnetPuck.size",
+				type: "number",
+				default: "40",
+				description: "Diameter in px.",
+			},
+			{
+				name: "MagnetPuck.sticky",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the puck keeps attracting once released. By default it attracts only while held, and the items spring back when it is let go.",
+			},
+			{
+				name: "MagnetPuck.label",
+				type: "string",
+				default: '"Magnet"',
+				description:
+					"Accessible name. A built-in hint naming the keys describes the puck; pass your own `aria-describedby` to replace it.",
+			},
+			{
+				name: "MagnetPuck.onHeldChange",
+				type: "(held: boolean) => void",
+				description:
+					"Called when the puck is picked up (pointer down, or Space/Enter) and put down.",
+			},
+			{
+				name: "MagnetPuck.class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "MagnetPuck.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Element reference (bindable).",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "The content. Wrap each element that should react in a `MagneticItem`.",
+			},
+			{ name: "MagneticItem.children", description: "The element that reacts." },
+			{
+				name: "MagnetPuck.children",
+				description: "A custom face. Leave it out for the default black disc.",
+			},
+		],
+	},
+
 	pressable: {
 		name: "Pressable",
 		slug: "pressable",
