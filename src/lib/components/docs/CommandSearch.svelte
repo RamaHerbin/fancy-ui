@@ -28,6 +28,11 @@
 			slug: "installation",
 			href: "/docs/getting-started/installation",
 		},
+		{
+			nameKey: "install.copySource",
+			slug: "copy-source",
+			href: "/docs/getting-started/copy-source",
+		},
 		{ nameKey: "page.theming", slug: "theming", href: "/docs/getting-started/theming" },
 		{
 			nameKey: "page.themeGenerator",
