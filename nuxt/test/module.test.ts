@@ -33,7 +33,10 @@ afterEach(async () => {
  * module registers into, so each assertion sees exactly what the options
  * produced — not what Nuxt's own scanners add on top.
  */
-async function register(fancyUi: Partial<ModuleOptions> = {}): Promise<Registered> {
+async function register(
+	fancyUi: Partial<ModuleOptions> = {},
+	nuxtConfig: NuxtConfig = {}
+): Promise<Registered> {
 	const warnings: string[] = [];
 	// useLogger() children share the root reporters array, so a reporter added
 	// here sees the module's tagged warnings.
@@ -51,7 +54,7 @@ async function register(fancyUi: Partial<ModuleOptions> = {}): Promise<Registere
 			cwd: rootDir,
 			dev: false,
 			ready: true,
-			overrides: { fancyUi } as NuxtConfig,
+			overrides: { ...nuxtConfig, fancyUi } as NuxtConfig,
 		});
 	} finally {
 		logger.removeReporter(reporter);
@@ -105,6 +108,13 @@ describe("module options", () => {
 		expect(r.css).not.toContain("fancy-ui-vue/styles.css");
 	});
 
+	it("css: true does not add styles.css again when nuxt.config already lists it", async () => {
+		const r = await register({}, { css: ["fancy-ui-vue/styles.css"] });
+		expect(r.css.filter((c) => c.includes("fancy-ui-vue/styles.css"))).toEqual([
+			"fancy-ui-vue/styles.css",
+		]);
+	});
+
 	it('prefix: "" registers the bare export names', async () => {
 		const r = await register({ prefix: "", components: ["ShimmerButton"] });
 		expect(r.components.map((c) => c.pascalName)).toEqual(["ShimmerButton"]);
@@ -116,8 +126,10 @@ describe("module options", () => {
 		expect(r.warnings.some((w) => w.includes("fancyUi.prefix"))).toBe(true);
 	});
 
-	it("components: [names] registers only those, warning on unknown ones", async () => {
-		const r = await register({ components: ["ShimmerButton", "NotAComponent"] });
+	it("components: [names] registers only those once, warning on unknown ones", async () => {
+		const r = await register({
+			components: ["ShimmerButton", "NotAComponent", "ShimmerButton"],
+		});
 		expect(r.components.map((c) => c.pascalName)).toEqual(["FancyShimmerButton"]);
 		expect(r.warnings.some((w) => w.includes("NotAComponent"))).toBe(true);
 	});

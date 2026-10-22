@@ -480,6 +480,87 @@ jobs:
       - run: pnpm --filter fancy-ui-vue run build
       - run: pnpm --filter fancy-ui-vue exec node scripts/vue-floor-consumer.mjs
 
+  nuxt-module:
+    name: Nuxt module
+    # fancy-ui-nuxt registers fancy-ui-vue's components, styles and composables
+    # in a Nuxt app. Its tests boot real Nuxt builds of the fixtures under
+    # nuxt/test/fixtures (SSR HTML, client chunks, and computed styles in a
+    # browser), so the job builds fancy-ui-vue first: the module, its manifest
+    # and the fixtures all resolve the package through its built dist.
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # nuxt/ is a workspace member — one install at the root covers it.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter fancy-ui-vue run build
+      # The committed component list equals the component exports of the
+      # built fancy-ui-vue barrel: a component added to the Vue package without
+      # regenerating it would never be registered in Nuxt apps.
+      - run: node nuxt/scripts/generate-manifest.mjs --check
+      - run: pnpm --filter fancy-ui-nuxt run check
+
+      # The browser tests launch through playwright-core, pinned to the same
+      # version as the root @playwright/test, so they share its Chromium build
+      # and the cache key used by e2e.yml and the consumers job.
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - run: pnpm --filter fancy-ui-nuxt test
+      - run: pnpm --filter fancy-ui-nuxt run build
+      - run: pnpm --filter fancy-ui-nuxt exec publint
+
+      # The real tarball rather than a dry run: `pnpm pack` is what a publish
+      # uploads (workspace: ranges rewritten), and listing it is the check.
+      - name: Pack — allow-list sanity
+        working-directory: nuxt
+        run: |
+          out="$RUNNER_TEMP/nuxt-pack"
+          mkdir -p "$out"
+          pnpm pack --pack-destination "$out"
+          tar -tzf "$out"/*.tgz | sort > "$out/files.txt"
+          cat "$out/files.txt"
+          stray=$(grep -vE '^package/(package\.json|README\.md|LICENSE|dist/.+)$' "$out/files.txt" || true)
+          if [ -n "$stray" ]; then echo "stray files in pack:"; echo "$stray"; exit 1; fi
+          for required in package/package.json package/README.md package/LICENSE package/dist/module.mjs package/dist/types.d.mts; do
+            grep -qxF "$required" "$out/files.txt" || { echo "missing from pack: $required"; exit 1; }
+          done
+          echo "$(wc -l < "$out/files.txt") files, allow-list clean"
+
   changeset:
     name: Changeset present
     if: |
@@ -521,7 +602,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    needs: [check, react, vue]
+    needs: [check, react, vue, nuxt-module]
     runs-on: ubuntu-latest
     # About 14 minutes on a loaded laptop for all six apps (Next and Nuxt are
     # most of it); the cap stops a hung server from holding a runner for hours.

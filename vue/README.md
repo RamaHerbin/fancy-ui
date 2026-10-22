@@ -153,6 +153,10 @@ Out of the box the package follows the operating-system preference: `dark:` util
 
 `tailwind.css` is what makes that work, in three parts: it declares the `.dark` token block, it declares a `dark` variant that matches a `.dark` ancestor OR the media query (unless a `.light` ancestor opts out), and it sets `color-scheme: light dark` on `:root` with `.dark` / `.light` overrides so the components' `light-dark()` colours &mdash; and the browser's own form controls, scrollbars and caret &mdash; resolve the same way. An app that declares its own `@custom-variant dark` after the import keeps its own definition.
 
+### Nuxt
+
+The setup above works as-is in Nuxt (add `@tailwindcss/vite` to `vite.plugins`). A Nuxt module, [`fancy-ui-nuxt`](../nuxt#readme), auto-imports every component as `<Fancy…>`, adds `styles.css` and auto-imports the sound composables; it lives in this repo and is not yet published to npm.
+
 ### Server rendering
 
 The package is written for SSR: the `examples/nuxt-app` consumer in this repo is generated in CI with `failOnError` on, so a component that breaks server rendering or hydration fails the build. Three rules follow from that and are worth knowing:
