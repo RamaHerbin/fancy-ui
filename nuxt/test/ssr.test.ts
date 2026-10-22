@@ -21,9 +21,7 @@ const browserOptions = {
 	type: "chromium" as const,
 	launch: {
 		args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
-		...(process.env.CHROMIUM_EXECUTABLE
-			? { executablePath: process.env.CHROMIUM_EXECUTABLE }
-			: {}),
+		...(process.env.CHROMIUM_EXECUTABLE ? { executablePath: process.env.CHROMIUM_EXECUTABLE } : {}),
 	},
 };
 
@@ -85,7 +83,8 @@ function instrument() {
 	} as typeof HTMLCanvasElement.prototype.getContext;
 
 	const tracked = (t: EventTarget) => t === window || t === document || t === document.body;
-	const label = (t: EventTarget) => (t === window ? "window" : t === document ? "document" : "body");
+	const label = (t: EventTarget) =>
+		t === window ? "window" : t === document ? "document" : "body";
 	const captureOf = (o: unknown) =>
 		typeof o === "boolean" ? o : !!(o as AddEventListenerOptions | undefined)?.capture;
 	const add = EventTarget.prototype.addEventListener;
@@ -96,7 +95,12 @@ function instrument() {
 		// `once` listeners remove themselves invisibly: not tracked.
 		if (!listener || !tracked(this) || opts?.once) return;
 		const capture = captureOf(options);
-		if (listeners.some((r) => r.target === this && r.type === type && r.listener === listener && r.capture === capture))
+		if (
+			listeners.some(
+				(r) =>
+					r.target === this && r.type === type && r.listener === listener && r.capture === capture
+			)
+		)
 			return;
 		const rec: Rec = { target: this, type, listener, capture };
 		listeners.push(rec);
@@ -109,7 +113,8 @@ function instrument() {
 		remove.call(this, type, listener, options);
 		const capture = captureOf(options);
 		const i = listeners.findIndex(
-			(r) => r.target === this && r.type === type && r.listener === listener && r.capture === capture
+			(r) =>
+				r.target === this && r.type === type && r.listener === listener && r.capture === capture
 		);
 		if (i >= 0) listeners.splice(i, 1);
 	};
@@ -254,9 +259,13 @@ describe("SSR → hydration → navigation through the module", async () => {
 		expect(normalise(a)).toBe(normalise(b));
 
 		// Real server markup, not ClientOnly placeholders.
-		expect(a).toMatch(/<button[^>]*class="shimmer-button[^"]*"[^>]*data-testid="counter-btn"|data-testid="counter-btn"[^>]*class="shimmer-button/);
+		expect(a).toMatch(
+			/<button[^>]*class="shimmer-button[^"]*"[^>]*data-testid="counter-btn"|data-testid="counter-btn"[^>]*class="shimmer-button/
+		);
 		expect(a.match(/class="border-beam /g)?.length).toBe(2);
-		expect(a).toMatch(/data-testid="fluid"[^>]*>\s*<div[^>]*class="pointer-events-none absolute inset-0[^"]*"[^>]*>\s*<canvas/);
+		expect(a).toMatch(
+			/data-testid="fluid"[^>]*>\s*<div[^>]*class="pointer-events-none absolute inset-0[^"]*"[^>]*>\s*<canvas/
+		);
 		expect(a.match(/class="meteor /g)?.length).toBe(12);
 		// Below-the-fold lazy component is still server-rendered.
 		expect(a).toMatch(/data-testid="lazy-btn"/);

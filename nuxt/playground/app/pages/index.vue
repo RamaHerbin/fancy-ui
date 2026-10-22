@@ -16,8 +16,8 @@ const beams = [
 				Animated Vue components, registered by one Nuxt module.
 			</h1>
 			<p class="text-muted-foreground max-w-xl">
-				Everything on this page is server-rendered, then hydrated. No component is imported by
-				hand: the module registers each one as <code class="text-foreground">&lt;Fancy*&gt;</code>
+				Everything on this page is server-rendered, then hydrated. No component is imported by hand:
+				the module registers each one as <code class="text-foreground">&lt;Fancy*&gt;</code>
 				and ships the stylesheet.
 			</p>
 			<div class="flex flex-wrap items-center gap-3">
