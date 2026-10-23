@@ -58,6 +58,7 @@ const STYLE_CRITERIA: Record<Style | typeof NONE, string> = {
 	physical: "Feels like a real object: weight, tilt, depth, spring physics.",
 	retro: "Pixel, terminal, CRT, old operating systems, vintage.",
 	brutal: "Raw, heavy borders, stark blocks.",
+	hdr: "Light brighter than white on an HDR display: extended-range highlights.",
 	[NONE]: "The sentence does not describe a visual style.",
 };
 
