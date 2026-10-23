@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/border-beam",
 	addedAt: "2026-10-03",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient"],
 	styleTags: ["glow", "minimal"],
@@ -21,7 +21,7 @@ const entry: FancyUIReference = {
 		whenToUse:
 			"Work in progress on one card — a deploy, a generation, a sync — or one feature tile that should catch the eye.",
 		watch:
-			"Pure CSS. Reduced motion parks the head at `anchor` with the tail laid out. It must be the last child of a positioned, overflow-hidden parent; set `--border-beam-radius` when the radius cannot be read.",
+			"Pure CSS. Reduced motion parks the head at `anchor` with the tail laid out. It must be the last child of a positioned, overflow-hidden parent; set `--border-beam-radius` when the radius cannot be read. On an HDR display the comet's head burns above SDR white through a WebGPU layer that follows the CSS offset-path rider; elsewhere nothing changes.",
 		clues: [
 			"offset-path: border-box",
 			"container-type: size",
@@ -38,8 +38,9 @@ const entry: FancyUIReference = {
 			{ key: "colorFrom", type: "color", label: "From" },
 			{ key: "colorTo", type: "color", label: "To" },
 			{ key: "tail", type: "range", label: "Tail", min: 0.05, max: 0.8, step: 0.05 },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { colorFrom: "#8ec5ff", colorTo: "#c084fc", tail: 0.25 },
+		defaults: { colorFrom: "#8ec5ff", colorTo: "#c084fc", tail: 0.25, hdr: false },
 	},
 	capture: { delay: 2600 },
 };

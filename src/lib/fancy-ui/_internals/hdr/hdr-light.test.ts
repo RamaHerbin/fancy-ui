@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { attachHdrLight, HDR_PEAK, hdrLightAvailable, watchHdrLight } from "./hdr-light.js";
+import {
+	attachHdrLight,
+	contextColor,
+	HDR_PEAK,
+	hdrLightAvailable,
+	watchHdrLight,
+} from "./hdr-light.js";
 
 function stubDynamicRange(high: boolean) {
 	vi.stubGlobal(
@@ -104,5 +110,36 @@ describe("hdr-light", () => {
 		expect(seen).toEqual([false, true, false]);
 		stop();
 		expect(listeners.size).toBe(0);
+	});
+});
+
+describe("contextColor", () => {
+	it("passes context-free colours through untouched", () => {
+		const el = document.createElement("canvas");
+		document.body.appendChild(el);
+		expect(contextColor(el, "#8ec5ff")).toBe("#8ec5ff");
+		expect(el.getAttribute("style")).toBeNull();
+	});
+
+	it("resolves var() and currentColor through the element's style, then restores it", () => {
+		const el = document.createElement("canvas");
+		el.style.setProperty("color", "rgb(1, 2, 3)", "important");
+		document.body.appendChild(el);
+		// jsdom computes no var(): stand in for the browser's cascade.
+		const cascade: Record<string, string> = {
+			"var(--brand)": "rgb(255, 0, 0)",
+			currentcolor: "rgb(0, 0, 255)",
+		};
+		vi.spyOn(window, "getComputedStyle").mockImplementation(
+			(target) =>
+				({
+					color: cascade[(target as HTMLElement).style.getPropertyValue("color").toLowerCase()],
+				}) as CSSStyleDeclaration
+		);
+		expect(contextColor(el, "var(--brand)")).toBe("rgb(255, 0, 0)");
+		expect(contextColor(el, "currentColor")).toBe("rgb(0, 0, 255)");
+		expect(el.style.getPropertyValue("color")).toBe("rgb(1, 2, 3)");
+		expect(el.style.getPropertyPriority("color")).toBe("important");
+		vi.restoreAllMocks();
 	});
 });

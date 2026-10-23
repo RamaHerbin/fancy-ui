@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/glow-border",
 	addedAt: "2026-10-03",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient"],
 	styleTags: ["glow", "iridescent"],
@@ -21,7 +21,7 @@ const entry: FancyUIReference = {
 		whenToUse:
 			"One surface that should feel premium: the featured pricing tier, a selected plan, a hero card.",
 		watch:
-			"Pure CSS (registered custom properties), no listeners. Reduced motion stops the fields and parks the glint. It is an overlay with no children: the parent must be positioned and rounded.",
+			"Pure CSS (registered custom properties), no listeners. Reduced motion stops the fields and parks the glint. It is an overlay with no children: the parent must be positioned and rounded. On an HDR display the glint flashes above SDR white through a WebGPU layer that reads the live `--gb-a3`; elsewhere nothing changes.",
 		clues: [
 			"@property angles per field",
 			"two conic fields + a glint lap",
@@ -46,8 +46,9 @@ const entry: FancyUIReference = {
 				],
 			},
 			{ key: "strength", type: "range", label: "Strength", min: 0, max: 1, step: 0.05 },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { preset: "chromatic", strength: 0.8 },
+		defaults: { preset: "chromatic", strength: 0.8, hdr: false },
 	},
 };
 

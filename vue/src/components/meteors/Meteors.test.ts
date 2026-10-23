@@ -1,7 +1,7 @@
 import { render, cleanup } from "@testing-library/vue";
 import { renderToString } from "vue/server-renderer";
-import { createSSRApp } from "vue";
-import { afterEach, describe, it, expect } from "vitest";
+import { createSSRApp, nextTick } from "vue";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import Meteors, { meteorField } from "./Meteors.vue";
 
 describe("Meteors", () => {
@@ -136,5 +136,40 @@ describe("meteorField", () => {
 		expect(meteorField(-3)).toEqual([]);
 		expect(meteorField(Number.NaN)).toEqual([]);
 		expect(meteorField(2.7)).toHaveLength(2);
+	});
+});
+
+describe("Meteors HDR layer", () => {
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
+
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(Meteors);
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+		const hdrOn = render(Meteors, { props: { hdr: true } });
+		await nextTick();
+		expect(hdrOn.container.querySelector("canvas")).not.toBeNull();
+		// The light itself never starts without a real adapter: no flag.
+		expect(hdrOn.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		// Beta: off by default, even where it could run.
+		const off = render(Meteors);
+		await nextTick();
+		expect(off.container.querySelector("canvas")).toBeNull();
 	});
 });

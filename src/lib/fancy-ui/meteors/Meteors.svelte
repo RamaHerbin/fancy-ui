@@ -20,6 +20,12 @@
 		color?: string;
 		/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 		seed?: number;
+		/**
+		 * Beta, off by default. On a display that reports HDR, make the heads burn above SDR white in a
+		 * WebGPU layer with extended tone mapping, following the CSS fall
+		 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	}
 
 	export interface Meteor {
@@ -74,6 +80,8 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { meteorsProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		count = 20,
@@ -82,7 +90,38 @@
 		speed = 1,
 		color,
 		seed = 1,
+		hdr = false,
 	}: MeteorsProps = $props();
+
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		return watchHdrLight((available) => (hdrCapable = available));
+	});
+
+	// This instance's own heads: a container may hold several showers, and each
+	// light layer draws only the meteors of the instance that owns it.
+	const meteorEls: (HTMLSpanElement | null)[] = [];
+
+	// Meteors render no root of their own: the light layer belongs to their
+	// container, and each head is wherever the CSS transform has put it.
+	$effect(() => {
+		const host = hdrCanvas?.parentElement;
+		if (!hdrCanvas || !host) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: meteorsProbe({
+				host,
+				meteors: () =>
+					meteorEls.slice(0, meteors.length).filter((el): el is HTMLSpanElement => !!el),
+				intensity: 3.6,
+			}),
+		});
+	});
 
 	const meteors = $derived(meteorField(count, seed));
 	const speedC = $derived(Number.isFinite(speed) && speed > 0 ? speed : 1);
@@ -111,6 +150,7 @@
 
 {#each meteors as meteor, i (i)}
 	<span
+		bind:this={meteorEls[i]}
 		class={cn(
 			"meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0",
 			meteor.flare && "meteor--flare",
@@ -120,6 +160,15 @@
 		aria-hidden="true"
 	></span>
 {/each}
+
+{#if hdr && hdrCapable}
+	<!-- The heads above SDR white, on HDR displays only. -->
+	<canvas
+		bind:this={hdrCanvas}
+		class="pointer-events-none absolute inset-0 h-full w-full"
+		aria-hidden="true"
+	></canvas>
+{/if}
 
 <style>
 	/* Light pages get a slate meteor; dark ones a pale blue-white. A `color`

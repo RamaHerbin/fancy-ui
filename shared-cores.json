@@ -143,6 +143,16 @@
 		}
 	},
 	{
+		"id": "_internals/hdr/hdr-probes.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/hdr/hdr-probes.ts",
+			"react": "react/src/internals/hdr/hdr-probes.ts",
+			"vue": "vue/src/internals/hdr/hdr-probes.ts"
+		}
+	},
+	{
 		"id": "mosaic-glow/mosaic-glow-core.ts",
 		"kind": "engine-core",
 		"shared": true,

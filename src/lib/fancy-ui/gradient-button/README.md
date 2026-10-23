@@ -43,3 +43,7 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 - The button's own background (a lighter mix of `bgColor`) shows through the ring where the beam isn't, as a hairline border.
 - `prefers-reduced-motion`: the beam stops at a fixed angle. Disabled: 50% opacity, beam paused.
 - The CSS variables (`--gb-colors`, `--gb-duration`, `--gb-border-width`, `--gb-border-radius`, `--gb-blur`, `--gb-bg-color`) are still set inline.
+
+## HDR (beta)
+
+The beam is a CSS conic gradient turned by a registered `--gb-angle`, capped at SDR white. With `hdr` (beta, off by default — pass `hdr` to opt in), the shared HDR light layer (`_internals/hdr/`) reads the browser's live, animated `--gb-angle` every frame and lights the same arc on the border above white — peaking mid-arc, with a fainter echo — so it can never drift from the CSS spin. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

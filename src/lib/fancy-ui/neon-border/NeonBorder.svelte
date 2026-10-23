@@ -26,6 +26,12 @@
 		class?: string;
 		/** Content */
 		children?: Snippet;
+		/**
+		 * Beta, off by default. On a display that reports HDR, light the beams' heads above SDR white
+		 * in a WebGPU layer with extended tone mapping, following the CSS travel
+		 * and the ignite flicker exactly. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	}
 
 	export type NeonBorderProps = NeonBorderOwn &
@@ -69,6 +75,8 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { conicBorderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		color1 = "#0496ff",
@@ -77,9 +85,50 @@
 		duration = 6,
 		class: className,
 		children,
+		hdr = false,
 		style,
 		...restProps
 	}: NeonBorderProps = $props();
+
+	let root: HTMLDivElement | undefined = $state();
+	let light: HTMLSpanElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		return watchHdrLight((available) => (hdrCapable = available));
+	});
+
+	// Reads the live `--neon-angle` and the tube's live opacity (ignite), so the
+	// HDR heads travel and strike with the CSS beams.
+	$effect(() => {
+		if (!root || !light || !hdrCanvas) return;
+		const tube = light;
+		const head = (t: number) => 0.3 + 3.2 * t ** 3;
+		return attachHdrLight({
+			host: root,
+			canvas: hdrCanvas,
+			probe: conicBorderProbe({
+				angleFrom: root,
+				angleVar: "--neon-angle",
+				radius: () => 8,
+				halo: 4,
+				level: () => {
+					if (animationType === "none") return 0;
+					const o = parseFloat(getComputedStyle(tube).opacity);
+					return Number.isFinite(o) ? o : 1;
+				},
+				arcs: () => {
+					const span = beamArc(animationType);
+					return [
+						{ from: 0, to: span, color: () => color1, intensity: head, white: 0.5 },
+						{ from: 50, to: 50 + span, color: () => color2, intensity: head, white: 0.5 },
+					];
+				},
+			}),
+		});
+	});
 
 	function getWidth(type: NeonAnimationType): number {
 		switch (type) {
@@ -109,6 +158,7 @@
 </script>
 
 <div
+	bind:this={root}
 	{...restProps}
 	class={cn(
 		"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px",
@@ -120,10 +170,14 @@
 	{@render children?.()}
 
 	<span class="neon-tube" aria-hidden="true"></span>
-	<span class="neon-light" aria-hidden="true">
+	<span bind:this={light} class="neon-light" aria-hidden="true">
 		<span class="neon-glow"><span></span></span>
 		<span class="neon-core"></span>
 	</span>
+	{#if hdr && hdrCapable}
+		<!-- The beams' heads above SDR white, on HDR displays only. -->
+		<canvas bind:this={hdrCanvas} class="neon-hdr" aria-hidden="true"></canvas>
+	{/if}
 </div>
 
 <style>
@@ -202,6 +256,15 @@
 		padding: calc(var(--neon-tube-width) + 12px);
 		border-radius: calc(0.5rem + 7px);
 		background: var(--neon-beams);
+	}
+
+	.neon-hdr {
+		position: absolute;
+		top: -24px;
+		left: -24px;
+		width: calc(100% + 48px);
+		height: calc(100% + 48px);
+		pointer-events: none;
 	}
 
 	/* The white-hot core of the lit tube. */

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PlaygroundValues } from "$lib/inspiration/types.js";
 	import { AnimatedBeam } from "$lib/fancy-ui/animated-beam";
+	import HdrBadge from "$lib/components/inspiration/HdrBadge.svelte";
 	import Sparkles from "@lucide/svelte/icons/sparkles";
 	import Database from "@lucide/svelte/icons/database";
 
@@ -22,6 +23,7 @@
 	<div bind:this={to} class={node}><Sparkles class="size-5" strokeWidth={1.5} /></div>
 	{#if container && from && to}
 		<AnimatedBeam
+			hdr={values.hdr === true}
 			containerRef={container}
 			fromRef={from}
 			toRef={to}
@@ -33,4 +35,5 @@
 			gradientStopColor="#a78bfa"
 		/>
 	{/if}
+	<HdrBadge />
 </div>

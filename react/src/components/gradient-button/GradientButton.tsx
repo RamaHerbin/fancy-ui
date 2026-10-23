@@ -1,9 +1,13 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/sound-feedback.js";
-import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import "./gradient-button.css";
 
 type BaseProps = {
@@ -28,6 +32,12 @@ type BaseProps = {
 	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Beta, off by default. On a display that reports HDR, add the beam's light above SDR white on
+	 * the border, in a WebGPU layer with extended tone mapping, following the
+	 * CSS spin exactly. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 };
 
 export interface GradientButtonProps
@@ -66,6 +76,7 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 			children,
 			onClick,
 			sound = false,
+			hdr = false,
 			...restProps
 		},
 		ref
@@ -78,7 +89,42 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 			on: sound ? { pointerenter: "hover" } : {},
 			disabled: restProps.disabled,
 		});
-		const composedRef = useComposedRefs(ref, soundRef);
+		const [button, buttonRef] = useElementRef<HTMLButtonElement>();
+		const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+		// The canvas exists only where the light can run; SSR and SDR devices render none,
+		// and it follows the window between SDR and HDR monitors.
+		const [hdrCapable, setHdrCapable] = useState(false);
+		useEffect(() => {
+			return watchHdrLight(setHdrCapable);
+		}, []);
+		const composedRef = useComposedRefs<HTMLButtonElement>(ref, buttonRef, soundRef);
+		const live = useLiveRef({ colors, borderRadius, borderWidth });
+
+		// The HDR light reads the live, CSS-animated `--gb-angle`, so it turns with
+		// the beam by construction: the main arc peaks mid-way, the echo is fainter.
+		useEffect(() => {
+			if (!button || !hdrCanvas) return;
+			const pick = (t: number) => {
+				const list = live.current.colors.length ? live.current.colors : ["#ffffff"];
+				return list[Math.min(list.length - 1, Math.floor(t * list.length))]!;
+			};
+			return attachHdrLight({
+				host: button,
+				canvas: hdrCanvas,
+				pad: 0,
+				probe: conicBorderProbe({
+					angleFrom: button,
+					angleVar: "--gb-angle",
+					radius: () => live.current.borderRadius,
+					inset: () => live.current.borderWidth / 2,
+					level: () => (button.matches(":disabled") ? 0 : 1),
+					arcs: () => [
+						{ from: 0, to: 42, color: pick, intensity: (t) => 2.8 * Math.sin(Math.PI * t) },
+						{ from: 50, to: 78, color: pick, intensity: (t) => 1 * Math.sin(Math.PI * t) },
+					],
+				}),
+			});
+		}, [button, hdrCanvas, live]);
 
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (!restProps.disabled) playCue("press");
@@ -118,6 +164,10 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 
 				{/* The beam on the border */}
 				<span className="gradient-border" aria-hidden="true" />
+
+				{hdr && hdrCapable ? (
+					<canvas ref={hdrCanvasRef} className="gradient-hdr" aria-hidden="true" />
+				) : null}
 			</button>
 		);
 	}

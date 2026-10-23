@@ -4,6 +4,10 @@ import { useFancyId } from "../../internals/use-id.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { packetProbe } from "../../internals/hdr/hdr-probes.js";
 import "./animated-beam.css";
 
 /**
@@ -48,6 +52,13 @@ export interface AnimatedBeamProps {
 	glow?: number;
 	/** Seed for the default `duration`, so server and browser agree. */
 	seed?: number;
+	/**
+	 * Beta, off by default. On a display that reports HDR, make the packet's head and the arrival
+	 * bloom burn above SDR white in a WebGPU layer with extended tone mapping,
+	 * following the CSS dash animation exactly. Draws into `containerRef`.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 /** Small seedable PRNG. Same seed → same sequence, on the server and in the browser. */
@@ -192,6 +203,7 @@ export function AnimatedBeam({
 	tail = 0.35,
 	glow = 0.6,
 	seed = 1,
+	hdr = false,
 }: AnimatedBeamProps) {
 	// Stable across server render and hydration — the counterpart of `$props.id()`.
 	const uid = useFancyId("beam");
@@ -320,165 +332,209 @@ export function AnimatedBeam({
 		updatePath,
 	]);
 
+	const [svgEl, svgElRef] = useElementRef<SVGSVGElement>();
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		return watchHdrLight(setHdrCapable);
+	}, []);
+	const colorsRef = useLiveRef({ start: gradientStartColor, stop: gradientStopColor });
+
+	// The packet's head is wherever the CSS dash animation has put it: read
+	// from the live `stroke-dashoffset` of the core layer each frame. Passive
+	// effect, so a ref-object container is attached by the time it runs.
+	useEffect(() => {
+		const host = resolveTarget(containerRef);
+		const svg = svgEl;
+		if (!host || !svg || !hdrCanvas) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: packetProbe({
+				host,
+				// The SVG carries the consumer's `class`: its live opacity dims the light.
+				layer: svg,
+				paths: () => svg.querySelectorAll<SVGPathElement>(".packet-core"),
+				color: () => colorsRef.current.start,
+				intensity: 4.4,
+				blooms: () => svg.querySelectorAll<SVGCircleElement>(".bloom-disc"),
+				bloomColor: () => colorsRef.current.stop,
+			}),
+		});
+	}, [containerRef, svgEl, hdrCanvas, colorsRef]);
+
 	return (
-		<svg
-			fill="none"
-			aria-hidden="true"
-			width={geo.width}
-			height={geo.height}
-			xmlns="http://www.w3.org/2000/svg"
-			className={cn(
-				"animated-beam pointer-events-none absolute top-0 left-0 transform-gpu stroke-2",
-				className
-			)}
-			viewBox={`0 0 ${geo.width} ${geo.height}`}
-			data-duration={cycle.toFixed(3)}
-			style={{ "--_dur": `${cycle.toFixed(3)}s` } as CSSProperties}
-		>
-			<defs>
-				<linearGradient
-					id={id}
-					gradientUnits="userSpaceOnUse"
-					x1={launch.x}
-					y1={launch.y}
-					x2={landing.x}
-					y2={landing.y}
-				>
-					<stop offset="0%" style={{ stopColor: hotColor }} stopOpacity="0.9" />
-					<stop offset="30%" style={{ stopColor: gradientStartColor }} />
-					<stop offset="65%" style={{ stopColor: midColor }} />
-					<stop offset="100%" style={{ stopColor: gradientStopColor }} />
-				</linearGradient>
-				<filter
-					id={glowId}
-					filterUnits="userSpaceOnUse"
-					x={-40}
-					y={-40}
-					width={geo.width + 80}
-					height={geo.height + 80}
-				>
-					<feGaussianBlur stdDeviation={1.5 + 4 * glowAmount} />
-				</filter>
-				<filter
-					id={bloomId}
-					filterUnits="userSpaceOnUse"
-					x={-40}
-					y={-40}
-					width={geo.width + 80}
-					height={geo.height + 80}
-				>
-					<feGaussianBlur stdDeviation={5 + 6 * glowAmount} />
-				</filter>
-			</defs>
-
-			{/* The fibre: a sheath, a darker core, and a hair of glint down the middle. */}
-			<g className="fibre" opacity={fibreOpacity}>
-				<path
-					className="fibre-sheath"
-					d={pathD}
-					strokeWidth={pathWidth + 2}
-					strokeLinecap="round"
-					style={fibreStyle}
-					strokeOpacity={pathColor ? 0.5 : 1}
-				/>
-				<path
-					className="fibre-core"
-					d={pathD}
-					strokeWidth={pathWidth}
-					strokeLinecap="round"
-					style={fibreStyle}
-				/>
-				{!pathColor && (
-					<path
-						className="fibre-glint"
-						d={pathD}
-						strokeWidth={Math.max(0.5, pathWidth * 0.3)}
-						strokeLinecap="round"
-					/>
+		<>
+			<svg
+				ref={svgElRef}
+				fill="none"
+				aria-hidden="true"
+				width={geo.width}
+				height={geo.height}
+				xmlns="http://www.w3.org/2000/svg"
+				className={cn(
+					"animated-beam pointer-events-none absolute top-0 left-0 transform-gpu stroke-2",
+					className
 				)}
-			</g>
+				viewBox={`0 0 ${geo.width} ${geo.height}`}
+				data-duration={cycle.toFixed(3)}
+				style={{ "--_dur": `${cycle.toFixed(3)}s` } as CSSProperties}
+			>
+				<defs>
+					<linearGradient
+						id={id}
+						gradientUnits="userSpaceOnUse"
+						x1={launch.x}
+						y1={launch.y}
+						x2={landing.x}
+						y2={landing.y}
+					>
+						<stop offset="0%" style={{ stopColor: hotColor }} stopOpacity="0.9" />
+						<stop offset="30%" style={{ stopColor: gradientStartColor }} />
+						<stop offset="65%" style={{ stopColor: midColor }} />
+						<stop offset="100%" style={{ stopColor: gradientStopColor }} />
+					</linearGradient>
+					<filter
+						id={glowId}
+						filterUnits="userSpaceOnUse"
+						x={-40}
+						y={-40}
+						width={geo.width + 80}
+						height={geo.height + 80}
+					>
+						<feGaussianBlur stdDeviation={1.5 + 4 * glowAmount} />
+					</filter>
+					<filter
+						id={bloomId}
+						filterUnits="userSpaceOnUse"
+						x={-40}
+						y={-40}
+						width={geo.width + 80}
+						height={geo.height + 80}
+					>
+						<feGaussianBlur stdDeviation={5 + 6 * glowAmount} />
+					</filter>
+				</defs>
 
-			{reduced ? (
-				/* Still frame: the fibre holds a soft gradient along its length. */
-				<g className="still" data-still="">
+				{/* The fibre: a sheath, a darker core, and a hair of glint down the middle. */}
+				<g className="fibre" opacity={fibreOpacity}>
 					<path
+						className="fibre-sheath"
 						d={pathD}
-						stroke={`url(#${id})`}
-						strokeWidth={pathWidth * 2.5 + 3}
+						strokeWidth={pathWidth + 2}
 						strokeLinecap="round"
-						opacity={0.35 * glowAmount}
-						filter={`url(#${glowId})`}
+						style={fibreStyle}
+						strokeOpacity={pathColor ? 0.5 : 1}
 					/>
 					<path
+						className="fibre-core"
 						d={pathD}
-						stroke={`url(#${id})`}
 						strokeWidth={pathWidth}
 						strokeLinecap="round"
-						opacity="0.55"
+						style={fibreStyle}
 					/>
+					{!pathColor && (
+						<path
+							className="fibre-glint"
+							d={pathD}
+							strokeWidth={Math.max(0.5, pathWidth * 0.3)}
+							strokeLinecap="round"
+						/>
+					)}
 				</g>
-			) : (
-				packets.map((packetDelay, i) => (
-					<g
-						key={i}
-						className="packet"
-						data-packet={i}
-						style={{ "--_delay": `${packetDelay}s` } as CSSProperties}
-					>
-						{/* Arrival bloom behind the destination node. */}
-						<g className="bloom" opacity={0.3 + 0.7 * glowAmount}>
-							<circle
-								className="bloom-disc"
-								cx={landing.x}
-								cy={landing.y}
-								r={landingRadius + 6}
-								style={{ fill: `color-mix(in oklab, ${gradientStopColor} 75%, white)` }}
-								filter={`url(#${bloomId})`}
-							/>
-							<circle
-								className="bloom-ring"
-								cx={landing.x}
-								cy={landing.y}
-								r={landingRadius + 4}
-								strokeWidth="1"
-								style={{ stroke: `color-mix(in oklab, ${gradientStopColor} 55%, white)` }}
-							/>
-						</g>
-						{/* Soft glow, blurred, under the crisp packet. */}
-						<g filter={`url(#${glowId})`} opacity={glowAmount}>
-							{glows.map((layer, j) => (
+
+				{reduced ? (
+					/* Still frame: the fibre holds a soft gradient along its length. */
+					<g className="still" data-still="">
+						<path
+							d={pathD}
+							stroke={`url(#${id})`}
+							strokeWidth={pathWidth * 2.5 + 3}
+							strokeLinecap="round"
+							opacity={0.35 * glowAmount}
+							filter={`url(#${glowId})`}
+						/>
+						<path
+							d={pathD}
+							stroke={`url(#${id})`}
+							strokeWidth={pathWidth}
+							strokeLinecap="round"
+							opacity="0.55"
+						/>
+					</g>
+				) : (
+					packets.map((packetDelay, i) => (
+						<g
+							key={i}
+							className="packet"
+							data-packet={i}
+							style={{ "--_delay": `${packetDelay}s` } as CSSProperties}
+						>
+							{/* Arrival bloom behind the destination node. */}
+							<g className="bloom" opacity={0.3 + 0.7 * glowAmount}>
+								<circle
+									className="bloom-disc"
+									cx={landing.x}
+									cy={landing.y}
+									r={landingRadius + 6}
+									style={{ fill: `color-mix(in oklab, ${gradientStopColor} 75%, white)` }}
+									filter={`url(#${bloomId})`}
+								/>
+								<circle
+									className="bloom-ring"
+									cx={landing.x}
+									cy={landing.y}
+									r={landingRadius + 4}
+									strokeWidth="1"
+									style={{ stroke: `color-mix(in oklab, ${gradientStopColor} 55%, white)` }}
+								/>
+							</g>
+							{/* Soft glow, blurred, under the crisp packet. */}
+							<g filter={`url(#${glowId})`} opacity={glowAmount}>
+								{glows.map((layer, j) => (
+									<path
+										key={j}
+										className="packet-layer"
+										d={flowD}
+										pathLength={1000}
+										strokeWidth={pathWidth * layer.width + 2}
+										strokeLinecap="round"
+										style={{ ...dashVars(layer), stroke: layer.color } as CSSProperties}
+										opacity={layer.opacity}
+									/>
+								))}
+							</g>
+							{layers.map((layer, j) => (
 								<path
 									key={j}
-									className="packet-layer"
+									className={layer.core ? "packet-layer packet-core" : "packet-layer"}
+									data-layer={layer.key}
 									d={flowD}
 									pathLength={1000}
-									strokeWidth={pathWidth * layer.width + 2}
+									strokeWidth={pathWidth * layer.width}
 									strokeLinecap="round"
-									style={{ ...dashVars(layer), stroke: layer.color } as CSSProperties}
+									style={
+										(layer.core
+											? { ...dashVars(layer), "--_core": gradientStartColor }
+											: { ...dashVars(layer), stroke: layer.color }) as CSSProperties
+									}
 									opacity={layer.opacity}
 								/>
 							))}
 						</g>
-						{layers.map((layer, j) => (
-							<path
-								key={j}
-								className={layer.core ? "packet-layer packet-core" : "packet-layer"}
-								data-layer={layer.key}
-								d={flowD}
-								pathLength={1000}
-								strokeWidth={pathWidth * layer.width}
-								strokeLinecap="round"
-								style={
-									(layer.core
-										? { ...dashVars(layer), "--_core": gradientStartColor }
-										: { ...dashVars(layer), stroke: layer.color }) as CSSProperties
-								}
-								opacity={layer.opacity}
-							/>
-						))}
-					</g>
-				))
-			)}
-		</svg>
+					))
+				)}
+			</svg>
+			{hdr && hdrCapable && !reduced ? (
+				<canvas
+					ref={hdrCanvasRef}
+					className="pointer-events-none absolute inset-0 h-full w-full"
+					aria-hidden="true"
+				/>
+			) : null}
+		</>
 	);
 }

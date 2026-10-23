@@ -1,5 +1,6 @@
 import { render, cleanup } from "@testing-library/vue";
-import { afterEach, describe, it, expect } from "vitest";
+import { nextTick } from "vue";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import BorderBeam, {
 	beamPhase,
 	tailSegments,
@@ -155,5 +156,40 @@ describe("beamPhase", () => {
 
 	it("survives a zero duration", () => {
 		expect(beamPhase(0, 0, 10, false)).toEqual({ offset: 0, park: 10 });
+	});
+});
+
+describe("BorderBeam HDR layer", () => {
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
+
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(BorderBeam);
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+		const hdrOn = render(BorderBeam, { props: { hdr: true } });
+		await nextTick();
+		expect(hdrOn.container.querySelector("canvas")).not.toBeNull();
+		// The light itself never starts without a real adapter: no flag.
+		expect(hdrOn.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		// Beta: off by default, even where it could run.
+		const off = render(BorderBeam);
+		await nextTick();
+		expect(off.container.querySelector("canvas")).toBeNull();
 	});
 });

@@ -55,6 +55,13 @@ export interface AnimatedBeamProps {
 	glow?: number;
 	/** Seed for the default `duration`, so server and browser agree. */
 	seed?: number;
+	/**
+	 * Beta, off by default. On a display that reports HDR, make the packet's head and the arrival
+	 * bloom burn above SDR white in a WebGPU layer with extended tone mapping,
+	 * following the CSS dash animation exactly. Draws into `containerRef`.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 /** Small seedable PRNG. Same seed → same sequence, on the server and in the browser. */
@@ -162,11 +169,13 @@ function dashVars(layer: PacketLayer): Record<string, string> {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { packetProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "AnimatedBeam", inheritAttrs: false });
 
@@ -192,6 +201,7 @@ const {
 	tail = 0.35,
 	glow = 0.6,
 	seed = 1,
+	hdr = false,
 } = defineProps<AnimatedBeamProps>();
 
 // Stable across server render and hydration — no Math.random() anywhere.
@@ -303,10 +313,52 @@ watch(
 	() => updatePath(),
 	{ flush: "post" }
 );
+
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
+const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
+onMounted(() => {
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
+});
+onBeforeUnmount(() => stopHdrWatch());
+
+const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+// The packet's head is wherever the CSS dash animation has put it: read
+// from the live `stroke-dashoffset` of the core layer each frame.
+watch(
+	[() => containerRef, svgEl, hdrCanvas],
+	([host, svg, canvasEl], _old, onCleanup) => {
+		if (!host || !svg || !canvasEl) return;
+		onCleanup(
+			attachHdrLight({
+				host,
+				canvas: canvasEl,
+				pad: 0,
+				probe: packetProbe({
+					host,
+					// The SVG carries the consumer's `class`: its live opacity dims the light.
+					layer: svg,
+					paths: () => svg.querySelectorAll<SVGPathElement>(".packet-core"),
+					color: () => gradientStartColor,
+					intensity: 4.4,
+					blooms: () => svg.querySelectorAll<SVGCircleElement>(".bloom-disc"),
+					bloomColor: () => gradientStopColor,
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 </script>
 
 <template>
 	<svg
+		ref="svgEl"
 		fill="none"
 		aria-hidden="true"
 		:width="svgDimensions.width"
@@ -457,6 +509,14 @@ watch(
 			</g>
 		</template>
 	</svg>
+
+	<!-- The packet's head above SDR white, on HDR displays only. -->
+	<canvas
+		v-if="hdr && hdrCapable && !reduced.current"
+		ref="hdrCanvas"
+		class="pointer-events-none absolute inset-0 h-full w-full"
+		aria-hidden="true"
+	></canvas>
 </template>
 
 <style scoped>

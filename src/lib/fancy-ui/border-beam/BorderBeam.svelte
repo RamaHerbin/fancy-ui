@@ -43,6 +43,12 @@
 		glow?: number;
 		/** Travel counter-clockwise instead of clockwise */
 		reverse?: boolean;
+		/**
+		 * Beta, off by default. On a display that reports HDR, push the comet's white-hot head above
+		 * SDR white in a WebGPU layer with extended tone mapping, following the
+		 * CSS ride exactly. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	}
 
 	/** Number of overlapping pieces the sharp tail is drawn with. More pieces
@@ -98,6 +104,8 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { riderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		class: className,
@@ -111,7 +119,33 @@
 		tail = 0.25,
 		glow = 0.6,
 		reverse = false,
+		hdr = false,
 	}: BorderBeamProps = $props();
+
+	let root: HTMLDivElement | undefined = $state();
+	let spark: HTMLSpanElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		return watchHdrLight((available) => (hdrCapable = available));
+	});
+
+	// The head is wherever the CSS `offset-path` has put the spark this frame.
+	$effect(() => {
+		if (!root || !spark || !hdrCanvas) return;
+		return attachHdrLight({
+			host: root,
+			canvas: hdrCanvas,
+			probe: riderProbe({
+				host: root,
+				rider: spark,
+				color: () => colorFrom,
+				intensity: () => 4.6,
+			}),
+		});
+	});
 
 	const tailPieces = tailSegments(TAIL_SEGMENTS);
 	const bloomPieces = tailSegments(BLOOM_SEGMENTS);
@@ -141,6 +175,7 @@
 </script>
 
 <div
+	bind:this={root}
 	class={cn("border-beam", "pointer-events-none absolute inset-0 rounded-[inherit]", className)}
 	data-direction={reverse ? "reverse" : "forward"}
 	aria-hidden="true"
@@ -177,7 +212,12 @@
 	</div>
 
 	<!-- the white-hot point of the head, sitting on the edge -->
-	<span class="bb-ride bb-spark"></span>
+	<span bind:this={spark} class="bb-ride bb-spark"></span>
+
+	{#if hdr && hdrCapable}
+		<!-- The head above SDR white, on HDR displays only. -->
+		<canvas bind:this={hdrCanvas} class="bb-hdr"></canvas>
+	{/if}
 </div>
 
 <style>
@@ -239,6 +279,15 @@
 	.bb-rail {
 		inset: 0;
 		border-radius: inherit;
+	}
+
+	.bb-hdr {
+		position: absolute;
+		top: -24px;
+		left: -24px;
+		width: calc(100% + 48px);
+		height: calc(100% + 48px);
+		pointer-events: none;
 	}
 
 	/* ---------- riders: everything that travels the border ---------- */

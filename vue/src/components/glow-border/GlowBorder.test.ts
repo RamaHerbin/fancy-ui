@@ -1,5 +1,6 @@
 import { render, cleanup } from "@testing-library/vue";
-import { afterEach, describe, it, expect } from "vitest";
+import { nextTick } from "vue";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import GlowBorder, {
 	GLOW_BORDER_PRESETS,
 	customPalette,
@@ -118,5 +119,40 @@ describe("GlowBorder", () => {
 		// the second field of the pair is offset, so reflections don't line up
 		expect(metalBackground(p)).toContain("--gb-a2");
 		expect(glintArc(p)).toContain("#ffffff 90%");
+	});
+});
+
+describe("GlowBorder HDR layer", () => {
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
+
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(GlowBorder);
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+		const hdrOn = render(GlowBorder, { props: { hdr: true } });
+		await nextTick();
+		expect(hdrOn.container.querySelector("canvas")).not.toBeNull();
+		// The light itself never starts without a real adapter: no flag.
+		expect(hdrOn.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		// Beta: off by default, even where it could run.
+		const off = render(GlowBorder);
+		await nextTick();
+		expect(off.container.querySelector("canvas")).toBeNull();
 	});
 });

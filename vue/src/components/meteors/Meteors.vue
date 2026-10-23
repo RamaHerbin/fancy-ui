@@ -22,6 +22,12 @@ export interface MeteorsProps {
 	color?: string;
 	/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 	seed?: number;
+	/**
+	 * Beta, off by default. On a display that reports HDR, make the heads burn above SDR white in a
+	 * WebGPU layer with extended tone mapping, following the CSS fall
+	 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 export interface Meteor {
@@ -75,8 +81,10 @@ export function meteorField(count: number, seed = 1): Meteor[] {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "Meteors", inheritAttrs: false });
 
@@ -87,7 +95,47 @@ const {
 	speed = 1,
 	color,
 	seed = 1,
+	hdr = false,
 } = defineProps<MeteorsProps>();
+
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
+const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
+onMounted(() => {
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
+});
+onBeforeUnmount(() => stopHdrWatch());
+
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+// This instance's own heads: a container may hold several showers, and each
+// light layer draws only the meteors of the instance that owns it.
+const meteorEls = useTemplateRef<HTMLSpanElement[]>("meteorEls");
+
+// Meteors render no root of their own: the light layer belongs to their
+// container, and each head is wherever the CSS transform has put it.
+watch(
+	hdrCanvas,
+	(canvasEl, _old, onCleanup) => {
+		const host = canvasEl?.parentElement;
+		if (!canvasEl || !host) return;
+		onCleanup(
+			attachHdrLight({
+				host,
+				canvas: canvasEl,
+				pad: 0,
+				probe: meteorsProbe({
+					host,
+					meteors: () => meteorEls.value ?? [],
+					intensity: 3.6,
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 const meteors = computed(() => meteorField(count, seed));
 const speedC = computed(() => (Number.isFinite(speed) && speed > 0 ? speed : 1));
@@ -117,6 +165,7 @@ function styleFor(m: Meteor): Record<string, string> {
 	<span
 		v-for="(meteor, i) in meteors"
 		:key="i"
+		ref="meteorEls"
 		:class="
 			cn(
 				'meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0',
@@ -127,6 +176,13 @@ function styleFor(m: Meteor): Record<string, string> {
 		:style="styleFor(meteor)"
 		aria-hidden="true"
 	></span>
+	<!-- The heads above SDR white, on HDR displays only. -->
+	<canvas
+		v-if="hdr && hdrCapable"
+		ref="hdrCanvas"
+		class="pointer-events-none absolute inset-0 h-full w-full"
+		aria-hidden="true"
+	></canvas>
 </template>
 
 <style scoped>

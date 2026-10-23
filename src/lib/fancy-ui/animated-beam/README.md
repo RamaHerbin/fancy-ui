@@ -14,26 +14,26 @@ A fibre-optic connector between two elements. The link is drawn as a glass fibre
 
 ## Props
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `containerRef` | `HTMLElement` | required | Element that holds both endpoints; the SVG covers it. |
-| `fromRef` | `HTMLElement` | required | Source element. |
-| `toRef` | `HTMLElement` | required | Destination element. |
-| `curvature` | `number` | `0` | Vertical bend in px (positive bows upward). |
-| `reverse` | `boolean` | `false` | Light travels from `toRef` to `fromRef`; the bloom lands on `fromRef`. |
-| `pathColor` | `string` | theme glass | Plain fibre colour. Unset keeps the theme-aware glass. |
-| `pathWidth` | `number` | `2` | Width of the fibre core and of the packet. |
-| `pathOpacity` | `number` | `1` (glass) / `0.2` (with `pathColor`) | Fibre opacity. |
-| `gradientStartColor` | `string` | `#FFAA40` | Packet head colour (its core is this mixed with white). |
-| `gradientStopColor` | `string` | `#9C40FF` | Far end of the tail and colour of the bloom. |
-| `delay` | `number` | `0` | Seconds before the first packet leaves. |
-| `duration` | `number` | from `seed` | Seconds per packet cycle. |
-| `startXOffset` / `startYOffset` / `endXOffset` / `endYOffset` | `number` | `0` | Nudge either end in px. |
-| `pulses` | `number` | `1` | Packets in flight at once (1–12), spaced evenly. |
-| `tail` | `number` | `0.35` | Tail length as a fraction of the fibre (0.05–0.9). |
-| `glow` | `number` | `0.6` | Strength of the blurred glow and the arrival bloom (0–1). |
-| `seed` | `number` | `1` | Seed for the default `duration`. |
-| `class` | `string` | `""` | Extra classes on the SVG. |
+| Prop                                                          | Type          | Default                                | Description                                                            |
+| ------------------------------------------------------------- | ------------- | -------------------------------------- | ---------------------------------------------------------------------- |
+| `containerRef`                                                | `HTMLElement` | required                               | Element that holds both endpoints; the SVG covers it.                  |
+| `fromRef`                                                     | `HTMLElement` | required                               | Source element.                                                        |
+| `toRef`                                                       | `HTMLElement` | required                               | Destination element.                                                   |
+| `curvature`                                                   | `number`      | `0`                                    | Vertical bend in px (positive bows upward).                            |
+| `reverse`                                                     | `boolean`     | `false`                                | Light travels from `toRef` to `fromRef`; the bloom lands on `fromRef`. |
+| `pathColor`                                                   | `string`      | theme glass                            | Plain fibre colour. Unset keeps the theme-aware glass.                 |
+| `pathWidth`                                                   | `number`      | `2`                                    | Width of the fibre core and of the packet.                             |
+| `pathOpacity`                                                 | `number`      | `1` (glass) / `0.2` (with `pathColor`) | Fibre opacity.                                                         |
+| `gradientStartColor`                                          | `string`      | `#FFAA40`                              | Packet head colour (its core is this mixed with white).                |
+| `gradientStopColor`                                           | `string`      | `#9C40FF`                              | Far end of the tail and colour of the bloom.                           |
+| `delay`                                                       | `number`      | `0`                                    | Seconds before the first packet leaves.                                |
+| `duration`                                                    | `number`      | from `seed`                            | Seconds per packet cycle.                                              |
+| `startXOffset` / `startYOffset` / `endXOffset` / `endYOffset` | `number`      | `0`                                    | Nudge either end in px.                                                |
+| `pulses`                                                      | `number`      | `1`                                    | Packets in flight at once (1–12), spaced evenly.                       |
+| `tail`                                                        | `number`      | `0.35`                                 | Tail length as a fraction of the fibre (0.05–0.9).                     |
+| `glow`                                                        | `number`      | `0.6`                                  | Strength of the blurred glow and the arrival bloom (0–1).              |
+| `seed`                                                        | `number`      | `1`                                    | Seed for the default `duration`.                                       |
+| `class`                                                       | `string`      | `""`                                   | Extra classes on the SVG.                                              |
 
 ## Reduced motion
 
@@ -44,3 +44,7 @@ With `prefers-reduced-motion: reduce` there are no packets and no bloom. The fib
 - The whole SVG is `aria-hidden="true"` and `pointer-events-none`; put the meaning in the connected elements.
 - Give the connected elements a higher `z-index` than the beam (for example `relative z-10`) so the fibre ends and the bloom sit behind them.
 - Horizontal, vertical and diagonal links all work: the packet follows the path itself.
+
+## HDR (beta)
+
+With `hdr` (beta, off by default — pass `hdr` to opt in), a canvas is added to `containerRef` and the shared HDR light layer (`_internals/hdr/`) burns the packet's head above SDR white, read from the core layer's live `stroke-dashoffset` (scaled by `pathLength`) and placed with `getPointAtLength`, plus the arrival bloom at the node. No HDR layer under reduced motion. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

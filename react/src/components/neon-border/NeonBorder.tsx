@@ -1,4 +1,9 @@
+import { useEffect, useState } from "react";
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./neon-border.css";
 
@@ -26,6 +31,12 @@ export interface NeonBorderProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 	className?: string;
 	/** Content */
 	children?: ReactNode;
+	/**
+	 * Beta, off by default. On a display that reports HDR, light the beams' heads above SDR white
+	 * in a WebGPU layer with extended tone mapping, following the CSS travel
+	 * and the ignite flicker exactly. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 export type NeonAnimationType = NonNullable<NeonBorderProps["animationType"]>;
@@ -81,9 +92,57 @@ export function NeonBorder({
 	duration = 6,
 	className,
 	children,
+	hdr = false,
 	style,
 	...rest
 }: NeonBorderProps) {
+	const [root, rootRef] = useElementRef<HTMLDivElement>();
+	const [light, lightRef] = useElementRef<HTMLSpanElement>();
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		return watchHdrLight(setHdrCapable);
+	}, []);
+	const live = useLiveRef({ animationType, color1, color2 });
+
+	// Reads the live `--neon-angle` and the tube's live opacity (ignite), so the
+	// HDR heads travel and strike with the CSS beams.
+	useEffect(() => {
+		if (!root || !light || !hdrCanvas) return;
+		const tube = light;
+		const head = (t: number) => 0.3 + 3.2 * t ** 3;
+		return attachHdrLight({
+			host: root,
+			canvas: hdrCanvas,
+			probe: conicBorderProbe({
+				angleFrom: root,
+				angleVar: "--neon-angle",
+				radius: () => 8,
+				halo: 4,
+				level: () => {
+					if (live.current.animationType === "none") return 0;
+					const o = parseFloat(getComputedStyle(tube).opacity);
+					return Number.isFinite(o) ? o : 1;
+				},
+				arcs: () => {
+					const span = beamArc(live.current.animationType);
+					return [
+						{ from: 0, to: span, color: () => live.current.color1, intensity: head, white: 0.5 },
+						{
+							from: 50,
+							to: 50 + span,
+							color: () => live.current.color2,
+							intensity: head,
+							white: 0.5,
+						},
+					];
+				},
+			}),
+		});
+	}, [root, light, hdrCanvas, live]);
+
 	const arc = beamArc(animationType);
 	const animated = animationType !== "none";
 
@@ -101,6 +160,7 @@ export function NeonBorder({
 	return (
 		<div
 			{...rest}
+			ref={rootRef}
 			className={cn(
 				"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px",
 				animated && "neon-animated",
@@ -111,12 +171,15 @@ export function NeonBorder({
 			{children}
 
 			<span className="neon-tube" aria-hidden="true"></span>
-			<span className="neon-light" aria-hidden="true">
+			<span ref={lightRef} className="neon-light" aria-hidden="true">
 				<span className="neon-glow">
 					<span></span>
 				</span>
 				<span className="neon-core"></span>
 			</span>
+			{hdr && hdrCapable ? (
+				<canvas ref={hdrCanvasRef} className="neon-hdr" aria-hidden="true" />
+			) : null}
 		</div>
 	);
 }
