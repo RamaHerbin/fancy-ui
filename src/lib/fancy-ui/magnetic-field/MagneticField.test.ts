@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
-import { tick } from "svelte";
+import { flushSync, tick } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Harness from "./MagneticFieldHarness.test.svelte";
 import MagneticItem from "./MagneticItem.svelte";
@@ -323,6 +323,21 @@ describe("MagneticField pointer source", () => {
 		expect(varOf("a", "x")).toBe("0.00px");
 		pointerMove(240, 112);
 		expect(frames).toHaveLength(0);
+	});
+
+	it("keeps a resting pointer pulling across a radius change", async () => {
+		const view = render(Harness, { items: [{ id: "a", label: "A" }], radius: 220 });
+		layout();
+		setVisible(true);
+		pointerMove(240, 112);
+		settle();
+		const held = num("a", "x");
+		expect(held).toBeGreaterThan(0);
+		flushSync(() => view.component.setRadius(230));
+		await tick();
+		settle();
+		expect(num("a", "x")).toBeGreaterThanOrEqual(held);
+		expect(observers.filter((o) => o.node)).toHaveLength(1);
 	});
 
 	it("attaches no observer and no listener while disabled", () => {

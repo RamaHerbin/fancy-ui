@@ -25,7 +25,8 @@ const DEFAULT_POSITION: MagneticPoint = { x: 48, y: 48 };
 export interface MagnetPuckOwnProps {
 	/**
 	 * The puck's centre in px, relative to its positioned parent (the field's
-	 * padding box when it sits inside a `MagneticField`). Controlled when
+	 * padding box when it sits inside a `MagneticField`, where the field must
+	 * be that parent: no positioned element in between). Controlled when
 	 * given: dragging and the arrow keys then only report the new position
 	 * through `onPositionChange`. Leave it out to let the puck keep its own,
 	 * seeded from `defaultPosition`.

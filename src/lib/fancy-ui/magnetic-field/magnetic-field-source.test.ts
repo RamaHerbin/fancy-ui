@@ -89,6 +89,36 @@ describe("attachPointerSource", () => {
 		}
 	});
 
+	it("with a root, only suppresses the pointer over a puck inside that root", () => {
+		const core = fakeCore();
+		const field = document.createElement("div");
+		const own = document.createElement("div");
+		own.className = "ft-magnet-puck";
+		field.append(own);
+		const other = document.createElement("div");
+		other.className = "ft-magnet-puck";
+		document.body.append(field, other);
+		track(attachPointerSource(core, document, field));
+		try {
+			pointer("pointermove", { clientX: 20, clientY: 20 }, other);
+			expect(core.setClientSource).toHaveBeenLastCalledWith(20, 20, "pointer");
+			expect(core.clearSource).not.toHaveBeenCalled();
+			pointer("pointermove", { clientX: 30, clientY: 30 }, own);
+			expect(core.clearSource).toHaveBeenCalledWith("pointer");
+			expect(core.setClientSource).toHaveBeenCalledTimes(1);
+		} finally {
+			field.remove();
+			other.remove();
+		}
+	});
+
+	it("ignores a non-primary pointer leaving the document", () => {
+		const core = fakeCore();
+		track(attachPointerSource(core));
+		pointer("pointerleave", { isPrimary: false });
+		expect(core.clearSource).not.toHaveBeenCalled();
+	});
+
 	it("listens passively so it never blocks scrolling", () => {
 		const add = vi.spyOn(document, "addEventListener");
 		track(attachPointerSource(fakeCore()));

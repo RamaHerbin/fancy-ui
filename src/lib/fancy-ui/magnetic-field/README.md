@@ -173,17 +173,17 @@ Native attributes and listeners go to the outer wrapper. Outside a
 
 ### MagnetPuck
 
-| Prop               | Type                                | Default            | Description                                                                                                    |
-| ------------------ | ----------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `position`         | `MagneticPoint`                     | `{ x: 48, y: 48 }` | The puck's centre in px, relative to its positioned parent (the field's padding box inside a field). Bindable. |
-| `onPositionChange` | `(position: MagneticPoint) => void` | —                  | Called with each new position while the puck is dragged or moved with the keyboard.                            |
-| `size`             | `number`                            | `40`               | Diameter in px.                                                                                                |
-| `sticky`           | `boolean`                           | `false`            | Keeps attracting once released. By default it attracts only while held.                                        |
-| `label`            | `string`                            | `"Magnet"`         | Accessible name. A built-in hint naming the keys describes the puck; pass `aria-describedby` to replace it.    |
-| `onHeldChange`     | `(held: boolean) => void`           | —                  | Called when the puck is picked up (pointer down, or Space/Enter) and put down.                                 |
-| `children`         | `Snippet`                           | —                  | A custom face. Leave it out for the default matte black disc.                                                  |
-| `class`            | `string`                            | —                  | Additional CSS classes.                                                                                        |
-| `ref`              | `HTMLDivElement \| null`            | `null`             | Bindable reference to the puck.                                                                                |
+| Prop               | Type                                | Default            | Description                                                                                                                                                 |
+| ------------------ | ----------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `position`         | `MagneticPoint`                     | `{ x: 48, y: 48 }` | The puck's centre in px, relative to its positioned parent (the field's padding box inside a field, so no positioned element may sit in between). Bindable. |
+| `onPositionChange` | `(position: MagneticPoint) => void` | —                  | Called with each new position while the puck is dragged or moved with the keyboard.                                                                         |
+| `size`             | `number`                            | `40`               | Diameter in px.                                                                                                                                             |
+| `sticky`           | `boolean`                           | `false`            | Keeps attracting once released. By default it attracts only while held.                                                                                     |
+| `label`            | `string`                            | `"Magnet"`         | Accessible name. A built-in hint naming the keys describes the puck; pass `aria-describedby` to replace it.                                                 |
+| `onHeldChange`     | `(held: boolean) => void`           | —                  | Called when the puck is picked up (pointer down, or Space/Enter) and put down.                                                                              |
+| `children`         | `Snippet`                           | —                  | A custom face. Leave it out for the default matte black disc.                                                                                               |
+| `class`            | `string`                            | —                  | Additional CSS classes.                                                                                                                                     |
+| `ref`              | `HTMLDivElement \| null`            | `null`             | Bindable reference to the puck.                                                                                                                             |
 
 The puck stays inside its parent's padding box while dragged. Its `role`,
 `tabindex`, `aria-label`, `aria-pressed` and pointer and key handlers are the
@@ -256,6 +256,10 @@ elements inside the item see `0`.
 - **No touch pointer, no device orientation.** On touch screens use a
   `MagnetPuck` or a controlled `position`.
 - **One puck per field.**
+- **The puck's positioned parent is the field.** A `MagnetPuck` inside a
+  positioned wrapper (`position: relative` or a transform) would be drawn
+  relative to that wrapper while the field reads its `position` in its own
+  padding box, so the visible puck and the magnet would drift apart.
 
 ## Implementation notes
 

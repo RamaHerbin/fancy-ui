@@ -14,7 +14,8 @@
  * Each frame reads first (the root rect and any stale item rects), then
  * computes targets, then steps, then writes, so no frame forces a reflow per
  * item. Geometry is in field-local px measured from the root's PADDING box,
- * the same box an absolutely positioned child of the root lives in.
+ * the same box an absolutely positioned child of the root lives in (scrolled
+ * content included, when the root itself scrolls).
  *
  * Nothing here touches a browser global at import time; `ResizeObserver`,
  * `requestAnimationFrame` and `performance` are only reached inside functions.
@@ -471,8 +472,10 @@ export function createMagneticFieldCore(
 	function measure(): void {
 		if (rootDirty) {
 			const r = root.getBoundingClientRect();
-			originX = r.left + (root.clientLeft || 0);
-			originY = r.top + (root.clientTop || 0);
+			// The scroll offsets keep a scrolling root's local space fixed to its
+			// content, where its absolutely positioned children (a puck) live.
+			originX = r.left + (root.clientLeft || 0) - (root.scrollLeft || 0);
+			originY = r.top + (root.clientTop || 0) - (root.scrollTop || 0);
 			rootDirty = false;
 		}
 		for (const item of items.values()) {
@@ -504,6 +507,9 @@ export function createMagneticFieldCore(
 		if (destroyed) return;
 		const t = performance.now();
 		const dt = lastT ? Math.min(MAX_DT, (t - lastT) / 1000) : FIRST_DT;
+		// A wake re-reads every rect once: a ResizeObserver misses position-only
+		// moves (a reorder, a grid change), and an idle field hears of no layout.
+		if (!lastT) markStale();
 		lastT = t;
 
 		// Read phase: every layout read happens before any write below.
@@ -530,6 +536,15 @@ export function createMagneticFieldCore(
 		setActive(anyEngaged);
 	}
 
+	/** Whether a higher-priority channel holds a point, so `channel` cannot steer. */
+	function shadowed(channel: MagneticSourceChannel): boolean {
+		for (const name of CHANNELS) {
+			if (name === channel) return false;
+			if (channels[name] !== null) return true;
+		}
+		return false;
+	}
+
 	function setChannel(channel: MagneticSourceChannel, next: ChannelPoint | null): void {
 		if (destroyed) return;
 		const prev = channels[channel];
@@ -538,6 +553,8 @@ export function createMagneticFieldCore(
 			return;
 		}
 		channels[channel] = next;
+		// Kept for when the higher channel lets go, but nothing to retarget now.
+		if (shadowed(channel)) return;
 		targetsDirty = true;
 		// A magnet moving about far from every item of a field at rest changes
 		// no target: store it and skip the wake. The next wake retargets.
@@ -561,11 +578,23 @@ export function createMagneticFieldCore(
 		return true;
 	}
 
-	function invalidate(): void {
-		if (destroyed) return;
+	function markStale(): void {
 		rootDirty = true;
 		for (const item of items.values()) item.rectDirty = true;
 		targetsDirty = true;
+	}
+
+	/** Whether an item is pulled or still settling (springs read as they stand). */
+	function engaged(item: Item): boolean {
+		for (const s of [item.sx, item.sy, item.sr]) {
+			if (s.target !== 0 || s.x !== s.target || s.v !== 0) return true;
+		}
+		return false;
+	}
+
+	function invalidate(): void {
+		if (destroyed) return;
+		markStale();
 		// Wake only when something can change: a magnet is set or an item is off rest.
 		if (anyChannel() || active) kick();
 	}
@@ -626,7 +655,9 @@ export function createMagneticFieldCore(
 				items.delete(outer);
 				observer?.unobserve(outer);
 				resetItem(item);
-				if (items.size === 0) setActive(false);
+				// A running loop recounts on its next frame; an asleep one would
+				// leave `active` stuck on the item that just left.
+				if (!frame) setActive([...items.values()].some(engaged));
 			};
 		},
 		updateItem(outer, opts) {

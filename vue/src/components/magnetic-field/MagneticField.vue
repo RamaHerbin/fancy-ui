@@ -116,6 +116,26 @@ function syncManual() {
 
 /** Teardown of whatever `buildSources()` last attached. */
 let teardownSources: (() => void) | null = null;
+/** What the in-view observer reports to, while sources are built. */
+let onVisible: ((visible: boolean) => void) | null = null;
+/** Teardown of the in-view observer `buildObserver()` last created. */
+let teardownObserver: (() => void) | null = null;
+
+// The in-view observer alone depends on `radius`: a new margin replaces it
+// without detaching the pointer, so a resting pointer keeps pulling.
+function buildObserver() {
+	teardownObserver?.();
+	teardownObserver = null;
+	const node = root.value;
+	if (!node || !onVisible) return;
+	const io = inView(node, {
+		once: false,
+		threshold: 0,
+		rootMargin: `${radius}px`,
+		onChange: onVisible,
+	}) as { destroy?: () => void } | void;
+	teardownObserver = () => io?.destroy?.();
+}
 
 // Listeners exist only while something can move: the field is enabled,
 // motion is allowed, and the field (inflated by `radius`) is on screen.
@@ -132,26 +152,24 @@ function buildSources() {
 	let detachPointer: (() => void) | null = null;
 	let detachLayout: (() => void) | null = null;
 
-	const io = inView(node, {
-		once: false,
-		threshold: 0,
-		rootMargin: `${radius}px`,
-		onChange: (visible) => {
-			if (visible) {
-				detachLayout ??= attachLayoutInvalidation(c);
-				if (usePointer) detachPointer ??= attachPointerSource(c, node.ownerDocument);
-			} else {
-				detachPointer?.();
-				detachPointer = null;
-				detachLayout?.();
-				detachLayout = null;
-				c.clearSource("pointer");
-			}
-		},
-	}) as { destroy?: () => void } | void;
+	onVisible = (visible) => {
+		if (visible) {
+			detachLayout ??= attachLayoutInvalidation(c);
+			if (usePointer) detachPointer ??= attachPointerSource(c, node.ownerDocument, node);
+		} else {
+			detachPointer?.();
+			detachPointer = null;
+			detachLayout?.();
+			detachLayout = null;
+			c.clearSource("pointer");
+		}
+	};
+	buildObserver();
 
 	teardownSources = () => {
-		io?.destroy?.();
+		teardownObserver?.();
+		teardownObserver = null;
+		onVisible = null;
 		detachPointer?.();
 		detachLayout?.();
 		c.clearSource("pointer");
@@ -199,7 +217,9 @@ watch(
 
 watch([() => source, () => position?.x, () => position?.y], syncManual, { flush: "post" });
 
-watch([() => source, () => disabled, reduced, () => radius], buildSources, { flush: "post" });
+watch([() => source, () => disabled, reduced], buildSources, { flush: "post" });
+
+watch(() => radius, buildObserver, { flush: "post" });
 </script>
 
 <template>

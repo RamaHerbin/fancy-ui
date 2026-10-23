@@ -75,6 +75,12 @@
 		rootAttrs = {},
 		itemAttrs = {},
 	}: Props = $props();
+
+	// Changes `radius` alone: a `rerender` re-notifies every prop at once.
+	let radiusOverride = $state<number | undefined>(undefined);
+	export function setRadius(next: number) {
+		radiusOverride = next;
+	}
 </script>
 
 <MagneticField
@@ -83,7 +89,7 @@
 	class={rootClass}
 	{source}
 	{position}
-	{radius}
+	radius={radiusOverride ?? radius}
 	{strength}
 	{maxTranslate}
 	{maxRotate}

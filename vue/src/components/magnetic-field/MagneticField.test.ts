@@ -54,6 +54,7 @@ const Harness = defineComponent({
 		source: { type: String as PropType<MagneticFieldSource>, default: undefined },
 		position: { type: Object as PropType<MagneticPoint | null>, default: undefined },
 		polarity: { type: Number as PropType<1 | -1>, default: undefined },
+		radius: { type: Number, default: undefined },
 		disabled: { type: Boolean, default: undefined },
 		onActiveChange: { type: Function as PropType<(active: boolean) => void>, default: undefined },
 		withPuck: { type: Boolean, default: false },
@@ -73,6 +74,7 @@ const Harness = defineComponent({
 					source: props.source,
 					position: props.position,
 					polarity: props.polarity,
+					radius: props.radius,
 					disabled: props.disabled,
 					onActiveChange: props.onActiveChange,
 					...props.rootAttrs,
@@ -414,6 +416,22 @@ describe("MagneticField pointer source", () => {
 		expect(varOf("a", "x")).toBe("0.00px");
 		pointerMove(240, 112);
 		expect(frames).toHaveLength(0);
+	});
+
+	it("keeps a resting pointer pulling across a radius change", async () => {
+		const view = render(Harness, { props: { items: [{ id: "a", label: "A" }], radius: 220 } });
+		layout();
+		setVisible(true);
+		pointerMove(240, 112);
+		settle();
+		const held = num("a", "x");
+		expect(held).toBeGreaterThan(0);
+		await view.rerender({ items: [{ id: "a", label: "A" }], radius: 230 });
+		await nextTick();
+		settle();
+		expect(num("a", "x")).toBeGreaterThanOrEqual(held);
+		expect(observing()).toHaveLength(1);
+		expect(observing()[0]!.options?.rootMargin).toBe("230px");
 	});
 
 	it("attaches no observer and no listener while disabled", () => {

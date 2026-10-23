@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
@@ -163,6 +163,7 @@ export const MagneticField = forwardRef<HTMLDivElement, MagneticFieldProps>(func
 
 	// Listeners exist only while something can move: the field is enabled,
 	// motion is allowed, and the field (inflated by `radius`) is on screen.
+	const onVisibleRef = useRef<((visible: boolean) => void) | null>(null);
 	useEffect(() => {
 		if (!core || !node) return;
 		const c = core;
@@ -173,30 +174,39 @@ export const MagneticField = forwardRef<HTMLDivElement, MagneticFieldProps>(func
 		let detachPointer: (() => void) | null = null;
 		let detachLayout: (() => void) | null = null;
 
-		const io = observeInView(node, {
-			once: false,
-			threshold: 0,
-			rootMargin: `${radius}px`,
-			onChange: (visible) => {
-				if (visible) {
-					detachLayout ??= attachLayoutInvalidation(c);
-					if (usePointer) detachPointer ??= attachPointerSource(c, node.ownerDocument);
-				} else {
-					detachPointer?.();
-					detachPointer = null;
-					detachLayout?.();
-					detachLayout = null;
-					c.clearSource("pointer");
-				}
-			},
-		});
+		onVisibleRef.current = (visible) => {
+			if (visible) {
+				detachLayout ??= attachLayoutInvalidation(c);
+				if (usePointer) detachPointer ??= attachPointerSource(c, node.ownerDocument, node);
+			} else {
+				detachPointer?.();
+				detachPointer = null;
+				detachLayout?.();
+				detachLayout = null;
+				c.clearSource("pointer");
+			}
+		};
 
 		return () => {
-			io.destroy();
+			onVisibleRef.current = null;
 			detachPointer?.();
 			detachLayout?.();
 			c.clearSource("pointer");
 		};
+	}, [core, node, source, disabled, reduced]);
+
+	// The in-view observer alone depends on `radius`: a new margin replaces it
+	// without detaching the pointer, so a resting pointer keeps pulling.
+	useEffect(() => {
+		const onVisible = onVisibleRef.current;
+		if (!node || !onVisible) return;
+		const io = observeInView(node, {
+			once: false,
+			threshold: 0,
+			rootMargin: `${radius}px`,
+			onChange: onVisible,
+		});
+		return () => io.destroy();
 	}, [core, node, source, disabled, reduced, radius]);
 
 	// The controlled magnet. Written through the hub so it survives a core swap.

@@ -485,19 +485,23 @@ describe("createMagneticFieldCore", () => {
 		expect(vars(b.inner)).toEqual({ x: "0.00px", y: "0.00px", r: "0.00deg" });
 	});
 
-	it("measures each rect once until invalidated, reads before writes", () => {
+	it("measures each rect once per wake or invalidation, reads before writes", () => {
 		core = createMagneticFieldCore(root);
 		const { inner, outer } = makeItem(root, { left: 150, top: 140, width: 80, height: 24 });
 		core.register(outer, inner);
 		core.setSource({ x: 220, y: 160 });
+		flushFrame();
+		// Moves during a running loop reuse the rects read when it woke.
+		core.setSource({ x: 225, y: 160 });
 		runUntilIdle();
 		const rootReads = vi.mocked(root.getBoundingClientRect).mock.calls.length;
 		const itemReads = vi.mocked(outer.getBoundingClientRect).mock.calls.length;
 		expect(rootReads).toBe(1);
 		expect(itemReads).toBe(1);
+		// A new wake reads once more.
 		core.setSource({ x: 230, y: 160 });
 		runUntilIdle();
-		expect(vi.mocked(outer.getBoundingClientRect).mock.calls.length).toBe(1);
+		expect(vi.mocked(outer.getBoundingClientRect).mock.calls.length).toBe(2);
 		const held = vars(inner);
 		// A scroll moved the field: the next frame re-reads both.
 		rect(root, { left: 50, top: -60, width: 600, height: 400 });
@@ -507,8 +511,58 @@ describe("createMagneticFieldCore", () => {
 		runUntilIdle();
 		expect(vi.mocked(root.getBoundingClientRect)).toHaveBeenCalled();
 		// Local geometry unchanged: same target, nothing moved.
-		expect(vi.mocked(outer.getBoundingClientRect).mock.calls.length).toBe(2);
+		expect(vi.mocked(outer.getBoundingClientRect).mock.calls.length).toBe(3);
 		expect(vars(inner)).toEqual(held);
+	});
+
+	it("picks up a position-only layout move on the next wake", () => {
+		core = createMagneticFieldCore(root);
+		const { inner, outer } = makeItem(root, { left: 150, top: 140, width: 80, height: 24 });
+		core.register(outer, inner, { rotate: false });
+		core.setSource({ x: 140, y: 30 }); // straight above
+		runUntilIdle();
+		expect(num(vars(inner).y)).toBeLessThan(0);
+		// Reordered below the magnet at the same size: no ResizeObserver entry.
+		rect(outer, { left: 150, top: 20, width: 80, height: 24 });
+		core.setSource({ x: 140, y: 31 });
+		runUntilIdle();
+		expect(num(vars(inner).y)).toBeGreaterThan(0);
+	});
+
+	it("measures in a scrolling root's content space, where a puck lives", () => {
+		Object.defineProperty(root, "scrollTop", { value: 100, configurable: true });
+		core = createMagneticFieldCore(root);
+		// Scrolled 100 px: client top 140 is content y 200.
+		const { inner, outer } = makeItem(root, { left: 150, top: 140, width: 80, height: 24 });
+		core.register(outer, inner);
+		core.setSource({ x: 220, y: 260 });
+		runUntilIdle();
+		expect(num(vars(inner).x)).toBeCloseTo(17.49, 2);
+		expect(num(vars(inner).y)).toBeCloseTo(10.49, 2);
+		// A client point maps into the same space.
+		core.clearSource();
+		runUntilIdle();
+		core.setClientSource(50 + 220, 40 + 160);
+		runUntilIdle();
+		expect(num(vars(inner).x)).toBeCloseTo(17.49, 2);
+		expect(num(vars(inner).y)).toBeCloseTo(10.49, 2);
+	});
+
+	it("does not wake for a pointer shadowed by a held puck", () => {
+		core = createMagneticFieldCore(root);
+		const { inner, outer } = makeItem(root, { left: 150, top: 140, width: 80, height: 24 });
+		core.register(outer, inner);
+		core.setSource({ x: 220, y: 112 }, "puck");
+		runUntilIdle();
+		expect(core.active).toBe(true);
+		core.setClientSource(50 + 60, 40 + 112);
+		core.setClientSource(50 + 70, 40 + 112);
+		expect(frames).toHaveLength(0);
+		expect(num(vars(inner).x)).toBeGreaterThan(0);
+		// The puck lets go: the stored pointer takes over.
+		core.setSource(null, "puck");
+		runUntilIdle();
+		expect(num(vars(inner).x)).toBeLessThan(0);
 	});
 
 	it("re-targets a client source after a scroll with a still pointer", () => {
@@ -638,6 +692,22 @@ describe("createMagneticFieldCore", () => {
 		core.setSource({ x: 230, y: 160 });
 		expect(frames).toHaveLength(0);
 		expect(core.active).toBe(false);
+	});
+
+	it("clears active when the only engaged item unregisters while the loop sleeps", () => {
+		const onActiveChange = vi.fn();
+		core = createMagneticFieldCore(root, { onActiveChange });
+		const near = makeItem(root, { left: 150, top: 140, width: 80, height: 24 });
+		const far = makeItem(root, { left: 1500, top: 1400, width: 80, height: 24 });
+		const off = core.register(near.outer, near.inner);
+		core.register(far.outer, far.inner);
+		core.setSource({ x: 220, y: 160 });
+		runUntilIdle();
+		expect(core.active).toBe(true);
+		expect(frames).toHaveLength(0);
+		off();
+		expect(core.active).toBe(false);
+		expect(onActiveChange.mock.calls).toEqual([[true], [false]]);
 	});
 
 	it("disconnects its ResizeObserver on destroy", () => {

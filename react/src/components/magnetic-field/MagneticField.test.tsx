@@ -419,6 +419,21 @@ describe("MagneticField pointer source", () => {
 		expect(liveObservers()[0]!.options?.rootMargin).toBe("150px");
 	});
 
+	it("keeps a resting pointer pulling across a radius change", () => {
+		const view = render(<Harness items={[{ id: "a", label: "A" }]} radius={220} />);
+		layout();
+		setVisible(true);
+		pointerMove(240, 112);
+		settle();
+		const held = num("a", "x");
+		expect(held).toBeGreaterThan(0);
+		view.rerender(<Harness items={[{ id: "a", label: "A" }]} radius={230} />);
+		settle();
+		expect(num("a", "x")).toBeGreaterThanOrEqual(held);
+		expect(liveObservers()).toHaveLength(1);
+		expect(liveObservers()[0]!.options?.rootMargin).toBe("230px");
+	});
+
 	it("attaches no observer and no listener while disabled", () => {
 		render(<Harness disabled />);
 		expect(liveObservers()).toHaveLength(0);

@@ -43,7 +43,8 @@ const PUCK_SELECTOR = ".ft-magnet-puck";
  *   capture) clears the channel instead of feeding it: the puck is the magnet
  *   there. Otherwise, letting go of a puck would release nothing, since the
  *   cursor resting on it would take over at the very same point. The channel
- *   comes back as soon as the pointer moves off the puck.
+ *   comes back as soon as the pointer moves off the puck. With a `root`, only
+ *   a puck inside it counts: another field's puck is that field's magnet.
  * - The channel is cleared when the pointer leaves the page (to the browser
  *   chrome, another window, or a pen lifted out of hover range), when the
  *   window loses focus (a keyboard tab switch moves no pointer), and when the
@@ -52,7 +53,8 @@ const PUCK_SELECTOR = ".ft-magnet-puck";
  */
 export function attachPointerSource(
 	core: Pick<MagneticFieldCore, "setClientSource" | "clearSource">,
-	target?: Document
+	target?: Document,
+	root?: Element
 ): () => void {
 	const doc = target ?? (typeof document === "undefined" ? undefined : document);
 	if (!doc) return NOOP;
@@ -63,7 +65,8 @@ export function attachPointerSource(
 	const onMove = (event: PointerEvent) => {
 		if (event.pointerType === "touch" || !event.isPrimary) return;
 		const target = event.target as Element | null;
-		if (typeof target?.closest === "function" && target.closest(PUCK_SELECTOR)) {
+		const puck = typeof target?.closest === "function" ? target.closest(PUCK_SELECTOR) : null;
+		if (puck && (!root || root.contains(puck))) {
 			clear();
 			return;
 		}
@@ -80,7 +83,7 @@ export function attachPointerSource(
 	};
 
 	const onLeave = (event: PointerEvent) => {
-		if (event.pointerType === "touch") return;
+		if (event.pointerType === "touch" || !event.isPrimary) return;
 		clear();
 	};
 

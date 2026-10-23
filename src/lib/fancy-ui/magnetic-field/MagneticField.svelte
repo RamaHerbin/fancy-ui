@@ -132,6 +132,7 @@
 
 	// Listeners exist only while something can move: the field is enabled,
 	// motion is allowed, and the field (inflated by `radius`) is on screen.
+	let onVisible: ((visible: boolean) => void) | null = null;
 	$effect(() => {
 		const c = core;
 		const node = ref;
@@ -143,30 +144,42 @@
 		let detachPointer: (() => void) | null = null;
 		let detachLayout: (() => void) | null = null;
 
-		const io = inView(node, {
-			once: false,
-			threshold: 0,
-			rootMargin: `${radius}px`,
-			onChange: (visible) => {
-				if (visible) {
-					detachLayout ??= attachLayoutInvalidation(c);
-					if (usePointer) detachPointer ??= attachPointerSource(c, node.ownerDocument);
-				} else {
-					detachPointer?.();
-					detachPointer = null;
-					detachLayout?.();
-					detachLayout = null;
-					c.clearSource("pointer");
-				}
-			},
-		}) as { destroy?: () => void } | void;
+		onVisible = (visible: boolean) => {
+			if (visible) {
+				detachLayout ??= attachLayoutInvalidation(c);
+				if (usePointer) detachPointer ??= attachPointerSource(c, node.ownerDocument, node);
+			} else {
+				detachPointer?.();
+				detachPointer = null;
+				detachLayout?.();
+				detachLayout = null;
+				c.clearSource("pointer");
+			}
+		};
 
 		return () => {
-			io?.destroy?.();
+			onVisible = null;
 			detachPointer?.();
 			detachLayout?.();
 			c.clearSource("pointer");
 		};
+	});
+
+	// The in-view observer alone depends on `radius`: a new margin replaces it
+	// without detaching the pointer, so a resting pointer keeps pulling. It
+	// reads the same state as the effect above, so it re-runs after it.
+	$effect(() => {
+		const node = ref;
+		void [core, source, disabled, reduced.current];
+		const onChange = onVisible;
+		if (!node || !onChange) return;
+		const io = inView(node, {
+			once: false,
+			threshold: 0,
+			rootMargin: `${radius}px`,
+			onChange,
+		}) as { destroy?: () => void } | void;
+		return () => io?.destroy?.();
 	});
 
 	// The controlled magnet. Read through the hub so it survives a core swap.
