@@ -17,9 +17,13 @@ import {
 	type TouchEvent,
 } from "react";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
+import { createCompareProbe } from "./compare-hdr.js";
 import "./compare.css";
 
 export const COMPARE_BEAM_COLORS = ["#22d3ee", "#818cf8", "#f472b6"];
@@ -96,6 +100,12 @@ export interface CompareProps {
 	 */
 	ariaLabel?: string;
 	onpercentagechange?: (percentage: number) => void;
+	/**
+	 * Beta, off by default. On a display that reports HDR, add the seam's light above SDR white in
+	 * a WebGPU layer with extended tone mapping: the core climbs toward
+	 * ~1000 nits as the beam lights up. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 	ondragstart?: () => void;
 	ondragend?: () => void;
 	onhoverenter?: () => void;
@@ -122,6 +132,7 @@ export function Compare({
 	label,
 	ariaLabel,
 	onpercentagechange,
+	hdr = false,
 	ondragstart,
 	ondragend,
 	onhoverenter,
@@ -135,6 +146,15 @@ export function Compare({
 	const reducedMotionRef = useLiveRef(reducedMotion);
 
 	const sliderRef = useRef<HTMLDivElement>(null);
+	const [sliderEl, sliderElRef] = useElementRef<HTMLDivElement>();
+	const composedSliderRef = useComposedRefs<HTMLDivElement>(sliderRef, sliderElRef);
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		return watchHdrLight(setHdrCapable);
+	}, []);
 	// Each piece of state the markup reads is mirrored in a ref: the rAF loops
 	// (autoplay, glide, beam) are long-lived closures and must see live values,
 	// as the reference's closures read its $state live.
@@ -166,6 +186,22 @@ export function Compare({
 	const onPercentageChangeRef = useLiveRef(onpercentagechange);
 
 	const palette = beamPalette(beamColors);
+	const paletteRef = useLiveRef(palette);
+
+	useEffect(() => {
+		if (!hdrCanvas || !sliderEl) return;
+		return attachHdrLight({
+			host: sliderEl,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: createCompareProbe(() => ({
+				percent: percentRef.current,
+				energy: energyRef.current,
+				trail: trailRef.current,
+				palette: paletteRef.current,
+			})),
+		});
+	}, [hdrCanvas, sliderEl, paletteRef]);
 
 	function setSliderX(p: number): void {
 		percentRef.current = p;
@@ -425,7 +461,7 @@ export function Compare({
 
 	return (
 		<div
-			ref={sliderRef}
+			ref={composedSliderRef}
 			className={cn(
 				"compare h-[400px] w-[400px] touch-pan-y touch-pinch-zoom overflow-hidden",
 				className
@@ -463,6 +499,14 @@ export function Compare({
 				<span className="compare-beam__pulse"></span>
 				<span className="compare-beam__pulse compare-beam__pulse--late"></span>
 			</div>
+
+			{hdr && hdrCapable ? (
+				<canvas
+					ref={hdrCanvasRef}
+					className="pointer-events-none absolute inset-0 z-40 h-full w-full"
+					aria-hidden="true"
+				/>
+			) : null}
 
 			{/* Handle, above the beam and not blended with it */}
 			<div

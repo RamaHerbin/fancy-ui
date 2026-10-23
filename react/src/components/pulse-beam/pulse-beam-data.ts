@@ -458,3 +458,45 @@ export function buildLayerBackgrounds(o: BackgroundOptions): LayerBackgrounds {
 
 	return { stroke: stroke.join(", "), glow: glow.join(", "), bloom: bloom.join(", ") };
 }
+
+// ---------------------------------------------------------------------------
+// HDR light geometry
+// ---------------------------------------------------------------------------
+
+/** One stroke blob, resolved for the HDR light probe (pulse-beam-hdr.ts). */
+export interface StrokeLight {
+	/** Anchor on the box, fractions of width / height (may sit just outside 0..1). */
+	fx: number;
+	fy: number;
+	/** Base ellipse size, px. */
+	w: number;
+	h: number;
+	/** Oscillator region (1–3) and corner group driving it. */
+	region: 1 | 2 | 3;
+	quad: "tl" | "tr" | "bl" | "br";
+	/** Colour as a CSS string. */
+	color: string;
+}
+
+/** The stroke layer's blobs for a configuration, as plain numbers for the HDR probe. */
+export function strokeLights(
+	variant: PulseBeamVariant,
+	palette: PulseBeamPalette,
+	colors?: string[]
+): StrokeLight[] {
+	const slotColour = slotColors(palette, colors);
+	const blobs = variant === "outside" ? OUTSIDE_STROKE : INNER_STROKE;
+	return blobs.map((b) => {
+		const s = SLOTS[b.slot]!;
+		const c = slotColour[b.slot]!;
+		return {
+			fx: parseFloat(b.x ?? s.x) / 100,
+			fy: parseFloat(b.y ?? s.y) / 100,
+			w: b.w,
+			h: b.h,
+			region: s.region as 1 | 2 | 3,
+			quad: s.quad,
+			color: typeof c === "string" ? c : `rgb(${c[0]}, ${c[1]}, ${c[2]})`,
+		};
+	});
+}

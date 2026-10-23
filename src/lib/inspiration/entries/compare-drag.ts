@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/compare",
 	addedAt: "2026-09-26",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["drag", "hover"],
 	styleTags: ["glow", "minimal"],
@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "Only the seam moves; both images stay anchored, so the comparison is about the difference, not the motion. The seam is drawn as light and leaves a velocity trail, which makes a quick drag feel weighted.",
 		whenToUse: "Before/after comparisons: a retouch, a redesign, a filter.",
 		watch:
-			'The root is a real `role="slider"` with keyboard steps. The default size is a fixed 400×400 — override it with `class`. Autoplay is not gated by reduced motion and keeps running off-screen.',
+			'The root is a real `role="slider"` with keyboard steps. The default size is a fixed 400×400 — override it with `class`. Autoplay is not gated by reduced motion and keeps running off-screen. On an HDR display the seam\'s core climbs toward ~1000 nits as it lights up, through a WebGPU layer; elsewhere nothing changes.',
 		clues: ["clip-path inset", "pointer capture", "hover vs drag mode", "beam trail from velocity"],
 	},
 	curatedRank: 9,
@@ -46,8 +46,9 @@ const entry: FancyUIReference = {
 				max: 100,
 				step: 5,
 			},
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { slideMode: "drag", initialSliderPercentage: 50 },
+		defaults: { slideMode: "drag", initialSliderPercentage: 50, hdr: false },
 	},
 	capture: { hover: [0.62, 0.5] },
 };

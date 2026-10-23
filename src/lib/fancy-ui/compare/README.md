@@ -17,40 +17,40 @@ A before/after image comparison slider split by a blade of light.
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `firstImage` | `string` | `''` | URL of the first (left) image |
-| `secondImage` | `string` | `''` | URL of the second (right) image |
-| `firstImageAlt` | `string` | `'First image'` | Alt text for first image |
-| `secondImageAlt` | `string` | `'Second image'` | Alt text for second image |
-| `class` | `string` | `''` | Additional CSS classes |
-| `firstContentClass` | `string` | `''` | CSS classes for first content |
-| `secondContentClass` | `string` | `''` | CSS classes for second content |
-| `initialSliderPercentage` | `number` | `50` | Initial slider position (0-100) |
-| `slideMode` | `'hover' \| 'drag'` | `'hover'` | Interaction mode |
-| `showHandlebar` | `boolean` | `true` | Show the drag handle |
-| `autoplay` | `boolean` | `false` | Enable auto-animation |
-| `autoplayDuration` | `number` | `5000` | Duration of one autoplay cycle (ms) |
-| `beamColors` | `string[]` | `['#22d3ee', '#818cf8', '#f472b6']` | Beam colours: left fringe, centre, right fringe (one or more colours) |
-| `label` | `string` | `'Comparison slider'` | Accessible name of the slider |
+| Prop                      | Type                | Default                             | Description                                                           |
+| ------------------------- | ------------------- | ----------------------------------- | --------------------------------------------------------------------- |
+| `firstImage`              | `string`            | `''`                                | URL of the first (left) image                                         |
+| `secondImage`             | `string`            | `''`                                | URL of the second (right) image                                       |
+| `firstImageAlt`           | `string`            | `'First image'`                     | Alt text for first image                                              |
+| `secondImageAlt`          | `string`            | `'Second image'`                    | Alt text for second image                                             |
+| `class`                   | `string`            | `''`                                | Additional CSS classes                                                |
+| `firstContentClass`       | `string`            | `''`                                | CSS classes for first content                                         |
+| `secondContentClass`      | `string`            | `''`                                | CSS classes for second content                                        |
+| `initialSliderPercentage` | `number`            | `50`                                | Initial slider position (0-100)                                       |
+| `slideMode`               | `'hover' \| 'drag'` | `'hover'`                           | Interaction mode                                                      |
+| `showHandlebar`           | `boolean`           | `true`                              | Show the drag handle                                                  |
+| `autoplay`                | `boolean`           | `false`                             | Enable auto-animation                                                 |
+| `autoplayDuration`        | `number`            | `5000`                              | Duration of one autoplay cycle (ms)                                   |
+| `beamColors`              | `string[]`          | `['#22d3ee', '#818cf8', '#f472b6']` | Beam colours: left fringe, centre, right fringe (one or more colours) |
+| `label`                   | `string`            | `'Comparison slider'`               | Accessible name of the slider                                         |
 
 ## Events (Callbacks)
 
-| Callback | Type | Description |
-|----------|------|-------------|
+| Callback             | Type                           | Description                         |
+| -------------------- | ------------------------------ | ----------------------------------- |
 | `onpercentagechange` | `(percentage: number) => void` | Called when slider position changes |
-| `ondragstart` | `() => void` | Called when drag starts |
-| `ondragend` | `() => void` | Called when drag ends |
-| `onhoverenter` | `() => void` | Called when mouse enters |
-| `onhoverleave` | `() => void` | Called when mouse leaves |
+| `ondragstart`        | `() => void`                   | Called when drag starts             |
+| `ondragend`          | `() => void`                   | Called when drag ends               |
+| `onhoverenter`       | `() => void`                   | Called when mouse enters            |
+| `onhoverleave`       | `() => void`                   | Called when mouse leaves            |
 
 ## Snippets
 
-| Snippet | Description |
-|---------|-------------|
-| `firstContent` | Custom content for the left side |
+| Snippet         | Description                       |
+| --------------- | --------------------------------- |
+| `firstContent`  | Custom content for the left side  |
 | `secondContent` | Custom content for the right side |
-| `handle` | Custom handle element |
+| `handle`        | Custom handle element             |
 
 ## Usage
 
@@ -60,39 +60,22 @@ A before/after image comparison slider split by a blade of light.
 </script>
 
 <!-- Basic usage with images -->
-<Compare
-  firstImage="/before.jpg"
-  secondImage="/after.jpg"
-  class="rounded-lg"
-/>
+<Compare firstImage="/before.jpg" secondImage="/after.jpg" class="rounded-lg" />
 
 <!-- Drag mode -->
-<Compare
-  firstImage="/before.jpg"
-  secondImage="/after.jpg"
-  slideMode="drag"
-/>
+<Compare firstImage="/before.jpg" secondImage="/after.jpg" slideMode="drag" />
 
 <!-- With autoplay -->
-<Compare
-  firstImage="/before.jpg"
-  secondImage="/after.jpg"
-  autoplay
-  autoplayDuration={3000}
-/>
+<Compare firstImage="/before.jpg" secondImage="/after.jpg" autoplay autoplayDuration={3000} />
 
 <!-- Custom content -->
 <Compare>
-  {#snippet firstContent()}
-    <div class="bg-blue-500 size-full flex items-center justify-center">
-      Before
-    </div>
-  {/snippet}
-  {#snippet secondContent()}
-    <div class="bg-red-500 size-full flex items-center justify-center">
-      After
-    </div>
-  {/snippet}
+	{#snippet firstContent()}
+		<div class="flex size-full items-center justify-center bg-blue-500">Before</div>
+	{/snippet}
+	{#snippet secondContent()}
+		<div class="flex size-full items-center justify-center bg-red-500">After</div>
+	{/snippet}
 </Compare>
 ```
 
@@ -100,10 +83,10 @@ A before/after image comparison slider split by a blade of light.
 
 `StarField` is also exported from the folder barrel (`compare/index.ts`), next to `Compare`. It is a standalone field of white stars that twinkle and drift, filling its positioned parent. The stars are placed once, at random, when the component mounts.
 
-| Prop         | Type     | Default | Description                  |
-|--------------|----------|---------|------------------------------|
-| `starsCount` | `number` | `130`   | Number of stars to render    |
-| `class`      | `string` | `''`    | Additional CSS classes       |
+| Prop         | Type     | Default | Description               |
+| ------------ | -------- | ------- | ------------------------- |
+| `starsCount` | `number` | `130`   | Number of stars to render |
+| `class`      | `string` | `''`    | Additional CSS classes    |
 
 ```svelte
 <script>
@@ -119,3 +102,7 @@ A before/after image comparison slider split by a blade of light.
 - Replaced Vue slots with Svelte snippets
 - Replaced Nuxt Icon with inline SVG
 - Used Svelte 5 runes (`$state`, `$effect`, `$props`)
+
+## HDR (beta)
+
+The seam's CSS beam stops at SDR white. With `hdr` (beta, off by default — pass `hdr` to opt in), `compare-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a full-height core on the seam that climbs toward ~1000 nits with the beam's energy, its two chromatic fringes, and a soft wash where the speed trail stretches. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

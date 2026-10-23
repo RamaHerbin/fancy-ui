@@ -239,19 +239,19 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 	const base = "https://fancy-ui.rama.app/r/svelte";
 	const all = Object.values(out.items).flatMap((i) => i.files);
 
-	it("emits 158 items (155 components + 3 shared)", () => {
-		expect(Object.keys(out.items)).toHaveLength(158);
-		expect(out.index.items).toHaveLength(158);
+	it("emits 159 items (155 components + 4 shared)", () => {
+		expect(Object.keys(out.items)).toHaveLength(159);
+		expect(out.index.items).toHaveLength(159);
 		expect(
 			Object.values(out.items)
 				.filter((i) => i.type === "registry:lib")
 				.map((i) => i.name)
-		).toEqual(["internals", "internals-motion", "sound"]);
+		).toEqual(["internals", "internals-hdr", "internals-motion", "sound"]);
 	});
 
-	// Observed with accordion, collapsible, follow-button, badge and avatar, story-thread, sun-switch, magnetic-field, pixel-scene: 504 shipped files. The gate pins the exact number.
-	it("ships 504 files, every one registry:ui under fancy/<rel>", () => {
-		expect(all).toHaveLength(504);
+	// Observed with accordion, collapsible, follow-button, badge and avatar, story-thread, sun-switch, magnetic-field, pixel-scene, internals-hdr: 509 shipped files. The gate pins the exact number.
+	it("ships 509 files, every one registry:ui under fancy/<rel>", () => {
+		expect(all).toHaveLength(509);
 		for (const f of all) {
 			expect(f.type).toBe("registry:ui");
 			expect(f.path.startsWith("src/lib/fancy-ui/"), f.path).toBe(true);
@@ -433,5 +433,13 @@ describe("what a clean consumer app needs from the CLI flow", () => {
 		expect(real.items["line-reveal"].dependencies).toEqual(["@chenglou/pretext@^0.0.5"]);
 		expect(real.items["fluid-cursor"].devDependencies).toContain("@webgpu/types@^0.1.71");
 		expect(real.items["fireworks-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+		expect(real.items["internals-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+	}, 60_000);
+
+	it("installs the WebGPU typings with the HDR light helper in every stack", async () => {
+		const { registryOutput, vueRegistryOutput } = await import("./sources.js");
+		for (const out of [registryOutput(), vueRegistryOutput()]) {
+			expect(out.items["internals-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+		}
 	}, 60_000);
 });

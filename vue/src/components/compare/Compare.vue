@@ -92,6 +92,12 @@ export interface CompareProps {
 	onHoverLeave?: (() => void) | (() => void)[];
 	/** @deprecated Use `@hover-leave` / `onHoverLeave`. Only called when `onHoverLeave` is absent. */
 	onhoverleave?: (() => void) | (() => void)[];
+	/**
+	 * Beta, off by default. On a display that reports HDR, add the seam's light above SDR white in
+	 * a WebGPU layer with extended tone mapping: the core climbs toward
+	 * ~1000 nits as the beam lights up. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 </script>
 
@@ -99,6 +105,8 @@ export interface CompareProps {
 import { callListener } from "../../internals/call-listener.js";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { createCompareProbe } from "./compare-hdr.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
 
 defineOptions({ name: "Compare", inheritAttrs: false });
@@ -121,6 +129,7 @@ const {
 	onPercentageChange,
 	onpercentagechange,
 	onDragStart,
+	hdr = false,
 	ondragstart,
 	onDragEnd,
 	ondragend,
@@ -153,6 +162,39 @@ let beamRAF: number | null = null;
 let lastPx: number | null = null;
 
 const palette = computed(() => beamPalette(beamColors));
+
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
+const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
+onMounted(() => {
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
+});
+onBeforeUnmount(() => stopHdrWatch());
+
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+watch(
+	[hdrCanvas, sliderRef],
+	([canvasEl, hostEl], _old, onCleanup) => {
+		if (!canvasEl || !hostEl) return;
+		onCleanup(
+			attachHdrLight({
+				host: hostEl,
+				canvas: canvasEl,
+				pad: 0,
+				probe: createCompareProbe(() => ({
+					percent: sliderXPercent.value,
+					energy: energy.value,
+					trail: trail.value,
+					palette: palette.value,
+				})),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 function setPercent(p: number): void {
 	const next = Math.max(0, Math.min(100, p));
@@ -434,6 +476,14 @@ onMounted(() => {
 			<span class="compare-beam__pulse"></span>
 			<span class="compare-beam__pulse compare-beam__pulse--late"></span>
 		</div>
+
+		<!-- The seam's light above SDR white, on HDR displays only. -->
+		<canvas
+			v-if="hdr && hdrCapable"
+			ref="hdrCanvas"
+			class="pointer-events-none absolute inset-0 z-40 h-full w-full"
+			aria-hidden="true"
+		></canvas>
 
 		<!-- Handle, above the beam and not blended with it -->
 		<div

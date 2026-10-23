@@ -25,6 +25,12 @@ export interface PulseBeamProps {
 	colors?: string[];
 	/** Overall intensity, 0–1 */
 	strength?: number;
+	/**
+	 * Beta, off by default. On a display that reports HDR, add the beam's light above SDR white
+	 * where it crosses the ring, in a WebGPU layer with extended tone
+	 * mapping. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 	/** Corner radius in px, applied to the wrapper and every layer */
 	radius?: number;
 	/** Multiplier for the breathing and drift periods */
@@ -56,10 +62,13 @@ import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import {
 	LAYER_PRESETS,
 	buildLayerBackgrounds,
+	strokeLights,
 	buildOscillators,
 	motionPreset,
 } from "./pulse-beam-data.js";
 import { registerPulse } from "./pulse-beam-loop.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 
 defineOptions({ name: "PulseBeam", inheritAttrs: false });
 
@@ -72,6 +81,7 @@ const {
 	palette = "colorful",
 	colors,
 	strength = 1,
+	hdr = false,
 	radius = 16,
 	speed = 1,
 	tone = "dark",
@@ -116,6 +126,35 @@ const monoFactor = computed(() => (isMono.value ? 0.5 : 1));
 const motion = computed(() => motionPreset(variant, tone, speed));
 const oscillators = computed(() => buildOscillators(motion.value));
 const hueEnabled = computed(() => hueShift && !isMono.value);
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
+const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
+onMounted(() => {
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
+});
+onBeforeUnmount(() => stopHdrWatch());
+
+const strokeEl = useTemplateRef<HTMLDivElement>("strokeEl");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+const hdrBlobs = computed(() => strokeLights(variant, palette, colors));
+watch(
+	[el, strokeEl, hdrCanvas],
+	([host, stroke, canvas], _old, onCleanup) => {
+		if (!host || !stroke || !canvas) return;
+		onCleanup(
+			attachHdrLight({
+				host,
+				canvas,
+				probe: createPulseBeamProbe(host, stroke, () => ({ blobs: hdrBlobs.value })),
+			})
+		);
+	},
+	{ flush: "post" }
+);
+
 const backgrounds = computed(() =>
 	buildLayerBackgrounds({ variant, palette, colors, tone, op: motion.value.op })
 );
@@ -303,6 +342,7 @@ onBeforeUnmount(() => teardownResize());
 			:style="{ backgroundImage: backgrounds.glow }"
 		></div>
 		<div
+			ref="strokeEl"
 			class="pulse-beam__layer pulse-beam__stroke"
 			:style="{ backgroundImage: backgrounds.stroke }"
 			@transitionend="handleTransitionEnd"
@@ -311,10 +351,26 @@ onBeforeUnmount(() => teardownResize());
 			class="pulse-beam__layer pulse-beam__bloom"
 			:style="{ backgroundImage: backgrounds.bloom }"
 		></div>
+		<!-- Light above SDR white where the beam crosses the ring, on HDR displays only. -->
+		<canvas
+			v-if="hdr && hdrCapable"
+			ref="hdrCanvas"
+			class="pulse-beam__hdr"
+			aria-hidden="true"
+		></canvas>
 	</div>
 </template>
 
 <style scoped>
+.pulse-beam__hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	pointer-events: none;
+}
+
 .pulse-beam {
 	position: relative;
 	isolation: isolate;

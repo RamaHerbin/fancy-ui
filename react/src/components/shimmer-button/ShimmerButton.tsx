@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type {
 	ButtonHTMLAttributes,
 	CSSProperties,
@@ -10,6 +10,10 @@ import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { createShimmerProbe } from "./shimmer-button-hdr.js";
 import "./shimmer-button.css";
 
 type BaseProps = {
@@ -32,6 +36,12 @@ type BaseProps = {
 	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Beta, off by default. On a display that reports HDR, add a glint above SDR white to the
+	 * sweep and the hover spot, in a WebGPU layer with extended tone mapping.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 };
 
 export interface ShimmerButtonProps
@@ -50,6 +60,7 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 			onClick,
 			onPointerMove,
 			sound = false,
+			hdr = false,
 			...restProps
 		},
 		ref
@@ -64,13 +75,33 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 
 		const playCue = useSoundCue(sound);
 
+		const [button, buttonRef] = useElementRef<HTMLButtonElement>();
+		const [sheen, sheenRef] = useElementRef<HTMLSpanElement>();
+		const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+		// The canvas exists only where the light can run; SSR and SDR devices render none,
+		// and it follows the window between SDR and HDR monitors.
+		const [hdrCapable, setHdrCapable] = useState(false);
+		useEffect(() => {
+			return watchHdrLight(setHdrCapable);
+		}, []);
 		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 		// off (and never the default click → press, which `handleClick` already plays).
 		const soundRef = useSoundFeedback({
 			on: sound ? { pointerenter: "hover" } : {},
 			disabled: restProps.disabled,
 		});
-		const composedRef = useComposedRefs(ref, soundRef);
+		const composedRef = useComposedRefs<HTMLButtonElement>(ref, buttonRef, soundRef);
+		const live = useLiveRef({ color: shimmerColor });
+
+		useEffect(() => {
+			if (!button || !sheen || !hdrCanvas) return;
+			return attachHdrLight({
+				host: button,
+				canvas: hdrCanvas,
+				pad: 0,
+				probe: createShimmerProbe(button, sheen, () => live.current),
+			});
+		}, [button, sheen, hdrCanvas, live]);
 
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (sound && !restProps.disabled) playCue("press");
@@ -91,7 +122,7 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 				ref={composedRef}
 				className={cn(
 					"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
-					"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
+					"transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]",
 					className
 				)}
 				style={styleVars}
@@ -109,10 +140,14 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 				<span className="relative z-10">{children}</span>
 
 				{/* Sweep: a satin band that crosses the button, then rests */}
-				<span className="shimmer-button__sheen" aria-hidden="true"></span>
+				<span ref={sheenRef} className="shimmer-button__sheen" aria-hidden="true"></span>
 
 				{/* Hover: the sheen follows the pointer */}
 				<span className="shimmer-button__spot" aria-hidden="true"></span>
+
+				{hdr && hdrCapable ? (
+					<canvas ref={hdrCanvasRef} className="shimmer-button__hdr" aria-hidden="true" />
+				) : null}
 			</button>
 		);
 	}

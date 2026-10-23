@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/pulse-beam",
 	addedAt: "2026-09-26",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient"],
 	styleTags: ["glow", "iridescent"],
@@ -21,7 +21,7 @@ const entry: FancyUIReference = {
 		whenToUse:
 			"The one input a page is about — a prompt composer, a search field, a waitlist form — when it should look alive while idle.",
 		watch:
-			"One shared rAF loop drives every instance and an IntersectionObserver pauses it off-screen. Reduced motion keeps the layers lit but frozen. `tone` is a prop, not theme-aware: set it to `light` on light pages.",
+			"One shared rAF loop drives every instance and an IntersectionObserver pauses it off-screen. Reduced motion keeps the layers lit but frozen. `tone` is a prop, not theme-aware: set it to `light` on light pages. On an HDR display a WebGPU layer adds light above SDR white where the blobs cross the ring, following the same oscillators; elsewhere nothing changes.",
 		clues: ["mask padding", "hue-rotate", "IntersectionObserver pause", "inner / outside variant"],
 	},
 	curatedRank: 1,
@@ -51,8 +51,9 @@ const entry: FancyUIReference = {
 				],
 			},
 			{ key: "speed", type: "range", label: "Speed", min: 0.5, max: 2, step: 0.1 },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { palette: "colorful", variant: "inner", speed: 1 },
+		defaults: { palette: "colorful", variant: "inner", speed: 1, hdr: false },
 	},
 	capture: { delay: 2200 },
 };

@@ -35,6 +35,11 @@ export const SVELTE_SHARED_ITEMS: Readonly<Record<string, SharedItem>> = Object.
 		title: "Shared internals (motion)",
 		description: "Animation primitives: easing, presence, stagger, in-view and motion tokens.",
 	},
+	"internals-hdr": {
+		title: "Shared internals (HDR)",
+		description:
+			"The HDR light layer: a WebGPU overlay with extended tone mapping that glow components use to draw light above SDR white on HDR displays.",
+	},
 	sound: {
 		title: "Sound",
 		description: "The opt-in interface sound engine, its themes, the sound action and toggle.",
@@ -61,6 +66,7 @@ export function svelteGroupOf(relPath: string): string | null {
 	if (parts[0] === "_internals") {
 		if (parts.length === 2) return "internals";
 		if (parts.length === 3 && parts[1] === "motion") return "internals-motion";
+		if (parts.length === 3 && parts[1] === "hdr") return "internals-hdr";
 		return null;
 	}
 	if (parts[0] === "sound" && parts.length >= 2) return "sound";

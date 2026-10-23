@@ -21,14 +21,22 @@ export interface ShimmerButtonProps {
 	sound?: boolean;
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
+	/**
+	 * Beta, off by default. On a display that reports HDR, add a glint above SDR white to the
+	 * sweep and the hover spot, in a WebGPU layer with extended tone mapping.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useAttrs, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
+import { createShimmerProbe } from "./shimmer-button-hdr.js";
 
 defineOptions({ name: "ShimmerButton", inheritAttrs: false });
 
@@ -41,12 +49,13 @@ const {
 	background = "rgba(0, 0, 0, 1)",
 	sound = false,
 	disabled = false,
+	hdr = false,
 } = defineProps<ShimmerButtonProps>();
-const el = useTemplateRef<HTMLButtonElement>("el");
+const button = useTemplateRef<HTMLButtonElement>("button");
 
 // Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 // off (and never the default click → press, which `handleClick` already plays).
-useSoundFeedback(el, () => ({
+useSoundFeedback(button, () => ({
 	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
 	disabled,
 }));
@@ -54,6 +63,36 @@ useSoundFeedback(el, () => ({
 defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
+
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
+const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
+onMounted(() => {
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
+});
+onBeforeUnmount(() => stopHdrWatch());
+
+const sheen = useTemplateRef<HTMLSpanElement>("sheen");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+watch(
+	[button, sheen, hdrCanvas],
+	([buttonEl, sheenEl, canvasEl], _old, onCleanup) => {
+		if (!buttonEl || !sheenEl || !canvasEl) return;
+		onCleanup(
+			attachHdrLight({
+				host: buttonEl,
+				canvas: canvasEl,
+				pad: 0,
+				probe: createShimmerProbe(buttonEl, sheenEl, () => ({ color: shimmerColor })),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 const playCue = useSoundCue(() => sound);
 
@@ -89,11 +128,11 @@ function handlePointerMove(event: PointerEvent) {
 
 <template>
 	<button
-		ref="el"
+		ref="button"
 		:class="
 			cn(
 				'shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90',
-				'transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]',
+				'transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]',
 				className
 			)
 		"
@@ -113,10 +152,18 @@ function handlePointerMove(event: PointerEvent) {
 		<span class="relative z-10"><slot></slot></span>
 
 		<!-- Sweep: a satin band that crosses the button, then rests -->
-		<span class="shimmer-button__sheen" aria-hidden="true"></span>
+		<span ref="sheen" class="shimmer-button__sheen" aria-hidden="true"></span>
 
 		<!-- Hover: the sheen follows the pointer -->
 		<span class="shimmer-button__spot" aria-hidden="true"></span>
+
+		<!-- Glint above SDR white, on HDR displays only. -->
+		<canvas
+			v-if="hdr && hdrCapable"
+			ref="hdrCanvas"
+			class="shimmer-button__hdr"
+			aria-hidden="true"
+		></canvas>
 	</button>
 </template>
 
@@ -180,6 +227,15 @@ function handlePointerMove(event: PointerEvent) {
 	background-repeat: no-repeat;
 	background-position: 100% 0;
 	animation: shimmer-sweep var(--speed) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.shimmer-button__hdr {
+	position: absolute;
+	inset: 0;
+	z-index: 21;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
 }
 
 .shimmer-button__spot {

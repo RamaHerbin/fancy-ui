@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
 	interface Props {
 		class?: string;
@@ -7,6 +9,12 @@
 		gradientSize?: number;
 		gradientColor?: string;
 		gradientOpacity?: number;
+		/**
+		 * Beta, off by default. On a display that reports HDR, add a hot core to the spotlight in a
+		 * WebGPU layer with extended tone mapping, brighter than SDR white.
+		 * Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 		children?: import("svelte").Snippet;
 	}
 
@@ -16,6 +24,7 @@
 		gradientSize = 200,
 		gradientColor = "#262626",
 		gradientOpacity = 0.8,
+		hdr = false,
 		children,
 	}: Props = $props();
 
@@ -29,14 +38,43 @@
 	function handleMouseMove(e: MouseEvent) {
 		const target = e.currentTarget as HTMLElement;
 		const rect = target.getBoundingClientRect();
+		hovering = true;
 		mouseX = e.clientX - rect.left;
 		mouseY = e.clientY - rect.top;
 	}
 
+	let hovering = false;
+	let host: HTMLDivElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		return watchHdrLight((available) => (hdrCapable = available));
+	});
+
 	function handleMouseLeave() {
+		hovering = false;
 		mouseX = -gradientSize * 10;
 		mouseY = -gradientSize * 10;
 	}
+
+	$effect(() => {
+		if (!host || !hdrCanvas) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: createCardSpotlightProbe(() => ({
+				x: mouseX,
+				y: mouseY,
+				hovering,
+				size: gradientSize,
+				color: gradientColor,
+				opacity: gradientOpacity,
+			})),
+		});
+	});
 
 	let backgroundStyle = $derived(
 		`radial-gradient(circle at ${mouseX}px ${mouseY}px, ${gradientColor} 0%, rgba(0, 0, 0, 0) 70%)`
@@ -47,6 +85,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 
 <div
+	bind:this={host}
 	class={cn(
 		"group relative flex size-full overflow-hidden rounded-xl border bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white",
 		className
@@ -63,4 +102,12 @@
 		class="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 		style="background: {backgroundStyle}; opacity: {gradientOpacity}"
 	></div>
+	{#if hdr && hdrCapable}
+		<!-- Light above SDR white, on HDR displays only. -->
+		<canvas
+			bind:this={hdrCanvas}
+			class="pointer-events-none absolute inset-0 h-full w-full"
+			aria-hidden="true"
+		></canvas>
+	{/if}
 </div>

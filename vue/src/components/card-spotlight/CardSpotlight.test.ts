@@ -1,9 +1,33 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { nextTick } from "vue";
 import CardSpotlight from "./CardSpotlight.vue";
 
+function stubSwitchableDisplay() {
+	let high = false;
+	const listeners = new Set<(e: { matches: boolean }) => void>();
+	vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		get matches() {
+			return query === "(dynamic-range: high)" && high;
+		},
+		media: query,
+		addEventListener: (_: string, fn: (e: { matches: boolean }) => void) => listeners.add(fn),
+		removeEventListener: (_: string, fn: (e: { matches: boolean }) => void) => listeners.delete(fn),
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+	return (next: boolean) => {
+		high = next;
+		listeners.forEach((fn) => fn({ matches: next }));
+	};
+}
+
 describe("CardSpotlight", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	it("renders the wrapper with the base card classes", () => {
 		const { container } = render(CardSpotlight);
@@ -48,5 +72,45 @@ describe("CardSpotlight", () => {
 
 		// The awaits above would reject if either handler threw.
 		expect(container.querySelector(".pointer-events-none.absolute.inset-0")).toBeTruthy();
+	});
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(CardSpotlight);
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+		const on = render(CardSpotlight, { props: { hdr: true } });
+		await nextTick();
+		const canvas = on.container.querySelector("canvas");
+		expect(canvas).not.toBeNull();
+		// The light itself never starts without a real adapter: no flag.
+		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		// Beta: off by default, even where it could run.
+		const off = render(CardSpotlight);
+		await nextTick();
+		expect(off.container.querySelector("canvas")).toBeNull();
+	});
+	it("adds and drops the canvas as the window moves between SDR and HDR displays", async () => {
+		const setHdr = stubSwitchableDisplay();
+		const { container } = render(CardSpotlight, { props: { hdr: true } });
+		await nextTick();
+		expect(container.querySelector("canvas")).toBeNull();
+		setHdr(true);
+		await nextTick();
+		expect(container.querySelector("canvas")).not.toBeNull();
+		setHdr(false);
+		await nextTick();
+		expect(container.querySelector("canvas")).toBeNull();
 	});
 });

@@ -1,13 +1,18 @@
 <script lang="ts">
 	import type { PlaygroundValues } from "$lib/inspiration/types.js";
 	import { FluidCursor } from "$lib/fancy-ui/fluid-cursor";
+	import HdrBadge from "$lib/components/inspiration/HdrBadge.svelte";
 
 	let { values }: { values: PlaygroundValues } = $props();
 
 	// FluidCursor reads its simulation props once, at mount. Remount on a knob
 	// change, debounced so dragging a slider does not rebuild the GL context
 	// on every tick.
-	const knobKey = $derived(`${values.splatRadius}|${values.curl}|${values.colorIntensity}`);
+	const knobKey = $derived(
+		`${values.splatRadius}|${values.curl}|${values.colorIntensity}|${values.hdr}`
+	);
+	// The fluid runs its own WebGPU HDR engine; flag the wrapper for the badge.
+	let hdrLive = $state(false);
 	let mountedKey = $state("");
 	$effect(() => {
 		const next = knobKey;
@@ -20,7 +25,7 @@
 	});
 </script>
 
-<div class="finds-fluid relative h-full w-full overflow-hidden">
+<div class="finds-fluid relative h-full w-full overflow-hidden" data-hdr={hdrLive ? "" : undefined}>
 	{#key mountedKey}
 		<FluidCursor
 			contained
@@ -30,12 +35,15 @@
 			splatRadius={values.splatRadius as number}
 			curl={values.curl as number}
 			colorIntensity={values.colorIntensity as number}
+			hdr={values.hdr === true}
+			onReady={(handle) => (hdrLive = handle.renderLevel === "webgpu-hdr")}
 		/>
 	{/key}
 	<span
 		class="finds-caption pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-[10.5px] tracking-[0.2em] text-white/45"
 		aria-hidden="true">MOVE TO STIR</span
 	>
+	<HdrBadge />
 </div>
 
 <style>
