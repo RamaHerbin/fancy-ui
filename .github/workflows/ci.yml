@@ -15,6 +15,17 @@ on:
 permissions:
   contents: read
 
+# One run per pull request and event: a new push cancels the run still going
+# for the previous head. Without this, every `update-branch` or follow-up commit
+# added a full run next to a stale one, and a day of forty pull requests queued
+# behind runs whose result nobody would read (same pattern as e2e.yml). The
+# event name is part of the key because the release PR fires both
+# pull_request and pull_request_target for the same number, and the two must
+# not cancel each other: `main` requires the checks of the one that runs.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Type-check & test
@@ -94,15 +105,28 @@ jobs:
           "
 
   preview-health:
-    name: Preview health
+    name: Preview health (shard ${{ matrix.shard }})
     # Every shipped component page of the built docs site, every preview stage:
     # resolution errors, collapsed layouts, unsized canvases, invisible demos,
     # crashes and console errors (tests/e2e/preview-health.spec.ts). Two
     # projects: dark with WebGL through SwiftShader, and light with reduced
     # motion. The config builds the site and serves `vite preview` itself.
-    # Runs once `check` is green, so a failure here is about what the previews
-    # show, not about types or unit tests. The no-GPU project and the sweep of
-    # production run nightly (preview-health-nightly.yml).
+    # The no-GPU project and the sweep of production run nightly
+    # (preview-health-nightly.yml).
+    #
+    # Four shards on four runners. The sweep is CPU-bound (SwiftShader draws
+    # every WebGL frame on the CPU, two workers already starve each other on a
+    # four-vCPU runner) and took 21 to 35 minutes on one runner, which set the
+    # wall time of the whole pipeline; a shard takes a quarter of that. The
+    # config is fullyParallel, so Playwright deals the 304 tests round-robin and
+    # the heavy canvas pages spread across shards. Each shard uploads its own
+    # summary; the `preview-health-summary` job below merges them into the one
+    # report the reporter used to write, under the artifact name it always had.
+    #
+    # No `needs: [check]`: the job builds the site itself and reads nothing
+    # from the other jobs. It used to wait for `check` only so that a failure
+    # here could be read as "about the previews" — the failure classes in the
+    # summary say that on their own, and the wait cost seven minutes of wall.
     #
     # Same duplicate-run guard as `check` — see the comment there.
     if: |
@@ -110,9 +134,13 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    needs: [check]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # A shard is 6 to 9 minutes; twice that is a hung preview server, not a slow run.
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -148,17 +176,17 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      # Projects gpu + gpu-light-rm (see the script in package.json).
-      - run: pnpm test:preview-health
+      # Projects gpu + gpu-light-rm (see the script in package.json), this
+      # shard's quarter of them.
+      - run: pnpm test:preview-health --shard=${{ matrix.shard }}/4
 
-      # The merged summary grouped by failure class, plus a screenshot of every
-      # failing stage. Kept on success too: the summary also carries the notes
-      # (slow spinners) and is the baseline the next failure is read against.
-      - name: Upload the preview-health summary
+      # This shard's summary, merged by the summary job below. Kept on success
+      # too: it also carries the notes (slow spinners).
+      - name: Upload the shard summary
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: preview-health
+          name: preview-health-shard-${{ matrix.shard }}
           path: test-results/preview-health.json
           retention-days: 14
           if-no-files-found: warn
@@ -167,10 +195,66 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: preview-health-results
+          name: preview-health-results-shard-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  preview-health-summary:
+    name: Preview health
+    # The one check and the one report for the sweep: merges the four shard
+    # summaries into test-results/preview-health.json (same shape as a single
+    # run, plus a shard count), prints the summary grouped by failure class and
+    # fails when a shard failed, is missing, or reports a failing page. The
+    # merged file is uploaded under the name a single run used, so the nightly
+    # baseline and anyone reading artifacts keep one place to look.
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      !cancelled() && (
+        (github.event_name == 'pull_request_target' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.head_ref == 'changeset-release/main') ||
+        (github.event_name == 'pull_request'))
+    needs: [preview-health]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # The merge script is plain Node: no install.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: preview-health-shard-*
+          path: shard-summaries
+
+      - name: Merge the shard summaries
+        run: |
+          node scripts/preview-health-merge.mjs --self-test
+          node scripts/preview-health-merge.mjs --expect 4 shard-summaries
+
+      - name: Upload the merged summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health
+          path: test-results/preview-health.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      # A shard that timed out or crashed before writing its summary is a red
+      # shard with no entry above; this is what turns it into a red check here.
+      - name: Every shard finished green
+        if: ${{ !cancelled() && needs.preview-health.result != 'success' }}
+        run: |
+          echo "preview-health shards: ${{ needs.preview-health.result }}"
+          exit 1
 
   react:
     name: React package
@@ -586,16 +670,25 @@ jobs:
           echo "✅ Changeset file present."
 
   consumers:
-    name: Consumers
+    name: Consumers (shard ${{ matrix.shard }})
     # Every package installed from its packed tarball into the apps under
     # examples/consumers, each copied outside the checkout so nothing can
     # resolve from the monorepo's node_modules: SvelteKit and Svelte + Vite for
     # fancy-ui-svelte, React + Vite and Next for fancy-ui-react, Vue + Vite and
     # Nuxt for fancy-ui-vue, Nuxt through the fancy-ui-nuxt module. Builds,
-    # then a Playwright smoke per app. Runs once the package jobs are green, so
-    # a failure here is about the published shape (exports, files, declared
-    # dependencies, Tailwind entry), not the source. See
-    # examples/consumers/README.md.
+    # then a Playwright smoke per app. A failure here is about the published
+    # shape (exports, files, declared dependencies, Tailwind entry), not the
+    # source. See examples/consumers/README.md.
+    #
+    # Three shards on three runners: run-all.mjs deals the sorted consumer
+    # list round-robin (`--shard k/3`), so an app added under scripts/consumers
+    # joins a shard by itself and no list here can forget it. The apps in a
+    # row took five to nine minutes (next 48 s, nuxt 78 s, react-vite 52 s,
+    # vue-vite 36 s, sveltekit 25 s, svelte-vite 20 s, before the Nuxt module
+    # app); a shard takes two to four. Each shard packs the packages it needs
+    # itself (about a minute), which is why there is no `needs` on the package
+    # jobs: the ordering only served to read a failure as "about the published
+    # shape", and the summary table says that already.
     #
     # Same duplicate-run guard as `check` — see the comment there.
     if: |
@@ -603,12 +696,13 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    needs: [check, react, vue, nuxt-module]
     runs-on: ubuntu-latest
-    # About 16 minutes on a loaded laptop for all eight apps (Next and the two
-    # Nuxt apps are most of it); the cap stops a hung server from holding a
-    # runner for hours.
-    timeout-minutes: 30
+    # The cap stops a hung server from holding a runner for hours.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -662,4 +756,4 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      - run: pnpm consumers
+      - run: pnpm consumers --shard ${{ matrix.shard }}/3
