@@ -1953,6 +1953,13 @@ export const registry: Record<string, ComponentMeta> = {
 					"On a display that reports HDR, redraws the sun, windows, stars and the lens in a WebGPU layer brighter than SDR white. Elsewhere nothing is created.",
 			},
 			{
+				name: "hdrLook",
+				type: '"calibrated" | "vivid"',
+				default: '"calibrated"',
+				description:
+					"HDR rendering: calibrated levels (glow 1 is the SDR dot, sRGB), or vivid, a hotter, wider-gamut look (display-p3) with lamps at the panel peak.",
+			},
+			{
 				name: "ink",
 				type: "string",
 				default: '"currentColor"',

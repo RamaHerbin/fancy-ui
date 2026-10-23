@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { PixelSceneHdrLook } from "./pixel-scene-hdr.js";
 	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
 	import type { PixelSceneName } from "./pixel-scene-scenes.js";
@@ -32,6 +33,8 @@
 		lensRadius?: number;
 		/** On HDR displays, draw lit cells brighter than SDR white in a WebGPU layer */
 		hdr?: boolean;
+		/** HDR rendering: `calibrated` (glow 1 = the SDR dot, sRGB) or `vivid` (the prototype's hotter, display-p3 look) */
+		hdrLook?: PixelSceneHdrLook;
 		/** Colour of the resting dots; any CSS colour, `currentColor` resolved on the host */
 		ink?: string;
 		/** Freeze the scene's animations (the lens still follows the pointer) */
@@ -73,6 +76,7 @@
 		lens = true,
 		lensRadius = 21,
 		hdr = true,
+		hdrLook = "calibrated",
 		ink = "currentColor",
 		paused = false,
 		wave = true,
@@ -179,7 +183,8 @@
 				hdrRun++;
 			}, PIXEL_SCENE_HDR_RESTART_MS * hdrRestarts);
 		};
-		void startPixelSceneHdr(canvas).then((layer) => {
+		const look = hdrLook;
+		void startPixelSceneHdr(canvas, look).then((layer) => {
 			if (cancelled || !engine) {
 				layer?.destroy();
 				return;

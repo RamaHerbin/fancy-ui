@@ -4,6 +4,7 @@ import {
 	PIXEL_SCENE_HDR_PEAK,
 	encodeGlowChannel,
 	hdrCapacityFor,
+	VIVID_SCALE,
 	pixelSceneHdrAvailable,
 	startPixelSceneHdr,
 } from "./pixel-scene-hdr.js";
@@ -89,6 +90,7 @@ function frameWith(glowCells: number, cols = 200): PixelSceneFrame {
 		color: g.color,
 		glow: g.glow,
 		hcol: g.hcol,
+		soft: g.soft,
 	};
 }
 
@@ -154,6 +156,43 @@ describe("HDR layer", () => {
 		expect(f.draws).toEqual([10_000]);
 		expect(layer!.count).toBe(10_000);
 		expect(f.canvas.width).toBe(1000);
+		layer!.destroy();
+	});
+
+	it("vivid: display-p3 and the prototype's transfer, hotter than calibrated above glow 1", async () => {
+		const f = fakeGpu();
+		stubMatchMedia(true);
+		const layer = await startPixelSceneHdr(f.canvas, "vivid");
+		expect(f.context.configure).toHaveBeenCalledWith(
+			expect.objectContaining({ colorSpace: "display-p3", toneMapping: { mode: "extended" } })
+		);
+		layer!.destroy();
+		// sent value is linear(c) × (1 + (g − 1) × VIVID_SCALE), read by the canvas as encoded
+		expect(encodeGlowChannel(255, 1, "vivid")).toBeCloseTo(1, 5);
+		expect(encodeGlowChannel(255, 3.5, "vivid")).toBeCloseTo(1 + 2.5 * VIVID_SCALE, 5);
+		expect(encodeGlowChannel(128, 0, "vivid")).toBe(0);
+		const decode = (v: number) => ((v + 0.055) / 1.055) ** 2.4;
+		expect(decode(encodeGlowChannel(255, 3.5, "vivid"))).toBeGreaterThan(
+			decode(encodeGlowChannel(255, 3.5, "calibrated"))
+		);
+	});
+
+	it("sends the soft halo radius (px) of house windows in the instance data", async () => {
+		const f = fakeGpu();
+		stubMatchMedia(true);
+		const layer = await startPixelSceneHdr(f.canvas);
+		const frame = frameWith(3);
+		frame.soft[1] = 1.6;
+		const sent: number[][] = [];
+		f.device.queue.writeBuffer.mockImplementation(
+			(_b: unknown, _o: number, d: unknown, _do?: number, size?: number) => {
+				if (d instanceof Float32Array && size) sent.push([...d.slice(0, size)]);
+				return sent.length;
+			}
+		);
+		layer!.render(frame);
+		const inst = sent.at(-1)!;
+		expect([inst[2], inst[8 + 2], inst[16 + 2]]).toEqual([0, 1.6 * 5, 0]);
 		layer!.destroy();
 	});
 

@@ -32,7 +32,7 @@ export const PIXEL_SCENE_HDR_PEAK = 4.9;
 export const PIXEL_SCENE_HDR_RESTARTS = 3;
 export const PIXEL_SCENE_HDR_RESTART_MS = 600;
 
-/** Floats per instance: `x0, y0, 0, 0, r, g, b, 1`. */
+/** Floats per instance: `x0, y0, soft radius px, 0, r, g, b, 1`. */
 const FPI = 8;
 const START_CAPACITY = 4096;
 const FORMAT = "rgba16float" as GPUTextureFormat;
@@ -42,16 +42,30 @@ struct Frame { size: vec2f, dot: f32, pad: f32 };
 @group(0) @binding(0) var<uniform> frame: Frame;
 struct In { @location(0) cell: vec4f, @location(1) colour: vec4f };
 struct Out { @builtin(position) pos: vec4f, @location(0) colour: vec4f };
-@vertex fn vs(@builtin(vertex_index) vi: u32, inst: In) -> Out {
+struct Out2 { @builtin(position) pos: vec4f, @location(0) colour: vec4f, @location(1) p: vec2f, @location(2) cell: vec4f };
+@vertex fn vs(@builtin(vertex_index) vi: u32, inst: In) -> Out2 {
 	let corners = array<vec2f, 6>(vec2f(0, 0), vec2f(1, 0), vec2f(0, 1), vec2f(0, 1), vec2f(1, 0), vec2f(1, 1));
-	let p = inst.cell.xy + corners[vi] * frame.dot;
-	var o: Out;
+	// a soft cell (cell.z > 0, px) widens its quad to carry its halo
+	let reach = select(0.0, inst.cell.z * 4.0 + 1.0, inst.cell.z > 0.0);
+	let p = inst.cell.xy - vec2f(reach) + corners[vi] * (frame.dot + 2.0 * reach);
+	var o: Out2;
 	o.pos = vec4f(p.x / frame.size.x * 2.0 - 1.0, 1.0 - p.y / frame.size.y * 2.0, 0.0, 1.0);
 	o.colour = inst.colour;
+	o.p = p;
+	o.cell = inst.cell;
 	return o;
 }
-// a hard square at the pre-encoded colour; nothing else
-@fragment fn fs(o: Out) -> @location(0) vec4f { return vec4f(o.colour.rgb, 1.0); }
+// a hard square at the pre-encoded colour; soft cells (house windows) also get
+// the first prototype's golden halo, exp(-d / radius) around the square
+@fragment fn fs(o: Out2) -> @location(0) vec4f {
+	let half = vec2f(frame.dot * 0.5);
+	let q = abs(o.p - (o.cell.xy + half)) - half;
+	let d = length(max(q, vec2f(0.0)));
+	let core = select(0.0, 1.0, d <= 0.001);
+	let h = select(0.0, exp(-d / max(o.cell.z, 0.001)) * 0.55, o.cell.z > 0.0);
+	let v = core + h * (1.0 - core);
+	return vec4f(o.colour.rgb * v, max(core, clamp(h * 0.25, 0.0, 1.0)));
+}
 `;
 
 /**
@@ -70,9 +84,30 @@ export function pixelSceneHdrAvailable(): boolean {
 	}
 }
 
-/** One channel (0–255) at `glow ×` SDR, encoded for the extended-sRGB canvas. */
-export function encodeGlowChannel(c8: number, glow: number): number {
+/**
+ * Two HDR looks, kept side by side to compare:
+ * - `calibrated`: `colorSpace: "srgb"`, each channel sent as
+ *   `encodeExt(linear(c) × glow)`, so a glow of 1 is the 2D dot exactly and
+ *   a glow of 4.9 is 4.9 × SDR white;
+ * - `vivid`: the prototype's transfer, `colorSpace: "display-p3"`, each channel
+ *   sent as `linear(c) × g` with `g = 1 + (glow − 1) × VIVID_SCALE`. The canvas
+ *   reads that as encoded, so lights land far hotter (lamps reach the panel
+ *   peak) and colours more saturated; the scale brings the calibrated levels
+ *   back to the prototype's.
+ */
+export type PixelSceneHdrLook = "calibrated" | "vivid";
+export const PIXEL_SCENE_HDR_LOOKS: readonly PixelSceneHdrLook[] = ["calibrated", "vivid"];
+/** Maps the calibrated glow levels onto the prototype's (star 3.5 → 2.1, sun 4.9 → 2.8). */
+export const VIVID_SCALE = 0.45;
+
+/** One channel (0–255) at `glow ×` SDR, encoded for the canvas of `look`. */
+export function encodeGlowChannel(
+	c8: number,
+	glow: number,
+	look: PixelSceneHdrLook = "calibrated"
+): number {
 	const g = Math.min(PIXEL_SCENE_HDR_PEAK, Math.max(0, glow));
+	if (look === "vivid") return srgbToLinear(c8) * (g > 0 ? 1 + (g - 1) * VIVID_SCALE : 0);
 	return encodeExt(srgbToLinear(c8) * g);
 }
 
@@ -175,7 +210,10 @@ export function hdrCapacityFor(n: number): number {
  * Starts the layer on `canvas`. Resolves null when WebGPU, the adapter, the
  * context or extended tone mapping is missing; never throws.
  */
-export async function startPixelSceneHdr(canvas: HTMLCanvasElement): Promise<PixelSceneHdr | null> {
+export async function startPixelSceneHdr(
+	canvas: HTMLCanvasElement,
+	look: PixelSceneHdrLook = "calibrated"
+): Promise<PixelSceneHdr | null> {
 	if (!pixelSceneHdrAvailable()) return null;
 	const gpu = (navigator as Navigator & { gpu?: GPU }).gpu;
 	if (!gpu) return null;
@@ -202,7 +240,7 @@ export async function startPixelSceneHdr(canvas: HTMLCanvasElement): Promise<Pix
 			device,
 			format: FORMAT,
 			alphaMode: "premultiplied",
-			colorSpace: "srgb",
+			colorSpace: look === "vivid" ? "display-p3" : "srgb",
 			toneMapping: { mode: "extended" },
 		} as GPUCanvasConfiguration);
 		let extended = false;
@@ -268,6 +306,7 @@ export async function startPixelSceneHdr(canvas: HTMLCanvasElement): Promise<Pix
 				if (canvas.style && canvas.style.imageRendering !== rendering)
 					canvas.style.imageRendering = rendering;
 				const { cols, rows, color, glow, hcol, cellCss, dpr } = frame;
+				const soft = frame.soft;
 				const n = cols * rows;
 				let k = 0;
 				for (let y = 0; y < rows; y++) {
@@ -294,11 +333,11 @@ export async function startPixelSceneHdr(canvas: HTMLCanvasElement): Promise<Pix
 						const o = k * FPI;
 						data[o] = Math.round(x * cellCss * dpr);
 						data[o + 1] = oy;
-						data[o + 2] = 0;
+						data[o + 2] = soft ? soft[i]! * cellCss * dpr : 0;
 						data[o + 3] = 0;
-						data[o + 4] = encodeGlowChannel((c >> 16) & 255, g);
-						data[o + 5] = encodeGlowChannel((c >> 8) & 255, g);
-						data[o + 6] = encodeGlowChannel(c & 255, g);
+						data[o + 4] = encodeGlowChannel((c >> 16) & 255, g, look);
+						data[o + 5] = encodeGlowChannel((c >> 8) & 255, g, look);
+						data[o + 6] = encodeGlowChannel(c & 255, g, look);
 						data[o + 7] = 1;
 						k++;
 					}

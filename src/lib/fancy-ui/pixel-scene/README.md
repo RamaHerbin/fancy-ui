@@ -23,6 +23,7 @@ The host needs a height — it fills whatever box you give it.
 | `lens`       | `boolean`                                      | `true`           | Show the picture in full colour under a round lens that follows the pointer.               |
 | `lensRadius` | `number`                                       | `21`             | Lens radius in cells (clamped 2–200).                                                      |
 | `hdr`        | `boolean`                                      | `true`           | On a display that reports HDR, redraw the lit cells above SDR white in a WebGPU layer.     |
+| `hdrLook`    | `"calibrated" \| "vivid"`                      | `"calibrated"`   | Calibrated levels (sRGB), or a hotter, wider-gamut look (display-p3), to compare.          |
 | `ink`        | `string`                                       | `"currentColor"` | Colour of the resting dots. `currentColor` is read from the host, so it follows the theme. |
 | `paused`     | `boolean`                                      | `false`          | Freeze clouds, birds and lights; the lens still follows the pointer.                       |
 | `wave`       | `boolean`                                      | `true`           | Play a change of `night` as a dithered wave from the sun (instant under reduced motion).   |
@@ -99,6 +100,10 @@ Under the lens every cell is painted in colour; its rim is dithered on the grid.
 ## HDR
 
 With `hdr` (on by default), PixelScene checks after mount whether WebGPU exists and the display reports `(dynamic-range: high)`. Only then does it render a second canvas and start `pixel-scene-hdr.ts`: `rgba16float`, `colorSpace: "srgb"`, `toneMapping: { mode: "extended" }`. After every painted frame each cell with a glow is redrawn there as an instanced square at `glow ×` its colour, alpha 1. The canvas reads extended (gamma-encoded) sRGB, so each channel is sent as `encode(linear(c) × glow)`: a glow of 1 reproduces the 2D dot exactly. Levels: lens field 1.6, lit cells 1.5, snow caps and flowers 1.8, water sparkle 2.2, stars and moon 3.5, the day sun, windows and lamps up to 4.9 (≈ 1000 nits against a 203-nit SDR white), the peak every glow is clamped to.
+
+One exception to the hard squares, for the lit windows of houses at night: the mountains cabin (radius 1.6 cells) and the alpine chalets (1.2) carry a soft golden halo in the HDR layer, `exp(−d / radius)` around the square, the warm glow of the first prototype. Every other light is squares only.
+
+`hdrLook="vivid"` keeps a second rendering to compare against: `colorSpace: "display-p3"`, and each channel is sent as `linear(c) × (1 + (glow − 1) × 0.45)` without the encoding step. The canvas reads that as encoded, so lights land far hotter (lamps reach the panel peak) and colours more saturated, as in the first prototype; the 0.45 scale brings the calibrated levels back to the prototype's (stars 3.5 → 2.1, sun 4.9 → 2.8). On SDR screens both looks are the same picture.
 
 One GPU device is shared by every instance on the page and released with the last one. The host gets `data-hdr` while the layer runs. If the device is lost (GPU process restarted, driver reset), the layer is torn down and started again after 600 ms, then 1.2 s, then 1.8 s; after three losses the HDR canvas is dropped and the 2D picture carries on alone. Elsewhere nothing is created.
 

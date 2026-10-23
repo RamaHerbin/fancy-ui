@@ -172,6 +172,11 @@ export interface PixelGrid {
 	halo: Float32Array;
 	/** Halo colour override for the HDR layer, -1 = none. */
 	hcol: Int32Array;
+	/**
+	 * Soft golden halo radius in cells, HDR only (0 = none). The one exception to
+	 * the hard-square rule, kept for the lit windows of houses.
+	 */
+	soft: Float32Array;
 	/** Flat `[x, y, colour, glow, haloCells] × n`. */
 	emitters: number[];
 	/**
@@ -212,6 +217,7 @@ export function createGrid(cols: number, rows: number): PixelGrid {
 		glow: new Float32Array(n),
 		halo: new Float32Array(n),
 		hcol: new Int32Array(n),
+		soft: new Float32Array(n),
 		emitters: [],
 		copyW: 0,
 		copyH: 0,
@@ -229,6 +235,7 @@ export function clearGrid(g: PixelGrid): void {
 	g.glow.fill(0);
 	g.halo.fill(0);
 	g.hcol.fill(-1);
+	g.soft.fill(0);
 	g.emitters.length = 0;
 	g.copyW = 0;
 	g.copyH = 0;
@@ -264,6 +271,7 @@ export function writeCell(
 	g.glow[i] = glow;
 	g.halo[i] = hl;
 	g.hcol[i] = -1;
+	g.soft[i] = 0;
 	if (hl > 0 && typeof l === "number" && glow > 0) g.emitters.push(x, y, col, glow, hl);
 }
 
@@ -388,6 +396,7 @@ export function composeWave(
 				cur.glow[i] = next.glow[i]!;
 				cur.halo[i] = next.halo[i]!;
 				cur.hcol[i] = next.hcol[i]!;
+				cur.soft[i] = next.soft[i]!;
 				// HDR glow inside the rim: pink, dithered, fading toward the origin
 				const g = inCopy ? 0 : waveBandGlow(x, y, (Rin - dist) / WAVE_GLOW_CELLS, true);
 				if (g > cur.glow[i]!) {
@@ -647,6 +656,8 @@ export interface PixelSceneFrame {
 	color: Int32Array;
 	glow: Float32Array;
 	hcol: Int32Array;
+	/** Soft halo radius per cell, in cells (see {@link PixelGrid.soft}). */
+	soft: Float32Array;
 }
 
 export interface PixelSceneElements {
@@ -766,6 +777,7 @@ export function createPixelScene(
 		color: grid.color,
 		glow: grid.glow,
 		hcol: grid.hcol,
+		soft: grid.soft,
 	};
 
 	const readDpr = () =>
@@ -849,6 +861,7 @@ export function createPixelScene(
 			frame.color = grid.color;
 			frame.glow = grid.glow;
 			frame.hcol = grid.hcol;
+			frame.soft = grid.soft;
 		}
 		const bw = Math.round(cssW * dpr);
 		const bh = Math.round(cssH * dpr);

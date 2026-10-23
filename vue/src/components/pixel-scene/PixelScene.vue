@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { HTMLAttributes } from "vue";
 import type { PixelSceneName } from "./pixel-scene-scenes.js";
+import type { PixelSceneHdrLook } from "./pixel-scene-hdr.js";
 
 export type { PixelSceneName };
 
@@ -33,6 +34,8 @@ export interface PixelSceneProps {
 	lensRadius?: number;
 	/** On HDR displays, draw lit cells brighter than SDR white in a WebGPU layer */
 	hdr?: boolean;
+	/** HDR rendering: `calibrated` (glow 1 = the SDR dot, sRGB) or `vivid` (the prototype's hotter, display-p3 look) */
+	hdrLook?: PixelSceneHdrLook;
 	/** Colour of the resting dots; any CSS colour, `currentColor` resolved on the host */
 	ink?: string;
 	/** Freeze the scene's animations (the lens still follows the pointer) */
@@ -71,6 +74,7 @@ const {
 	lens = true,
 	lensRadius = 21,
 	hdr = true,
+	hdrLook = "calibrated",
 	ink = "currentColor",
 	paused = false,
 	wave = true,
@@ -168,7 +172,7 @@ watch(
 );
 
 watch(
-	[hdrCanvas, engineReady, hdrCapable, hdrRun],
+	[hdrCanvas, engineReady, hdrCapable, hdrRun, () => hdrLook],
 	([canvas, ready, capable], _old, onCleanup) => {
 		if (!canvas || !ready || !capable) return;
 		let cancelled = false;
@@ -187,7 +191,7 @@ watch(
 				hdrRun.value++;
 			}, PIXEL_SCENE_HDR_RESTART_MS * hdrRestarts);
 		};
-		void startPixelSceneHdr(canvas).then((layer) => {
+		void startPixelSceneHdr(canvas, hdrLook).then((layer) => {
 			if (cancelled || !engine) {
 				layer?.destroy();
 				return;

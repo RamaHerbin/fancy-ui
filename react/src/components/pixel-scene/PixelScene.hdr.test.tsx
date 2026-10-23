@@ -20,7 +20,7 @@ vi.mock("./pixel-scene-hdr.js", () => ({
 	PIXEL_SCENE_HDR_RESTARTS: 3,
 	PIXEL_SCENE_HDR_RESTART_MS: 600,
 	pixelSceneHdrAvailable: () => hdr.available,
-	startPixelSceneHdr: (canvas: HTMLCanvasElement) => hdr.start(canvas),
+	startPixelSceneHdr: (canvas: HTMLCanvasElement, look?: string) => hdr.start(canvas, look),
 }));
 
 import { PixelScene } from "./PixelScene.js";
@@ -81,7 +81,7 @@ describe("PixelScene HDR wiring", () => {
 		const hdrCanvas = el.querySelector(".pixel-scene__hdr");
 		expect(hdrCanvas).not.toBeNull();
 		expect(hdrCanvas!.getAttribute("aria-hidden")).toBe("true");
-		expect(hdr.start).toHaveBeenCalledWith(hdrCanvas);
+		expect(hdr.start).toHaveBeenCalledWith(hdrCanvas, "calibrated");
 		expect(el.hasAttribute("data-hdr")).toBe(true);
 	});
 
@@ -103,6 +103,16 @@ describe("PixelScene HDR wiring", () => {
 		await flush();
 		expect(container.querySelector(".pixel-scene__hdr")).toBeNull();
 		expect(container.querySelector(".pixel-scene")!.hasAttribute("data-hdr")).toBe(false);
+	});
+
+	it("starts a new layer in the new look when hdrLook changes", async () => {
+		const { rerender } = render(<PixelScene />);
+		await flush();
+		const first = hdr.layers.at(-1)!;
+		rerender(<PixelScene hdrLook="vivid" />);
+		await flush();
+		expect(first.destroy).toHaveBeenCalledTimes(1);
+		expect(hdr.start).toHaveBeenLastCalledWith(expect.any(HTMLCanvasElement), "vivid");
 	});
 
 	it("destroys the layer on unmount", async () => {

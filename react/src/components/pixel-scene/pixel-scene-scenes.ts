@@ -57,6 +57,12 @@ const G_SNOWCAP = 1.8;
 const G_FLOWER = 1.8;
 const G_SPARKLE = 2.2;
 const G_DAYLAMP = 1.6;
+/**
+ * Soft golden halo radius (cells) around lit house windows at night, HDR only:
+ * the one place a soft glow is allowed (owner ruling); everything else is squares.
+ */
+const SOFT_CABIN = 1.6;
+const SOFT_CHALET = 1.2;
 
 /**
  * The copy corner every scene keeps open for text (kicker, title, paragraph),
@@ -78,6 +84,14 @@ const h = parseColour;
 
 function put(x: number, y: number, c: Colour, a = 0, l: boolean | number = false, hl = 0): void {
 	writeCell(G, x, y, c, a, l, hl);
+}
+
+/** Gives a lit cell the soft golden house halo (radius in cells, HDR only). */
+function softGlow(x: number, y: number, r: number): void {
+	x = Math.round(x);
+	y = Math.round(y);
+	if (x < 0 || y < 0 || x >= COLS || y >= ROWS) return;
+	G.soft[y * COLS + x] = r;
 }
 
 /** Whether a cell already holds a colour. */
@@ -791,8 +805,10 @@ function alpine(t: number): void {
 					// a few windows switch on and off slowly, the rest are steady
 					const breathe = hash(wx, wy, seed + 2) > 0.9 ? Math.sin(t * 0.00031 + hw * 50) > 0 : true;
 					if (breathe && hw < winLit) {
-						if (N) put(wx, wy, P.lamp, 0.9, lamp(t, wx + wy * 7), 0.9);
-						else put(wx, wy, P.lamp, 0.9, G_DAYLAMP);
+						if (N) {
+							put(wx, wy, P.lamp, 0.9, lamp(t, wx + wy * 7), 0.9);
+							softGlow(wx, wy, SOFT_CHALET);
+						} else put(wx, wy, P.lamp, 0.9, G_DAYLAMP);
 					} else put(wx, wy, P.win, 0.6);
 				} else if (storeys > 1 && j % 2 === 0)
 					put(wx, wy, P.eave, 0.7); // balcony line
@@ -1266,12 +1282,17 @@ function mountains(t: number): void {
 		{
 			n: CABIN_WALL,
 			D: CABIN_DOOR,
-			y: [LANTERN, 0.9, isNight ? lamp(t, 5) : G_DAYLAMP, isNight ? 1.6 : 0],
+			y: [LANTERN, 0.9, isNight ? lamp(t, 5) : G_DAYLAMP, 0],
 		},
 		cx,
 		cy,
 		0.9
 	);
+	// the golden house glow: a soft halo around the lit window (HDR only)
+	if (isNight) {
+		softGlow(cx + 2, cy + 4, SOFT_CABIN);
+		softGlow(cx + 2, cy + 5, SOFT_CABIN);
+	}
 	for (let i = 0; i < 5; i++) {
 		const life = (t * 0.0005 + i * 0.2) % 1;
 		put(cx + 5 + Math.sin(life * 7 + i) * 1.5, cy - 1 - life * 9, K.smoke, 0.4 * (1 - life));

@@ -1,11 +1,20 @@
 <script lang="ts">
-	import { PixelScene, PIXEL_SCENES, type PixelSceneName } from "$lib/fancy-ui/pixel-scene";
+	import {
+		PixelScene,
+		PIXEL_SCENES,
+		type PixelSceneHdrLook,
+		type PixelSceneName,
+	} from "$lib/fancy-ui/pixel-scene";
 
 	// The scene owns its surface and its ink for both themes, so the wave carries
 	// the whole card from day to night: background, dots and halo. The copy follows
 	// once the front has passed it.
-	let scene = $state<PixelSceneName>("mountains");
-	let night = $state(false);
+	let scene = $state<PixelSceneName>("sea");
+	let night = $state(true);
+	// Two HDR looks to compare on an HDR display: calibrated levels, or the
+	// prototype's hotter, wider-gamut rendering. Same picture on SDR screens.
+	let hdrLook = $state<PixelSceneHdrLook>("vivid");
+	const LOOKS: PixelSceneHdrLook[] = ["calibrated", "vivid"];
 
 	const SURFACES = ["#f7f7f5", "#0b0b0c"] as const;
 	const INKS = ["#141414", "#e9e9e6"] as const;
@@ -35,10 +44,31 @@
 		>
 			night / day
 		</button>
+		<span class="text-muted-foreground ml-auto text-xs">HDR</span>
+		<div
+			class="border-foreground/15 inline-flex rounded-full border p-0.5"
+			role="group"
+			aria-label="HDR look"
+		>
+			{#each LOOKS as look (look)}
+				<button
+					type="button"
+					aria-pressed={hdrLook === look}
+					class="focus-visible:ring-ring rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none {hdrLook ===
+					look
+						? 'bg-foreground text-background'
+						: 'text-muted-foreground hover:text-foreground'}"
+					onclick={() => (hdrLook = look)}
+				>
+					{look}
+				</button>
+			{/each}
+		</div>
 	</div>
 	<PixelScene
 		{scene}
 		{night}
+		{hdrLook}
 		surfaces={SURFACES}
 		inks={INKS}
 		onclick={() => (night = !night)}

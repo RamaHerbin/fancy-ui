@@ -19,7 +19,7 @@ vi.mock("./pixel-scene-hdr.js", () => ({
 	PIXEL_SCENE_HDR_RESTARTS: 3,
 	PIXEL_SCENE_HDR_RESTART_MS: 600,
 	pixelSceneHdrAvailable: () => true,
-	startPixelSceneHdr: (canvas: HTMLCanvasElement) => hdr.start(canvas),
+	startPixelSceneHdr: (canvas: HTMLCanvasElement, look?: string) => hdr.start(canvas, look),
 }));
 
 import PixelScene from "./PixelScene.vue";
@@ -68,9 +68,19 @@ describe("PixelScene HDR wiring", () => {
 		const hdrCanvas = host.querySelector("canvas.pixel-scene__hdr");
 		expect(hdrCanvas?.getAttribute("aria-hidden")).toBe("true");
 		expect(host.hasAttribute("data-hdr")).toBe(true);
-		expect(hdr.start).toHaveBeenCalledWith(hdrCanvas);
+		expect(hdr.start).toHaveBeenCalledWith(hdrCanvas, "calibrated");
 		unmount();
 		expect(hdr.layers.at(-1)!.destroy).toHaveBeenCalledTimes(1);
+	});
+
+	it("starts a new layer in the new look when hdrLook changes", async () => {
+		const { rerender } = render(PixelScene);
+		await flushPromises();
+		const first = hdr.layers.at(-1)!;
+		await rerender({ hdrLook: "vivid" });
+		await flushPromises();
+		expect(first.destroy).toHaveBeenCalledTimes(1);
+		expect(hdr.start).toHaveBeenLastCalledWith(expect.any(HTMLCanvasElement), "vivid");
 	});
 
 	it("drops the HDR canvas with hdr off", async () => {

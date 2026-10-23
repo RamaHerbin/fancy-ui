@@ -13,6 +13,7 @@ import {
 	pixelSceneHdrAvailable,
 	startPixelSceneHdr,
 } from "./pixel-scene-hdr.js";
+import type { PixelSceneHdrLook } from "./pixel-scene-hdr.js";
 
 export type { PixelSceneName };
 
@@ -43,6 +44,8 @@ export interface PixelSceneProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 	lensRadius?: number;
 	/** On HDR displays, draw lit cells brighter than SDR white in a WebGPU layer */
 	hdr?: boolean;
+	/** HDR rendering: `calibrated` (glow 1 = the SDR dot, sRGB) or `vivid` (the prototype's hotter, display-p3 look) */
+	hdrLook?: PixelSceneHdrLook;
 	/** Colour of the resting dots; any CSS colour, `currentColor` resolved on the host */
 	ink?: string;
 	/** Freeze the scene's animations (the lens still follows the pointer) */
@@ -83,6 +86,7 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		lens = true,
 		lensRadius = 21,
 		hdr = true,
+		hdrLook = "calibrated",
 		ink = "currentColor",
 		paused = false,
 		wave = true,
@@ -204,7 +208,7 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 				setHdrRun((n) => n + 1);
 			}, PIXEL_SCENE_HDR_RESTART_MS * hdrRestarts.current);
 		};
-		void startPixelSceneHdr(hdrCanvas).then((layer) => {
+		void startPixelSceneHdr(hdrCanvas, hdrLook).then((layer) => {
 			if (cancelled || engineRef.current !== engine) {
 				layer?.destroy();
 				return;
@@ -237,7 +241,7 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 			if (retry !== null) clearTimeout(retry);
 		};
 		// hdrRun is read by no line above: it re-runs the effect after a device loss.
-	}, [hdrCanvas, engineReady, hdrCapable, hdrRun]);
+	}, [hdrCanvas, engineReady, hdrCapable, hdrRun, hdrLook]);
 
 	return (
 		<div

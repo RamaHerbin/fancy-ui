@@ -21,6 +21,18 @@ function paint(
 	return g;
 }
 
+describe("golden house glow", () => {
+	it("marks lit house windows soft at night only, in mountains and alpine", () => {
+		const softCount = (g: PixelGrid) => g.soft.reduce((n, v) => n + (v > 0 ? 1 : 0), 0);
+		const mountains = paint("mountains", 256, 68, 5000, true);
+		expect(softCount(mountains)).toBe(2);
+		expect(Math.max(...mountains.soft)).toBeCloseTo(1.6, 5);
+		expect(softCount(paint("alpine", 256, 68, 5000, true))).toBeGreaterThan(5);
+		expect(softCount(paint("mountains", 256, 68, 5000, false))).toBe(0);
+		expect(softCount(paint("alpine", 256, 68, 5000, false))).toBe(0);
+	});
+});
+
 describe("scenes", () => {
 	it("lists the four scenes, alpine first", () => {
 		expect(PIXEL_SCENES).toEqual(["alpine", "meadow", "sea", "mountains"]);

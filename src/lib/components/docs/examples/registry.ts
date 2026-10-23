@@ -325,7 +325,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "HoursOfLowLight",
 			title: "Hours of low light",
 			description:
-				"The scene owns its surface and ink: a click carries the whole card from day to night on the wave.",
+				"The scene owns its surface and ink, so a click carries the whole card on the wave. Opens on the sea at night; switch the HDR look to compare.",
 		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
