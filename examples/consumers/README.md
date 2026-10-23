@@ -1,6 +1,6 @@
 # Consumer apps
 
-Seven minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
+Eight minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
 
 - a dependency the package imports but does not declare,
 - a file missing from the `files` allow-list, or a broken `exports` entry,

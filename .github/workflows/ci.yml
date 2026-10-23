@@ -605,7 +605,7 @@ jobs:
       (github.event_name == 'pull_request')
     needs: [check, react, vue, nuxt-module]
     runs-on: ubuntu-latest
-    # About 16 minutes on a loaded laptop for all seven apps (Next and the two
+    # About 16 minutes on a loaded laptop for all eight apps (Next and the two
     # Nuxt apps are most of it); the cap stops a hung server from holding a
     # runner for hours.
     timeout-minutes: 30
