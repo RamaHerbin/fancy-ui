@@ -9,6 +9,7 @@ packages:
   - "vue"
   - "nuxt"
   - "examples/*"
+  - "sv-addon"
 
 # esbuild postinstall allowance — also load-bearing (installs break without
 # it), and pnpm has repeatedly rewritten this stanza into a placeholder.
