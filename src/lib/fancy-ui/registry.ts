@@ -1592,6 +1592,150 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
 	},
 
+	"sun-switch": {
+		name: "SunSwitch",
+		slug: "sun-switch",
+		description:
+			"A theme switch drawn as a pixel sun. Hover it for a lens on its true colours; click it and the new theme spreads from the sun in a dithered, grid-aligned wave.",
+		category: "buttons",
+		group: "fancy",
+		status: "done",
+		tags: ["switch", "theme", "dark mode", "pixel", "dither", "view transition", "canvas"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "true",
+				description: "Day (true) or night (false). Bindable.",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description:
+					"Called with the new value from inside the view transition's update callback. Flip your theme here; the component never changes classes on the document. Flip the theme synchronously: the new snapshot is taken as soon as it returns.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "10",
+				description: "Sun radius in cells. The canvas is 2 × radius + 1 cells square.",
+			},
+			{
+				name: "cell",
+				type: "number",
+				default: "5",
+				description: "Grid pitch in CSS pixels, shared by the sun, the wave front and its halo.",
+			},
+			{
+				name: "dot",
+				type: "number",
+				default: "4",
+				description: "Size of each square dot in CSS pixels (at most `cell`).",
+			},
+			{
+				name: "palette",
+				type: "[string, string, string, string]",
+				default: "SUN_PALETTE",
+				description:
+					"Four colours from the top of the sun to the bottom. The halo reuses them: densest rim in the last colour, sparse fringe in the first.",
+			},
+			{
+				name: "ink",
+				type: "string",
+				default: '"currentColor"',
+				description:
+					"Monochrome colour of the night sun and the horizon outside the lens. Resolved from the computed colour of the button, so it follows the theme.",
+			},
+			{
+				name: "nightAlpha",
+				type: "number",
+				default: "0.42",
+				description: "Opacity of the ink sun at night.",
+			},
+			{
+				name: "horizon",
+				type: "boolean",
+				default: "true",
+				description: "Draws a few sparse rows of dots under the sun for the lens to reveal.",
+			},
+			{
+				name: "lens",
+				type: "boolean",
+				default: "true",
+				description:
+					"On hover, a soft circular lens follows the pointer and shows the true colours under it.",
+			},
+			{
+				name: "lensRadius",
+				type: "number",
+				default: "7",
+				description: "Lens radius in cells; about two thirds of the sun reads best.",
+			},
+			{
+				name: "mode",
+				type: '"document" | "contained"',
+				default: '"document"',
+				description:
+					"`document` runs the wave as a view transition over the whole page. `contained` paints it over `scope` only, with a sheet of the old colour that the wave cuts away.",
+			},
+			{
+				name: "scope",
+				type: "HTMLElement | null",
+				description:
+					"The element the wave covers in contained mode. It needs `position: relative` and `overflow: hidden`.",
+			},
+			{
+				name: "fill",
+				type: "string",
+				description:
+					"Colour of the old-state sheet in contained mode and browsers without view transitions. Defaults to the first opaque background found from `scope` (or the body) upwards.",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "1300",
+				description: "Duration of the wave in milliseconds (ease in-out cubic).",
+			},
+			{
+				name: "haloCells",
+				type: "number",
+				default: "9",
+				description: "Thickness of the dithered halo that leads the wave front, in cells.",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On HDR displays with WebGPU, redraws the sun and the wave halo as hard squares brighter than SDR white. Elsewhere nothing is created.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the toggle cue (on for day, off for night) through the sound controller, once the user has enabled sound.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Day mode"',
+				description: "Accessible name of the switch. Its checked state is announced as on or off.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the button.",
+			},
+		],
+	},
+
 	marquee: {
 		name: "Marquee",
 		slug: "marquee",
@@ -8322,6 +8466,97 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes on the nav.",
+			},
+		],
+	},
+	"story-thread": {
+		name: "StoryThread",
+		slug: "story-thread",
+		description:
+			"A narrative thread for scroll stories: the page pans sideways through your sections while a dotted line draws itself from node to node, a glowing head rides its tip, nodes light up as it reaches them, and segments can fork and meet again.",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"story",
+			"storytelling",
+			"scrollytelling",
+			"path",
+			"thread",
+			"timeline",
+			"horizontal scroll",
+			"svg",
+			"narrative",
+		],
+		props: [
+			{
+				name: "layout",
+				type: '"auto" | "horizontal" | "vertical"',
+				default: '"auto"',
+				description:
+					"`horizontal` pins a full-height viewport and pans the content sideways as the page scrolls; `vertical` keeps a plain stack with the thread running down it. `auto` is horizontal from 900 × 520 px up.",
+			},
+			{
+				name: "segments",
+				type: "StoryThreadSegment[]",
+				default: "[]",
+				description:
+					"Segments as `{ nodes: string[], color? }`, each through a list of StoryNode ids. Empty draws one segment through every node in document order. Segments that leave the same node draw a fork whose branches advance together.",
+			},
+			{
+				name: "lead",
+				type: "number",
+				default: "0.7",
+				description:
+					"Where the tip of the thread sits in the viewport, 0..1 along the reading axis.",
+			},
+			{
+				name: "tension",
+				type: "number",
+				default: "0.55",
+				description: "Curve tension between nodes: 0 draws straight lines, 1 long flat tangents.",
+			},
+			{
+				name: "dash",
+				type: '"dotted" | "dashed" | "solid"',
+				default: '"dotted"',
+				description: "Stroke pattern of the thread.",
+			},
+			{
+				name: "head",
+				type: "boolean",
+				default: "true",
+				description: "Draws a glowing dot at the tip of every segment while it is drawing.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a soft `tick` each time the thread reaches a node going forward. Only audible once the user has enabled sound.",
+			},
+			{
+				name: "onReach",
+				type: "(id: string) => void",
+				description: "Called with a node's id each time the thread reaches it going forward.",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: '"Story"',
+				description: "Accessible name of the region.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the root.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The story: sections holding `<StoryNode id>` anchors (`variant` `dot` or `ring`). Size the sections yourself; in the horizontal layout they sit side by side at full height.",
 			},
 		],
 	},

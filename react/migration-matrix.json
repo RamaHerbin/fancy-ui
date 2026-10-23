@@ -4729,6 +4729,41 @@
 		]
 	},
 	{
+		"slug": "story-thread",
+		"sveltePath": "src/lib/fancy-ui/story-thread",
+		"reactPath": "react/src/components/story-thread",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "motion",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "js-anim",
+		"deps": {
+			"internals": ["media-query", "use-element-ref", "use-live-ref", "story-thread-core"],
+			"motion": [],
+			"sound": true,
+			"components": []
+		},
+		"browserAPIs": ["ResizeObserver", "requestAnimationFrame", "matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["StoryThread", "StoryNode"],
+		"loc": 286,
+		"testFiles": ["StoryThread.test.ts"],
+		"svelteFiles": 2,
+		"attempts": 1,
+		"divergences": [
+			"`class` → `className` (PORTING.md).",
+			"The thread's geometry, scroll handling and drawing live in the shared `story-thread-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect once the four refs exist, and forwards props and reduced motion through `update()`. `onReach` and `sound` are read through a live ref so a new callback never recreates the core.",
+			"`segments` defaults to a module-level empty array so the core re-measures only when the caller passes a new array."
+		],
+		"lastFailure": null
+	},
+	{
 		"slug": "streaming-text",
 		"sveltePath": "src/lib/fancy-ui/streaming-text",
 		"reactPath": "react/src/components/streaming-text",
@@ -5888,5 +5923,54 @@
 		],
 		"lastFailure": null,
 		"minors": []
+	},
+	{
+		"slug": "sun-switch",
+		"sveltePath": "src/lib/fancy-ui/sun-switch",
+		"reactPath": "react/src/components/sun-switch",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "graphics",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "canvas2d",
+		"deps": {
+			"internals": [
+				"media-query",
+				"use-live-ref",
+				"use-composed-refs",
+				"sun-switch-core",
+				"pixel-wave-core"
+			],
+			"motion": ["in-view"],
+			"sound": true,
+			"components": []
+		},
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver",
+			"IntersectionObserver",
+			"requestAnimationFrame",
+			"matchMedia",
+			"startViewTransition",
+			"Element.animate"
+		],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "low",
+		"exports": ["SunSwitch", "SUN_PALETTE", "pixelWave", "isWaving", "WAVE_CSS"],
+		"loc": 564,
+		"testFiles": ["SunSwitch.test.tsx"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`checked` is no longer `bind:checked`: it is the controlled/uncontrolled pair `checked` + `defaultChecked` (default `true`) + `onCheckedChange`, the same split as Switch. The uncontrolled update is committed with `flushSync` inside the view transition callback so the new snapshot already shows the new state.",
+			"`class` → `className` (PORTING.md).",
+			"Rendering, the lens and the wave live in the shared `sun-switch-core.ts` and `pixel-wave-core.ts`, byte-identical to the Svelte copies; the component creates the painter in an effect and forwards props, reduced motion and visibility to it."
+		],
+		"lastFailure": null
 	}
 ]
