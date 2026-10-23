@@ -157,3 +157,17 @@ describe("beamPhase", () => {
 		expect(beamPhase(0, 0, 10, false)).toEqual({ offset: 0, park: 10 });
 	});
 });
+
+describe("BorderBeam HDR layer", () => {
+	afterEach(() => cleanup());
+
+	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
+		const on = render(BorderBeam);
+		expect(on.container.querySelector("canvas")).not.toBeNull();
+		// jsdom has no WebGPU: the layer never starts, so no flag.
+		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		const off = render(BorderBeam, { props: { hdr: false } });
+		expect(off.container.querySelector("canvas")).toBeNull();
+	});
+});

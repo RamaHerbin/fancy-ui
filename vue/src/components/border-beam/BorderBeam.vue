@@ -44,6 +44,12 @@ export interface BorderBeamProps {
 	glow?: number;
 	/** Travel counter-clockwise instead of clockwise */
 	reverse?: boolean;
+	/**
+	 * On a display that reports HDR, push the comet's white-hot head above
+	 * SDR white in a WebGPU layer with extended tone mapping, following the
+	 * CSS ride exactly. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 /** Number of overlapping pieces the sharp tail is drawn with. More pieces
@@ -98,8 +104,10 @@ export function beamPhase(
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { riderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "BorderBeam", inheritAttrs: false });
 
@@ -115,7 +123,33 @@ const {
 	tail = 0.25,
 	glow = 0.6,
 	reverse = false,
+	hdr = true,
 } = defineProps<BorderBeamProps>();
+
+const root = useTemplateRef<HTMLDivElement>("root");
+const spark = useTemplateRef<HTMLSpanElement>("spark");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+// The head is wherever the CSS `offset-path` has put the spark this frame.
+watch(
+	[root, spark, hdrCanvas],
+	([host, rider, canvasEl], _old, onCleanup) => {
+		if (!host || !rider || !canvasEl) return;
+		onCleanup(
+			attachHdrLight({
+				host,
+				canvas: canvasEl,
+				probe: riderProbe({
+					host,
+					rider,
+					color: () => colorFrom,
+					intensity: () => 4.6,
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 const tailPieces = tailSegments(TAIL_SEGMENTS);
 const bloomPieces = tailSegments(BLOOM_SEGMENTS);
@@ -149,6 +183,7 @@ function piece(p: TailSegment, count: number): Record<string, string> {
 
 <template>
 	<div
+		ref="root"
 		:class="cn('border-beam', 'pointer-events-none absolute inset-0 rounded-[inherit]', className)"
 		:data-direction="reverse ? 'reverse' : 'forward'"
 		aria-hidden="true"
@@ -194,7 +229,10 @@ function piece(p: TailSegment, count: number): Record<string, string> {
 		</div>
 
 		<!-- the white-hot point of the head, sitting on the edge -->
-		<span class="bb-ride bb-spark"></span>
+		<span ref="spark" class="bb-ride bb-spark"></span>
+
+		<!-- The head above SDR white, on HDR displays only. -->
+		<canvas v-if="hdr" ref="hdrCanvas" class="bb-hdr"></canvas>
 	</div>
 </template>
 
@@ -261,6 +299,15 @@ function piece(p: TailSegment, count: number): Record<string, string> {
 .bb-rail {
 	inset: 0;
 	border-radius: inherit;
+}
+
+.bb-hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	pointer-events: none;
 }
 
 /* ---------- riders: everything that travels the border ---------- */

@@ -23,6 +23,12 @@ export interface NeonBorderProps {
 	duration?: number;
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
+	/**
+	 * On a display that reports HDR, light the beams' heads above SDR white
+	 * in a WebGPU layer with extended tone mapping, following the CSS travel
+	 * and the ignite flicker exactly. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 export type NeonAnimationType = NonNullable<NeonBorderProps["animationType"]>;
@@ -62,8 +68,10 @@ export function neonBeams(color1: string, color2: string, arc: number, core = fa
 </script>
 
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
+import { computed, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "NeonBorder", inheritAttrs: false });
 
@@ -73,11 +81,51 @@ const {
 	animationType = "half",
 	duration = 6,
 	class: className,
+	hdr = true,
 } = defineProps<NeonBorderProps>();
 
 const attrs = useAttrs();
 
 defineSlots<{ default?(): unknown }>();
+
+const root = useTemplateRef<HTMLDivElement>("root");
+const light = useTemplateRef<HTMLSpanElement>("light");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+// Reads the live `--neon-angle` and the tube's live opacity (ignite), so the
+// HDR heads travel and strike with the CSS beams.
+watch(
+	[root, light, hdrCanvas],
+	([rootEl, tube, canvasEl], _old, onCleanup) => {
+		if (!rootEl || !tube || !canvasEl) return;
+		const head = (t: number) => 0.3 + 3.2 * t ** 3;
+		onCleanup(
+			attachHdrLight({
+				host: rootEl,
+				canvas: canvasEl,
+				probe: conicBorderProbe({
+					angleFrom: rootEl,
+					angleVar: "--neon-angle",
+					radius: () => 8,
+					halo: 4,
+					level: () => {
+						if (animationType === "none") return 0;
+						const o = parseFloat(getComputedStyle(tube).opacity);
+						return Number.isFinite(o) ? o : 1;
+					},
+					arcs: () => {
+						const span = beamArc(animationType);
+						return [
+							{ from: 0, to: span, color: () => color1, intensity: head, white: 0.5 },
+							{ from: 50, to: 50 + span, color: () => color2, intensity: head, white: 0.5 },
+						];
+					},
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 function getWidth(type: NeonAnimationType): number {
 	switch (type) {
@@ -110,6 +158,7 @@ const styleVars = computed(() => ({
 <template>
 	<div
 		v-bind="attrs"
+		ref="root"
 		:class="
 			cn(
 				'neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px',
@@ -122,10 +171,12 @@ const styleVars = computed(() => ({
 		<slot />
 
 		<span class="neon-tube" aria-hidden="true"></span>
-		<span class="neon-light" aria-hidden="true">
+		<span ref="light" class="neon-light" aria-hidden="true">
 			<span class="neon-glow"><span></span></span>
 			<span class="neon-core"></span>
 		</span>
+		<!-- The beams' heads above SDR white, on HDR displays only. -->
+		<canvas v-if="hdr" ref="hdrCanvas" class="neon-hdr" aria-hidden="true"></canvas>
 	</div>
 </template>
 
@@ -134,6 +185,15 @@ const styleVars = computed(() => ({
 	syntax: "<angle>";
 	inherits: true;
 	initial-value: 135deg;
+}
+
+.neon-hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	pointer-events: none;
 }
 
 .neon-border-container {

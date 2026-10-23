@@ -138,3 +138,17 @@ describe("meteorField", () => {
 		expect(meteorField(2.7)).toHaveLength(2);
 	});
 });
+
+describe("Meteors HDR layer", () => {
+	afterEach(() => cleanup());
+
+	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
+		const on = render(Meteors);
+		expect(on.container.querySelector("canvas")).not.toBeNull();
+		// jsdom has no WebGPU: the layer never starts, so no flag.
+		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		const off = render(Meteors, { props: { hdr: false } });
+		expect(off.container.querySelector("canvas")).toBeNull();
+	});
+});

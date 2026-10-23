@@ -293,9 +293,9 @@ describe("buildRegistry with the vue stack on the real vue/src tree", () => {
 		]);
 	});
 
-	// Observed with accordion, collapsible, follow-button, badge and avatar: 516 shipped files. The gate pins the exact number.
-	it("ships 516 files, every one registry:ui under the steering path, no target", () => {
-		expect(all).toHaveLength(516);
+	// Observed with accordion, collapsible, follow-button, badge and avatar: 517 shipped files. The gate pins the exact number.
+	it("ships 517 files, every one registry:ui under the steering path, no target", () => {
+		expect(all).toHaveLength(517);
 		for (const f of all) {
 			expect(f.type, f.path).toBe("registry:ui");
 			expect(f.path.startsWith(VUE_PATH_PREFIX), f.path).toBe(true);

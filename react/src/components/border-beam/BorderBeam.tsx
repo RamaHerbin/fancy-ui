@@ -1,4 +1,9 @@
+import { useEffect } from "react";
 import type { CSSProperties } from "react";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { riderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./border-beam.css";
 
@@ -46,6 +51,12 @@ export interface BorderBeamProps {
 	glow?: number;
 	/** Travel counter-clockwise instead of clockwise */
 	reverse?: boolean;
+	/**
+	 * On a display that reports HDR, push the comet's white-hot head above
+	 * SDR white in a WebGPU layer with extended tone mapping, following the
+	 * CSS ride exactly. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 /** Number of overlapping pieces the sharp tail is drawn with. More pieces
@@ -124,7 +135,28 @@ export function BorderBeam({
 	tail = 0.25,
 	glow = 0.6,
 	reverse = false,
+	hdr = true,
 }: BorderBeamProps) {
+	const [root, rootRef] = useElementRef<HTMLDivElement>();
+	const [spark, sparkRef] = useElementRef<HTMLSpanElement>();
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	const live = useLiveRef({ colorFrom });
+
+	// The head is wherever the CSS `offset-path` has put the spark this frame.
+	useEffect(() => {
+		if (!root || !spark || !hdrCanvas) return;
+		return attachHdrLight({
+			host: root,
+			canvas: hdrCanvas,
+			probe: riderProbe({
+				host: root,
+				rider: spark,
+				color: () => live.current.colorFrom,
+				intensity: () => 4.6,
+			}),
+		});
+	}, [root, spark, hdrCanvas, live]);
+
 	const phase = beamPhase(duration, delay, anchor, reverse);
 
 	const style = {
@@ -144,6 +176,7 @@ export function BorderBeam({
 
 	return (
 		<div
+			ref={rootRef}
 			className={cn(
 				"border-beam",
 				"pointer-events-none absolute inset-0 rounded-[inherit]",
@@ -196,7 +229,9 @@ export function BorderBeam({
 			</div>
 
 			{/* the white-hot point of the head, sitting on the edge */}
-			<span className="bb-ride bb-spark" />
+			<span ref={sparkRef} className="bb-ride bb-spark" />
+
+			{hdr ? <canvas ref={hdrCanvasRef} className="bb-hdr" /> : null}
 		</div>
 	);
 }

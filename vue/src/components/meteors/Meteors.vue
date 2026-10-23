@@ -22,6 +22,12 @@ export interface MeteorsProps {
 	color?: string;
 	/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 	seed?: number;
+	/**
+	 * On a display that reports HDR, make the heads burn above SDR white in a
+	 * WebGPU layer with extended tone mapping, following the CSS fall
+	 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 export interface Meteor {
@@ -75,8 +81,10 @@ export function meteorField(count: number, seed = 1): Meteor[] {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "Meteors", inheritAttrs: false });
 
@@ -87,7 +95,33 @@ const {
 	speed = 1,
 	color,
 	seed = 1,
+	hdr = true,
 } = defineProps<MeteorsProps>();
+
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+// Meteors render no root of their own: the light layer belongs to their
+// container, and each head is wherever the CSS transform has put it.
+watch(
+	hdrCanvas,
+	(canvasEl, _old, onCleanup) => {
+		const host = canvasEl?.parentElement;
+		if (!canvasEl || !host) return;
+		onCleanup(
+			attachHdrLight({
+				host,
+				canvas: canvasEl,
+				pad: 0,
+				probe: meteorsProbe({
+					host,
+					meteors: () => host.querySelectorAll<HTMLElement>(":scope > .meteor"),
+					intensity: 3.6,
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 const meteors = computed(() => meteorField(count, seed));
 const speedC = computed(() => (Number.isFinite(speed) && speed > 0 ? speed : 1));
@@ -127,6 +161,13 @@ function styleFor(m: Meteor): Record<string, string> {
 		:style="styleFor(meteor)"
 		aria-hidden="true"
 	></span>
+	<!-- The heads above SDR white, on HDR displays only. -->
+	<canvas
+		v-if="hdr"
+		ref="hdrCanvas"
+		class="pointer-events-none absolute inset-0 h-full w-full"
+		aria-hidden="true"
+	></canvas>
 </template>
 
 <style scoped>

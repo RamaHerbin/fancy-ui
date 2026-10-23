@@ -116,3 +116,12 @@
 		--gb-a3: 210deg;
 	}
 }
+
+.glow-border__hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	pointer-events: none;
+}

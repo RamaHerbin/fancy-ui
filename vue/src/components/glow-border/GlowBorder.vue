@@ -21,6 +21,12 @@ export interface GlowBorderProps {
 	preset?: GlowBorderPreset;
 	/** Intensity of the glint and its glow, 0–1 */
 	strength?: number;
+	/**
+	 * On a display that reports HDR, flash the glint above SDR white in a
+	 * WebGPU layer with extended tone mapping, riding the CSS glint exactly.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 interface Palette {
@@ -122,8 +128,10 @@ export function glintArc(p: Palette): string {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "GlowBorder", inheritAttrs: false });
 
@@ -135,7 +143,50 @@ const {
 	duration = 10,
 	preset = "chromatic",
 	strength = 0.8,
+	hdr = true,
 } = defineProps<GlowBorderProps>();
+
+const root = useTemplateRef<HTMLDivElement>("root");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+// The glint's flash, above SDR white: reads the live `--gb-a3` so it rides
+// the ring with the CSS glint, white at 90% of the turn, tinted either side.
+watch(
+	[root, hdrCanvas],
+	([host, canvasEl], _old, onCleanup) => {
+		if (!host || !canvasEl) return;
+		onCleanup(
+			attachHdrLight({
+				host,
+				canvas: canvasEl,
+				probe: conicBorderProbe({
+					angleFrom: host,
+					angleVar: "--gb-a3",
+					radius: () => borderRadius,
+					inset: () => borderWidth / 2,
+					level: () => strengthC.value,
+					arcs: () => {
+						const dark = document.documentElement.classList.contains("dark");
+						const tints = (dark ? palettes.value.dark : palettes.value.light).tints;
+						const lead = tints[1] ?? tints[0] ?? "#ffffff";
+						const tail = tints[2] ?? tints[tints.length - 1] ?? "#ffffff";
+						const at = (t: number) => 80 + 17 * t;
+						return [
+							{
+								from: 80,
+								to: 97,
+								color: (t) => (at(t) < 88 ? tail : at(t) > 92 ? lead : "#ffffff"),
+								intensity: (t) => 4.2 * Math.exp(-(((at(t) - 90) / 3.5) ** 2)),
+								white: 0.6,
+							},
+						];
+					},
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 const palettes = computed(() =>
 	color !== undefined
@@ -165,6 +216,7 @@ const styles = computed(() => ({
 
 <template>
 	<div
+		ref="root"
 		:class="
 			cn(
 				'glow-border animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit]',
@@ -177,6 +229,8 @@ const styles = computed(() => ({
 		<span class="glow-border__halo"><span></span></span>
 		<span class="glow-border__metal"></span>
 		<span class="glow-border__glint"></span>
+		<!-- The glint's flash above SDR white, on HDR displays only. -->
+		<canvas v-if="hdr" ref="hdrCanvas" class="glow-border__hdr"></canvas>
 	</div>
 </template>
 
@@ -241,6 +295,15 @@ const styles = computed(() => ({
 	padding: var(--glow-border-width);
 	background: var(--gb-metal);
 	background-blend-mode: soft-light;
+}
+
+.glow-border__hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	pointer-events: none;
 }
 
 /* The glint riding the ring. */

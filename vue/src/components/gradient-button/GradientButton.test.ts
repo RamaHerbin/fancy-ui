@@ -167,3 +167,17 @@ describe("GradientButton consumer style and slot", () => {
 		expect(screen.getByRole("button").querySelector(".gradient-content")?.textContent).toBe("Go");
 	});
 });
+
+describe("GradientButton HDR layer", () => {
+	afterEach(() => cleanup());
+
+	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
+		const on = render(GradientButton);
+		expect(on.container.querySelector("canvas")).not.toBeNull();
+		// jsdom has no WebGPU: the layer never starts, so no flag.
+		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		const off = render(GradientButton, { props: { hdr: false } });
+		expect(off.container.querySelector("canvas")).toBeNull();
+	});
+});

@@ -1,4 +1,7 @@
-import { useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, type CSSProperties } from "react";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./meteors.css";
 
@@ -23,6 +26,12 @@ export interface MeteorsProps {
 	color?: string;
 	/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 	seed?: number;
+	/**
+	 * On a display that reports HDR, make the heads burn above SDR white in a
+	 * WebGPU layer with extended tone mapping, following the CSS fall
+	 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 export interface Meteor {
@@ -100,7 +109,27 @@ export function Meteors({
 	speed = 1,
 	color,
 	seed = 1,
+	hdr = true,
 }: MeteorsProps) {
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+
+	// Meteors render no root of their own: the light layer belongs to their
+	// container, and each head is wherever the CSS transform has put it.
+	useEffect(() => {
+		const host = hdrCanvas?.parentElement;
+		if (!hdrCanvas || !host) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: meteorsProbe({
+				host,
+				meteors: () => host.querySelectorAll<HTMLElement>(":scope > .meteor"),
+				intensity: 3.6,
+			}),
+		});
+	}, [hdrCanvas]);
+
 	// Recomputed only when `count` or `seed` changes — the same dependencies
 	// the Svelte source's `$derived` tracks.
 	const meteors = useMemo(() => meteorField(count, seed), [count, seed]);
@@ -121,6 +150,13 @@ export function Meteors({
 					aria-hidden="true"
 				/>
 			))}
+			{hdr ? (
+				<canvas
+					ref={hdrCanvasRef}
+					className="pointer-events-none absolute inset-0 h-full w-full"
+					aria-hidden="true"
+				/>
+			) : null}
 		</>
 	);
 }

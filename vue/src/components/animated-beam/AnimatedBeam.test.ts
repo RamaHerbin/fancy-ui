@@ -192,3 +192,17 @@ describe("AnimatedBeam", () => {
 		expect(still?.querySelector("path")?.getAttribute("stroke")).toBe(`url(#${gradientId})`);
 	});
 });
+
+describe("AnimatedBeam HDR layer", () => {
+	afterEach(() => cleanup());
+
+	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
+		const on = render(AnimatedBeam, { props: makeProps() });
+		expect(on.container.querySelector("canvas")).not.toBeNull();
+		// jsdom has no WebGPU: the layer never starts, so no flag.
+		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		const off = render(AnimatedBeam, { props: makeProps({ hdr: false }) });
+		expect(off.container.querySelector("canvas")).toBeNull();
+	});
+});

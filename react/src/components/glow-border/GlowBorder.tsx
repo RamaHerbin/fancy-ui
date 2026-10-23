@@ -1,4 +1,9 @@
+import { useEffect } from "react";
 import type { CSSProperties } from "react";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./glow-border.css";
 
@@ -22,6 +27,12 @@ export interface GlowBorderProps {
 	preset?: GlowBorderPreset;
 	/** Intensity of the glint and its glow, 0–1 */
 	strength?: number;
+	/**
+	 * On a display that reports HDR, flash the glint above SDR white in a
+	 * WebGPU layer with extended tone mapping, riding the CSS glint exactly.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 interface Palette {
@@ -129,6 +140,7 @@ export function GlowBorder({
 	duration = 10,
 	preset = "chromatic",
 	strength = 0.8,
+	hdr = true,
 }: GlowBorderProps) {
 	const palettes =
 		color !== undefined
@@ -136,6 +148,43 @@ export function GlowBorder({
 			: (GLOW_BORDER_PRESETS[preset] ?? GLOW_BORDER_PRESETS.chromatic);
 
 	const strengthC = Math.min(1, Math.max(0, Number.isFinite(strength) ? strength : 0.8));
+
+	const [root, rootRef] = useElementRef<HTMLDivElement>();
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	const live = useLiveRef({ borderRadius, borderWidth, strengthC, palettes });
+
+	// The glint's flash, above SDR white: reads the live `--gb-a3` so it rides
+	// the ring with the CSS glint, white at 90% of the turn, tinted either side.
+	useEffect(() => {
+		if (!root || !hdrCanvas) return;
+		return attachHdrLight({
+			host: root,
+			canvas: hdrCanvas,
+			probe: conicBorderProbe({
+				angleFrom: root,
+				angleVar: "--gb-a3",
+				radius: () => live.current.borderRadius,
+				inset: () => live.current.borderWidth / 2,
+				level: () => live.current.strengthC,
+				arcs: () => {
+					const dark = document.documentElement.classList.contains("dark");
+					const tints = (dark ? live.current.palettes.dark : live.current.palettes.light).tints;
+					const lead = tints[1] ?? tints[0] ?? "#ffffff";
+					const tail = tints[2] ?? tints[tints.length - 1] ?? "#ffffff";
+					const at = (t: number) => 80 + 17 * t;
+					return [
+						{
+							from: 80,
+							to: 97,
+							color: (t) => (at(t) < 88 ? tail : at(t) > 92 ? lead : "#ffffff"),
+							intensity: (t) => 4.2 * Math.exp(-(((at(t) - 90) / 3.5) ** 2)),
+							white: 0.6,
+						},
+					];
+				},
+			}),
+		});
+	}, [root, hdrCanvas, live]);
 
 	// Computed during render (a pure function of the props), so the server
 	// markup already carries every declaration. The Svelte source writes one
@@ -155,6 +204,7 @@ export function GlowBorder({
 
 	return (
 		<div
+			ref={rootRef}
 			className={cn(
 				"glow-border animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit]",
 				className
@@ -167,6 +217,7 @@ export function GlowBorder({
 			</span>
 			<span className="glow-border__metal"></span>
 			<span className="glow-border__glint"></span>
+			{hdr ? <canvas ref={hdrCanvasRef} className="glow-border__hdr" /> : null}
 		</div>
 	);
 }

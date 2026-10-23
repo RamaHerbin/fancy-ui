@@ -27,6 +27,12 @@ export interface GradientButtonProps {
 	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/**
+	 * On a display that reports HDR, add the beam's light above SDR white on
+	 * the border, in a WebGPU layer with extended tone mapping, following the
+	 * CSS spin exactly. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }
 
 /**
@@ -50,10 +56,12 @@ export function beamGradient(colors: string[]): string {
 
 <script setup lang="ts">
 import { callListener } from "../../internals/call-listener.js";
-import { computed, useAttrs, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "GradientButton", inheritAttrs: false });
 
@@ -69,12 +77,13 @@ const {
 	onclick,
 	sound = false,
 	disabled = false,
+	hdr = true,
 } = defineProps<GradientButtonProps>();
-const el = useTemplateRef<HTMLButtonElement>("el");
+const button = useTemplateRef<HTMLButtonElement>("button");
 
 // Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 // off (and never the default click → press, which `handleClick` already plays).
-useSoundFeedback(el, () => ({
+useSoundFeedback(button, () => ({
 	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
 	disabled,
 }));
@@ -82,6 +91,40 @@ useSoundFeedback(el, () => ({
 defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
+
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+
+// The HDR light reads the live, CSS-animated `--gb-angle`, so it turns with
+// the beam by construction: the main arc peaks mid-way, the echo is fainter.
+watch(
+	[button, hdrCanvas],
+	([buttonEl, canvasEl], _old, onCleanup) => {
+		if (!buttonEl || !canvasEl) return;
+		const pick = (t: number) => {
+			const list = colors.length ? colors : ["#ffffff"];
+			return list[Math.min(list.length - 1, Math.floor(t * list.length))]!;
+		};
+		onCleanup(
+			attachHdrLight({
+				host: buttonEl,
+				canvas: canvasEl,
+				pad: 0,
+				probe: conicBorderProbe({
+					angleFrom: buttonEl,
+					angleVar: "--gb-angle",
+					radius: () => borderRadius,
+					inset: () => borderWidth / 2,
+					level: () => (buttonEl.matches(":disabled") ? 0 : 1),
+					arcs: () => [
+						{ from: 0, to: 42, color: pick, intensity: (t) => 2.8 * Math.sin(Math.PI * t) },
+						{ from: 50, to: 78, color: pick, intensity: (t) => 1 * Math.sin(Math.PI * t) },
+					],
+				}),
+			})
+		);
+	},
+	{ flush: "post" }
+);
 
 const styleVars = computed<HTMLAttributes["style"]>(() => ({
 	"--gb-colors": colors.join(", "),
@@ -106,7 +149,7 @@ function handleClick(event: MouseEvent) {
 
 <template>
 	<button
-		ref="el"
+		ref="button"
 		:class="
 			cn(
 				'gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white',
@@ -128,6 +171,9 @@ function handleClick(event: MouseEvent) {
 
 		<!-- The beam on the border -->
 		<span class="gradient-border" aria-hidden="true"></span>
+
+		<!-- The beam's light above SDR white, on HDR displays only. -->
+		<canvas v-if="hdr" ref="hdrCanvas" class="gradient-hdr" aria-hidden="true"></canvas>
 	</button>
 </template>
 
@@ -144,6 +190,14 @@ function handleClick(event: MouseEvent) {
 	background: color-mix(in srgb, var(--gb-bg-color), #fff 8%);
 	animation: gb-spin var(--gb-duration) linear infinite;
 	transition: transform 0.2s ease;
+}
+
+.gradient-hdr {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
 }
 
 .gradient-button:active {
