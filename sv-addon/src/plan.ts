@@ -39,6 +39,8 @@ export type CssPlan = {
 	target: string | null;
 	/** File that already imports fancy-ui-svelte/tailwind.css. */
 	alreadyWired: string | null;
+	/** First file that imports Tailwind, whether or not it is wired. */
+	tailwind: string | null;
 	/** Files that do not parse as CSS: skipped, reported in the next steps. */
 	unparsable: string[];
 	/** `prefix(...)` found on a Tailwind import (unsupported), with its file. */
@@ -59,8 +61,8 @@ export function planCss(cwd: string, stylesheet: string, src = "src"): CssPlan {
 			break;
 		}
 	}
+	const tailwind = files.find(({ content }) => hasTailwindImport(content))?.f ?? null;
 	const wired = files.find(({ content }) => hasFancyImport(content));
-	if (wired) return { target: null, alreadyWired: wired.f, unparsable, prefixed };
-	const tw = files.find(({ content }) => hasTailwindImport(content));
-	return { target: tw?.f ?? null, alreadyWired: null, unparsable, prefixed };
+	if (wired) return { target: null, alreadyWired: wired.f, tailwind, unparsable, prefixed };
+	return { target: tailwind, alreadyWired: null, tailwind, unparsable, prefixed };
 }

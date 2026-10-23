@@ -19,8 +19,20 @@ export function majorOf(range: string | undefined): number | null {
 	return m ? Number(m[1]) : null;
 }
 
-/** `5.19.3` -> true: below the `^5.20.0` peer range of fancy-ui-svelte (best effort, ranges vary). */
-export function isBelowSvelte520(range: string | undefined): boolean {
+/** First `major.minor` of a range (`^5.19.3` -> [5, 19]), or `null` when it has none. */
+function majorMinor(range: string | undefined): [number, number] | null {
 	const m = range?.match(/(\d+)\.(\d+)/);
-	return !!m && Number(m[1]) === 5 && Number(m[2]) < 20;
+	return m ? [Number(m[1]), Number(m[2])] : null;
+}
+
+/**
+ * Whether a declared range starts below the floor of a peer range: `5.19.3` or `^5.0.0` against
+ * `^5.20.0` -> true. A range without a readable `major.minor` (`catalog:`, `workspace:*`,
+ * `latest`, `5`) is never below: it only skips the check.
+ */
+export function isBelowFloor(range: string | undefined, peer: string): boolean {
+	const have = majorMinor(range);
+	const floor = majorMinor(peer);
+	if (!have || !floor) return false;
+	return have[0] < floor[0] || (have[0] === floor[0] && have[1] < floor[1]);
 }

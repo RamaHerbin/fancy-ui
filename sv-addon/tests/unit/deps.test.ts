@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fancyDependencyToAdd, isBelowSvelte520, majorOf } from "../../src/deps";
+import { fancyDependencyToAdd, isBelowFloor, majorOf } from "../../src/deps";
 
 describe("fancyDependencyToAdd", () => {
 	it("adds the caret range when the project does not declare the package", () => {
@@ -23,10 +23,18 @@ describe("version helpers", () => {
 		expect(majorOf(undefined)).toBeNull();
 	});
 
-	it("isBelowSvelte520", () => {
-		expect(isBelowSvelte520("5.19.3")).toBe(true);
-		expect(isBelowSvelte520("5.20.0")).toBe(false);
-		expect(isBelowSvelte520("5.45.0")).toBe(false);
-		expect(isBelowSvelte520(undefined)).toBe(false);
+	it("isBelowFloor", () => {
+		expect(isBelowFloor("5.19.3", "^5.20.0")).toBe(true);
+		expect(isBelowFloor("^5.0.0", "^5.20.0")).toBe(true);
+		expect(isBelowFloor("4.2.0", "^5.20.0")).toBe(true);
+		expect(isBelowFloor("5.20.0", "^5.20.0")).toBe(false);
+		expect(isBelowFloor("5.45.0", "^5.20.0")).toBe(false);
+		expect(isBelowFloor("6.0.0", "^5.20.0")).toBe(false);
+		for (const r of [undefined, "catalog:", "workspace:*", "latest", "5"])
+			expect(isBelowFloor(r, "^5.20.0")).toBe(false);
+	});
+
+	it("the injected peer range is the root package's", () => {
+		expect(__SVELTE_PEER__).toMatch(/^\^5\.\d+\.\d+$/);
 	});
 });

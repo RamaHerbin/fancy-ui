@@ -3,12 +3,14 @@ import path from "node:path";
 import { defineAddon, defineAddonOptions } from "sv";
 import { defineDemoPage } from "@sveltejs/sv-utils";
 import { FANCY_CSS, addFancyImport } from "./css.js";
-import { fancyDependencyToAdd, isBelowSvelte520, majorOf } from "./deps.js";
+import { fancyDependencyToAdd, isBelowFloor, majorOf } from "./deps.js";
 import { VITE_DEMO_PATH, demoSource } from "./demo.js";
 import { planCss } from "./plan.js";
 
 /** fancy-ui-svelte version this add-on was built with (injected from ../package.json). */
 const VERSION: string = __FANCY_VERSION__;
+/** fancy-ui-svelte's `svelte` peer range (injected from ../package.json). */
+const SVELTE_PEER: string = __SVELTE_PEER__;
 const DOCS = "https://fancy-ui.rama.app/docs/getting-started/installation";
 const ID = "fancy-ui";
 
@@ -24,7 +26,6 @@ const options = defineAddonOptions()
 const state = {
 	cssFile: null as string | null,
 	cssMissing: false,
-	oldSvelte: false,
 	unparsable: [] as string[],
 };
 
@@ -35,12 +36,17 @@ export default defineAddon({
 	options,
 
 	setup: ({ cwd, dependencyVersion, file, directory, unsupported, dependsOn }) => {
-		const svelte = majorOf(dependencyVersion("svelte"));
-		if (svelte !== null && svelte < 5) {
-			unsupported("fancy-ui-svelte needs Svelte 5");
+		// Refused before anything is written: `sv --install` would hit the peer range of the
+		// package this add-on declares. A range without a readable version (catalog:,
+		// workspace:*, latest) only skips these checks.
+		const svelteRange = dependencyVersion("svelte");
+		const svelte = majorOf(svelteRange);
+		if ((svelte !== null && svelte < 5) || isBelowFloor(svelteRange, SVELTE_PEER)) {
+			unsupported(
+				`fancy-ui-svelte needs Svelte ${SVELTE_PEER.replace(/^[^\d]*/, "")} or later (found ${svelteRange})`
+			);
 			return;
 		}
-		// A range without a readable major (catalog:, workspace:*, latest) only skips this check.
 		const tailwind = majorOf(dependencyVersion("tailwindcss"));
 		if (tailwind !== null && tailwind < 4) {
 			unsupported(`fancy-ui-svelte needs Tailwind CSS v4 (found v${tailwind})`);
@@ -55,18 +61,18 @@ export default defineAddon({
 		}
 		// No CSS file imports Tailwind: let the official tailwindcss add-on set it up first
 		// (vite plugin, stylesheet, import in the root layout). Decided on the files, not on
-		// the declared range, so a project that already imports Tailwind never gets a second import.
+		// the declared range, so a project that already imports Tailwind never gets a second import,
+		// and whether the fancy-ui import is already there does not matter.
 		// A file that does not parse and mentions tailwindcss might be the entry: leave it to the user.
 		const maybeEntry = plan.unparsable.some((f) =>
 			fs.readFileSync(path.join(cwd, f), "utf8").includes("tailwindcss")
 		);
-		if (!plan.target && !plan.alreadyWired && !maybeEntry) dependsOn("tailwindcss");
+		if (!plan.tailwind && !maybeEntry) dependsOn("tailwindcss");
 	},
 
 	run: ({ sv, cwd, options, file, directory, isKit, language, dependencyVersion }) => {
 		state.cssFile = null;
 		state.cssMissing = false;
-		state.oldSvelte = isBelowSvelte520(dependencyVersion("svelte"));
 
 		const range = fancyDependencyToAdd(dependencyVersion("fancy-ui-svelte"), VERSION);
 		if (range) sv.dependency("fancy-ui-svelte", range);
@@ -106,7 +112,6 @@ export default defineAddon({
 			steps.push(
 				`Skipped CSS that does not parse: ${state.unparsable.join(", ")}. If it is your Tailwind entry, fix it and run sv add again`
 			);
-		if (state.oldSvelte) steps.push("fancy-ui-svelte expects Svelte 5.20 or later: update svelte");
 		if (options.demo) {
 			if (isKit) steps.push("Open /demo/fancy-ui in the dev server to see the demo");
 			else

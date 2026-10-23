@@ -150,6 +150,24 @@ describe("existing installs are respected", () => {
 	});
 });
 
+it("Fancy import present but no Tailwind: the tailwindcss add-on still runs and both end up wired", async () => {
+	const cwd = project("kit-ts");
+	fs.writeFileSync(
+		path.join(cwd, "src/routes/layout.css"),
+		`@import "fancy-ui-svelte/tailwind.css";\n`
+	);
+	const result = await add({
+		cwd,
+		addons: { ...fancy, tailwindcss: tailwind },
+		options: opts(false),
+	});
+	expect(result.status).toEqual({ tailwindcss: "success", "fancy-ui": "success" });
+	expect(pkg(cwd).devDependencies.tailwindcss).toMatch(/^\^4\./);
+	const css = read(cwd, "src/routes/layout.css");
+	expect(css.indexOf("tailwindcss")).toBeGreaterThanOrEqual(0);
+	expect(css.indexOf("tailwindcss")).toBeLessThan(css.indexOf("fancy-ui-svelte/tailwind.css"));
+});
+
 describe("setup", () => {
 	type Calls = { unsupported: string[]; dependsOn: string[] };
 	async function setup(cwd: string, deps: Record<string, string>): Promise<Calls> {
@@ -208,6 +226,24 @@ describe("setup", () => {
 		fs.rmSync(path.join(cwd, "src/app.css"));
 		fs.writeFileSync(path.join(cwd, "src/odd/broken.css"), `@import "tailwindcss"`);
 		expect((await setup(cwd, { svelte: "5.40.0", tailwindcss: "4.1.0" })).dependsOn).toEqual([]);
+	});
+
+	it("refuses a recognisable Svelte below the peer floor of fancy-ui-svelte", async () => {
+		const cwd = fs.mkdtempSync(path.join(root, "setup-"));
+		for (const svelte of ["5.0.0", "^5.19.3", "~5.1.0"]) {
+			const calls = await setup(cwd, { svelte, tailwindcss: "4.1.0" });
+			expect(calls.unsupported[0]).toMatch(/Svelte 5\.20/);
+			expect(calls.dependsOn).toEqual([]);
+		}
+		for (const svelte of ["5.20.0", "^5.45.6", "catalog:", "workspace:*", "latest"])
+			expect((await setup(cwd, { svelte, tailwindcss: "4.1.0" })).unsupported).toEqual([]);
+	});
+
+	it("depends on tailwindcss when only the fancy-ui import is present", async () => {
+		const cwd = fs.mkdtempSync(path.join(root, "setup-"));
+		fs.mkdirSync(path.join(cwd, "src"));
+		fs.writeFileSync(path.join(cwd, "src/app.css"), `@import "fancy-ui-svelte/tailwind.css";`);
+		expect((await setup(cwd, { svelte: "5.40.0" })).dependsOn).toEqual(["tailwindcss"]);
 	});
 
 	it("depends on tailwindcss when it is declared but imported by no CSS file", async () => {
