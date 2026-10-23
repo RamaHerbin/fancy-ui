@@ -36,9 +36,9 @@
  *   - `dependencies` names a package the stack's package.json does not
  *     depend on (`react/package.json` / the root `package.json` /
  *     `vue/package.json`);
- *   - the item count is not the stack's (React 157 = 151 components + 6
- *     shared modules; Svelte 154 = 151 components + 3 shared modules; Vue 156
- *     = 151 components + 5 shared modules), or (Svelte, Vue) the total file
+ *   - the item count is not the stack's (React 158 = 151 components + 7
+ *     shared modules; Svelte 155 = 151 components + 4 shared modules; Vue 157
+ *     = 151 components + 6 shared modules), or (Svelte, Vue) the total file
  *     count drifts from the pinned one.
  *
  * Usage:
@@ -78,8 +78,8 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
-/** Vue files over all 156 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 511;
+/** Vue files over all 157 items; the generator's real-tree test reports the same. */
+const VUE_EXPECTED_FILES = 516;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
@@ -93,7 +93,7 @@ const STACKS = {
 		id: "react",
 		dir: PAGES_R,
 		urlPath: "/r",
-		expectedCount: 157,
+		expectedCount: 158,
 		targetPrefix: "@ui/fancy/",
 		pathPrefix: "react/src/",
 		excluded: EXCLUDED,
@@ -108,9 +108,9 @@ const STACKS = {
 		id: "svelte",
 		dir: join(PAGES_R, "svelte"),
 		urlPath: "/r/svelte",
-		expectedCount: 154,
+		expectedCount: 155,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 482,
+		expectedFiles: 487,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
@@ -127,7 +127,7 @@ const STACKS = {
 		id: "vue",
 		dir: join(PAGES_R, "vue"),
 		urlPath: "/r/vue",
-		expectedCount: 156,
+		expectedCount: 157,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
 		expectedFiles: VUE_EXPECTED_FILES,
 		/** No `target`: the Vue CLI places a file from its `path` (see the header). */

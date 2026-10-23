@@ -421,13 +421,14 @@ describe("buildRegistry on the real react/src tree", () => {
 		expect(rb?.content).toContain('from "../../utils"');
 	});
 
-	it("emits 157 items (151 components + 6 shared)", () => {
-		expect(Object.keys(out.items)).toHaveLength(157);
-		expect(out.index.items).toHaveLength(157);
+	it("emits 158 items (151 components + 7 shared)", () => {
+		expect(Object.keys(out.items)).toHaveLength(158);
+		expect(out.index.items).toHaveLength(158);
 		const shared = Object.values(out.items).filter((i) => i.type === "registry:lib");
 		expect(shared.map((i) => i.name)).toEqual([
 			"internals",
 			"internals-dom",
+			"internals-hdr",
 			"internals-markdown",
 			"internals-motion",
 			"sound",

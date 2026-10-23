@@ -392,4 +392,16 @@ describe("PulseBeam", () => {
 			expect(lowerOut).not.toHaveBeenCalled();
 		});
 	});
+
+	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
+		const on = render(PulseBeam);
+		const canvas = on.container.querySelector("canvas");
+		expect(canvas).not.toBeNull();
+		expect(canvas?.getAttribute("aria-hidden")).toBe("true");
+		// jsdom has no WebGPU: the layer never starts, so no flag.
+		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+		cleanup();
+		const off = render(PulseBeam, { props: { hdr: false } });
+		expect(off.container.querySelector("canvas")).toBeNull();
+	});
 });

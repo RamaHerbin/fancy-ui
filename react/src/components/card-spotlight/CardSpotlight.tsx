@@ -1,8 +1,12 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { MouseEvent, ReactNode } from "react";
 
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
 import { cn } from "../../utils.js";
+import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
 export interface CardSpotlightProps {
 	/** Classes for the outer container. */
@@ -15,6 +19,12 @@ export interface CardSpotlightProps {
 	gradientColor?: string;
 	/** Opacity of the gradient overlay. */
 	gradientOpacity?: number;
+	/**
+	 * On a display that reports HDR, add a hot core to the spotlight in a
+	 * WebGPU layer with extended tone mapping, brighter than SDR white.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 	/** The card content. */
 	children?: ReactNode;
 }
@@ -25,6 +35,7 @@ export function CardSpotlight({
 	gradientSize = 200,
 	gradientColor = "#262626",
 	gradientOpacity = 0.8,
+	hdr = true,
 	children,
 }: CardSpotlightProps) {
 	const overlayRef = useRef<HTMLDivElement>(null);
@@ -35,6 +46,28 @@ export function CardSpotlight({
 	// `background`: a mousemove patches one style property instead of re-rendering
 	// the card and re-running its class merges.
 	const pointerRef = useRef({ x: restingX, y: restingY });
+	const hoveringRef = useRef(false);
+
+	const [host, hostRef] = useElementRef<HTMLDivElement>();
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	const live = useLiveRef({ gradientSize, gradientColor, gradientOpacity });
+
+	useEffect(() => {
+		if (!host || !hdrCanvas) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: createCardSpotlightProbe(() => ({
+				x: pointerRef.current.x,
+				y: pointerRef.current.y,
+				hovering: hoveringRef.current,
+				size: live.current.gradientSize,
+				color: live.current.gradientColor,
+				opacity: live.current.gradientOpacity,
+			})),
+		});
+	}, [host, hdrCanvas, live]);
 
 	function paint(x: number, y: number) {
 		pointerRef.current = { x, y };
@@ -47,10 +80,12 @@ export function CardSpotlight({
 	function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
 		const target = e.currentTarget;
 		const rect = target.getBoundingClientRect();
+		hoveringRef.current = true;
 		paint(e.clientX - rect.left, e.clientY - rect.top);
 	}
 
 	function handleMouseLeave() {
+		hoveringRef.current = false;
 		paint(restingX, restingY);
 	}
 
@@ -68,6 +103,7 @@ export function CardSpotlight({
 
 	return (
 		<div
+			ref={hostRef}
 			className={cn(
 				"group relative flex size-full overflow-hidden rounded-xl border bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white",
 				className
@@ -81,6 +117,13 @@ export function CardSpotlight({
 				className="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 				style={{ background: restingBackground, opacity: gradientOpacity }}
 			></div>
+			{hdr ? (
+				<canvas
+					ref={hdrCanvasRef}
+					className="pointer-events-none absolute inset-0 h-full w-full"
+					aria-hidden="true"
+				/>
+			) : null}
 		</div>
 	);
 }

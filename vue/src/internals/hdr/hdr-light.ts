@@ -213,9 +213,11 @@ function getShared(): Promise<SharedGpu | null> {
 					targets: [
 						{
 							format: FORMAT,
+							// Max, not add: a polyline of capsules (an arc, a trail) overlaps
+							// at every joint, and adding would light each joint twice.
 							blend: {
-								color: { srcFactor: "one", dstFactor: "one", operation: "add" },
-								alpha: { srcFactor: "one", dstFactor: "one", operation: "add" },
+								color: { srcFactor: "one", dstFactor: "one", operation: "max" },
+								alpha: { srcFactor: "one", dstFactor: "one", operation: "max" },
 							},
 						},
 					],

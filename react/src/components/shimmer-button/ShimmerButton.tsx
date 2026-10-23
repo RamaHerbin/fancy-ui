@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import type {
 	ButtonHTMLAttributes,
 	CSSProperties,
@@ -10,6 +10,10 @@ import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { createShimmerProbe } from "./shimmer-button-hdr.js";
 import "./shimmer-button.css";
 
 type BaseProps = {
@@ -32,6 +36,12 @@ type BaseProps = {
 	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * On a display that reports HDR, add a glint above SDR white to the
+	 * sweep and the hover spot, in a WebGPU layer with extended tone mapping.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 };
 
 export interface ShimmerButtonProps
@@ -50,6 +60,7 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 			onClick,
 			onPointerMove,
 			sound = false,
+			hdr = true,
 			...restProps
 		},
 		ref
@@ -64,13 +75,27 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 
 		const playCue = useSoundCue(sound);
 
+		const [button, buttonRef] = useElementRef<HTMLButtonElement>();
+		const [sheen, sheenRef] = useElementRef<HTMLSpanElement>();
+		const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
 		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 		// off (and never the default click → press, which `handleClick` already plays).
 		const soundRef = useSoundFeedback({
 			on: sound ? { pointerenter: "hover" } : {},
 			disabled: restProps.disabled,
 		});
-		const composedRef = useComposedRefs(ref, soundRef);
+		const composedRef = useComposedRefs<HTMLButtonElement>(ref, buttonRef, soundRef);
+		const live = useLiveRef({ color: shimmerColor });
+
+		useEffect(() => {
+			if (!button || !sheen || !hdrCanvas) return;
+			return attachHdrLight({
+				host: button,
+				canvas: hdrCanvas,
+				pad: 0,
+				probe: createShimmerProbe(button, sheen, () => live.current),
+			});
+		}, [button, sheen, hdrCanvas, live]);
 
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (sound && !restProps.disabled) playCue("press");
@@ -109,10 +134,14 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 				<span className="relative z-10">{children}</span>
 
 				{/* Sweep: a satin band that crosses the button, then rests */}
-				<span className="shimmer-button__sheen" aria-hidden="true"></span>
+				<span ref={sheenRef} className="shimmer-button__sheen" aria-hidden="true"></span>
 
 				{/* Hover: the sheen follows the pointer */}
 				<span className="shimmer-button__spot" aria-hidden="true"></span>
+
+				{hdr ? (
+					<canvas ref={hdrCanvasRef} className="shimmer-button__hdr" aria-hidden="true" />
+				) : null}
 			</button>
 		);
 	}

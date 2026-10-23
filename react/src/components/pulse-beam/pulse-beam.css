@@ -1,3 +1,12 @@
+.pulse-beam__hdr {
+	position: absolute;
+	top: -24px;
+	left: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
+	pointer-events: none;
+}
+
 .pulse-beam {
 	position: relative;
 	isolation: isolate;
@@ -73,8 +82,8 @@
 	-webkit-mask: none;
 	mask: none;
 	transform: scale(0.95, 0.9);
-	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg))
-		brightness(var(--pb-brightness)) saturate(var(--pb-saturation));
+	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg)) brightness(var(--pb-brightness))
+		saturate(var(--pb-saturation));
 }
 
 .pulse-beam[data-variant="outside"] .pulse-beam__bloom {

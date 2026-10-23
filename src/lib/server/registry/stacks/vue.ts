@@ -41,6 +41,11 @@ export const VUE_SHARED_ITEMS: Readonly<Record<string, SharedItem>> = Object.fre
 		title: "Shared internals (motion)",
 		description: "Animation primitives: easing, presence, stagger, in-view and motion tokens.",
 	},
+	"internals-hdr": {
+		title: "Shared internals (HDR)",
+		description:
+			"The HDR light layer: a WebGPU overlay with extended tone mapping that glow components use to draw light above SDR white on HDR displays.",
+	},
 	sound: {
 		title: "Sound",
 		description: "The opt-in interface sound engine, its themes, composables and toggle.",
@@ -71,7 +76,7 @@ export function vueGroupOf(relPath: string): string | null {
 	if (parts[0] === "sound" && parts.length >= 2) return "sound";
 	if (parts[0] === "internals") {
 		if (parts.length === 2) return "internals";
-		if (parts.length === 3 && (parts[1] === "dom" || parts[1] === "motion")) {
+		if (parts.length === 3 && (parts[1] === "dom" || parts[1] === "motion" || parts[1] === "hdr")) {
 			return `internals-${parts[1]}`;
 		}
 	}

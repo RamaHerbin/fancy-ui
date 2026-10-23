@@ -10,17 +10,22 @@ import {
 	type TransitionEvent as ReactTransitionEvent,
 } from "react";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
 import { cn } from "../../utils.js";
 import {
 	LAYER_PRESETS,
 	buildLayerBackgrounds,
 	buildOscillators,
 	motionPreset,
+	strokeLights,
 	type PulseBeamPalette,
 	type PulseBeamTone,
 	type PulseBeamVariant,
 } from "./pulse-beam-data.js";
 import { registerPulse } from "./pulse-beam-loop.js";
+import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 import "./pulse-beam.css";
 
 export type { PulseBeamPalette, PulseBeamTone, PulseBeamVariant };
@@ -48,6 +53,12 @@ export interface PulseBeamProps extends HTMLAttributes<HTMLDivElement> {
 	colors?: string[];
 	/** Overall intensity, 0–1 */
 	strength?: number;
+	/**
+	 * On a display that reports HDR, add the beam's light above SDR white
+	 * where it crosses the ring, in a WebGPU layer with extended tone
+	 * mapping. Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 	/** Corner radius in px, applied to the wrapper and every layer */
 	radius?: number;
 	/** Multiplier for the breathing and drift periods */
@@ -82,6 +93,7 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 		palette = "colorful",
 		colors,
 		strength = 1,
+		hdr = true,
 		radius = 16,
 		speed = 1,
 		tone = "dark",
@@ -114,7 +126,10 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 	const hostRef = useRef<HTMLDivElement | null>(null);
 	// The shared composer owns the version-correct attach/detach handling, so a
 	// consumer callback ref that hands back a teardown gets it run.
-	const setHostRef = useComposedRefs<HTMLDivElement>(forwardedRef, hostRef);
+	const [hostNode, hostNodeRef] = useElementRef<HTMLDivElement>();
+	const [strokeEl, strokeElRef] = useElementRef<HTMLDivElement>();
+	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	const setHostRef = useComposedRefs<HTMLDivElement>(forwardedRef, hostRef, hostNodeRef);
 
 	const setPhase = (next: Phase) => {
 		phaseRef.current = next;
@@ -140,6 +155,12 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[variant, palette, colorsKey, tone, motion.op]
 	);
+	const hdrBlobs = useMemo(
+		() => strokeLights(variant, palette, colors),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[variant, palette, colorsKey]
+	);
+	const hdrBlobsRef = useLiveRef(hdrBlobs);
 	const clampedStrength = Math.min(1, Math.max(0, Number.isFinite(strength) ? strength : 1));
 	const running = phase !== "idle";
 
@@ -242,6 +263,17 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 		};
 	}, [running, reducedMotion, oscillators, hueEnabled, motion]);
 
+	// --- HDR light -----------------------------------------------------------------
+
+	useEffect(() => {
+		if (!hostNode || !strokeEl || !hdrCanvas) return;
+		return attachHdrLight({
+			host: hostNode,
+			canvas: hdrCanvas,
+			probe: createPulseBeamProbe(hostNode, strokeEl, () => ({ blobs: hdrBlobsRef.current })),
+		});
+	}, [hostNode, strokeEl, hdrCanvas, hdrBlobsRef]);
+
 	// --- outside variant: scale blobs with the box --------------------------------
 
 	useEffect(() => {
@@ -291,8 +323,12 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 			data-state={phase}
 		>
 			{children}
-			<div className="pulse-beam__layer pulse-beam__glow" style={{ background: backgrounds.glow }} />
 			<div
+				className="pulse-beam__layer pulse-beam__glow"
+				style={{ background: backgrounds.glow }}
+			/>
+			<div
+				ref={strokeElRef}
 				className="pulse-beam__layer pulse-beam__stroke"
 				style={{ background: backgrounds.stroke }}
 				onTransitionEnd={handleTransitionEnd}
@@ -301,6 +337,7 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 				className="pulse-beam__layer pulse-beam__bloom"
 				style={{ background: backgrounds.bloom }}
 			/>
+			{hdr ? <canvas ref={hdrCanvasRef} className="pulse-beam__hdr" aria-hidden="true" /> : null}
 		</div>
 	);
 });
