@@ -81,9 +81,9 @@ export function meteorField(count: number, seed = 1): Meteor[] {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "Meteors", inheritAttrs: false });
@@ -97,6 +97,12 @@ const {
 	seed = 1,
 	hdr = true,
 } = defineProps<MeteorsProps>();
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 
@@ -163,7 +169,7 @@ function styleFor(m: Meteor): Record<string, string> {
 	></span>
 	<!-- The heads above SDR white, on HDR displays only. -->
 	<canvas
-		v-if="hdr"
+		v-if="hdr && hdrCapable"
 		ref="hdrCanvas"
 		class="pointer-events-none absolute inset-0 h-full w-full"
 		aria-hidden="true"

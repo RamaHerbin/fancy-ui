@@ -174,7 +174,7 @@ import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { packetProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "AnimatedBeam", inheritAttrs: false });
@@ -313,6 +313,12 @@ watch(
 	() => updatePath(),
 	{ flush: "post" }
 );
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
@@ -499,7 +505,7 @@ watch(
 
 	<!-- The packet's head above SDR white, on HDR displays only. -->
 	<canvas
-		v-if="hdr && !reduced.current"
+		v-if="hdr && hdrCapable && !reduced.current"
 		ref="hdrCanvas"
 		class="pointer-events-none absolute inset-0 h-full w-full"
 		aria-hidden="true"

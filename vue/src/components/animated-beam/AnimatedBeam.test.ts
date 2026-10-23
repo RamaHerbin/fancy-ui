@@ -194,15 +194,35 @@ describe("AnimatedBeam", () => {
 });
 
 describe("AnimatedBeam HDR layer", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
-	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
-		const on = render(AnimatedBeam, { props: makeProps() });
-		expect(on.container.querySelector("canvas")).not.toBeNull();
-		// jsdom has no WebGPU: the layer never starts, so no flag.
-		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(AnimatedBeam, { props: makeProps() });
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+		const hdrOn = render(AnimatedBeam, { props: makeProps() });
+		await nextTick();
+		expect(hdrOn.container.querySelector("canvas")).not.toBeNull();
+		// The light itself never starts without a real adapter: no flag.
+		expect(hdrOn.container.querySelector("[data-hdr]")).toBeNull();
 		cleanup();
 		const off = render(AnimatedBeam, { props: makeProps({ hdr: false }) });
+		await nextTick();
 		expect(off.container.querySelector("canvas")).toBeNull();
 	});
 });

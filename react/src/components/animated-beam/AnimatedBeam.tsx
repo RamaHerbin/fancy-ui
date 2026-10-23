@@ -6,7 +6,7 @@ import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { packetProbe } from "../../internals/hdr/hdr-probes.js";
 import "./animated-beam.css";
 
@@ -334,6 +334,11 @@ export function AnimatedBeam({
 
 	const [svgEl, svgElRef] = useElementRef<SVGSVGElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 	const colorsRef = useLiveRef({ start: gradientStartColor, stop: gradientStopColor });
 
 	// The packet's head is wherever the CSS dash animation has put it: read
@@ -520,7 +525,7 @@ export function AnimatedBeam({
 					))
 				)}
 			</svg>
-			{hdr && !reduced ? (
+			{hdr && hdrCapable && !reduced ? (
 				<canvas
 					ref={hdrCanvasRef}
 					className="pointer-events-none absolute inset-0 h-full w-full"

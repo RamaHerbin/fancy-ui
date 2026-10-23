@@ -1,10 +1,10 @@
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/sound-feedback.js";
@@ -91,6 +91,11 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 		});
 		const [button, buttonRef] = useElementRef<HTMLButtonElement>();
 		const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+		// The canvas exists only where the light can run; SSR and SDR devices render none.
+		const [hdrCapable, setHdrCapable] = useState(false);
+		useEffect(() => {
+			setHdrCapable(hdrLightAvailable());
+		}, []);
 		const composedRef = useComposedRefs<HTMLButtonElement>(ref, buttonRef, soundRef);
 		const live = useLiveRef({ colors, borderRadius, borderWidth });
 
@@ -159,7 +164,9 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 				{/* The beam on the border */}
 				<span className="gradient-border" aria-hidden="true" />
 
-				{hdr ? <canvas ref={hdrCanvasRef} className="gradient-hdr" aria-hidden="true" /> : null}
+				{hdr && hdrCapable ? (
+					<canvas ref={hdrCanvasRef} className="gradient-hdr" aria-hidden="true" />
+				) : null}
 			</button>
 		);
 	}

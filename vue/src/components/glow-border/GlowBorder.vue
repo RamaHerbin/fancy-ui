@@ -128,9 +128,9 @@ export function glintArc(p: Palette): string {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "GlowBorder", inheritAttrs: false });
@@ -145,6 +145,12 @@ const {
 	strength = 0.8,
 	hdr = true,
 } = defineProps<GlowBorderProps>();
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const root = useTemplateRef<HTMLDivElement>("root");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
@@ -230,7 +236,7 @@ const styles = computed(() => ({
 		<span class="glow-border__metal"></span>
 		<span class="glow-border__glint"></span>
 		<!-- The glint's flash above SDR white, on HDR displays only. -->
-		<canvas v-if="hdr" ref="hdrCanvas" class="glow-border__hdr"></canvas>
+		<canvas v-if="hdr && hdrCapable" ref="hdrCanvas" class="glow-border__hdr"></canvas>
 	</div>
 </template>
 

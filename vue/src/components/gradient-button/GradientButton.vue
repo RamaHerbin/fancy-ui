@@ -56,11 +56,11 @@ export function beamGradient(colors: string[]): string {
 
 <script setup lang="ts">
 import { callListener } from "../../internals/call-listener.js";
-import { computed, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "GradientButton", inheritAttrs: false });
@@ -91,6 +91,12 @@ useSoundFeedback(button, () => ({
 defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 
@@ -173,7 +179,12 @@ function handleClick(event: MouseEvent) {
 		<span class="gradient-border" aria-hidden="true"></span>
 
 		<!-- The beam's light above SDR white, on HDR displays only. -->
-		<canvas v-if="hdr" ref="hdrCanvas" class="gradient-hdr" aria-hidden="true"></canvas>
+		<canvas
+			v-if="hdr && hdrCapable"
+			ref="hdrCanvas"
+			class="gradient-hdr"
+			aria-hidden="true"
+		></canvas>
 	</button>
 </template>
 

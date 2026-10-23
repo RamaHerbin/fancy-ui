@@ -1,4 +1,5 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/vue";
+import { nextTick } from "vue";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import GradientButton, { beamGradient } from "./GradientButton.vue";
 import { sound } from "../../sound/sound.js";
@@ -169,15 +170,35 @@ describe("GradientButton consumer style and slot", () => {
 });
 
 describe("GradientButton HDR layer", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
-	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
-		const on = render(GradientButton);
-		expect(on.container.querySelector("canvas")).not.toBeNull();
-		// jsdom has no WebGPU: the layer never starts, so no flag.
-		expect(on.container.querySelector("[data-hdr]")).toBeNull();
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(GradientButton);
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+		const hdrOn = render(GradientButton);
+		await nextTick();
+		expect(hdrOn.container.querySelector("canvas")).not.toBeNull();
+		// The light itself never starts without a real adapter: no flag.
+		expect(hdrOn.container.querySelector("[data-hdr]")).toBeNull();
 		cleanup();
 		const off = render(GradientButton, { props: { hdr: false } });
+		await nextTick();
 		expect(off.container.querySelector("canvas")).toBeNull();
 	});
 });

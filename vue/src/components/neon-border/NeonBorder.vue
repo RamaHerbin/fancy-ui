@@ -68,9 +68,9 @@ export function neonBeams(color1: string, color2: string, arc: number, core = fa
 </script>
 
 <script setup lang="ts">
-import { computed, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "NeonBorder", inheritAttrs: false });
@@ -87,6 +87,12 @@ const {
 const attrs = useAttrs();
 
 defineSlots<{ default?(): unknown }>();
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const root = useTemplateRef<HTMLDivElement>("root");
 const light = useTemplateRef<HTMLSpanElement>("light");
@@ -176,7 +182,7 @@ const styleVars = computed(() => ({
 			<span class="neon-core"></span>
 		</span>
 		<!-- The beams' heads above SDR white, on HDR displays only. -->
-		<canvas v-if="hdr" ref="hdrCanvas" class="neon-hdr" aria-hidden="true"></canvas>
+		<canvas v-if="hdr && hdrCapable" ref="hdrCanvas" class="neon-hdr" aria-hidden="true"></canvas>
 	</div>
 </template>
 

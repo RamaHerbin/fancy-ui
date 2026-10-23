@@ -104,9 +104,9 @@ export function beamPhase(
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { riderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "BorderBeam", inheritAttrs: false });
@@ -125,6 +125,12 @@ const {
 	reverse = false,
 	hdr = true,
 } = defineProps<BorderBeamProps>();
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const root = useTemplateRef<HTMLDivElement>("root");
 const spark = useTemplateRef<HTMLSpanElement>("spark");
@@ -232,7 +238,7 @@ function piece(p: TailSegment, count: number): Record<string, string> {
 		<span ref="spark" class="bb-ride bb-spark"></span>
 
 		<!-- The head above SDR white, on HDR displays only. -->
-		<canvas v-if="hdr" ref="hdrCanvas" class="bb-hdr"></canvas>
+		<canvas v-if="hdr && hdrCapable" ref="hdrCanvas" class="bb-hdr"></canvas>
 	</div>
 </template>
 

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./meteors.css";
@@ -112,6 +112,11 @@ export function Meteors({
 	hdr = true,
 }: MeteorsProps) {
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 
 	// Meteors render no root of their own: the light layer belongs to their
 	// container, and each head is wherever the CSS transform has put it.
@@ -150,7 +155,7 @@ export function Meteors({
 					aria-hidden="true"
 				/>
 			))}
-			{hdr ? (
+			{hdr && hdrCapable ? (
 				<canvas
 					ref={hdrCanvasRef}
 					className="pointer-events-none absolute inset-0 h-full w-full"

@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./glow-border.css";
@@ -151,6 +151,11 @@ export function GlowBorder({
 
 	const [root, rootRef] = useElementRef<HTMLDivElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 	const live = useLiveRef({ borderRadius, borderWidth, strengthC, palettes });
 
 	// The glint's flash, above SDR white: reads the live `--gb-a3` so it rides
@@ -217,7 +222,7 @@ export function GlowBorder({
 			</span>
 			<span className="glow-border__metal"></span>
 			<span className="glow-border__glint"></span>
-			{hdr ? <canvas ref={hdrCanvasRef} className="glow-border__hdr" /> : null}
+			{hdr && hdrCapable ? <canvas ref={hdrCanvasRef} className="glow-border__hdr" /> : null}
 		</div>
 	);
 }

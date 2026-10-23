@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { riderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./border-beam.css";
@@ -140,6 +140,11 @@ export function BorderBeam({
 	const [root, rootRef] = useElementRef<HTMLDivElement>();
 	const [spark, sparkRef] = useElementRef<HTMLSpanElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 	const live = useLiveRef({ colorFrom });
 
 	// The head is wherever the CSS `offset-path` has put the spark this frame.
@@ -231,7 +236,7 @@ export function BorderBeam({
 			{/* the white-hot point of the head, sitting on the edge */}
 			<span ref={sparkRef} className="bb-ride bb-spark" />
 
-			{hdr ? <canvas ref={hdrCanvasRef} className="bb-hdr" /> : null}
+			{hdr && hdrCapable ? <canvas ref={hdrCanvasRef} className="bb-hdr" /> : null}
 		</div>
 	);
 }
