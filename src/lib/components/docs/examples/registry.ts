@@ -652,6 +652,22 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"image-generation": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"agent-plan": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"subagent-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"sun-switch": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Contained",
+			title: "Contained",
+			description:
+				'The wave stays inside one card with `mode="contained"`; the page theme is untouched.',
+		},
+		{
+			name: "CustomTrigger",
+			title: "Custom Trigger",
+			description:
+				"Any button can start the wave with `pixelWave()`, from the pointer, with its own palette.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"approval-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],

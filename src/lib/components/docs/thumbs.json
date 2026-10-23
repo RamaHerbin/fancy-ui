@@ -128,6 +128,7 @@
 	"sticky-scroll": true,
 	"streaming-text": true,
 	"subagent-list": true,
+	"sun-switch": false,
 	"switch": true,
 	"tabs": true,
 	"terminal-block": true,

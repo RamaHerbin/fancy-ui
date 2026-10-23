@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-151-8B5CF6)
+![Components](https://img.shields.io/badge/Components-152-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **151 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **152 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 151 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 152 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -449,6 +449,9 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **stepper**: `Step`'s custom-bullet branch is `children ?? default` (null/undefined only) rather than Svelte's snippet-existence test, so a falsy-but-present child such as `0` or `false` overrides the glyph where Svelte would have rendered the default.
 - **stepper**: `StepperHarness.test.svelte` becomes an inline `Harness` component at the top of `Stepper.test.tsx` (a Svelte harness needs its own file only because Svelte components do); `bind:current` becomes the controlled pair and `bind:ref` a callback ref held in state.
 - **stepper**: `current` is a controlled/uncontrolled pair instead of `bind:current`: pass `current` + `onCurrentChange` for two-way behaviour, omit `current` and the component owns the index itself, starting at the same 0 the Svelte `$bindable(0)` default uses.
+- **sun-switch**: `checked` is no longer `bind:checked`: it is the controlled/uncontrolled pair `checked` + `defaultChecked` (default `true`) + `onCheckedChange`, the same split as Switch. The uncontrolled update is committed with `flushSync` inside the view transition callback so the new snapshot already shows the new state.
+- **sun-switch**: `class` → `className` (PORTING.md).
+- **sun-switch**: Rendering, the lens and the wave live in the shared `sun-switch-core.ts` and `pixel-wave-core.ts`, byte-identical to the Svelte copies; the component creates the painter in an effect and forwards props, reduced motion and visibility to it.
 - **terminal-text**: Root class gains a port-added `terminal-text` anchor token (sanctioned by PORTING.md styling rule 2: the Svelte <style> was compiler-scoped with no root class; `.cursor-blink` is anchored under it, keyframe name `blink` kept identical).
 - **terminal-text**: The stream restarts on `lines` CONTENT change, not on array identity: a re-allocated equal-content array keeps the current stream running, where the Svelte side restarts it.
 - **text-generate-effect**: Trailing `&nbsp;` after each word is rendered as the JSX string literal `" "` — identical character in the DOM.
