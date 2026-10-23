@@ -589,7 +589,7 @@ jobs:
           echo "✅ Changeset file present."
 
   consumers:
-    name: Consumers (${{ matrix.group }})
+    name: Consumers (shard ${{ matrix.shard }})
     # Every package installed from its packed tarball into the apps under
     # examples/consumers, each copied outside the checkout so nothing can
     # resolve from the monorepo's node_modules: SvelteKit and Svelte + Vite for
@@ -599,13 +599,15 @@ jobs:
     # (exports, files, declared dependencies, Tailwind entry), not the source.
     # See examples/consumers/README.md.
     #
-    # Three groups on three runners, balanced on measured times (next 48 s,
-    # nuxt 78 s, react-vite 52 s, sv-addon 65 s, vue-vite 36 s, sveltekit 25 s,
-    # svelte-vite 20 s): the seven apps in a row took five to nine minutes, a
-    # group takes two to three. Each group packs the three packages itself
-    # (about a minute), which is why there is no `needs` on the package jobs:
-    # the ordering only served to read a failure as "about the published
-    # shape", and the summary table says that already.
+    # Three shards on three runners: run-all.mjs deals the sorted consumer
+    # list round-robin (`--shard k/3`), so an app added under scripts/consumers
+    # joins a shard by itself and no list here can forget it. The apps in a
+    # row took five to nine minutes (next 48 s, nuxt 78 s, react-vite 52 s,
+    # vue-vite 36 s, sveltekit 25 s, svelte-vite 20 s); a shard takes two to
+    # three. Each shard packs the three packages itself (about a minute),
+    # which is why there is no `needs` on the package jobs: the ordering only
+    # served to read a failure as "about the published shape", and the
+    # summary table says that already.
     #
     # Same duplicate-run guard as `check` — see the comment there.
     if: |
@@ -619,10 +621,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group:
-          - next nuxt
-          - react-vite sv-addon
-          - svelte-vite sveltekit vue-vite
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -675,4 +674,4 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      - run: pnpm consumers ${{ matrix.group }}
+      - run: pnpm consumers --shard ${{ matrix.shard }}/3
