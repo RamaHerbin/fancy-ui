@@ -47,7 +47,12 @@ import { onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from
 import { cn } from "../../utils.js";
 import { createPixelScene, type PixelSceneEngine } from "./pixel-scene-core.js";
 import { getScenePainter } from "./pixel-scene-scenes.js";
-import { pixelSceneHdrAvailable, startPixelSceneHdr } from "./pixel-scene-hdr.js";
+import {
+	PIXEL_SCENE_HDR_RESTART_MS,
+	PIXEL_SCENE_HDR_RESTARTS,
+	pixelSceneHdrAvailable,
+	startPixelSceneHdr,
+} from "./pixel-scene-hdr.js";
 
 defineOptions({ name: "PixelScene", inheritAttrs: false });
 defineSlots<{ default?(): unknown }>();
@@ -73,6 +78,9 @@ const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 const mounted = ref(false);
 const hdrCapable = ref(false);
 const hdrOn = ref(false);
+/** Bumped to start the HDR layer again after a device loss; the watcher below reads it. */
+const hdrRun = ref(0);
+let hdrRestarts = 0;
 /** Set once the engine exists, so the HDR watcher can attach to it. */
 const engineReady = ref(false);
 /** Plain closure state on purpose: nothing rendered depends on the engine. */
@@ -140,18 +148,35 @@ watch(
 );
 
 watch(
-	[hdrCanvas, engineReady, hdrCapable],
+	[hdrCanvas, engineReady, hdrCapable, hdrRun],
 	([canvas, ready, capable], _old, onCleanup) => {
 		if (!canvas || !ready || !capable) return;
 		let cancelled = false;
 		let stop: (() => void) | null = null;
+		let retry: ReturnType<typeof setTimeout> | null = null;
+		// A lost device usually comes back (GPU process restarted, driver reset):
+		// start again after a growing pause, a few times, before giving the layer up.
+		const restart = () => {
+			if (hdrRestarts >= PIXEL_SCENE_HDR_RESTARTS) {
+				hdrCapable.value = false;
+				return;
+			}
+			hdrRestarts++;
+			retry = setTimeout(() => {
+				retry = null;
+				hdrRun.value++;
+			}, PIXEL_SCENE_HDR_RESTART_MS * hdrRestarts);
+		};
 		void startPixelSceneHdr(canvas).then((layer) => {
 			if (cancelled || !engine) {
 				layer?.destroy();
 				return;
 			}
 			if (!layer) {
-				hdrCapable.value = false;
+				// Nothing to start on the first try (no adapter, tone mapping refused): give
+				// up at once. During a restart the GPU may still be on its way back.
+				if (hdrRestarts === 0) hdrCapable.value = false;
+				else restart();
 				return;
 			}
 			const target = engine;
@@ -166,13 +191,14 @@ watch(
 				if (cancelled) return;
 				stop?.();
 				stop = null;
-				hdrCapable.value = false;
+				restart();
 			});
 		});
 		onCleanup(() => {
 			cancelled = true;
 			stop?.();
 			stop = null;
+			if (retry !== null) clearTimeout(retry);
 		});
 	},
 	{ flush: "post" }

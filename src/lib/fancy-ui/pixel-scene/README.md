@@ -91,7 +91,7 @@ Under the lens every cell is painted in colour; its rim is dithered on the grid.
 
 With `hdr` (on by default), PixelScene checks after mount whether WebGPU exists and the display reports `(dynamic-range: high)`. Only then does it render a second canvas and start `pixel-scene-hdr.ts`: `rgba16float`, `colorSpace: "srgb"`, `toneMapping: { mode: "extended" }`. After every painted frame each cell with a glow is redrawn there as an instanced square at `glow ×` its colour, alpha 1. The canvas reads extended (gamma-encoded) sRGB, so each channel is sent as `encode(linear(c) × glow)`: a glow of 1 reproduces the 2D dot exactly. Levels: lens field 1.6, lit cells 1.5, snow caps and flowers 1.8, water sparkle 2.2, stars and moon 3.5, the day sun, windows and lamps up to 4.9 (≈ 1000 nits against a 203-nit SDR white), the peak every glow is clamped to.
 
-One GPU device is shared by every instance on the page and released with the last one. The host gets `data-hdr` while the layer runs; if the device is lost, the layer is dropped and the 2D picture carries on. Elsewhere nothing is created.
+One GPU device is shared by every instance on the page and released with the last one. The host gets `data-hdr` while the layer runs. If the device is lost (GPU process restarted, driver reset), the layer is torn down and started again after 600 ms, then 1.2 s, then 1.8 s; after three losses the HDR canvas is dropped and the 2D picture carries on alone. Elsewhere nothing is created.
 
 To exercise the path in a headless browser, start it with WebGPU enabled and stub the media query before the page loads (`window.matchMedia` returning `matchMedia("all")` for `(dynamic-range: high)`); emulating the media feature through the devtools protocol has no effect.
 

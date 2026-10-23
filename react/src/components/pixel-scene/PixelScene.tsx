@@ -7,7 +7,12 @@ import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { createPixelScene, type PixelSceneEngine } from "./pixel-scene-core.js";
 import { getScenePainter, type PixelSceneName } from "./pixel-scene-scenes.js";
-import { pixelSceneHdrAvailable, startPixelSceneHdr } from "./pixel-scene-hdr.js";
+import {
+	PIXEL_SCENE_HDR_RESTART_MS,
+	PIXEL_SCENE_HDR_RESTARTS,
+	pixelSceneHdrAvailable,
+	startPixelSceneHdr,
+} from "./pixel-scene-hdr.js";
 
 export type { PixelSceneName };
 
@@ -90,6 +95,9 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 	/** False on the server and the first client render: the HDR canvas appears only after mount. */
 	const [hdrCapable, setHdrCapable] = useState(false);
 	const [hdrOn, setHdrOn] = useState(false);
+	/** Bumped to start the HDR layer again after a device loss; the effect below depends on it. */
+	const [hdrRun, setHdrRun] = useState(0);
+	const hdrRestarts = useRef(0);
 
 	// The Svelte source creates the engine in `onMount` from `untrack`ed props:
 	// the creation reads the current values without becoming a dependency.
@@ -153,13 +161,30 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		if (!hdrCanvas || !engineReady || !hdrCapable || !engine) return;
 		let cancelled = false;
 		let stop: (() => void) | null = null;
+		let retry: ReturnType<typeof setTimeout> | null = null;
+		// A lost device usually comes back (GPU process restarted, driver reset):
+		// start again after a growing pause, a few times, before giving the layer up.
+		const restart = () => {
+			if (hdrRestarts.current >= PIXEL_SCENE_HDR_RESTARTS) {
+				setHdrCapable(false);
+				return;
+			}
+			hdrRestarts.current++;
+			retry = setTimeout(() => {
+				retry = null;
+				setHdrRun((n) => n + 1);
+			}, PIXEL_SCENE_HDR_RESTART_MS * hdrRestarts.current);
+		};
 		void startPixelSceneHdr(hdrCanvas).then((layer) => {
 			if (cancelled || engineRef.current !== engine) {
 				layer?.destroy();
 				return;
 			}
 			if (!layer) {
-				setHdrCapable(false);
+				// Nothing to start on the first try (no adapter, tone mapping refused): give
+				// up at once. During a restart the GPU may still be on its way back.
+				if (hdrRestarts.current === 0) setHdrCapable(false);
+				else restart();
 				return;
 			}
 			engine.setOptions({ onFrame: (frame) => layer.render(frame) });
@@ -173,15 +198,17 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 				if (cancelled) return;
 				stop?.();
 				stop = null;
-				setHdrCapable(false);
+				restart();
 			});
 		});
 		return () => {
 			cancelled = true;
 			stop?.();
 			stop = null;
+			if (retry !== null) clearTimeout(retry);
 		};
-	}, [hdrCanvas, engineReady, hdrCapable]);
+		// hdrRun is read by no line above: it re-runs the effect after a device loss.
+	}, [hdrCanvas, engineReady, hdrCapable, hdrRun]);
 
 	return (
 		<div

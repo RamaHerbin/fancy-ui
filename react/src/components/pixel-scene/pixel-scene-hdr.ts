@@ -23,6 +23,15 @@ import { encodeExt, srgbToLinear, type PixelSceneFrame } from "./pixel-scene-cor
 /** SDR white ≈ 203 nits; 1000 nits / 203 ≈ 4.9. Every glow is clamped to it. */
 export const PIXEL_SCENE_HDR_PEAK = 4.9;
 
+/**
+ * A lost device usually comes back (GPU process restarted, driver reset, tab
+ * woken from a discarded state). The components start the layer again after
+ * `PIXEL_SCENE_HDR_RESTART_MS × attempt`, up to `PIXEL_SCENE_HDR_RESTARTS`
+ * times per mount, before dropping the HDR canvas for good.
+ */
+export const PIXEL_SCENE_HDR_RESTARTS = 3;
+export const PIXEL_SCENE_HDR_RESTART_MS = 600;
+
 /** Floats per instance: `x0, y0, 0, 0, r, g, b, 1`. */
 const FPI = 8;
 const START_CAPACITY = 4096;

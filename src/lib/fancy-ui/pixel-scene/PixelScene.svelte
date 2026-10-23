@@ -52,7 +52,12 @@
 	import { cn } from "$lib/utils.js";
 	import { createPixelScene, type PixelSceneEngine } from "./pixel-scene-core.js";
 	import { getScenePainter } from "./pixel-scene-scenes.js";
-	import { pixelSceneHdrAvailable, startPixelSceneHdr } from "./pixel-scene-hdr.js";
+	import {
+		PIXEL_SCENE_HDR_RESTART_MS,
+		PIXEL_SCENE_HDR_RESTARTS,
+		pixelSceneHdrAvailable,
+		startPixelSceneHdr,
+	} from "./pixel-scene-hdr.js";
 
 	let {
 		scene = "alpine",
@@ -76,6 +81,9 @@
 	let mounted = $state(false);
 	let hdrCapable = $state(false);
 	let hdrOn = $state(false);
+	/** Bumped to start the HDR layer again after a device loss; the effect below reads it. */
+	let hdrRun = $state(0);
+	let hdrRestarts = 0;
 	let engineReady = $state(false);
 	/** Plain closure state on purpose: nothing rendered depends on the engine. */
 	let engine: PixelSceneEngine | null = null;
@@ -133,16 +141,34 @@
 
 	$effect(() => {
 		const canvas = hdrCanvas;
+		void hdrRun;
 		if (!canvas || !engineReady || !hdrCapable) return;
 		let cancelled = false;
 		let stop: (() => void) | null = null;
+		let retry: ReturnType<typeof setTimeout> | null = null;
+		// A lost device usually comes back (GPU process restarted, driver reset):
+		// start again after a growing pause, a few times, before giving the layer up.
+		const restart = () => {
+			if (hdrRestarts >= PIXEL_SCENE_HDR_RESTARTS) {
+				hdrCapable = false;
+				return;
+			}
+			hdrRestarts++;
+			retry = setTimeout(() => {
+				retry = null;
+				hdrRun++;
+			}, PIXEL_SCENE_HDR_RESTART_MS * hdrRestarts);
+		};
 		void startPixelSceneHdr(canvas).then((layer) => {
 			if (cancelled || !engine) {
 				layer?.destroy();
 				return;
 			}
 			if (!layer) {
-				hdrCapable = false;
+				// Nothing to start on the first try (no adapter, tone mapping refused): give
+				// up at once. During a restart the GPU may still be on its way back.
+				if (hdrRestarts === 0) hdrCapable = false;
+				else restart();
 				return;
 			}
 			const target = engine;
@@ -157,13 +183,14 @@
 				if (cancelled) return;
 				stop?.();
 				stop = null;
-				hdrCapable = false;
+				restart();
 			});
 		});
 		return () => {
 			cancelled = true;
 			stop?.();
 			stop = null;
+			if (retry !== null) clearTimeout(retry);
 		};
 	});
 </script>
