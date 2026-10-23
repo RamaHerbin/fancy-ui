@@ -104,9 +104,9 @@ export function beamPhase(
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { riderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "BorderBeam", inheritAttrs: false });
@@ -126,11 +126,16 @@ const {
 	hdr = false,
 } = defineProps<BorderBeamProps>();
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const root = useTemplateRef<HTMLDivElement>("root");
 const spark = useTemplateRef<HTMLSpanElement>("spark");

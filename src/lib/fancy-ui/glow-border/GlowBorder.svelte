@@ -127,7 +127,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
 	import { conicBorderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -143,10 +143,11 @@
 
 	let root: HTMLDivElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
-	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
 	let hdrCapable = $state(false);
 	$effect(() => {
-		hdrCapable = hdrLightAvailable();
+		return watchHdrLight((available) => (hdrCapable = available));
 	});
 
 	// The glint's flash, above SDR white: reads the live `--gb-a3` so it rides
@@ -164,7 +165,8 @@
 				inset: () => borderWidth / 2,
 				level: () => strengthC,
 				arcs: () => {
-					const dark = document.documentElement.classList.contains("dark");
+					// The same test as the `.dark .glow-border` rule: any themed ancestor.
+					const dark = host.parentElement?.closest(".dark") != null;
 					const tints = (dark ? palettes.dark : palettes.light).tints;
 					const lead = tints[1] ?? tints[0] ?? "#ffffff";
 					const tail = tints[2] ?? tints[tints.length - 1] ?? "#ffffff";

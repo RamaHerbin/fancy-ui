@@ -10,7 +10,35 @@
  * from it.
  */
 
-import type { HdrLightSpec, HdrProbe } from "./hdr-light.js";
+import type { HdrLightSpec, HdrProbe, HdrProbeContext } from "./hdr-light.js";
+
+/**
+ * Maps viewport points into the host's local CSS px, the space the light canvas
+ * draws in. A scaled host (or ancestor) shrinks its client rect but not its
+ * layout size, so the client offset is divided back by that scale. Rotation is
+ * not undone: a rotated host's client rect is only its bounding box.
+ */
+function toLocal(
+	host: Element,
+	ctx: HdrProbeContext
+): (x: number, y: number) => { x: number; y: number } {
+	const hb = host.getBoundingClientRect();
+	const sx = hb.width > 0 && ctx.width > 0 ? ctx.width / hb.width : 1;
+	const sy = hb.height > 0 && ctx.height > 0 ? ctx.height / hb.height : 1;
+	return (x, y) => ({ x: (x - hb.left) * sx, y: (y - hb.top) * sy });
+}
+
+/**
+ * The live visibility of a layer that sits beside the light canvas: its own
+ * opacity, or 0 when it is hidden or not rendered, so the light fades with it.
+ */
+function layerLevel(el: Element | undefined): number {
+	if (!el) return 1;
+	const cs = getComputedStyle(el);
+	if (cs.display === "none" || cs.visibility === "hidden") return 0;
+	const opacity = parseFloat(cs.opacity);
+	return Number.isFinite(opacity) ? opacity : 1;
+}
 
 // ---------------------------------------------------------------------------
 // Geometry
@@ -148,12 +176,12 @@ export interface RiderOptions {
 
 export function riderProbe(o: RiderOptions): HdrProbe {
 	const history: { x: number; y: number }[] = [];
-	return () => {
-		const hb = o.host.getBoundingClientRect();
+	return (ctx) => {
+		const local = toLocal(o.host, ctx);
 		const rb = o.rider.getBoundingClientRect();
 		const opacity = parseFloat(getComputedStyle(o.rider).opacity);
 		if (rb.width === 0 && rb.height === 0) return [];
-		const head = { x: rb.left + rb.width / 2 - hb.left, y: rb.top + rb.height / 2 - hb.top };
+		const head = local(rb.left + rb.width / 2, rb.top + rb.height / 2);
 		const last = history[0];
 		// A jump (wrap-around, resize) breaks the trail instead of drawing a chord.
 		if (last && Math.hypot(head.x - last.x, head.y - last.y) > 80) history.length = 0;
@@ -206,8 +234,9 @@ export interface MeteorsOptions {
 }
 
 export function meteorsProbe(o: MeteorsOptions): HdrProbe {
-	return () => {
+	return (ctx) => {
 		const hb = o.host.getBoundingClientRect();
+		const local = toLocal(o.host, ctx);
 		const lights: HdrLightSpec[] = [];
 		for (const m of o.meteors()) {
 			const cs = getComputedStyle(m);
@@ -217,8 +246,7 @@ export function meteorsProbe(o: MeteorsOptions): HdrProbe {
 			if (rb.right < hb.left || rb.left > hb.right || rb.bottom < hb.top || rb.top > hb.bottom) {
 				continue;
 			}
-			const x = rb.left + rb.width / 2 - hb.left;
-			const y = rb.top + rb.height / 2 - hb.top;
+			const { x, y } = local(rb.left + rb.width / 2, rb.top + rb.height / 2);
 			const scale = parseFloat(cs.getPropertyValue("--meteor-scale")) || 1;
 			// Only the head burns above white; the CSS tail carries the streak.
 			const color = cs.backgroundColor;
@@ -251,11 +279,18 @@ export interface PacketOptions {
 	/** Optional arrival blooms: circles whose live opacity lights their centre. */
 	blooms?: () => Iterable<SVGCircleElement>;
 	bloomColor?: () => string;
+	/**
+	 * The drawn layer the packets belong to (AnimatedBeam's SVG): its live
+	 * opacity scales the light, and hiding it puts the light out.
+	 */
+	layer?: Element;
 }
 
 export function packetProbe(o: PacketOptions): HdrProbe {
-	return () => {
-		const hb = o.host.getBoundingClientRect();
+	return (ctx) => {
+		const level = layerLevel(o.layer);
+		if (level <= 0.02) return [];
+		const local = toLocal(o.host, ctx);
 		const lights: HdrLightSpec[] = [];
 		for (const path of o.paths()) {
 			const cs = getComputedStyle(path);
@@ -281,14 +316,16 @@ export function packetProbe(o: PacketOptions): HdrProbe {
 			const q = path.getPointAtLength(Math.max(0, s - 10));
 			const P = new DOMPoint(p.x, p.y).matrixTransform(ctm);
 			const Q = new DOMPoint(q.x, q.y).matrixTransform(ctm);
+			const a = local(Q.x, Q.y);
+			const b = local(P.x, P.y);
 			lights.push({
-				x0: Q.x - hb.left,
-				y0: Q.y - hb.top,
-				x1: P.x - hb.left,
-				y1: P.y - hb.top,
+				x0: a.x,
+				y0: a.y,
+				x1: b.x,
+				y1: b.y,
 				radius: 1.8,
 				halo: 7,
-				intensity: o.intensity,
+				intensity: o.intensity * level,
 				color: o.color(),
 				white: 0.75,
 			});
@@ -300,14 +337,15 @@ export function packetProbe(o: PacketOptions): HdrProbe {
 				const ctm = c.getScreenCTM();
 				if (!ctm) continue;
 				const P = new DOMPoint(c.cx.baseVal.value, c.cy.baseVal.value).matrixTransform(ctm);
+				const at = local(P.x, P.y);
 				lights.push({
-					x0: P.x - hb.left,
-					y0: P.y - hb.top,
-					x1: P.x - hb.left,
-					y1: P.y - hb.top,
+					x0: at.x,
+					y0: at.y,
+					x1: at.x,
+					y1: at.y,
 					radius: 4,
 					halo: 10,
-					intensity: o.intensity * 0.7 * opacity,
+					intensity: o.intensity * 0.7 * opacity * level,
 					color: o.bloomColor ? o.bloomColor() : o.color(),
 					white: 0.5,
 				});

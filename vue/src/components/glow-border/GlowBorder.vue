@@ -128,9 +128,9 @@ export function glintArc(p: Palette): string {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "GlowBorder", inheritAttrs: false });
@@ -146,11 +146,16 @@ const {
 	hdr = false,
 } = defineProps<GlowBorderProps>();
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const root = useTemplateRef<HTMLDivElement>("root");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
@@ -172,7 +177,8 @@ watch(
 					inset: () => borderWidth / 2,
 					level: () => strengthC.value,
 					arcs: () => {
-						const dark = document.documentElement.classList.contains("dark");
+						// The same test as the `.dark .glow-border` rule: any themed ancestor.
+						const dark = host.parentElement?.closest(".dark") != null;
 						const tints = (dark ? palettes.value.dark : palettes.value.light).tints;
 						const lead = tints[1] ?? tints[0] ?? "#ffffff";
 						const tail = tints[2] ?? tints[tints.length - 1] ?? "#ffffff";

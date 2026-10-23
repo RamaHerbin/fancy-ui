@@ -56,11 +56,11 @@ export function beamGradient(colors: string[]): string {
 
 <script setup lang="ts">
 import { callListener } from "../../internals/call-listener.js";
-import { computed, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "GradientButton", inheritAttrs: false });
@@ -92,11 +92,16 @@ defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 

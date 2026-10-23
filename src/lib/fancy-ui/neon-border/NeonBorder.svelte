@@ -75,7 +75,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
 	import { conicBorderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -93,10 +93,11 @@
 	let root: HTMLDivElement | undefined = $state();
 	let light: HTMLSpanElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
-	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
 	let hdrCapable = $state(false);
 	$effect(() => {
-		hdrCapable = hdrLightAvailable();
+		return watchHdrLight((available) => (hdrCapable = available));
 	});
 
 	// Reads the live `--neon-angle` and the tube's live opacity (ignite), so the

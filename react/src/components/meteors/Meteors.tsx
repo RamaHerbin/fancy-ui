@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./meteors.css";
@@ -112,11 +112,16 @@ export function Meteors({
 	hdr = false,
 }: MeteorsProps) {
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
-	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
 	const [hdrCapable, setHdrCapable] = useState(false);
 	useEffect(() => {
-		setHdrCapable(hdrLightAvailable());
+		return watchHdrLight(setHdrCapable);
 	}, []);
+
+	// This instance's own heads: a container may hold several showers, and each
+	// light layer draws only the meteors of the instance that owns it.
+	const meteorEls = useRef<(HTMLSpanElement | null)[]>([]);
 
 	// Meteors render no root of their own: the light layer belongs to their
 	// container, and each head is wherever the CSS transform has put it.
@@ -129,7 +134,8 @@ export function Meteors({
 			pad: 0,
 			probe: meteorsProbe({
 				host,
-				meteors: () => host.querySelectorAll<HTMLElement>(":scope > .meteor"),
+				meteors: () =>
+					meteorEls.current.filter((el): el is HTMLSpanElement => !!el && el.isConnected),
 				intensity: 3.6,
 			}),
 		});
@@ -146,6 +152,9 @@ export function Meteors({
 			{meteors.map((meteor, i) => (
 				<span
 					key={i}
+					ref={(el) => {
+						meteorEls.current[i] = el;
+					}}
 					className={cn(
 						"meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0",
 						meteor.flare && "meteor--flare",

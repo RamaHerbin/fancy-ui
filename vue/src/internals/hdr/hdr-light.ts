@@ -179,6 +179,26 @@ export function cssColor(css: string): CssRgba | null {
 	return out;
 }
 
+const CONTEXTUAL_COLOUR = /var\(|currentcolor/i;
+
+/**
+ * Resolves a colour that depends on where it is used — `var(--brand)`,
+ * `currentColor` — through `el`'s computed style, the way the component's own
+ * CSS resolves it; a detached canvas cannot. Other colours come back as given.
+ */
+export function contextColor(el: Element, css: string): string {
+	if (!CONTEXTUAL_COLOUR.test(css)) return css;
+	const style = (el as HTMLElement).style as CSSStyleDeclaration | undefined;
+	if (!style) return css;
+	const prev = style.getPropertyValue("color");
+	const priority = style.getPropertyPriority("color");
+	style.setProperty("color", css);
+	const out = getComputedStyle(el).color;
+	if (prev) style.setProperty("color", prev, priority);
+	else style.removeProperty("color");
+	return out || css;
+}
+
 /**
  * The light's linear-light RGB: the colour pushed through the same
  * `hue-rotate() brightness() saturate()` the component's CSS applies — the
@@ -401,9 +421,21 @@ export function attachHdrLight(options: AttachHdrLightOptions): () => void {
 				entries: [{ binding: 0, resource: { buffer: uniform } }],
 			});
 			const data = new Float32Array(MAX_LIGHTS * FLOATS_PER_LIGHT);
-			const fallback: CssRgba = cssColor(options.accent ?? getComputedStyle(canvas).color) ?? [
-				1, 1, 1, 1,
-			];
+			const fallback: CssRgba = cssColor(
+				options.accent ? contextColor(canvas, options.accent) : getComputedStyle(canvas).color
+			) ?? [1, 1, 1, 1];
+
+			// Context colours resolve through the canvas, which inherits the
+			// component's styles; once per frame, so a theme switch follows.
+			const resolved = new Map<string, string>();
+			function frameColor(css: string): string {
+				let out = resolved.get(css);
+				if (out === undefined) {
+					out = contextColor(canvas, css);
+					resolved.set(css, out);
+				}
+				return out;
+			}
 
 			let width = 0;
 			let height = 0;
@@ -433,10 +465,11 @@ export function attachHdrLight(options: AttachHdrLightOptions): () => void {
 				const n = Math.min(lights.length, MAX_LIGHTS);
 				if (n === 0 && drewEmpty) return;
 				drewEmpty = n === 0;
+				resolved.clear();
 				for (let i = 0; i < n; i++) {
 					const l = lights[i];
 					if (!l) continue;
-					const c = (l.color ? cssColor(l.color) : null) ?? fallback;
+					const c = (l.color ? cssColor(frameColor(l.color)) : null) ?? fallback;
 					const rgb = lightColor(c, l);
 					data.set(
 						[

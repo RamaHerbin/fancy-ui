@@ -174,7 +174,7 @@ import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { packetProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "AnimatedBeam", inheritAttrs: false });
@@ -314,11 +314,16 @@ watch(
 	{ flush: "post" }
 );
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
@@ -336,6 +341,8 @@ watch(
 				pad: 0,
 				probe: packetProbe({
 					host,
+					// The SVG carries the consumer's `class`: its live opacity dims the light.
+					layer: svg,
 					paths: () => svg.querySelectorAll<SVGPathElement>(".packet-core"),
 					color: () => gradientStartColor,
 					intensity: 4.4,

@@ -95,7 +95,7 @@
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte";
 	import type { AnimatedBeamProps } from "./types";
-	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
 	import { packetProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -211,10 +211,11 @@
 
 	let svgEl: SVGSVGElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
-	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
 	let hdrCapable = $state(false);
 	$effect(() => {
-		hdrCapable = hdrLightAvailable();
+		return watchHdrLight((available) => (hdrCapable = available));
 	});
 
 	// The packet's head is wherever the CSS dash animation has put it: read
@@ -229,6 +230,8 @@
 			pad: 0,
 			probe: packetProbe({
 				host,
+				// The SVG carries the consumer's `class`: its live opacity dims the light.
+				layer: svg,
 				paths: () => svg.querySelectorAll<SVGPathElement>(".packet-core"),
 				color: () => gradientStartColor,
 				intensity: 4.4,

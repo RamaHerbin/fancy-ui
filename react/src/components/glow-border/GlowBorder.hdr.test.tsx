@@ -1,6 +1,12 @@
 import { render, cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GlowBorder } from "./GlowBorder.js";
+import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
+import { GlowBorder, GLOW_BORDER_PRESETS } from "./GlowBorder.js";
+
+vi.mock("../../internals/hdr/hdr-probes.js", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("../../internals/hdr/hdr-probes.js")>();
+	return { ...actual, conicBorderProbe: vi.fn(actual.conicBorderProbe) };
+});
 
 function stubHdrCapable() {
 	vi.stubGlobal("navigator", { ...navigator, gpu: {} });
@@ -19,6 +25,7 @@ describe("GlowBorder HDR layer", () => {
 	afterEach(() => {
 		cleanup();
 		vi.unstubAllGlobals();
+		vi.mocked(conicBorderProbe).mockClear();
 	});
 
 	it("renders no canvas by default in an environment without WebGPU", () => {
@@ -40,5 +47,18 @@ describe("GlowBorder HDR layer", () => {
 		cleanup();
 		const { container } = render(<GlowBorder hdr={false} />);
 		expect(container.querySelector("canvas")).toBeNull();
+	});
+
+	it("takes the dark palette from a scoped .dark ancestor, as the CSS does", () => {
+		stubHdrCapable();
+		render(
+			<div className="dark">
+				<GlowBorder hdr />
+			</div>
+		);
+		expect(conicBorderProbe).toHaveBeenCalledTimes(1);
+		const [arc] = vi.mocked(conicBorderProbe).mock.calls[0]![0].arcs();
+		// The tail of the glint (t = 0) takes the palette's third tint.
+		expect(arc!.color(0)).toBe(GLOW_BORDER_PRESETS.chromatic.dark.tints[2]);
 	});
 });

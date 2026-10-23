@@ -1,7 +1,14 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { conicBorderPoint, conicBorderProbe, meteorsProbe, riderProbe } from "./hdr-probes.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+	conicBorderPoint,
+	conicBorderProbe,
+	meteorsProbe,
+	packetProbe,
+	riderProbe,
+} from "./hdr-probes.js";
 
 afterEach(() => {
+	vi.unstubAllGlobals();
 	document.body.innerHTML = "";
 });
 
@@ -84,6 +91,19 @@ describe("riderProbe", () => {
 		expect(head).toMatchObject({ x0: 45, y0: 2, intensity: 4 });
 	});
 
+	it("maps the head into the host's local space when the host is scaled", () => {
+		const host = document.createElement("div");
+		const rider = document.createElement("span");
+		host.appendChild(rider);
+		document.body.appendChild(host);
+		// Laid out at 200 x 100 (ctx), drawn at half size by a transform.
+		rect(host, 100, 50, 100, 50);
+		rect(rider, 145, 50, 10, 4);
+		const probe = riderProbe({ host, rider, color: () => "#fff", intensity: () => 4 });
+		const [head] = probe(ctx);
+		expect(head).toMatchObject({ x0: 100, y0: 4 });
+	});
+
 	it("builds a trail from the head's recent positions", () => {
 		const host = document.createElement("div");
 		const rider = document.createElement("span");
@@ -116,5 +136,50 @@ describe("meteorsProbe", () => {
 		const lights = probe(ctx);
 		expect(lights).toHaveLength(1);
 		expect(lights[0]).toMatchObject({ x0: 51, y0: 21, intensity: 3 });
+	});
+});
+
+describe("packetProbe", () => {
+	it("follows the visibility of the layer it belongs to", () => {
+		const host = document.createElement("div");
+		const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		circle.style.opacity = "1";
+		svg.appendChild(circle);
+		host.appendChild(svg);
+		document.body.appendChild(host);
+		rect(host, 0, 0, 200, 100);
+		// jsdom has no SVG geometry: an identity screen matrix stands in.
+		vi.stubGlobal(
+			"DOMPoint",
+			class {
+				constructor(
+					public x: number,
+					public y: number
+				) {}
+				matrixTransform() {
+					return this;
+				}
+			}
+		);
+		(circle as unknown as { getScreenCTM: () => object }).getScreenCTM = () => ({});
+		Object.defineProperty(circle, "cx", { value: { baseVal: { value: 20 } } });
+		Object.defineProperty(circle, "cy", { value: { baseVal: { value: 10 } } });
+		const probe = packetProbe({
+			host,
+			layer: svg,
+			paths: () => [],
+			color: () => "#fff",
+			intensity: 2,
+			blooms: () => [circle],
+		});
+		expect(probe(ctx)[0]).toMatchObject({ x0: 20, y0: 10, intensity: 1.4 });
+		svg.style.opacity = "0.5";
+		expect(probe(ctx)[0]!.intensity).toBeCloseTo(0.7, 6);
+		svg.style.opacity = "0";
+		expect(probe(ctx)).toEqual([]);
+		svg.style.opacity = "";
+		svg.style.visibility = "hidden";
+		expect(probe(ctx)).toEqual([]);
 	});
 });

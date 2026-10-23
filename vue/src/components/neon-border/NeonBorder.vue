@@ -68,9 +68,9 @@ export function neonBeams(color1: string, color2: string, arc: number, core = fa
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "NeonBorder", inheritAttrs: false });
@@ -88,11 +88,16 @@ const attrs = useAttrs();
 
 defineSlots<{ default?(): unknown }>();
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const root = useTemplateRef<HTMLDivElement>("root");
 const light = useTemplateRef<HTMLSpanElement>("light");

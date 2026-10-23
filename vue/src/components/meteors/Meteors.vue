@@ -81,9 +81,9 @@ export function meteorField(count: number, seed = 1): Meteor[] {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { meteorsProbe } from "../../internals/hdr/hdr-probes.js";
 
 defineOptions({ name: "Meteors", inheritAttrs: false });
@@ -98,13 +98,21 @@ const {
 	hdr = false,
 } = defineProps<MeteorsProps>();
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
+// This instance's own heads: a container may hold several showers, and each
+// light layer draws only the meteors of the instance that owns it.
+const meteorEls = useTemplateRef<HTMLSpanElement[]>("meteorEls");
 
 // Meteors render no root of their own: the light layer belongs to their
 // container, and each head is wherever the CSS transform has put it.
@@ -120,7 +128,7 @@ watch(
 				pad: 0,
 				probe: meteorsProbe({
 					host,
-					meteors: () => host.querySelectorAll<HTMLElement>(":scope > .meteor"),
+					meteors: () => meteorEls.value ?? [],
 					intensity: 3.6,
 				}),
 			})
@@ -157,6 +165,7 @@ function styleFor(m: Meteor): Record<string, string> {
 	<span
 		v-for="(meteor, i) in meteors"
 		:key="i"
+		ref="meteorEls"
 		:class="
 			cn(
 				'meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0',

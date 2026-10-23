@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./glow-border.css";
@@ -151,10 +151,11 @@ export function GlowBorder({
 
 	const [root, rootRef] = useElementRef<HTMLDivElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
-	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
 	const [hdrCapable, setHdrCapable] = useState(false);
 	useEffect(() => {
-		setHdrCapable(hdrLightAvailable());
+		return watchHdrLight(setHdrCapable);
 	}, []);
 	const live = useLiveRef({ borderRadius, borderWidth, strengthC, palettes });
 
@@ -172,7 +173,8 @@ export function GlowBorder({
 				inset: () => live.current.borderWidth / 2,
 				level: () => live.current.strengthC,
 				arcs: () => {
-					const dark = document.documentElement.classList.contains("dark");
+					// The same test as the `.dark .glow-border` rule: any themed ancestor.
+					const dark = root.parentElement?.closest(".dark") != null;
 					const tints = (dark ? live.current.palettes.dark : live.current.palettes.light).tints;
 					const lead = tints[1] ?? tints[0] ?? "#ffffff";
 					const tail = tints[2] ?? tints[tints.length - 1] ?? "#ffffff";

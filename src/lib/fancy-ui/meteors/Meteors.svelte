@@ -80,7 +80,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
 	import { meteorsProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -94,11 +94,16 @@
 	}: MeteorsProps = $props();
 
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
-	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
 	let hdrCapable = $state(false);
 	$effect(() => {
-		hdrCapable = hdrLightAvailable();
+		return watchHdrLight((available) => (hdrCapable = available));
 	});
+
+	// This instance's own heads: a container may hold several showers, and each
+	// light layer draws only the meteors of the instance that owns it.
+	const meteorEls: (HTMLSpanElement | null)[] = [];
 
 	// Meteors render no root of their own: the light layer belongs to their
 	// container, and each head is wherever the CSS transform has put it.
@@ -111,7 +116,8 @@
 			pad: 0,
 			probe: meteorsProbe({
 				host,
-				meteors: () => host.querySelectorAll<HTMLElement>(":scope > .meteor"),
+				meteors: () =>
+					meteorEls.slice(0, meteors.length).filter((el): el is HTMLSpanElement => !!el),
 				intensity: 3.6,
 			}),
 		});
@@ -144,6 +150,7 @@
 
 {#each meteors as meteor, i (i)}
 	<span
+		bind:this={meteorEls[i]}
 		class={cn(
 			"meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0",
 			meteor.flare && "meteor--flare",

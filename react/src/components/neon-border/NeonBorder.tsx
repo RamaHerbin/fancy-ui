@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { conicBorderProbe } from "../../internals/hdr/hdr-probes.js";
 import { cn } from "../../utils.js";
 import "./neon-border.css";
@@ -99,10 +99,11 @@ export function NeonBorder({
 	const [root, rootRef] = useElementRef<HTMLDivElement>();
 	const [light, lightRef] = useElementRef<HTMLSpanElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
-	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
 	const [hdrCapable, setHdrCapable] = useState(false);
 	useEffect(() => {
-		setHdrCapable(hdrLightAvailable());
+		return watchHdrLight(setHdrCapable);
 	}, []);
 	const live = useLiveRef({ animationType, color1, color2 });
 
