@@ -314,6 +314,15 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 				"A vector trace of a sunset photo that sets into dusk. With the picture source on, the tiles decode the scene being left.",
 		},
 	],
+	"pixel-scene": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Scenes",
+			title: "Scenes",
+			description: "Alpine, meadow, sea and mountains, by day and by night.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"mosaic-glow": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{

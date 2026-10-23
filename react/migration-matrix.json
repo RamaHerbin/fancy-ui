@@ -5823,5 +5823,55 @@
 		"attempts": 1,
 		"divergences": [],
 		"lastFailure": null
+	},
+	{
+		"slug": "pixel-scene",
+		"sveltePath": "src/lib/fancy-ui/pixel-scene",
+		"reactPath": "react/src/components/pixel-scene",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "graphics",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "canvas2d",
+		"deps": {
+			"internals": [
+				"use-element-ref",
+				"use-live-ref",
+				"use-composed-refs",
+				"pixel-scene-core",
+				"pixel-scene-scenes",
+				"pixel-scene-hdr"
+			],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [
+			"canvas2d",
+			"webgpu",
+			"ResizeObserver",
+			"IntersectionObserver",
+			"requestAnimationFrame",
+			"matchMedia",
+			"pointer-events",
+			"visibilitychange"
+		],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "low",
+		"exports": ["PixelScene", "PIXEL_SCENES"],
+		"loc": 213,
+		"testFiles": ["PixelScene.test.tsx", "PixelScene.ssr.test.tsx", "PixelScene.hdr.test.tsx"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`class` → `className` (PORTING.md).",
+			"The Svelte `ref = $bindable(null)` becomes a forwarded ref; the engine, the four scenes and the HDR layer live in the shared `pixel-scene-core.ts`, `pixel-scene-scenes.ts` and `pixel-scene-hdr.ts`, byte-identical to the Svelte copies."
+		],
+		"lastFailure": null
 	}
 ]

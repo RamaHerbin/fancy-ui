@@ -1896,6 +1896,90 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"pixel-scene": {
+		name: "PixelScene",
+		slug: "pixel-scene",
+		description:
+			"An animated pixel-art landscape on a dot grid: sparse ink dots at rest, full colour under a round lens that follows the pointer, separate day and night palettes, and on HDR displays lit windows, stars and the sun drawn as squares brighter than SDR white. Four scenes: alpine, meadow, sea and mountains.",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["pixel", "dither", "canvas", "scene", "lens", "hdr", "landscape"],
+		props: [
+			{
+				name: "scene",
+				type: '"alpine" | "meadow" | "sea" | "mountains"',
+				default: '"alpine"',
+				description: "Which landscape to paint.",
+			},
+			{
+				name: "night",
+				type: "boolean",
+				default: "false",
+				description:
+					"Night palette: stars, moonlit snow, lit windows. The component never changes it; toggle it from your own click or theme.",
+			},
+			{
+				name: "cell",
+				type: "number",
+				default: "5",
+				description:
+					"Grid pitch in CSS pixels. Very large boxes use a coarser pitch so a frame stays under about 72 000 cells.",
+			},
+			{
+				name: "dot",
+				type: "number",
+				default: "4",
+				description: "Edge of each square dot in CSS pixels (at most `cell`).",
+			},
+			{
+				name: "lens",
+				type: "boolean",
+				default: "true",
+				description:
+					"Shows the picture in full colour under a round lens that follows the pointer.",
+			},
+			{
+				name: "lensRadius",
+				type: "number",
+				default: "21",
+				description: "Lens radius in cells. Its rim is dithered on the grid.",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, redraws the sun, windows, stars and the lens in a WebGPU layer brighter than SDR white. Elsewhere nothing is created.",
+			},
+			{
+				name: "ink",
+				type: "string",
+				default: '"currentColor"',
+				description:
+					"Colour of the resting dots outside the lens. Resolved on the host, so it follows the theme.",
+			},
+			{
+				name: "paused",
+				type: "boolean",
+				default: "false",
+				description: "Freezes clouds, birds and lights; the lens still follows the pointer.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes on the host. Give it a height.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Copy rendered above the picture. Keep it in the top-left corner, which every scene leaves open.",
+			},
+		],
+	},
+
 	"mosaic-glow": {
 		name: "MosaicGlow",
 		slug: "mosaic-glow",

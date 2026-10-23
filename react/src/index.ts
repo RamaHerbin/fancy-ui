@@ -116,6 +116,7 @@ export * from "./components/number-ticker/index.js";
 export * from "./components/pagination/index.js";
 export * from "./components/password-input/index.js";
 export * from "./components/pixel-loader/index.js";
+export * from "./components/pixel-scene/index.js";
 export * from "./components/popover/index.js";
 export * from "./components/presence/index.js";
 export * from "./components/pressable/index.js";
