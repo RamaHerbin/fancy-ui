@@ -22,7 +22,7 @@ export interface ShimmerButtonProps {
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
 	/**
-	 * On a display that reports HDR, add a glint above SDR white to the
+	 * Beta, off by default. On a display that reports HDR, add a glint above SDR white to the
 	 * sweep and the hover spot, in a WebGPU layer with extended tone mapping.
 	 * Elsewhere nothing changes.
 	 */
@@ -49,7 +49,7 @@ const {
 	background = "rgba(0, 0, 0, 1)",
 	sound = false,
 	disabled = false,
-	hdr = true,
+	hdr = false,
 } = defineProps<ShimmerButtonProps>();
 const button = useTemplateRef<HTMLButtonElement>("button");
 

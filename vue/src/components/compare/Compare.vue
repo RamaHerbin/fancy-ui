@@ -93,7 +93,7 @@ export interface CompareProps {
 	/** @deprecated Use `@hover-leave` / `onHoverLeave`. Only called when `onHoverLeave` is absent. */
 	onhoverleave?: (() => void) | (() => void)[];
 	/**
-	 * On a display that reports HDR, add the seam's light above SDR white in
+	 * Beta, off by default. On a display that reports HDR, add the seam's light above SDR white in
 	 * a WebGPU layer with extended tone mapping: the core climbs toward
 	 * ~1000 nits as the beam lights up. Elsewhere nothing changes.
 	 */
@@ -129,7 +129,7 @@ const {
 	onPercentageChange,
 	onpercentagechange,
 	onDragStart,
-	hdr = true,
+	hdr = false,
 	ondragstart,
 	onDragEnd,
 	ondragend,

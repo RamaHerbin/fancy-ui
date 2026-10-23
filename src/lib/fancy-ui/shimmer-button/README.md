@@ -44,6 +44,6 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 - Disabled: 50% opacity, no sheen, `not-allowed` cursor.
 - Spreads `...restProps` for native button attributes; `onclick` is forwarded after the sound cue.
 
-## HDR
+## HDR (beta)
 
-The sweep and the hover spot are CSS, capped at SDR white. With `hdr` (on by default), `shimmer-button-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a thin glint above white that rides the sweep — its position is read every frame from the band's live, animated `background-position`, so the CSS timeline stays the single source of truth — and a soft glow at `--mx`/`--my` while hovered. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+The sweep and the hover spot are CSS, capped at SDR white. With `hdr` (beta, off by default — pass `hdr` to opt in), `shimmer-button-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a thin glint above white that rides the sweep — its position is read every frame from the band's live, animated `background-position`, so the CSS timeline stays the single source of truth — and a soft glow at `--mx`/`--my` while hovered. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

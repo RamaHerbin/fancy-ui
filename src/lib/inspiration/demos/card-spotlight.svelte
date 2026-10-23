@@ -12,7 +12,7 @@
 		gradientSize={values.gradientSize as number}
 		gradientColor={values.gradientColor as string}
 		gradientOpacity={values.gradientOpacity as number}
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 	>
 		<div class="flex h-full w-full flex-col justify-center p-6">
 			<h3 class="text-sm font-bold">Spotlight card</h3>

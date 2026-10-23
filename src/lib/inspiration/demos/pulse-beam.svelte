@@ -13,7 +13,7 @@
 		palette={values.palette as PulseBeamPalette}
 		variant={values.variant as PulseBeamVariant}
 		speed={values.speed as number}
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 		class="w-full max-w-[260px]"
 	>
 		<div class="bg-card rounded-[16px] p-3">

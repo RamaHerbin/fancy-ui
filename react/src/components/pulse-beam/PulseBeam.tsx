@@ -54,7 +54,7 @@ export interface PulseBeamProps extends HTMLAttributes<HTMLDivElement> {
 	/** Overall intensity, 0–1 */
 	strength?: number;
 	/**
-	 * On a display that reports HDR, add the beam's light above SDR white
+	 * Beta, off by default. On a display that reports HDR, add the beam's light above SDR white
 	 * where it crosses the ring, in a WebGPU layer with extended tone
 	 * mapping. Elsewhere nothing changes.
 	 */
@@ -93,7 +93,7 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 		palette = "colorful",
 		colors,
 		strength = 1,
-		hdr = true,
+		hdr = false,
 		radius = 16,
 		speed = 1,
 		tone = "dark",

@@ -23,7 +23,7 @@
 		 */
 		sound?: boolean;
 		/**
-		 * On a display that reports HDR, add a glint above SDR white to the
+		 * Beta, off by default. On a display that reports HDR, add a glint above SDR white to the
 		 * sweep and the hover spot, in a WebGPU layer with extended tone mapping.
 		 * Elsewhere nothing changes.
 		 */
@@ -60,7 +60,7 @@
 		onclick,
 		onpointermove,
 		sound = false,
-		hdr = true,
+		hdr = false,
 		...restProps
 	}: ShimmerButtonProps = $props();
 

@@ -51,9 +51,9 @@ const entry: FancyUIReference = {
 				],
 			},
 			{ key: "speed", type: "range", label: "Speed", min: 0.5, max: 2, step: 0.1 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { palette: "colorful", variant: "inner", speed: 1, hdr: true },
+		defaults: { palette: "colorful", variant: "inner", speed: 1, hdr: false },
 	},
 	capture: { delay: 2200 },
 };

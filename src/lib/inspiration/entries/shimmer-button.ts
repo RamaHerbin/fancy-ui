@@ -44,9 +44,9 @@ const entry: FancyUIReference = {
 					{ value: "5s", label: "5s" },
 				],
 			},
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { shimmerColor: "#ffffff", shimmerDuration: "3s", hdr: true },
+		defaults: { shimmerColor: "#ffffff", shimmerDuration: "3s", hdr: false },
 	},
 	capture: { hover: [0.56, 0.5], delay: 1400 },
 };

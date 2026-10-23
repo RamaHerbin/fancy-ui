@@ -14,7 +14,7 @@
 		secondImageAlt="Trail, after"
 		slideMode={values.slideMode as "hover" | "drag"}
 		initialSliderPercentage={values.initialSliderPercentage as number}
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 		class="h-full w-full"
 	/>
 	<HdrBadge />

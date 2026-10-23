@@ -506,9 +506,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, adds the seam's light above SDR white through a WebGPU layer with extended tone mapping: the core climbs toward ~1000 nits as the beam lights up; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, adds the seam's light above SDR white through a WebGPU layer with extended tone mapping: the core climbs toward ~1000 nits as the beam lights up; elsewhere nothing changes",
 			},
 			{
 				name: "firstImage",
@@ -1007,9 +1007,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, adds a glint above SDR white to the sweep and the hover spot through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, adds a glint above SDR white to the sweep and the hover spot through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
 			},
 			{
 				name: "shimmerColor",
@@ -2305,9 +2305,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, adds a hot core to the spotlight, in its own colour, through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, adds a hot core to the spotlight, in its own colour, through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
 			},
 			{
 				name: "slotClass",
@@ -3030,9 +3030,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, adds the beam's light above SDR white where it crosses the ring, through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, adds the beam's light above SDR white where it crosses the ring, through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
 			},
 			{
 				name: "active",

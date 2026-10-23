@@ -46,9 +46,9 @@ const entry: FancyUIReference = {
 				max: 100,
 				step: 5,
 			},
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { slideMode: "drag", initialSliderPercentage: 50, hdr: true },
+		defaults: { slideMode: "drag", initialSliderPercentage: 50, hdr: false },
 	},
 	capture: { hover: [0.62, 0.5] },
 };

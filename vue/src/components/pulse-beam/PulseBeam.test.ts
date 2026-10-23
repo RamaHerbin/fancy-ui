@@ -409,14 +409,15 @@ describe("PulseBeam", () => {
 			addListener: () => {},
 			removeListener: () => {},
 		}));
-		const on = render(PulseBeam);
+		const on = render(PulseBeam, { props: { hdr: true } });
 		await nextTick();
 		const canvas = on.container.querySelector("canvas");
 		expect(canvas).not.toBeNull();
 		// The light itself never starts without a real adapter: no flag.
 		expect(on.container.querySelector("[data-hdr]")).toBeNull();
 		cleanup();
-		const off = render(PulseBeam, { props: { hdr: false } });
+		// Beta: off by default, even where it could run.
+		const off = render(PulseBeam);
 		await nextTick();
 		expect(off.container.querySelector("canvas")).toBeNull();
 		vi.unstubAllGlobals();

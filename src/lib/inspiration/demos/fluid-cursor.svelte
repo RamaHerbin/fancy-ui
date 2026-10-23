@@ -35,7 +35,7 @@
 			splatRadius={values.splatRadius as number}
 			curl={values.curl as number}
 			colorIntensity={values.colorIntensity as number}
-			hdr={values.hdr !== false}
+			hdr={values.hdr === true}
 			onReady={(handle) => (hdrLive = handle.renderLevel === "webgpu-hdr")}
 		/>
 	{/key}

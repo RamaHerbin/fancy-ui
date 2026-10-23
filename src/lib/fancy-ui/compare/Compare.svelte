@@ -85,7 +85,7 @@
 		label?: string;
 		onpercentagechange?: (percentage: number) => void;
 		/**
-		 * On a display that reports HDR, add the seam's light above SDR white in
+		 * Beta, off by default. On a display that reports HDR, add the seam's light above SDR white in
 		 * a WebGPU layer with extended tone mapping: the core climbs toward
 		 * ~1000 nits as the beam lights up. Elsewhere nothing changes.
 		 */
@@ -115,7 +115,7 @@
 		beamColors,
 		label = "Comparison slider",
 		onpercentagechange,
-		hdr = true,
+		hdr = false,
 		ondragstart,
 		ondragend,
 		onhoverenter,

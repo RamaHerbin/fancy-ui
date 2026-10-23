@@ -10,7 +10,7 @@
 	<ShimmerButton
 		shimmerColor={values.shimmerColor as string}
 		shimmerDuration={values.shimmerDuration as string}
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 		class="text-sm font-medium"
 	>
 		Get early access

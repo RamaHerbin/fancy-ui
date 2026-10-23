@@ -29,14 +29,17 @@ describe("ShimmerButton HDR layer", () => {
 
 	it("renders the overlay canvas on a WebGPU, HDR-capable device", () => {
 		stubHdrCapable();
-		const { container } = render(<ShimmerButton />);
+		const { container } = render(<ShimmerButton hdr />);
 		const canvas = container.querySelector("canvas");
 		expect(canvas).not.toBeNull();
 		expect(canvas?.getAttribute("aria-hidden")).toBe("true");
 	});
 
-	it("never renders a canvas with hdr={false}", () => {
+	it("keeps HDR off by default, and never renders a canvas with hdr={false}", () => {
 		stubHdrCapable();
+		const byDefault = render(<ShimmerButton />);
+		expect(byDefault.container.querySelector("canvas")).toBeNull();
+		cleanup();
 		const { container } = render(<ShimmerButton hdr={false} />);
 		expect(container.querySelector("canvas")).toBeNull();
 	});

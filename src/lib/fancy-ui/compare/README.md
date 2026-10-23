@@ -103,6 +103,6 @@ A before/after image comparison slider split by a blade of light.
 - Replaced Nuxt Icon with inline SVG
 - Used Svelte 5 runes (`$state`, `$effect`, `$props`)
 
-## HDR
+## HDR (beta)
 
-The seam's CSS beam stops at SDR white. With `hdr` (on by default), `compare-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a full-height core on the seam that climbs toward ~1000 nits with the beam's energy, its two chromatic fringes, and a soft wash where the speed trail stretches. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+The seam's CSS beam stops at SDR white. With `hdr` (beta, off by default — pass `hdr` to opt in), `compare-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a full-height core on the seam that climbs toward ~1000 nits with the beam's energy, its two chromatic fringes, and a soft wash where the speed trail stretches. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

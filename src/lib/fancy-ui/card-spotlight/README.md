@@ -23,6 +23,6 @@ Card with a mouse-following radial gradient spotlight overlay that appears on ho
 </CardSpotlight>
 ```
 
-## HDR
+## HDR (beta)
 
-The CSS spotlight stops at SDR white. With `hdr` (on by default), `card-spotlight-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a soft core at the pointer in the spotlight's own colour, fading over the same ~300 ms as the CSS layer. The light scales the colour's energy, so the default dark grey stays dim while a vivid colour glows past white. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+The CSS spotlight stops at SDR white. With `hdr` (beta, off by default — pass `hdr` to opt in), `card-spotlight-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): a soft core at the pointer in the spotlight's own colour, fading over the same ~300 ms as the CSS layer. The light scales the colour's energy, so the default dark grey stays dim while a vivid colour glows past white. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

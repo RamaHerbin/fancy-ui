@@ -13,7 +13,7 @@ export interface CardSpotlightProps {
 	/** Opacity of the gradient overlay */
 	gradientOpacity?: number;
 	/**
-	 * On a display that reports HDR, add a hot core to the spotlight in a
+	 * Beta, off by default. On a display that reports HDR, add a hot core to the spotlight in a
 	 * WebGPU layer with extended tone mapping, brighter than SDR white.
 	 * Elsewhere nothing changes.
 	 */
@@ -35,7 +35,7 @@ const {
 	gradientSize = 200,
 	gradientColor = "#262626",
 	gradientOpacity = 0.8,
-	hdr = true,
+	hdr = false,
 } = defineProps<CardSpotlightProps>();
 
 defineSlots<{ default?(): unknown }>();

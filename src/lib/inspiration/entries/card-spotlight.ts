@@ -33,9 +33,9 @@ const entry: FancyUIReference = {
 			{ key: "gradientSize", type: "range", label: "Size", min: 80, max: 500, step: 10 },
 			{ key: "gradientColor", type: "color", label: "Colour" },
 			{ key: "gradientOpacity", type: "range", label: "Opacity", min: 0, max: 1, step: 0.05 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { gradientSize: 200, gradientColor: "#4b4b63", gradientOpacity: 0.8, hdr: true },
+		defaults: { gradientSize: 200, gradientColor: "#4b4b63", gradientOpacity: 0.8, hdr: false },
 	},
 	capture: { hover: [0.42, 0.4], delay: 1200 },
 };
