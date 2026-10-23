@@ -10,7 +10,7 @@ Animated UI components for **Vue 3.5+**, styled with Tailwind CSS v4 &mdash; the
 ![Vue](https://img.shields.io/badge/Vue-3.5+-42B883?logo=vuedotjs&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-154-8B5CF6)
+![Components](https://img.shields.io/badge/Components-155-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,10 +40,10 @@ Animated UI components for **Vue 3.5+**, styled with Tailwind CSS v4 &mdash; the
 
 ## Features
 
-- **154 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **155 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic Vue 3.5** &mdash; `<script setup>` single-file components, reactive props destructuring, `defineModel` for every bindable (`v-model:<name>`), snippets as named and scoped slots, `defineExpose` wherever the Svelte source exposes a `ref`; every other prop keeps its Svelte name
-- **Same components, three frameworks** &mdash; All 154 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-react`](https://github.com/RamaHerbin/fancy-ui/tree/main/react#readme) the React edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 155 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-react`](https://github.com/RamaHerbin/fancy-ui/tree/main/react#readme) the React edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, clean hydration under Nuxt, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` composables; silent until the user turns it on

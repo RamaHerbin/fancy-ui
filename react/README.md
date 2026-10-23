@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-154-8B5CF6)
+![Components](https://img.shields.io/badge/Components-155-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **154 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **155 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 154 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 155 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -413,6 +413,8 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **pagination**: Pagination: `previousLabel`/`nextLabel` snippets become `ReactNode` props; the nav element is exposed via `forwardRef` instead of `bind:ref`.
 - **pagination**: Svelte's `animate:flip` + `in:fade` on the page items become a hand-rolled FLIP in a layout effect (Web Animations API, 300ms with the library's out curve; new items fade in over 150ms after a 60ms delay; skipped on first commit, under reduced motion, or where `Element.animate` is missing). An interrupted glide continues from the item's live position.
 - **pagination**: Arming the slide and placing the pill run in one isomorphic layout effect (not an `$effect` plus `tick()`); same visible behaviour.
+- **pixel-scene**: `class` → `className` (PORTING.md).
+- **pixel-scene**: The Svelte `ref = $bindable(null)` becomes a forwarded ref; the engine, the four scenes and the HDR layer live in the shared `pixel-scene-core.ts`, `pixel-scene-scenes.ts` and `pixel-scene-hdr.ts`, byte-identical to the Svelte copies.
 - **prompt-suggestions**: Svelte $effect.pre (pre-flush) mapped to useLayoutEffect (closest React equivalent for pre-paint DOM updates); no functional difference observed in tests.
 - **prompt-suggestions**: Svelte 'item' prop was a Snippet<[string,number]>; ported as item?: (suggestion, index) => ReactNode, per PORTING.md snippet->ReactNode rule.
 - **prompt-suggestions**: class prop renamed to className per PORTING.md convention.
