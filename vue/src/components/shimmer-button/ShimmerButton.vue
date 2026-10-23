@@ -31,11 +31,11 @@ export interface ShimmerButtonProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { createShimmerProbe } from "./shimmer-button-hdr.js";
 
 defineOptions({ name: "ShimmerButton", inheritAttrs: false });
@@ -64,11 +64,16 @@ defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const sheen = useTemplateRef<HTMLSpanElement>("sheen");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
@@ -127,7 +132,7 @@ function handlePointerMove(event: PointerEvent) {
 		:class="
 			cn(
 				'shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90',
-				'transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]',
+				'transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]',
 				className
 			)
 		"

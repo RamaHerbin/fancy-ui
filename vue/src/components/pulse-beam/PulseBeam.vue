@@ -67,7 +67,7 @@ import {
 	motionPreset,
 } from "./pulse-beam-data.js";
 import { registerPulse } from "./pulse-beam-loop.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 
 defineOptions({ name: "PulseBeam", inheritAttrs: false });
@@ -126,11 +126,16 @@ const monoFactor = computed(() => (isMono.value ? 0.5 : 1));
 const motion = computed(() => motionPreset(variant, tone, speed));
 const oscillators = computed(() => buildOscillators(motion.value));
 const hueEnabled = computed(() => hueShift && !isMono.value);
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const strokeEl = useTemplateRef<HTMLDivElement>("strokeEl");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");

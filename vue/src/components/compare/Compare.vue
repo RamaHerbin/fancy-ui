@@ -105,7 +105,7 @@ export interface CompareProps {
 import { callListener } from "../../internals/call-listener.js";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { createCompareProbe } from "./compare-hdr.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
 
@@ -163,11 +163,16 @@ let lastPx: number | null = null;
 
 const palette = computed(() => beamPalette(beamColors));
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 watch(

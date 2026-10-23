@@ -3,6 +3,26 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import { nextTick } from "vue";
 import CardSpotlight from "./CardSpotlight.vue";
 
+function stubSwitchableDisplay() {
+	let high = false;
+	const listeners = new Set<(e: { matches: boolean }) => void>();
+	vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		get matches() {
+			return query === "(dynamic-range: high)" && high;
+		},
+		media: query,
+		addEventListener: (_: string, fn: (e: { matches: boolean }) => void) => listeners.add(fn),
+		removeEventListener: (_: string, fn: (e: { matches: boolean }) => void) => listeners.delete(fn),
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+	return (next: boolean) => {
+		high = next;
+		listeners.forEach((fn) => fn({ matches: next }));
+	};
+}
+
 describe("CardSpotlight", () => {
 	afterEach(cleanup);
 
@@ -77,6 +97,20 @@ describe("CardSpotlight", () => {
 		const off = render(CardSpotlight);
 		await nextTick();
 		expect(off.container.querySelector("canvas")).toBeNull();
+		vi.unstubAllGlobals();
+	});
+	it("adds and drops the canvas as the window moves between SDR and HDR displays", async () => {
+		const setHdr = stubSwitchableDisplay();
+		const { container } = render(CardSpotlight, { props: { hdr: true } });
+		await nextTick();
+		expect(container.querySelector("canvas")).toBeNull();
+		setHdr(true);
+		await nextTick();
+		expect(container.querySelector("canvas")).not.toBeNull();
+		setHdr(false);
+		await nextTick();
+		expect(container.querySelector("canvas")).toBeNull();
+		cleanup();
 		vi.unstubAllGlobals();
 	});
 });

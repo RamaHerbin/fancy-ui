@@ -49,4 +49,28 @@ describe("pulse-beam-hdr", () => {
 		stroke.style.opacity = "0";
 		expect(probe({ width: 300, height: 120, now: 32, peak: 4.9 })).toHaveLength(0);
 	});
+
+	it("scales the lit stretch with the outside variant's box factors", () => {
+		const { host, stroke } = mount("1");
+		const blobs = strokeLights("inner", "colorful").slice(0, 1); // top edge
+		const probe = createPulseBeamProbe(host, stroke, () => ({ blobs }));
+		const before = probe({ width: 300, height: 120, now: 0, peak: 4.9 })[0]!;
+		host.style.setProperty("--pb-sx", "2");
+		const after = probe({ width: 300, height: 120, now: 16, peak: 4.9 })[0]!;
+		expect(after.x1 - after.x0).toBeCloseTo((before.x1 - before.x0) * 2, 5);
+	});
+
+	it("hands the layer's live colour filter to each light", () => {
+		const { host, stroke } = mount("1");
+		const blobs = strokeLights("inner", "colorful").slice(0, 1);
+		const probe = createPulseBeamProbe(host, stroke, () => ({ blobs }));
+		const plain = probe({ width: 300, height: 120, now: 0, peak: 4.9 })[0]!;
+		expect(plain).toMatchObject({ hue: 0, brightness: 1, saturation: 1 });
+		host.style.setProperty("--pb-hue", "137.50deg");
+		host.style.setProperty("--pb-brightness", "1.3");
+		host.style.setProperty("--pb-saturation", "0.75");
+		const filtered = probe({ width: 300, height: 120, now: 16, peak: 4.9 })[0]!;
+		expect(filtered).toMatchObject({ hue: 137.5, brightness: 1.3, saturation: 0.75 });
+		expect(filtered.color).toBe(blobs[0]!.color);
+	});
 });

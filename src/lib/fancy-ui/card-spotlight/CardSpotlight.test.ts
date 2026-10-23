@@ -1,10 +1,30 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { createRawSnippet, flushSync } from "svelte";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import CardSpotlight from "./CardSpotlight.svelte";
 
 function textSnippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
+}
+
+function stubSwitchableDisplay() {
+	let high = false;
+	const listeners = new Set<(e: { matches: boolean }) => void>();
+	vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		get matches() {
+			return query === "(dynamic-range: high)" && high;
+		},
+		media: query,
+		addEventListener: (_: string, fn: (e: { matches: boolean }) => void) => listeners.add(fn),
+		removeEventListener: (_: string, fn: (e: { matches: boolean }) => void) => listeners.delete(fn),
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+	return (next: boolean) => {
+		high = next;
+		listeners.forEach((fn) => fn({ matches: next }));
+	};
 }
 
 describe("CardSpotlight", () => {
@@ -64,5 +84,20 @@ describe("CardSpotlight", () => {
 
 		// The awaits above would reject if either handler threw.
 		expect(container.querySelector(".pointer-events-none.absolute.inset-0")).toBeTruthy();
+	});
+
+	it("adds and drops the HDR canvas as the window moves between SDR and HDR displays", () => {
+		const setHdr = stubSwitchableDisplay();
+		const { container } = render(CardSpotlight, { props: { hdr: true } });
+		flushSync();
+		expect(container.querySelector("canvas")).toBeNull();
+		setHdr(true);
+		flushSync();
+		expect(container.querySelector("canvas")).not.toBeNull();
+		setHdr(false);
+		flushSync();
+		expect(container.querySelector("canvas")).toBeNull();
+		cleanup();
+		vi.unstubAllGlobals();
 	});
 });

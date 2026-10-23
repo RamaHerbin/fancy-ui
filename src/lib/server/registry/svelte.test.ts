@@ -427,5 +427,13 @@ describe("what a clean consumer app needs from the CLI flow", () => {
 		expect(real.items["line-reveal"].dependencies).toEqual(["@chenglou/pretext@^0.0.5"]);
 		expect(real.items["fluid-cursor"].devDependencies).toContain("@webgpu/types@^0.1.71");
 		expect(real.items["fireworks-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+		expect(real.items["internals-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+	}, 60_000);
+
+	it("installs the WebGPU typings with the HDR light helper in every stack", async () => {
+		const { registryOutput, vueRegistryOutput } = await import("./sources.js");
+		for (const out of [registryOutput(), vueRegistryOutput()]) {
+			expect(out.items["internals-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+		}
 	}, 60_000);
 });

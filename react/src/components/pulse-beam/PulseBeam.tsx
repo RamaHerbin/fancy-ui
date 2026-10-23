@@ -12,7 +12,7 @@ import {
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { cn } from "../../utils.js";
 import {
 	LAYER_PRESETS,
@@ -129,10 +129,11 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 	const [hostNode, hostNodeRef] = useElementRef<HTMLDivElement>();
 	const [strokeEl, strokeElRef] = useElementRef<HTMLDivElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
-	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
 	const [hdrCapable, setHdrCapable] = useState(false);
 	useEffect(() => {
-		setHdrCapable(hdrLightAvailable());
+		return watchHdrLight(setHdrCapable);
 	}, []);
 	const setHostRef = useComposedRefs<HTMLDivElement>(forwardedRef, hostRef, hostNodeRef);
 

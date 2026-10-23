@@ -4,7 +4,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { cn } from "../../utils.js";
 import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
@@ -47,10 +47,11 @@ export function CardSpotlight({
 	// the card and re-running its class merges.
 	const pointerRef = useRef({ x: restingX, y: restingY });
 	const hoveringRef = useRef(false);
-	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
 	const [hdrCapable, setHdrCapable] = useState(false);
 	useEffect(() => {
-		setHdrCapable(hdrLightAvailable());
+		return watchHdrLight(setHdrCapable);
 	}, []);
 
 	const [host, hostRef] = useElementRef<HTMLDivElement>();

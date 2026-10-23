@@ -20,7 +20,7 @@ import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import { createCompareProbe } from "./compare-hdr.js";
@@ -149,10 +149,11 @@ export function Compare({
 	const [sliderEl, sliderElRef] = useElementRef<HTMLDivElement>();
 	const composedSliderRef = useComposedRefs<HTMLDivElement>(sliderRef, sliderElRef);
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
-	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	// The canvas exists only where the light can run; SSR and SDR devices render none,
+	// and it follows the window between SDR and HDR monitors.
 	const [hdrCapable, setHdrCapable] = useState(false);
 	useEffect(() => {
-		setHdrCapable(hdrLightAvailable());
+		return watchHdrLight(setHdrCapable);
 	}, []);
 	// Each piece of state the markup reads is mirrored in a ref: the rAF loops
 	// (autoplay, glide, beam) are long-lived closures and must see live values,

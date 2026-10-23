@@ -12,7 +12,7 @@ import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { createShimmerProbe } from "./shimmer-button-hdr.js";
 import "./shimmer-button.css";
 
@@ -78,10 +78,11 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 		const [button, buttonRef] = useElementRef<HTMLButtonElement>();
 		const [sheen, sheenRef] = useElementRef<HTMLSpanElement>();
 		const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
-		// The canvas exists only where the light can run; SSR and SDR devices render none.
+		// The canvas exists only where the light can run; SSR and SDR devices render none,
+		// and it follows the window between SDR and HDR monitors.
 		const [hdrCapable, setHdrCapable] = useState(false);
 		useEffect(() => {
-			setHdrCapable(hdrLightAvailable());
+			return watchHdrLight(setHdrCapable);
 		}, []);
 		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 		// off (and never the default click → press, which `handleClick` already plays).
@@ -121,7 +122,7 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 				ref={composedRef}
 				className={cn(
 					"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
-					"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
+					"transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]",
 					className
 				)}
 				style={styleVars}

@@ -22,9 +22,9 @@ export interface CardSpotlightProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, watchHdrLight } from "../../internals/hdr/hdr-light.js";
 import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
 defineOptions({ name: "CardSpotlight", inheritAttrs: false });
@@ -51,11 +51,16 @@ function handleMouseMove(e: MouseEvent) {
 	mouseY.value = e.clientY - rect.top;
 }
 
-/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+/**
+ * The overlay exists only where WebGPU and an HDR display do: never on the
+ * server, and it follows the window between SDR and HDR monitors.
+ */
 const hdrCapable = ref(false);
+let stopHdrWatch = (): void => {};
 onMounted(() => {
-	hdrCapable.value = hdrLightAvailable();
+	stopHdrWatch = watchHdrLight((available) => (hdrCapable.value = available));
 });
+onBeforeUnmount(() => stopHdrWatch());
 
 let hovering = false;
 const host = useTemplateRef<HTMLDivElement>("host");

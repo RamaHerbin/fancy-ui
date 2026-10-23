@@ -68,7 +68,7 @@
 		motionPreset,
 	} from "./pulse-beam-data.js";
 	import { registerPulse } from "./pulse-beam-loop.js";
-	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
 	import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 
 	let {
@@ -118,10 +118,11 @@
 	const hueEnabled = $derived(hueShift && !isMono);
 	let strokeEl: HTMLDivElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
-	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
 	let hdrCapable = $state(false);
 	$effect(() => {
-		hdrCapable = hdrLightAvailable();
+		return watchHdrLight((available) => (hdrCapable = available));
 	});
 	const hdrBlobs = $derived(strokeLights(variant, palette, colors));
 	$effect(() => {

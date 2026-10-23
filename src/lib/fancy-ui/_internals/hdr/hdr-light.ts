@@ -1,3 +1,4 @@
+/// <reference types="@webgpu/types" />
 /**
  * HDR light layer — framework-free, byte-identical in the Svelte, React and
  * Vue trees (see shared-cores.json).
@@ -30,8 +31,19 @@ export interface HdrLightSpec {
 	halo: number;
 	/** Linear-light multiplier on the colour: 1 = SDR white level. */
 	intensity: number;
-	/** Any CSS colour the browser understands. Default: the layer's accent. */
+	/**
+	 * Any CSS colour the browser understands. Default: the layer's accent. Its
+	 * alpha scales the light, so a mostly transparent glow stays a faint light.
+	 */
 	color?: string;
+	/**
+	 * The CSS `filter` the component draws its own colour through, mirrored so
+	 * the light stays the colour the eye sees: `hue-rotate` in degrees, then
+	 * `brightness`, then `saturate`, each as the CSS function takes it.
+	 */
+	hue?: number;
+	brightness?: number;
+	saturation?: number;
 	/** Mix toward white at the core, 0..1. */
 	white?: number;
 }
@@ -129,16 +141,22 @@ fn fs(in: Out) -> @location(0) vec4f {
 }
 `;
 
-function srgbToLinear(c: number): number {
-	const s = c / 255;
+function srgbToLinear(s: number): number {
 	return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
 }
 
-const colourCache = new Map<string, [number, number, number]>();
+function clamp01(v: number): number {
+	return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+/** sRGB channels and alpha, each 0..1. */
+export type CssRgba = [number, number, number, number];
+
+const colourCache = new Map<string, CssRgba>();
 let colourCtx: CanvasRenderingContext2D | null = null;
 
-/** Resolves any CSS colour to linear-light RGB (cached). Null on the server. */
-export function linearColor(css: string): [number, number, number] | null {
+/** Resolves any CSS colour to sRGB channels + alpha (cached). Null on the server. */
+export function cssColor(css: string): CssRgba | null {
 	const hit = colourCache.get(css);
 	if (hit) return hit;
 	if (typeof document === "undefined") return null;
@@ -151,13 +169,61 @@ export function linearColor(css: string): [number, number, number] | null {
 	colourCtx.fillStyle = css;
 	colourCtx.fillRect(0, 0, 1, 1);
 	const px = colourCtx.getImageData(0, 0, 1, 1).data;
-	const out: [number, number, number] = [
-		srgbToLinear(px[0] ?? 0),
-		srgbToLinear(px[1] ?? 0),
-		srgbToLinear(px[2] ?? 0),
+	const out: CssRgba = [
+		(px[0] ?? 0) / 255,
+		(px[1] ?? 0) / 255,
+		(px[2] ?? 0) / 255,
+		(px[3] ?? 0) / 255,
 	];
 	colourCache.set(css, out);
 	return out;
+}
+
+/**
+ * The light's linear-light RGB: the colour pushed through the same
+ * `hue-rotate() brightness() saturate()` the component's CSS applies — the
+ * matrices of the CSS filter functions on sRGB, each step clamped as the
+ * browser clamps it — then linearised for the shader.
+ */
+function lightColor(c: CssRgba, l: HdrLightSpec): [number, number, number] {
+	let r = c[0];
+	let g = c[1];
+	let b = c[2];
+	if (l.hue) {
+		const a = (l.hue * Math.PI) / 180;
+		const cos = Math.cos(a);
+		const sin = Math.sin(a);
+		const r2 =
+			(0.213 + cos * 0.787 - sin * 0.213) * r +
+			(0.715 - cos * 0.715 - sin * 0.715) * g +
+			(0.072 - cos * 0.072 + sin * 0.928) * b;
+		const g2 =
+			(0.213 - cos * 0.213 + sin * 0.143) * r +
+			(0.715 + cos * 0.285 + sin * 0.14) * g +
+			(0.072 - cos * 0.072 - sin * 0.283) * b;
+		const b2 =
+			(0.213 - cos * 0.213 - sin * 0.787) * r +
+			(0.715 - cos * 0.715 + sin * 0.715) * g +
+			(0.072 + cos * 0.928 + sin * 0.072) * b;
+		r = clamp01(r2);
+		g = clamp01(g2);
+		b = clamp01(b2);
+	}
+	if (l.brightness !== undefined && l.brightness !== 1) {
+		r = clamp01(r * l.brightness);
+		g = clamp01(g * l.brightness);
+		b = clamp01(b * l.brightness);
+	}
+	if (l.saturation !== undefined && l.saturation !== 1) {
+		const s = l.saturation;
+		const r2 = (0.213 + 0.787 * s) * r + (0.715 - 0.715 * s) * g + (0.072 - 0.072 * s) * b;
+		const g2 = (0.213 - 0.213 * s) * r + (0.715 + 0.285 * s) * g + (0.072 - 0.072 * s) * b;
+		const b2 = (0.213 - 0.213 * s) * r + (0.715 - 0.715 * s) * g + (0.072 + 0.928 * s) * b;
+		r = clamp01(r2);
+		g = clamp01(g2);
+		b = clamp01(b2);
+	}
+	return [srgbToLinear(r), srgbToLinear(g), srgbToLinear(b)];
 }
 
 /**
@@ -168,6 +234,20 @@ export function linearColor(css: string): [number, number, number] | null {
  */
 export function hdrLightAvailable(): boolean {
 	return typeof navigator !== "undefined" && "gpu" in navigator && hdrDisplay();
+}
+
+/**
+ * {@link hdrLightAvailable}, kept current: calls `onChange` now and again
+ * whenever the window moves between an SDR and an HDR display. Returns the
+ * unsubscribe function. A no-op (reporting false once) on the server.
+ */
+export function watchHdrLight(onChange: (available: boolean) => void): () => void {
+	onChange(hdrLightAvailable());
+	if (typeof window === "undefined" || typeof window.matchMedia !== "function") return () => {};
+	const range = window.matchMedia(HDR_QUERY);
+	const update = (): void => onChange(hdrLightAvailable());
+	range.addEventListener?.("change", update);
+	return () => range.removeEventListener?.("change", update);
 }
 
 // ---------------------------------------------------------------------------
@@ -182,11 +262,13 @@ interface SharedGpu {
 
 let shared: Promise<SharedGpu | null> | null = null;
 
+const HDR_QUERY = "(dynamic-range: high)";
+
 function hdrDisplay(): boolean {
 	return (
 		typeof window !== "undefined" &&
 		typeof window.matchMedia === "function" &&
-		window.matchMedia("(dynamic-range: high)").matches
+		window.matchMedia(HDR_QUERY).matches
 	);
 }
 
@@ -253,169 +335,207 @@ function getShared(): Promise<SharedGpu | null> {
 /**
  * Starts the HDR light for one component. Returns a detach function; call it on
  * unmount. Safe to call anywhere: it resolves to a no-op off HDR displays, on
- * the server, and without WebGPU.
+ * the server, and without WebGPU. The layer follows the display — it lights up
+ * when the window reaches an HDR monitor and goes dark when it leaves one —
+ * and comes back on a fresh device after GPU loss.
  */
 export function attachHdrLight(options: AttachHdrLightOptions): () => void {
 	const { host, canvas, probe } = options;
 	const pad = options.pad ?? HDR_PAD;
 	let detached = false;
+	let live = false;
+	// Bumped by every start and halt: a device that resolves, or is lost, after
+	// the layer was halted finds another value and does nothing.
+	let session = 0;
 	let stop: (() => void) | null = null;
 
-	if (typeof window === "undefined" || !hdrDisplay()) return () => {};
+	if (typeof window === "undefined") return () => {};
 
-	void getShared().then((gpu) => {
-		if (!gpu || detached) return;
-		const { device, pipeline } = gpu;
-		let context: GPUCanvasContext | null = null;
-		try {
-			context = canvas.getContext("webgpu");
-			if (!context) return;
-			context.configure({
-				device,
-				format: FORMAT,
-				alphaMode: "premultiplied",
-				colorSpace: "display-p3",
-				toneMapping: { mode: "extended" },
-			} as GPUCanvasConfiguration);
-			const applied = context.getConfiguration?.() as
-				| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
-				| null;
-			if (applied?.toneMapping?.mode !== "extended") {
-				context.unconfigure();
+	function halt(): void {
+		session++;
+		live = false;
+		stop?.();
+		stop = null;
+	}
+
+	function start(): void {
+		if (detached || live) return;
+		live = true;
+		const mine = ++session;
+		void getShared().then((gpu) => {
+			if (!gpu || mine !== session) return;
+			const { device, pipeline } = gpu;
+			let context: GPUCanvasContext | null = null;
+			try {
+				context = canvas.getContext("webgpu");
+				if (!context) return;
+				context.configure({
+					device,
+					format: FORMAT,
+					alphaMode: "premultiplied",
+					colorSpace: "display-p3",
+					toneMapping: { mode: "extended" },
+				} as GPUCanvasConfiguration);
+				const applied = context.getConfiguration?.() as
+					| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
+					| null;
+				if (applied?.toneMapping?.mode !== "extended") {
+					context.unconfigure();
+					return;
+				}
+			} catch {
 				return;
 			}
-		} catch {
-			return;
-		}
-		const ctx = context;
+			const ctx = context;
 
-		const uniform = device.createBuffer({
-			size: 16,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-		});
-		const instances = device.createBuffer({
-			size: MAX_LIGHTS * FLOATS_PER_LIGHT * 4,
-			usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-		});
-		const bindGroup = device.createBindGroup({
-			layout: pipeline.getBindGroupLayout(0),
-			entries: [{ binding: 0, resource: { buffer: uniform } }],
-		});
-		const data = new Float32Array(MAX_LIGHTS * FLOATS_PER_LIGHT);
-		const fallback = linearColor(options.accent ?? getComputedStyle(canvas).color) ?? [1, 1, 1];
-
-		let width = 0;
-		let height = 0;
-		function size(): void {
-			width = host.offsetWidth;
-			height = host.offsetHeight;
-			const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
-			const cw = width + pad * 2;
-			const ch = height + pad * 2;
-			canvas.width = Math.max(1, Math.round(cw * dpr));
-			canvas.height = Math.max(1, Math.round(ch * dpr));
-			device.queue.writeBuffer(uniform, 0, new Float32Array([cw, ch, pad, pad]));
-		}
-		size();
-
-		let visible = true;
-		let frame = 0;
-		let drewEmpty = false;
-
-		function draw(now: number): void {
-			let lights: HdrLightSpec[];
-			try {
-				lights = probe({ width, height, now, peak: HDR_PEAK });
-			} catch {
-				lights = [];
-			}
-			const n = Math.min(lights.length, MAX_LIGHTS);
-			if (n === 0 && drewEmpty) return;
-			drewEmpty = n === 0;
-			for (let i = 0; i < n; i++) {
-				const l = lights[i];
-				if (!l) continue;
-				const c = (l.color ? linearColor(l.color) : null) ?? fallback;
-				data.set(
-					[
-						l.x0,
-						l.y0,
-						l.x1,
-						l.y1,
-						l.radius,
-						l.halo,
-						l.intensity,
-						l.white ?? 0,
-						c[0],
-						c[1],
-						c[2],
-						0,
-					],
-					i * FLOATS_PER_LIGHT
-				);
-			}
-			if (n) device.queue.writeBuffer(instances, 0, data, 0, n * FLOATS_PER_LIGHT);
-			const encoder = device.createCommandEncoder();
-			const pass = encoder.beginRenderPass({
-				colorAttachments: [
-					{
-						view: ctx.getCurrentTexture().createView(),
-						clearValue: { r: 0, g: 0, b: 0, a: 0 },
-						loadOp: "clear",
-						storeOp: "store",
-					},
-				],
+			const uniform = device.createBuffer({
+				size: 16,
+				usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 			});
-			if (n) {
-				pass.setPipeline(pipeline);
-				pass.setBindGroup(0, bindGroup);
-				pass.setVertexBuffer(0, instances);
-				pass.draw(6, n);
-			}
-			pass.end();
-			device.queue.submit([encoder.finish()]);
-		}
+			const instances = device.createBuffer({
+				size: MAX_LIGHTS * FLOATS_PER_LIGHT * 4,
+				usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+			});
+			const bindGroup = device.createBindGroup({
+				layout: pipeline.getBindGroupLayout(0),
+				entries: [{ binding: 0, resource: { buffer: uniform } }],
+			});
+			const data = new Float32Array(MAX_LIGHTS * FLOATS_PER_LIGHT);
+			const fallback: CssRgba = cssColor(options.accent ?? getComputedStyle(canvas).color) ?? [
+				1, 1, 1, 1,
+			];
 
-		function loop(): void {
-			frame = 0;
-			if (detached || !visible) return;
-			draw(performance.now());
+			let width = 0;
+			let height = 0;
+			function size(): void {
+				width = host.offsetWidth;
+				height = host.offsetHeight;
+				const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+				const cw = width + pad * 2;
+				const ch = height + pad * 2;
+				canvas.width = Math.max(1, Math.round(cw * dpr));
+				canvas.height = Math.max(1, Math.round(ch * dpr));
+				device.queue.writeBuffer(uniform, 0, new Float32Array([cw, ch, pad, pad]));
+			}
+			size();
+
+			let visible = true;
+			let frame = 0;
+			let drewEmpty = false;
+
+			function draw(now: number): void {
+				let lights: HdrLightSpec[];
+				try {
+					lights = probe({ width, height, now, peak: HDR_PEAK });
+				} catch {
+					lights = [];
+				}
+				const n = Math.min(lights.length, MAX_LIGHTS);
+				if (n === 0 && drewEmpty) return;
+				drewEmpty = n === 0;
+				for (let i = 0; i < n; i++) {
+					const l = lights[i];
+					if (!l) continue;
+					const c = (l.color ? cssColor(l.color) : null) ?? fallback;
+					const rgb = lightColor(c, l);
+					data.set(
+						[
+							l.x0,
+							l.y0,
+							l.x1,
+							l.y1,
+							l.radius,
+							l.halo,
+							l.intensity * c[3],
+							l.white ?? 0,
+							rgb[0],
+							rgb[1],
+							rgb[2],
+							0,
+						],
+						i * FLOATS_PER_LIGHT
+					);
+				}
+				if (n) device.queue.writeBuffer(instances, 0, data, 0, n * FLOATS_PER_LIGHT);
+				const encoder = device.createCommandEncoder();
+				const pass = encoder.beginRenderPass({
+					colorAttachments: [
+						{
+							view: ctx.getCurrentTexture().createView(),
+							clearValue: { r: 0, g: 0, b: 0, a: 0 },
+							loadOp: "clear",
+							storeOp: "store",
+						},
+					],
+				});
+				if (n) {
+					pass.setPipeline(pipeline);
+					pass.setBindGroup(0, bindGroup);
+					pass.setVertexBuffer(0, instances);
+					pass.draw(6, n);
+				}
+				pass.end();
+				device.queue.submit([encoder.finish()]);
+			}
+
+			function loop(): void {
+				frame = 0;
+				if (detached || !visible) return;
+				draw(performance.now());
+				frame = requestAnimationFrame(loop);
+			}
+
+			const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => size()) : null;
+			ro?.observe(host);
+			const io =
+				typeof IntersectionObserver !== "undefined"
+					? new IntersectionObserver(([entry]) => {
+							visible = entry?.isIntersecting ?? true;
+							if (visible && !frame) frame = requestAnimationFrame(loop);
+						})
+					: null;
+			io?.observe(host);
+
+			host.setAttribute("data-hdr", "");
 			frame = requestAnimationFrame(loop);
-		}
 
-		const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => size()) : null;
-		ro?.observe(host);
-		const io =
-			typeof IntersectionObserver !== "undefined"
-				? new IntersectionObserver(([entry]) => {
-						visible = entry?.isIntersecting ?? true;
-						if (visible && !frame) frame = requestAnimationFrame(loop);
-					})
-				: null;
-		io?.observe(host);
+			stop = () => {
+				if (frame) cancelAnimationFrame(frame);
+				frame = 0;
+				ro?.disconnect();
+				io?.disconnect();
+				host.removeAttribute("data-hdr");
+				try {
+					ctx.unconfigure();
+				} catch {
+					// already gone
+				}
+				uniform.destroy();
+				instances.destroy();
+			};
 
-		host.setAttribute("data-hdr", "");
-		frame = requestAnimationFrame(loop);
+			// The GPU went away (reset, suspend, driver update): this layer's device
+			// and pipeline are dead, so drop them and ask again — `getShared` has
+			// already forgotten the lost device and will request a new one.
+			void device.lost.then(() => {
+				if (mine !== session) return;
+				halt();
+				start();
+			});
+		});
+	}
 
-		stop = () => {
-			if (frame) cancelAnimationFrame(frame);
-			frame = 0;
-			ro?.disconnect();
-			io?.disconnect();
-			host.removeAttribute("data-hdr");
-			try {
-				ctx.unconfigure();
-			} catch {
-				// already gone
-			}
-			uniform.destroy();
-			instances.destroy();
-		};
-	});
+	// Follow the display rather than freeze the answer at mount: a window
+	// dragged onto an HDR monitor lights up, one dragged back to SDR goes dark
+	// and releases its GPU resources.
+	const range = typeof window.matchMedia === "function" ? window.matchMedia(HDR_QUERY) : null;
+	const onRange = (e: MediaQueryListEvent): void => (e.matches ? start() : halt());
+	range?.addEventListener("change", onRange);
+	if (range?.matches) start();
 
 	return () => {
 		detached = true;
-		stop?.();
-		stop = null;
+		range?.removeEventListener("change", onRange);
+		halt();
 	};
 }

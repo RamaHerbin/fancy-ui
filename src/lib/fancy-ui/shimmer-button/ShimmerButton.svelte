@@ -37,16 +37,17 @@
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { soundFeedback } from "../sound/sound-feedback.js";
-	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, watchHdrLight } from "../_internals/hdr/hdr-light.js";
 	import { createShimmerProbe } from "./shimmer-button-hdr.js";
 
 	let button: HTMLButtonElement | undefined = $state();
 	let sheen: HTMLSpanElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
-	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	// Rendered only while the device can use it: no extra DOM on SDR displays,
+	// and it follows the window between SDR and HDR monitors.
 	let hdrCapable = $state(false);
 	$effect(() => {
-		hdrCapable = hdrLightAvailable();
+		return watchHdrLight((available) => (hdrCapable = available));
 	});
 
 	let {
@@ -105,7 +106,7 @@
 	bind:this={button}
 	class={cn(
 		"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
-		"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
+		"transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]",
 		className
 	)}
 	style={styleVars}

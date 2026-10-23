@@ -24,6 +24,9 @@ export interface Light {
 	halo: number;
 	intensity: number;
 	color?: string;
+	hue?: number;
+	brightness?: number;
+	saturation?: number;
 	white?: number;
 }
 
@@ -57,12 +60,21 @@ export function createPulseBeamProbe(
 		if (level <= 0.01) return [];
 		const style = host.style;
 		const gh = num(style, "--pb-gh", 1);
+		// The outside variant scales its blobs with the box (set by the host's
+		// resize observer); every other variant leaves these unset.
+		const sx = num(style, "--pb-sx", 1);
+		const sy = num(style, "--pb-sy", 1);
+		// The layers are drawn through `hue-rotate() brightness() saturate()`;
+		// the light goes through the same filter or the two colours drift apart.
+		const hue = num(style, "--pb-hue", 0);
+		const brightness = num(style, "--pb-brightness", 1);
+		const saturation = num(style, "--pb-saturation", 1);
 		const lights: Light[] = [];
 		for (const b of blobs) {
 			const cx = b.fx * width + num(style, `--pb-bx${b.region}`, 0);
 			const cy = b.fy * height + num(style, `--pb-by${b.region}`, 0);
-			const w = b.w * num(style, `--pb-bw${b.region}`, 1);
-			const h = b.h * num(style, `--pb-bh${b.region}`, 1) * gh;
+			const w = b.w * num(style, `--pb-bw${b.region}`, 1) * sx;
+			const h = b.h * num(style, `--pb-bh${b.region}`, 1) * gh * sy;
 			const alpha = num(style, `--pb-op-${b.quad}`, 1);
 			// Snap the blob to the ring edge it sits on and light the stretch of
 			// that edge it covers.
@@ -93,6 +105,9 @@ export function createPulseBeamProbe(
 				halo: 6,
 				intensity: (peak - 1.5) * alpha * level,
 				color: b.color,
+				hue,
+				brightness,
+				saturation,
 				white: 0.45,
 			});
 		}
