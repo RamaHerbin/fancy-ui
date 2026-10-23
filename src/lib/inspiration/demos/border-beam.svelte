@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { PlaygroundValues } from "$lib/inspiration/types.js";
 	import { BorderBeam } from "$lib/fancy-ui/border-beam";
+	import HdrBadge from "$lib/components/inspiration/HdrBadge.svelte";
 
 	let { values }: { values: PlaygroundValues } = $props();
 </script>
 
-<div class="flex h-full w-full items-center justify-center p-6">
+<div class="relative flex h-full w-full items-center justify-center p-6">
 	<div
 		class="relative w-full max-w-[280px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b0b0c] p-5"
 		style="--border-beam-radius: 12px"
@@ -16,9 +17,11 @@
 			<div class="h-full w-2/3 rounded-full bg-white/30"></div>
 		</div>
 		<BorderBeam
+			hdr={values.hdr !== false}
 			colorFrom={values.colorFrom as string}
 			colorTo={values.colorTo as string}
 			tail={values.tail as number}
 		/>
 	</div>
+	<HdrBadge />
 </div>

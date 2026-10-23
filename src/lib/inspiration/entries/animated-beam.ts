@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/animated-beam",
 	addedAt: "2026-10-03",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient"],
 	styleTags: ["glow"],
@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "Packets with a white-hot head and a dispersing chromatic tail run along a curved fibre, then bloom where they land, so the diagram shows direction and flow rather than a static connection.",
 		whenToUse: "Integration diagrams, data pipelines, agent wiring on a product page.",
 		watch:
-			"The container and both node refs must exist, so nothing draws during SSR or before mount. Reduced motion swaps in a still gradient path. A ResizeObserver recomputes the curve.",
+			"The container and both node refs must exist, so nothing draws during SSR or before mount. Reduced motion swaps in a still gradient path. A ResizeObserver recomputes the curve. On an HDR display the packet's head and the arrival bloom burn above SDR white through a WebGPU layer that reads the live dash offset; elsewhere nothing changes.",
 		clues: [
 			"SVG path between measured rects",
 			"curvature offsets the control point",
@@ -36,8 +36,9 @@ const entry: FancyUIReference = {
 		knobs: [
 			{ key: "pulses", type: "range", label: "Packets", min: 1, max: 6, step: 1 },
 			{ key: "curvature", type: "range", label: "Curve", min: -120, max: 120, step: 10 },
+			{ key: "hdr", type: "boolean", label: "HDR" },
 		],
-		defaults: { pulses: 2, curvature: -60 },
+		defaults: { pulses: 2, curvature: -60, hdr: true },
 	},
 	capture: { delay: 2400 },
 };

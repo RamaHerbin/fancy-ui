@@ -95,6 +95,8 @@
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte";
 	import type { AnimatedBeamProps } from "./types";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { packetProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		class: className = "",
@@ -118,6 +120,7 @@
 		tail = 0.35,
 		glow = 0.6,
 		seed = 1,
+		hdr = true,
 	}: AnimatedBeamProps = $props();
 
 	// Stable across server render and hydration — no Math.random() anywhere.
@@ -205,9 +208,34 @@
 		void [curvature, reverse, startXOffset, startYOffset, endXOffset, endYOffset];
 		updatePath();
 	});
+
+	let svgEl: SVGSVGElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+
+	// The packet's head is wherever the CSS dash animation has put it: read
+	// from the live `stroke-dashoffset` of the core layer each frame.
+	$effect(() => {
+		const host = containerRef;
+		const svg = svgEl;
+		if (!host || !svg || !hdrCanvas) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: packetProbe({
+				host,
+				paths: () => svg.querySelectorAll<SVGPathElement>(".packet-core"),
+				color: () => gradientStartColor,
+				intensity: 4.4,
+				blooms: () => svg.querySelectorAll<SVGCircleElement>(".bloom-disc"),
+				bloomColor: () => gradientStopColor,
+			}),
+		});
+	});
 </script>
 
 <svg
+	bind:this={svgEl}
 	fill="none"
 	aria-hidden="true"
 	width={svgDimensions.width}
@@ -354,6 +382,15 @@
 		{/each}
 	{/if}
 </svg>
+
+{#if hdr && !reduced.current}
+	<!-- The packet's head above SDR white, on HDR displays only. -->
+	<canvas
+		bind:this={hdrCanvas}
+		class="pointer-events-none absolute inset-0 h-full w-full"
+		aria-hidden="true"
+	></canvas>
+{/if}
 
 <style>
 	/* Theme-aware glass. Public vars first, house defaults as fallbacks. */

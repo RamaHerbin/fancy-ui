@@ -24,6 +24,12 @@
 		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/**
+		 * On a display that reports HDR, add the beam's light above SDR white on
+		 * the border, in a WebGPU layer with extended tone mapping, following the
+		 * CSS spin exactly. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	};
 
 	export type GradientButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
@@ -51,6 +57,8 @@
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { soundFeedback } from "../sound/sound-feedback.js";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { conicBorderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		class: className,
@@ -63,6 +71,7 @@
 		children,
 		onclick,
 		sound = false,
+		hdr = true,
 		...restProps
 	}: GradientButtonProps = $props();
 
@@ -71,6 +80,35 @@
 	const hoverFeedback = $derived({
 		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
 		disabled: !!restProps.disabled,
+	});
+
+	let button: HTMLButtonElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+
+	// The HDR light reads the live, CSS-animated `--gb-angle`, so it turns with
+	// the beam by construction: the main arc peaks mid-way, the echo is fainter.
+	$effect(() => {
+		if (!button || !hdrCanvas) return;
+		const pick = (t: number) => {
+			const list = colors.length ? colors : ["#ffffff"];
+			return list[Math.min(list.length - 1, Math.floor(t * list.length))]!;
+		};
+		return attachHdrLight({
+			host: button,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: conicBorderProbe({
+				angleFrom: button,
+				angleVar: "--gb-angle",
+				radius: () => borderRadius,
+				inset: () => borderWidth / 2,
+				level: () => (button?.matches(":disabled") ? 0 : 1),
+				arcs: () => [
+					{ from: 0, to: 42, color: pick, intensity: (t) => 2.8 * Math.sin(Math.PI * t) },
+					{ from: 50, to: 78, color: pick, intensity: (t) => 1 * Math.sin(Math.PI * t) },
+				],
+			}),
+		});
 	});
 
 	const styleVars = $derived(
@@ -84,6 +122,7 @@
 </script>
 
 <button
+	bind:this={button}
 	use:soundFeedback={hoverFeedback}
 	class={cn(
 		"gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white",
@@ -103,6 +142,11 @@
 
 	<!-- The beam on the border -->
 	<span class="gradient-border" aria-hidden="true"></span>
+
+	{#if hdr}
+		<!-- The beam's light above SDR white, on HDR displays only. -->
+		<canvas bind:this={hdrCanvas} class="gradient-hdr" aria-hidden="true"></canvas>
+	{/if}
 </button>
 
 <style>
@@ -118,6 +162,14 @@
 		background: color-mix(in srgb, var(--gb-bg-color), #fff 8%);
 		animation: gb-spin var(--gb-duration) linear infinite;
 		transition: transform 0.2s ease;
+	}
+
+	.gradient-hdr {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
 	}
 
 	.gradient-button:active {

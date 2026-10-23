@@ -155,6 +155,13 @@ export const registry: Record<string, ComponentMeta> = {
 		tags: ["animation", "svg", "beam", "gradient", "connection"],
 		props: [
 			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, burns the packet's head and the arrival bloom above SDR white through a WebGPU layer with extended tone mapping, drawn into containerRef; elsewhere nothing changes",
+			},
+			{
 				name: "containerRef",
 				type: "HTMLElement",
 				description: "Reference to the container element that holds both endpoints",
@@ -428,6 +435,13 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/border-beam" }],
 		tags: ["animation", "border", "gradient", "beam", "comet", "glow"],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, burns the comet's head above SDR white through a WebGPU layer with extended tone mapping, following the CSS ride; elsewhere nothing changes",
+			},
 			{
 				name: "size",
 				type: "number",
@@ -1465,6 +1479,13 @@ export const registry: Record<string, ComponentMeta> = {
 		tags: ["border", "glow", "animation", "gradient", "decoration", "metal", "chrome", "beam"],
 		props: [
 			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, flashes the glint above SDR white through a WebGPU layer with extended tone mapping, riding the CSS glint; elsewhere nothing changes",
+			},
+			{
 				name: "preset",
 				type: '"chromatic" | "silver" | "gold"',
 				default: '"chromatic"',
@@ -1518,6 +1539,13 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 		tags: ["button", "gradient", "animation", "rainbow", "border", "beam", "glow", "cta"],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, lights the spinning arc above SDR white through a WebGPU layer with extended tone mapping, reading the live --gb-angle so it turns with the CSS; elsewhere nothing changes",
+			},
 			{
 				name: "colors",
 				type: "string[]",
@@ -1697,6 +1725,13 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/meteors" }],
 		tags: ["animation", "meteors", "particles", "decoration", "space", "shooting stars"],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, burns the heads above SDR white through a WebGPU layer with extended tone mapping, drawn into the meteors' container; elsewhere nothing changes",
+			},
 			{ name: "count", type: "number", default: "20", description: "Number of meteors to render" },
 			{
 				name: "angle",
@@ -2036,6 +2071,13 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 		tags: ["border", "neon", "glow", "animation", "gradient", "decoration"],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, burns the beams' heads above SDR white through a WebGPU layer with extended tone mapping, following the CSS travel and ignite; elsewhere nothing changes",
+			},
 			{ name: "color1", type: "string", default: '"#0496ff"', description: "First neon color" },
 			{ name: "color2", type: "string", default: '"#ff0a54"', description: "Second neon color" },
 			{

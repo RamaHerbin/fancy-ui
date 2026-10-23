@@ -33,4 +33,11 @@ export interface AnimatedBeamProps {
 	glow?: number;
 	/** Seed for the default `duration`, so server and browser agree. */
 	seed?: number;
+	/**
+	 * On a display that reports HDR, make the packet's head and the arrival
+	 * bloom burn above SDR white in a WebGPU layer with extended tone mapping,
+	 * following the CSS dash animation exactly. Draws into `containerRef`.
+	 * Elsewhere nothing changes.
+	 */
+	hdr?: boolean;
 }

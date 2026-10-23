@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/gradient-button",
 	addedAt: "2026-10-03",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient"],
 	styleTags: ["glow", "iridescent"],
@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "A conic beam runs around the border and a blurred copy spills inward, so the face looks lit by its own edge rather than outlined. The colours are an array, so the beam can carry a brand ramp instead of a single hue.",
 		whenToUse: "One generate, upgrade or launch action on a dark surface.",
 		watch:
-			"Always a dark button — there is no light-theme branch. Reduced motion stops the beam at a fixed angle. Its `--gb-*` variables inherit into the label.",
+			"Always a dark button — there is no light-theme branch. Reduced motion stops the beam at a fixed angle. Its `--gb-*` variables inherit into the label. On an HDR display a WebGPU layer lights the spinning arc above SDR white, reading the live `--gb-angle` so it turns with the CSS; elsewhere nothing changes.",
 		clues: [
 			"@property --gb-angle",
 			"conic beam masked to the border",
@@ -36,8 +36,9 @@ const entry: FancyUIReference = {
 		knobs: [
 			{ key: "duration", type: "range", label: "Lap (ms)", min: 1000, max: 6000, step: 250 },
 			{ key: "blur", type: "range", label: "Glow", min: 0, max: 12, step: 1 },
+			{ key: "hdr", type: "boolean", label: "HDR" },
 		],
-		defaults: { duration: 3000, blur: 4 },
+		defaults: { duration: 3000, blur: 4, hdr: true },
 	},
 	capture: { hover: [0.52, 0.5], delay: 1400 },
 };

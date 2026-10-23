@@ -31,3 +31,7 @@ The meteors are absolutely positioned: give the parent `position: relative`, a s
 - Depth drives the head's scale, the tail length (40–150 px), the peak opacity, the travel distance and the duration (≈2.5 s near, ≈8 s far), all as CSS variables on each span.
 - The head is the span (a `box-shadow` glow); the tail is its `::before`, a gradient that fades out behind the head. One `meteor-fall` keyframe rotates to `angle` and translates along it, fading in over the first 8%; flaring meteors use `meteor-fall-flare`, which swells the glow at ~74%.
 - `prefers-reduced-motion`: no animation — each meteor is drawn once, still, part-way along its path.
+
+## HDR
+
+With `hdr` (on by default) a canvas is added to the meteors' container and the shared HDR light layer (`_internals/hdr/`) burns each visible head above SDR white, read from the head's live box and opacity. The CSS tail carries the streak. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

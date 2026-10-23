@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/neon-border",
 	addedAt: "2026-09-26",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient"],
 	styleTags: ["glow", "retro"],
@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "Two beams with white cores circle a faint tube in opposite colours, so the frame reads as moving light while nothing inside moves. A single ignition flicker on mount, then a slow hum, sells the neon without looping a strobe.",
 		whenToUse: "A badge, a call to action or a small banner that should glow on a dark page.",
 		watch:
-			"The default box is 40px tall; size it with `class`. All motion lives under `no-preference`, so reduced motion gets static beams. An always-on glow competes with content — one per view.",
+			"The default box is 40px tall; size it with `class`. All motion lives under `no-preference`, so reduced motion gets static beams. An always-on glow competes with content — one per view. On an HDR display the beams' heads burn above SDR white through a WebGPU layer that reads the live `--neon-angle` and the ignite flicker; elsewhere nothing changes.",
 		clues: ["conic-gradient rotation", "mask to border", "half / full animation"],
 	},
 	curatedRank: 6,
@@ -41,8 +41,9 @@ const entry: FancyUIReference = {
 					{ value: "none", label: "none" },
 				],
 			},
+			{ key: "hdr", type: "boolean", label: "HDR" },
 		],
-		defaults: { color1: "#0496ff", color2: "#ff0a54", animationType: "half" },
+		defaults: { color1: "#0496ff", color2: "#ff0a54", animationType: "half", hdr: true },
 	},
 };
 

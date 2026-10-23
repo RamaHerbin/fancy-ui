@@ -20,6 +20,12 @@
 		color?: string;
 		/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 		seed?: number;
+		/**
+		 * On a display that reports HDR, make the heads burn above SDR white in a
+		 * WebGPU layer with extended tone mapping, following the CSS fall
+		 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	}
 
 	export interface Meteor {
@@ -74,6 +80,8 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { meteorsProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		count = 20,
@@ -82,7 +90,27 @@
 		speed = 1,
 		color,
 		seed = 1,
+		hdr = true,
 	}: MeteorsProps = $props();
+
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+
+	// Meteors render no root of their own: the light layer belongs to their
+	// container, and each head is wherever the CSS transform has put it.
+	$effect(() => {
+		const host = hdrCanvas?.parentElement;
+		if (!hdrCanvas || !host) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: meteorsProbe({
+				host,
+				meteors: () => host.querySelectorAll<HTMLElement>(":scope > .meteor"),
+				intensity: 3.6,
+			}),
+		});
+	});
 
 	const meteors = $derived(meteorField(count, seed));
 	const speedC = $derived(Number.isFinite(speed) && speed > 0 ? speed : 1);
@@ -120,6 +148,15 @@
 		aria-hidden="true"
 	></span>
 {/each}
+
+{#if hdr}
+	<!-- The heads above SDR white, on HDR displays only. -->
+	<canvas
+		bind:this={hdrCanvas}
+		class="pointer-events-none absolute inset-0 h-full w-full"
+		aria-hidden="true"
+	></canvas>
+{/if}
 
 <style>
 	/* Light pages get a slate meteor; dark ones a pale blue-white. A `color`

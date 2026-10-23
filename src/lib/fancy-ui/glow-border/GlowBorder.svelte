@@ -19,6 +19,12 @@
 		preset?: GlowBorderPreset;
 		/** Intensity of the glint and its glow, 0–1 */
 		strength?: number;
+		/**
+		 * On a display that reports HDR, flash the glint above SDR white in a
+		 * WebGPU layer with extended tone mapping, riding the CSS glint exactly.
+		 * Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	}
 
 	interface Palette {
@@ -121,6 +127,8 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { conicBorderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
 		class: className = "",
@@ -130,7 +138,45 @@
 		duration = 10,
 		preset = "chromatic",
 		strength = 0.8,
+		hdr = true,
 	}: GlowBorderProps = $props();
+
+	let root: HTMLDivElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+
+	// The glint's flash, above SDR white: reads the live `--gb-a3` so it rides
+	// the ring with the CSS glint, white at 90% of the turn, tinted either side.
+	$effect(() => {
+		if (!root || !hdrCanvas) return;
+		const host = root;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			probe: conicBorderProbe({
+				angleFrom: host,
+				angleVar: "--gb-a3",
+				radius: () => borderRadius,
+				inset: () => borderWidth / 2,
+				level: () => strengthC,
+				arcs: () => {
+					const dark = document.documentElement.classList.contains("dark");
+					const tints = (dark ? palettes.dark : palettes.light).tints;
+					const lead = tints[1] ?? tints[0] ?? "#ffffff";
+					const tail = tints[2] ?? tints[tints.length - 1] ?? "#ffffff";
+					const at = (t: number) => 80 + 17 * t;
+					return [
+						{
+							from: 80,
+							to: 97,
+							color: (t) => (at(t) < 88 ? tail : at(t) > 92 ? lead : "#ffffff"),
+							intensity: (t) => 4.2 * Math.exp(-(((at(t) - 90) / 3.5) ** 2)),
+							white: 0.6,
+						},
+					];
+				},
+			}),
+		});
+	});
 
 	const palettes = $derived(
 		color !== undefined
@@ -156,6 +202,7 @@
 </script>
 
 <div
+	bind:this={root}
 	class={cn(
 		"glow-border animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit]",
 		className
@@ -166,6 +213,10 @@
 	<span class="glow-border__halo"><span></span></span>
 	<span class="glow-border__metal"></span>
 	<span class="glow-border__glint"></span>
+	{#if hdr}
+		<!-- The glint's flash above SDR white, on HDR displays only. -->
+		<canvas bind:this={hdrCanvas} class="glow-border__hdr"></canvas>
+	{/if}
 </div>
 
 <style>
@@ -231,6 +282,15 @@
 	}
 
 	/* The glint riding the ring. */
+	.glow-border__hdr {
+		position: absolute;
+		top: -24px;
+		left: -24px;
+		width: calc(100% + 48px);
+		height: calc(100% + 48px);
+		pointer-events: none;
+	}
+
 	.glow-border__glint {
 		inset: 0;
 		padding: var(--glow-border-width);

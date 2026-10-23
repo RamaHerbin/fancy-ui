@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { PlaygroundValues } from "$lib/inspiration/types.js";
 	import { NeonBorder } from "$lib/fancy-ui/neon-border";
+	import HdrBadge from "$lib/components/inspiration/HdrBadge.svelte";
 
 	let { values }: { values: PlaygroundValues } = $props();
 </script>
 
-<div class="flex h-full w-full items-center justify-center p-6">
+<div class="relative flex h-full w-full items-center justify-center p-6">
 	<NeonBorder
+		hdr={values.hdr !== false}
 		color1={values.color1 as string}
 		color2={values.color2 as string}
 		animationType={values.animationType as "none" | "half" | "full"}
@@ -16,4 +18,5 @@
 			<span class="text-sm font-medium">Neon Border</span>
 		</div>
 	</NeonBorder>
+	<HdrBadge />
 </div>

@@ -37,3 +37,7 @@ Give the content its own background: the tube is the 1.5 px padding ring around 
 - The beams are one conic gradient built by `neonBeams()` — each beam fades in from its tail and cuts off sharply at its head, the second half a turn behind the first — turned by a registered `--neon-angle` over `duration`. `half` beams cover 22% of the turn each, `full` beams 46%. `none` uses `neonCorners()` instead: the first colour lit top-left, the second bottom-right.
 - On first paint the light layer flickers once (`neon-ignite`, 0.9 s), then the glow breathes between two opacities (`neon-hum`, 2.8 s). Light pages get a fainter glow; `.dark` switches to the full one.
 - `prefers-reduced-motion`: no travel, flicker or hum — the beams rest where they are.
+
+## HDR
+
+With `hdr` (on by default) the shared HDR light layer (`_internals/hdr/`) reads the live, animated `--neon-angle` and the tube's live opacity (the ignite flicker), and burns each beam's head above SDR white as it travels. The static `animationType="none"` tube gets no HDR light. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
