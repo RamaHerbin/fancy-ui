@@ -37,12 +37,17 @@
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { soundFeedback } from "../sound/sound-feedback.js";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { createShimmerProbe } from "./shimmer-button-hdr.js";
 
 	let button: HTMLButtonElement | undefined = $state();
 	let sheen: HTMLSpanElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 
 	let {
 		class: className,
@@ -123,7 +128,7 @@
 	<!-- Hover: the sheen follows the pointer -->
 	<span class="shimmer-button__spot" aria-hidden="true"></span>
 
-	{#if hdr}
+	{#if hdr && hdrCapable}
 		<!-- Glint above SDR white, on HDR displays only. -->
 		<canvas bind:this={hdrCanvas} class="shimmer-button__hdr" aria-hidden="true"></canvas>
 	{/if}

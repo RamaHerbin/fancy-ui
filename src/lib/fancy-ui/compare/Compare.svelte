@@ -63,7 +63,7 @@
 	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { createCompareProbe } from "./compare-hdr.js";
 
 	interface Props {
@@ -145,6 +145,11 @@
 	const palette = $derived(beamPalette(beamColors));
 
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 	$effect(() => {
 		if (!hdrCanvas || !sliderRef) return;
 		return attachHdrLight({
@@ -407,7 +412,7 @@
 		<span class="compare-beam__pulse compare-beam__pulse--late"></span>
 	</div>
 
-	{#if hdr}
+	{#if hdr && hdrCapable}
 		<!-- The seam's light above SDR white, on HDR displays only. -->
 		<canvas
 			bind:this={hdrCanvas}

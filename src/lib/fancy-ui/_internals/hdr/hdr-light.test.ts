@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { attachHdrLight, HDR_PEAK } from "./hdr-light.js";
+import { attachHdrLight, HDR_PEAK, hdrLightAvailable } from "./hdr-light.js";
 
 function stubDynamicRange(high: boolean) {
 	vi.stubGlobal(
@@ -47,5 +47,14 @@ describe("hdr-light", () => {
 		expect(probe).not.toHaveBeenCalled();
 		expect(host.hasAttribute("data-hdr")).toBe(false);
 		detach();
+	});
+
+	it("reports availability only with WebGPU and an HDR display", () => {
+		stubDynamicRange(true);
+		expect(hdrLightAvailable()).toBe(false); // jsdom: no navigator.gpu
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		expect(hdrLightAvailable()).toBe(true);
+		stubDynamicRange(false);
+		expect(hdrLightAvailable()).toBe(false);
 	});
 });

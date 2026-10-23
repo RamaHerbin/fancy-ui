@@ -160,6 +160,16 @@ export function linearColor(css: string): [number, number, number] | null {
 	return out;
 }
 
+/**
+ * Cheap, synchronous check a component can make after mount to decide whether
+ * to render its light canvas at all: WebGPU is exposed and the display reports
+ * HDR. False on the server. `attachHdrLight` still confirms extended tone
+ * mapping before drawing anything.
+ */
+export function hdrLightAvailable(): boolean {
+	return typeof navigator !== "undefined" && "gpu" in navigator && hdrDisplay();
+}
+
 // ---------------------------------------------------------------------------
 // One device for the page
 // ---------------------------------------------------------------------------

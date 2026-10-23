@@ -68,7 +68,7 @@
 		motionPreset,
 	} from "./pulse-beam-data.js";
 	import { registerPulse } from "./pulse-beam-loop.js";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 
 	let {
@@ -118,6 +118,11 @@
 	const hueEnabled = $derived(hueShift && !isMono);
 	let strokeEl: HTMLDivElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 	const hdrBlobs = $derived(strokeLights(variant, palette, colors));
 	$effect(() => {
 		const host = ref;
@@ -279,7 +284,7 @@
 		ontransitionend={handleTransitionEnd}
 	></div>
 	<div class="pulse-beam__layer pulse-beam__bloom" style:background={backgrounds.bloom}></div>
-	{#if hdr}
+	{#if hdr && hdrCapable}
 		<!-- Light above SDR white where the beam crosses the ring, on HDR displays only. -->
 		<canvas bind:this={hdrCanvas} class="pulse-beam__hdr" aria-hidden="true"></canvas>
 	{/if}

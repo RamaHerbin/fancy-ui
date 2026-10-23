@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
 	interface Props {
@@ -46,6 +46,11 @@
 	let hovering = false;
 	let host: HTMLDivElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 
 	function handleMouseLeave() {
 		hovering = false;
@@ -96,7 +101,7 @@
 		class="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 		style="background: {backgroundStyle}; opacity: {gradientOpacity}"
 	></div>
-	{#if hdr}
+	{#if hdr && hdrCapable}
 		<!-- Light above SDR white, on HDR displays only. -->
 		<canvas
 			bind:this={hdrCanvas}
