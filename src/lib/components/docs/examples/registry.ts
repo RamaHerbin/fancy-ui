@@ -1591,6 +1591,27 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Switch between the entrance/exit looks.",
 		},
 	],
+	"magnetic-field": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"A product card whose pieces lean and drift toward a magnet. Drag the puck close, or bring a mouse near the card.",
+		},
+		{
+			name: "PointerField",
+			title: "Pointer Field",
+			description:
+				"A cloud of tags that follows the pointer, and a status line that shows when the field is awake.",
+		},
+		{
+			name: "Repel",
+			title: "Repel",
+			description:
+				"`polarity={-1}` with a sticky puck: drag it through the grid and the tiles part around it. Works on touch.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	magnetic: [
 		{
 			name: "BasicUsage",

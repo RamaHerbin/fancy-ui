@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-154-8B5CF6)
+![Components](https://img.shields.io/badge/Components-155-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **154 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **155 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 154 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 155 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -595,6 +595,12 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **magnetic**: reduced motion is read via useReducedMotion() (useSyncExternalStore); the Svelte createReducedMotion().start() lifecycle has no counterpart (internals contract D-4) — observable behavior identical, including runtime flips tearing the field down
 - **magnetic**: style merging: the inline --ft-magnetic-radius var merges into React's style object (a consumer-passed `style` prop is spread first, the var wins), instead of Svelte's style-attribute + style: directive merge
 - **magnetic**: The halo `::before` rule is plain CSS at specificity (0,1,1) where the Svelte compiler emitted a scoped selector at (0,2,1), so a consumer rule of equal specificity can now win on source order and override `pointer-events: none` on the halo.
+- **magnetic-field**: `class` → `className` (PORTING.md).
+- **magnetic-field**: `MagnetPuck`'s `bind:position` is the controlled/uncontrolled pair `position` + `defaultPosition` + `onPositionChange` (already a Svelte prop); `MagneticField`'s `position` is a plain read-only prop in both.
+- **magnetic-field**: `children` is a `ReactNode` on `MagneticField`, `MagneticItem` and `MagnetPuck` instead of a `Snippet`; the puck's custom face is its `children`.
+- **magnetic-field**: `MAGNETIC_FIELD_KEY` is a React context object (`createContext`) instead of a Svelte context symbol; its value is the same framework-free hub, created once per field and never rebuilt.
+- **magnetic-field**: All motion, measurement, spring stepping and the per-frame CSS variables live in the shared `magnetic-field-core.ts`, and the pointer and layout listeners in `magnetic-field-source.ts`, byte-identical to the Svelte copies; the components only create the core in an effect and forward props through `update()` and `updateItem()`.
+- **magnetic-field**: `MagnetPuck` calls a consumer's `onPointerDown`, `onPointerMove`, `onPointerUp`, `onPointerCancel`, `onLostPointerCapture`, `onKeyDown` and `onBlur` and then runs its own handling (PORTING.md "Native attributes"); in Svelte the puck's own handlers replace a consumer's.
 - **navigation-menu**: D-12: `useElementRef` costs one extra render when the panel mounts (pre-paint, not visible).
 - **navigation-menu**: D-1: `createPortal` renders the panel into `document.body` instead of relocating an already-rendered node; synthetic events still bubble through the React tree, which nothing here relies on.
 - **navigation-menu**: D-2: `markSurfaceState` is not ported — `data-state` is an ordinary React attribute fed by `presence.surfaceState`, same two values (`"open"` / `"closing"`).
