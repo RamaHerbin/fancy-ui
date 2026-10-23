@@ -1,0 +1,10 @@
+# Prettier also reads .gitignore. These are ignored by nuxt/.gitignore, which
+# Prettier does not read (only the root one), so its build output would be
+# checked.
+nuxt/dist/
+nuxt/.nuxt/
+nuxt/playground/.nuxt/
+nuxt/playground/.output/
+nuxt/test/fixtures/**/.nuxt/
+nuxt/test/fixtures/**/.output/
+nuxt/test/fixtures/**/node_modules/

@@ -70,6 +70,7 @@ export const STYLES = [
 	"physical",
 	"retro",
 	"brutal",
+	"hdr",
 ] as const;
 export type Style = (typeof STYLES)[number];
 
@@ -83,6 +84,7 @@ export const STYLE_LABELS: Record<Style, string> = {
 	physical: "Physical",
 	retro: "Retro",
 	brutal: "Brutal",
+	hdr: "HDR",
 };
 
 /** Where the pattern is useful. Free to grow; keep each one broad. */

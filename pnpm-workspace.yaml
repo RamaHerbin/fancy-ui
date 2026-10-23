@@ -7,6 +7,7 @@ packages:
   - "."
   - "react"
   - "vue"
+  - "nuxt"
   - "examples/*"
 
 # esbuild postinstall allowance — also load-bearing (installs break without

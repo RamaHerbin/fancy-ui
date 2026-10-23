@@ -29,7 +29,8 @@
  *
  * Every failure carries exactly one class (see preview-health.shared.ts). The
  * reporter merges them into test-results/preview-health.json and prints a
- * summary grouped by class.
+ * summary grouped by class. CI runs the sweep in four shards (`--shard k/4`,
+ * ci.yml) and merges the four files with scripts/preview-health-merge.mjs.
  */
 
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
@@ -44,7 +45,23 @@ import {
 	type PreviewFailure,
 } from "./preview-health.shared";
 
-const SLUGS = await loadDoneSlugs();
+/**
+ * Registry order, dealt into eight piles (slug i goes to pile i % 8) and read
+ * pile by pile. Playwright's `--shard` cuts the test list into contiguous
+ * runs, and the registry is alphabetical, so the heavy canvas pages that
+ * cluster under a–g (animated-beam, bg-falling-stars, border-beam, ...,
+ * glow-border, gradient-button) all fell into the same shard: 12 min of CPU
+ * against 8 for the next one. Dealing spreads neighbours across the cut
+ * points; measured on a real run, the heaviest shard drops from 12.2 to 10.6
+ * min of CPU. Same tests, same probes, only the order.
+ */
+const SLUGS = deal(await loadDoneSlugs(), 8);
+
+function deal<T>(items: readonly T[], piles: number): T[] {
+	const out: T[][] = Array.from({ length: piles }, () => []);
+	items.forEach((item, i) => out[i % piles]!.push(item));
+	return out.flat();
+}
 
 /** The hero spinner must be gone within this budget… */
 const SPINNER_TIMEOUT = 8_000;

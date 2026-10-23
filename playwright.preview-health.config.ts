@@ -9,6 +9,9 @@ import { defineConfig, devices } from "@playwright/test";
  *   pnpm exec playwright test -c playwright.preview-health.config.ts --project no-gpu
  *                                                 # nightly, no GPU at all
  *   pnpm test:preview-health -g sparkles          # one slug (title match)
+ *   pnpm test:preview-health --shard=1/4          # one of the four CI shards; the
+ *                                                 # four summaries are merged by
+ *                                                 # scripts/preview-health-merge.mjs
  *
  * Env:
  *   PREVIEW_HEALTH_PORT  port the local preview server listens on (default 4173)

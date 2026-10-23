@@ -1,5 +1,0 @@
----
-"fancy-ui-vue": minor
----
-
-Overlay keyboard and focus fixes. Dialog and AlertDialog now put `aria-haspopup="dialog"`, `aria-expanded` and (while open) `aria-controls` on the element rendered in the `trigger` slot. Closing a Dialog, Sheet, Drawer, Popover, DropdownMenu or CommandMenu with a click on non-focusable content outside it no longer drops focus to the page body — focus stays on the trigger it was returned to — and a click outside an AlertDialog keeps focus inside it. Combobox and Autocomplete are unaffected: a click away still blurs their input. The focus trap treats a named radio group as one Tab stop, so Tab from the checked radio wraps inside a Sheet, Drawer or Dialog instead of leaving it, and Shift+Tab onto a group with nothing checked lands on its last radio. Sheet, Drawer and CommandMenu take an `id` prop that lands on the panel, so a trigger rendered outside them can carry `aria-controls` alongside `aria-haspopup` and `aria-expanded`. A Popover with `:dismissible="false"` leaves presses on the page alone while it holds focus, so text selection and blur outside it work as usual.
