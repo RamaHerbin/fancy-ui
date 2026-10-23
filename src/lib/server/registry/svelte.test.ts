@@ -427,5 +427,6 @@ describe("what a clean consumer app needs from the CLI flow", () => {
 		expect(real.items["line-reveal"].dependencies).toEqual(["@chenglou/pretext@^0.0.5"]);
 		expect(real.items["fluid-cursor"].devDependencies).toContain("@webgpu/types@^0.1.71");
 		expect(real.items["fireworks-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
+		expect(real.items["pixel-scene"].devDependencies).toContain("@webgpu/types@^0.1.71");
 	}, 60_000);
 });

@@ -169,8 +169,11 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		engineRef.current?.setOptions({ cell, dot });
 	}, [cell, dot, engineReady]);
 
-	const surfacesKey = surfaces ? `${surfaces[0]}\n${surfaces[1]}` : "";
-	const inksKey = inks ? `${inks[0]}\n${inks[1]}` : "";
+	// Tuples by value: a new array with the same colours is no change. The key is
+	// JSON so a colour holding a newline or a quote cannot split or collide; the
+	// engine gets the original tuples from the live ref, never a re-split string.
+	const surfacesKey = surfaces ? JSON.stringify(surfaces) : "";
+	const inksKey = inks ? JSON.stringify(inks) : "";
 	useEffect(() => {
 		engineRef.current?.setOptions({
 			lens,
@@ -178,11 +181,10 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 			ink,
 			paused,
 			wave,
-			surfaces: surfacesKey ? (surfacesKey.split("\n") as [string, string]) : null,
-			inks: inksKey ? (inksKey.split("\n") as [string, string]) : null,
+			surfaces: createProps.current.surfaces,
+			inks: createProps.current.inks,
 		});
-		// Tuples by value: a new array with the same colours is no change.
-	}, [lens, lensRadius, ink, paused, wave, surfacesKey, inksKey, engineReady]);
+	}, [lens, lensRadius, ink, paused, wave, surfacesKey, inksKey, engineReady, createProps]);
 
 	// HDR: decided after mount only, so SSR and hydration render the 2D canvas alone.
 	useEffect(() => {

@@ -1,3 +1,4 @@
+/// <reference types="@webgpu/types" />
 /**
  * PixelScene HDR layer — framework-free, byte-identical in the Svelte, React
  * and Vue trees (see shared-cores.json).
