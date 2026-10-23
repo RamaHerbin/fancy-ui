@@ -4,7 +4,14 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { SunSwitch } from "./SunSwitch.js";
 import type { SunSwitchProps } from "./SunSwitch.js";
-import { HALO_ATTR, LIVE_NAME, SHEET_ATTR, WAVE_ATTR, isWaving } from "./pixel-wave-core.js";
+import {
+	HALO_ATTR,
+	LIVE_NAME,
+	SHEET_ATTR,
+	WAVE_ATTR,
+	isWaving,
+	resetFlipGate,
+} from "./pixel-wave-core.js";
 import type { SunFront, SunPainter } from "./sun-switch-core.js";
 import { sound } from "../../sound/sound.js";
 
@@ -157,6 +164,7 @@ function stubViewTransition() {
 beforeEach(() => {
 	queue = [];
 	clock = 0;
+	resetFlipGate();
 	painters.length = 0;
 	vi.stubGlobal("requestAnimationFrame", (cb: (t: number) => void) => queue.push(cb));
 	vi.stubGlobal("cancelAnimationFrame", (id: number) => {
@@ -544,6 +552,27 @@ describe("SunSwitch photosensitivity guards", () => {
 		}
 	});
 
+	it("shares the flip rate limit across switches", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		try {
+			reducedMotion(true);
+			const a = vi.fn();
+			const b = vi.fn();
+			const one = button(render(<SunSwitch onCheckedChange={a} />).container);
+			const two = button(render(<SunSwitch onCheckedChange={b} />).container);
+			click(one);
+			clock += 100;
+			click(two);
+			expect(a.mock.calls.map((c) => c[0])).toEqual([false]);
+			expect(b).not.toHaveBeenCalled();
+			clock += 234;
+			act(() => vi.advanceTimersByTime(234));
+			expect(b.mock.calls.map((c) => c[0])).toEqual([false]);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
 	it("cancels auto-repeated Enter and Space so holding a key never strobes", () => {
 		const onKeyDown = vi.fn();
 		const { container } = render(<SunSwitch onKeyDown={onKeyDown} />);
@@ -579,7 +608,8 @@ describe("SunSwitch pointer re-entry during a view transition", () => {
 	it("a click hit-tested as <html> over the switch toggles it back", async () => {
 		const vt = stubViewTransition();
 		const onCheckedChange = vi.fn();
-		const { container } = render(<SunSwitch onCheckedChange={onCheckedChange} />);
+		const onClick = vi.fn();
+		const { container } = render(<SunSwitch onCheckedChange={onCheckedChange} onClick={onClick} />);
 		const el = button(container);
 		atButton(el);
 		click(el);
@@ -591,6 +621,8 @@ describe("SunSwitch pointer re-entry during a view transition", () => {
 
 		expect(onCheckedChange.mock.calls.map((c) => c[0])).toEqual([false, true]);
 		expect(el.getAttribute("aria-checked")).toBe("true");
+		// The re-routed click reaches the consumer's handler like a direct one.
+		expect(onClick).toHaveBeenCalledTimes(2);
 		await runToEnd();
 		expect(el.hasAttribute("aria-busy")).toBe(false);
 	});

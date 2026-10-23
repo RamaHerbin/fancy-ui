@@ -14,13 +14,10 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { observeInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { useSoundCue } from "../../sound/use-sound.js";
-import { isWaving, pixelWave } from "./pixel-wave-core.js";
+import { flipWait, isWaving, markFlip, pixelWave } from "./pixel-wave-core.js";
 import { SUN_PALETTE, createSunPainter } from "./sun-switch-core.js";
 import type { SunFront, SunPainter, SunPalette } from "./sun-switch-core.js";
 import "./sun-switch.css";
-
-/** Minimum time between two theme flips: at most 3 full-page flips a second. */
-const MIN_FLIP_MS = 334;
 
 interface SunSwitchOwnProps {
 	/**
@@ -479,18 +476,16 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 		/** Identifies the latest click; only its wave may clear the shared state. */
 		const tokenRef = useRef(0);
 
-		/** Flip rate limit (at most 3 full-page flips a second, photosensitivity):
-		 * when the last flip started, the value asked for by clicks that came too
+		/** Flip rate limit (page-wide through `flipWait`: at most 3 full-page flips
+		 * a second, photosensitivity): the value asked for by clicks that came too
 		 * soon, its timer, and the remover of the re-entry listeners. */
 		const flipRef = useRef({
-			lastAt: -Infinity,
 			pending: null as boolean | null,
 			timer: undefined as ReturnType<typeof setTimeout> | undefined,
 			disarm: null as (() => void) | null,
 		});
 		/** The latest render's handlers, for long-lived listeners and timers. */
 		const actionsRef = useRef({
-			toggle: () => {},
 			flushPending: () => {},
 			onReentryMove: (_event: PointerEvent) => {},
 		});
@@ -512,7 +507,7 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 			const v = live.current;
 			if (v.disabled) return;
 			const next = !(f.pending ?? intentRef.current ?? v.checked);
-			const wait = f.lastAt + MIN_FLIP_MS - window.performance.now();
+			const wait = flipWait(window.performance.now());
 			if (wait > 0) {
 				f.pending = next;
 				f.timer ??= setTimeout(() => actionsRef.current.flushPending(), wait);
@@ -525,6 +520,12 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 		function flushPending() {
 			const f = flipRef.current;
 			f.timer = undefined;
+			// Another switch may have flipped meanwhile: wait for the page-wide gap.
+			const wait = flipWait(window.performance.now());
+			if (wait > 0 && f.pending !== null) {
+				f.timer = setTimeout(() => actionsRef.current.flushPending(), wait);
+				return;
+			}
 			const next = f.pending;
 			f.pending = null;
 			const v = live.current;
@@ -539,7 +540,7 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 			syncLens();
 		}
 
-		actionsRef.current = { toggle, flushPending, onReentryMove };
+		actionsRef.current = { flushPending, onReentryMove };
 
 		/** Whether a viewport point falls on the button. */
 		function overButton(x: number, y: number): boolean {
@@ -567,8 +568,9 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 				actionsRef.current.onReentryMove(event);
 			};
 			const onDocClick = (event: MouseEvent) => {
+				// Through the button, so the consumer's click handler runs too.
 				if (event.target === root && overButton(event.clientX, event.clientY)) {
-					actionsRef.current.toggle();
+					buttonRef.current?.click();
 				}
 			};
 			document.addEventListener("pointerdown", onDown, true);
@@ -597,7 +599,7 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 
 		function startWave(next: boolean) {
 			const v = live.current;
-			flipRef.current.lastAt = window.performance.now();
+			markFlip(window.performance.now());
 			intentRef.current = next;
 			const id = ++tokenRef.current;
 			// User activation: play before the view transition starts.
@@ -607,7 +609,11 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 			const instant = v.reduced || isWaving();
 			const rect = canvas?.getBoundingClientRect();
 			const centre = centreCells() * v.cell;
-			let origin = { x: (rect?.left ?? 0) + centre, y: (rect?.top ?? 0) + centre };
+			// The visible centre, robust to CSS scaling of the button.
+			const nominal = sizeCells() * v.cell;
+			const sx = rect && rect.width > 0 ? rect.width / nominal : 1;
+			const sy = rect && rect.height > 0 ? rect.height / nominal : 1;
+			let origin = { x: (rect?.left ?? 0) + centre * sx, y: (rect?.top ?? 0) + centre * sy };
 			const scopeEl = v.scope;
 			if (v.mode === "contained" && scopeEl) {
 				const sr = scopeEl.getBoundingClientRect();

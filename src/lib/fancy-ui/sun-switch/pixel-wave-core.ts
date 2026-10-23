@@ -134,17 +134,69 @@ export function supportsViewTransition(doc: Document): boolean {
 	return typeof (doc as { startViewTransition?: unknown }).startViewTransition === "function";
 }
 
-/** First computed background with alpha > 0 from `el` up to `<html>`; "#fff" if none. */
+/**
+ * The colour `el` visibly sits on: computed backgrounds from `el` up to `<html>`,
+ * translucent layers composited over the first opaque one (white if none).
+ * A colour that cannot be parsed counts as opaque.
+ */
 export function firstOpaqueBackground(el: Element): string {
 	const win = el.ownerDocument.defaultView;
 	if (!win) return "#fff";
+	const layers: { r: number; g: number; b: number; a: number }[] = [];
+	let base: string | null = null;
 	for (let n: Element | null = el; n; n = n.parentElement) {
 		const bg = win.getComputedStyle(n).backgroundColor;
 		if (!bg) continue;
 		const p = parseInk(bg);
-		if (p ? p.a > 0 : bg !== "transparent") return bg;
+		if (!p) {
+			if (bg === "transparent") continue;
+			base = bg;
+			break;
+		}
+		if (p.a >= 1) {
+			base = bg;
+			layers.push(p);
+			break;
+		}
+		if (p.a > 0) layers.push(p);
 	}
-	return "#fff";
+	if (layers.length === 0) return base ?? "#fff";
+	const top = layers[0];
+	if (layers.length === 1 && top && top.a >= 1) return base ?? "#fff";
+	// Unparseable opaque base under translucent layers: keep the base.
+	if (base && !parseInk(base)) return base;
+	let c = { r: 255, g: 255, b: 255 };
+	for (let i = layers.length - 1; i >= 0; i--) {
+		const l = layers[i];
+		if (!l) continue;
+		c = {
+			r: l.r * l.a + c.r * (1 - l.a),
+			g: l.g * l.a + c.g * (1 - l.a),
+			b: l.b * l.a + c.b * (1 - l.a),
+		};
+	}
+	return `rgb(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)})`;
+}
+
+/** Minimum time between two theme flips: at most 3 full-page flips a second
+ * (photosensitivity). Shared by every switch on the page. */
+export const MIN_FLIP_MS = 334;
+
+let lastFlipAt = -Infinity;
+
+/** Milliseconds before the next flip may start, page-wide (0 = now). */
+export function flipWait(now: number): number {
+	return Math.max(0, lastFlipAt + MIN_FLIP_MS - now);
+}
+
+/** Records that a flip started at `now`. */
+export function markFlip(now: number): void {
+	lastFlipAt = now;
+}
+
+/** Forgets the last flip (tests). */
+export function resetFlipGate(): void {
+	lastFlipAt = -Infinity;
 }
 
 interface ActiveWave {
@@ -291,6 +343,9 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 	let clipping = useVT;
 	let prevAnim: Animation | null = null;
 	let lastPoly = "";
+	/** The live element's own inline transition name, restored on cleanup. */
+	let liveName = "";
+	let livePriority = "";
 	let vt: ViewTransitionLike | null = null;
 	let loopDone = false;
 	let vtDone = !useVT;
@@ -326,7 +381,10 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 		ghost?.remove();
 		if (useVT) {
 			html.removeAttribute(WAVE_ATTR);
-			o.live?.style.removeProperty("view-transition-name");
+			if (o.live) {
+				if (liveName) o.live.style.setProperty("view-transition-name", liveName, livePriority);
+				else o.live.style.removeProperty("view-transition-name");
+			}
 		}
 		if (active === wave) active = null;
 		resolve();
@@ -411,7 +469,11 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 
 	if (useVT) {
 		ensureWaveStyles(doc);
-		o.live?.style.setProperty("view-transition-name", LIVE_NAME);
+		if (o.live) {
+			liveName = o.live.style.getPropertyValue("view-transition-name");
+			livePriority = o.live.style.getPropertyPriority("view-transition-name");
+			o.live.style.setProperty("view-transition-name", LIVE_NAME);
+		}
 		canvas.style.setProperty("view-transition-name", WAVE_NAME);
 		html.setAttribute(WAVE_ATTR, "");
 		try {

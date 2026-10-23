@@ -57,7 +57,7 @@
 	import { inView } from "../_internals/motion/in-view.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
-	import { isWaving, pixelWave } from "./pixel-wave-core.js";
+	import { flipWait, isWaving, markFlip, pixelWave } from "./pixel-wave-core.js";
 	import { SUN_PALETTE, createSunPainter, type SunPainter } from "./sun-switch-core.js";
 
 	let {
@@ -393,10 +393,8 @@
 	/** Identifies the latest click; only its wave may clear the shared state. */
 	let token = 0;
 
-	/** Minimum time between two theme flips: at most 3 full-page flips a second
-	 * (photosensitivity), however fast the clicks come. */
-	const MIN_FLIP_MS = 334;
-	let lastFlipAt = -Infinity;
+	// Flips are rate-limited page-wide (`flipWait`): at most 3 full-page flips a
+	// second (photosensitivity), however fast the clicks come, on any switch.
 	/** Value asked for by clicks that came too soon, applied when the gap allows. */
 	let pending: boolean | null = null;
 	let pendingTimer: ReturnType<typeof setTimeout> | undefined;
@@ -415,7 +413,7 @@
 	function toggle() {
 		if (disabled) return;
 		const next = !(pending ?? intent ?? checked);
-		const wait = lastFlipAt + MIN_FLIP_MS - window.performance.now();
+		const wait = flipWait(window.performance.now());
 		if (wait > 0) {
 			pending = next;
 			pendingTimer ??= setTimeout(flushPending, wait);
@@ -427,6 +425,12 @@
 
 	function flushPending() {
 		pendingTimer = undefined;
+		// Another switch may have flipped meanwhile: wait for the page-wide gap.
+		const wait = flipWait(window.performance.now());
+		if (wait > 0 && pending !== null) {
+			pendingTimer = setTimeout(flushPending, wait);
+			return;
+		}
 		const next = pending;
 		pending = null;
 		// An even number of early clicks asks for the current state: nothing to do.
@@ -461,7 +465,8 @@
 			syncLens();
 		};
 		const onDocClick = (event: MouseEvent) => {
-			if (event.target === root && overButton(event.clientX, event.clientY)) toggle();
+			// Through the button, so the consumer's click handler runs too.
+			if (event.target === root && overButton(event.clientX, event.clientY)) ref?.click();
 		};
 		document.addEventListener("pointerdown", onDown, true);
 		document.addEventListener("pointermove", onMove, true);
@@ -493,7 +498,7 @@
 	}
 
 	function startWave(next: boolean) {
-		lastFlipAt = window.performance.now();
+		markFlip(window.performance.now());
 		intent = next;
 		const id = ++token;
 		// User activation: play before the view transition starts.
@@ -502,7 +507,10 @@
 		const instant = reduced.current || isWaving();
 		const rect = canvas?.getBoundingClientRect();
 		const centre = centreCells() * cell;
-		let origin = { x: (rect?.left ?? 0) + centre, y: (rect?.top ?? 0) + centre };
+		// The visible centre, robust to CSS scaling of the button.
+		const sx = rect && rect.width > 0 ? rect.width / (sizeCells() * cell) : 1;
+		const sy = rect && rect.height > 0 ? rect.height / (sizeCells() * cell) : 1;
+		let origin = { x: (rect?.left ?? 0) + centre * sx, y: (rect?.top ?? 0) + centre * sy };
 		if (mode === "contained" && scope) {
 			const sr = scope.getBoundingClientRect();
 			origin = {

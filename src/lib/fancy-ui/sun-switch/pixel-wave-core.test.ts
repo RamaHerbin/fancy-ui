@@ -104,6 +104,21 @@ describe("styles and detection", () => {
 		expect(firstOpaqueBackground(inner)).toBe("rgb(1, 2, 3)");
 		expect(firstOpaqueBackground(document.body)).toBe("#fff");
 	});
+
+	it("firstOpaqueBackground composites translucent layers instead of stopping on them", () => {
+		const outer = document.createElement("div");
+		outer.style.backgroundColor = "rgb(0, 0, 0)";
+		const inner = document.createElement("div");
+		inner.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+		outer.append(inner);
+		document.body.append(outer);
+		expect(firstOpaqueBackground(inner)).toBe("rgb(128, 128, 128)");
+		// No opaque ancestor: over white.
+		const lone = document.createElement("div");
+		lone.style.backgroundColor = "rgba(0, 0, 0, 0.2)";
+		document.body.append(lone);
+		expect(firstOpaqueBackground(lone)).toBe("rgb(204, 204, 204)");
+	});
 });
 
 describe("reduced motion", () => {
@@ -382,6 +397,29 @@ describe("view transition path", () => {
 		expect(live.style.getPropertyValue("view-transition-name")).toBe("");
 		expect(document.querySelector(`[${HALO_ATTR}]`)).toBeNull();
 		expect(isWaving()).toBe(false);
+	});
+
+	it("restores the live element's own inline view-transition-name", async () => {
+		const { runUpdate, resolveReady, resolveFinished } = stubVT();
+		stubAnimate();
+		const live = document.createElement("canvas");
+		live.style.setProperty("view-transition-name", "card");
+		document.body.append(live);
+		const done = pixelWave({
+			origin: { x: 10, y: 10 },
+			apply: () => {},
+			live,
+			reducedMotion: false,
+			now,
+		});
+		expect(live.style.getPropertyValue("view-transition-name")).toBe(LIVE_NAME);
+		runUpdate();
+		resolveReady();
+		await Promise.resolve();
+		await runToEnd(5000);
+		resolveFinished();
+		await done;
+		expect(live.style.getPropertyValue("view-transition-name")).toBe("card");
 	});
 
 	it("updates the running clip in place when setKeyframes exists", async () => {
