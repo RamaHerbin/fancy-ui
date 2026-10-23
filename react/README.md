@@ -786,7 +786,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **toast**: The per-toast entrance and exit are owned by `<Toaster>`'s per-item presence clock rather than by `<Toast>` itself, so a `<Toast>` rendered directly outside a `<Toaster>` is static where the Svelte one still plays its 300 ms rise in and 200 ms sink out.
 - **toast**: A dismissed toast is `inert` for the length of its exit (the presence clock's default), so its Retry and Dismiss buttons stop answering clicks and focus inside it is released; the Svelte toast root carries no `inert` and stays interactive until the outro destroys it.
 - **tracing-beam**: Per-frame spring values are written straight to the root as --tb-progress from the rAF loop instead of round-tripping through state, so the component and its children never re-render while the lamp moves; marker lit flags are re-derived per frame and committed only when one actually flips.
-- **tracing-beam**: A markers or readingLine change after mount re-measures synchronously in the layout effect; the Svelte $effect defers the same re-measure with queueMicrotask. Same result, one tick earlier.
+- **tracing-beam**: A markers, readingLine or reduced-motion change after mount re-measures synchronously in the layout effect; the Svelte $effect defers the same re-measure with queueMicrotask. Same result, one tick earlier.
 - **typing-indicator**: TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, like the Svelte and Vue components. `role="status"` and `aria-live="polite"` are no longer overridable, and the component's own `--ft-typing-*` styles win over a consumer `style`.
 
 ## Tech Stack

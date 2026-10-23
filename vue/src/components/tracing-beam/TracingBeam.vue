@@ -226,14 +226,35 @@ watch(
 	   --tb-progress and --tb-height are written by the component. */
 	--_tb-accent: var(--tracing-beam-accent, var(--primary, oklch(0.7 0.13 285)));
 	--_tb-cool: oklch(0.74 0.09 255);
-	/* Light surfaces: the glow leans on the cool tint so a dark accent never reads as a smudge. */
-	--_tb-glow: color-mix(in oklab, var(--_tb-accent) 45%, var(--_tb-cool));
+	/* Light/dark tuning as `light-dark()` pairs, so the beam follows the page's
+	   `color-scheme` the way the library's tokens and `dark:` utilities do.
+	   Light surfaces: the glow leans on the cool tint so a dark accent never reads as a smudge.
+	   Dark surfaces: a near-white accent (the default dark --primary) would wash out, so the
+	   cool tint stays in. */
+	--_tb-glow: light-dark(
+		color-mix(in oklab, var(--_tb-accent) 45%, var(--_tb-cool)),
+		color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool))
+	);
 	/* The lamp's core: the glow pushed towards white, never pure white. */
-	--_tb-hot: color-mix(in oklab, var(--_tb-glow) 45%, white);
-	--_tb-hair: rgba(0, 0, 0, 0.1);
+	--_tb-hot: light-dark(
+		color-mix(in oklab, var(--_tb-glow) 45%, white),
+		color-mix(in oklab, var(--_tb-glow) 55%, white)
+	);
+	--_tb-hair: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
 	--_tb-surface: var(--background, #fafafa);
-	--_tb-read: 26%;
-	--_tb-spill-a: 12%;
+	/* The rail already read, and the lamp's spill on the lines being read (core, edge). */
+	--_tb-read: light-dark(
+		color-mix(in oklab, var(--_tb-glow) 26%, transparent),
+		color-mix(in oklab, var(--_tb-glow) 38%, transparent)
+	);
+	--_tb-spill: light-dark(
+		color-mix(in oklab, var(--_tb-glow) 12%, transparent),
+		color-mix(in oklab, var(--_tb-glow) 18%, transparent)
+	);
+	--_tb-spill-edge: light-dark(
+		color-mix(in oklab, var(--_tb-glow) 4%, transparent),
+		color-mix(in oklab, var(--_tb-glow) 6%, transparent)
+	);
 	--_tb-gutter: var(--tracing-beam-gutter, 2.5rem);
 	/* The rail's x inside the gutter. */
 	--_tb-x: 9px;
@@ -247,23 +268,13 @@ watch(
    with the wrapped part alone, while a plain ancestor selector is left
    unscoped and only `.tb-root` gets the attribute. */
 .dark .tb-root {
-	/* A near-white accent (the default dark --primary) would wash out: keep the cool tint in. */
+	/* Fallback for a `.dark` page that never sets `color-scheme`: the dark branch, forced. */
 	--_tb-glow: color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool));
 	--_tb-hot: color-mix(in oklab, var(--_tb-glow) 55%, white);
 	--_tb-hair: rgba(255, 255, 255, 0.1);
-	--_tb-read: 38%;
-	--_tb-spill-a: 18%;
-}
-
-/* No `.dark` class but a dark OS: same tuning, unless a `.light` ancestor opts out. */
-@media (prefers-color-scheme: dark) {
-	.tb-root:not(.light, .light *) {
-		--_tb-glow: color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool));
-		--_tb-hot: color-mix(in oklab, var(--_tb-glow) 55%, white);
-		--_tb-hair: rgba(255, 255, 255, 0.1);
-		--_tb-read: 38%;
-		--_tb-spill-a: 18%;
-	}
+	--_tb-read: color-mix(in oklab, var(--_tb-glow) 38%, transparent);
+	--_tb-spill: color-mix(in oklab, var(--_tb-glow) 18%, transparent);
+	--_tb-spill-edge: color-mix(in oklab, var(--_tb-glow) 6%, transparent);
 }
 
 .tb-gutter {
@@ -313,9 +324,8 @@ watch(
 .tb-trail {
 	background: linear-gradient(
 		to bottom,
-		color-mix(in oklab, var(--_tb-glow) var(--_tb-read), transparent),
-		color-mix(in oklab, var(--_tb-glow) var(--_tb-read), transparent)
-			calc(var(--tb-progress) - 180px),
+		var(--_tb-read),
+		var(--_tb-read) calc(var(--tb-progress) - 180px),
 		color-mix(in oklab, var(--_tb-glow) 90%, transparent) var(--tb-progress),
 		transparent var(--tb-progress)
 	);
@@ -408,8 +418,8 @@ watch(
 	border-radius: 999px;
 	background: radial-gradient(
 		farthest-side at 0 50%,
-		color-mix(in oklab, var(--_tb-glow) var(--_tb-spill-a), transparent),
-		color-mix(in oklab, var(--_tb-glow) calc(var(--_tb-spill-a) / 3), transparent) 45%,
+		var(--_tb-spill),
+		var(--_tb-spill-edge) 45%,
 		transparent
 	);
 	filter: blur(8px);
