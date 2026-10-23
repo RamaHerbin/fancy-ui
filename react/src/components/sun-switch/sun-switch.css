@@ -1,0 +1,47 @@
+/* Ported from the Svelte <style> block. Every rule is anchored on the
+   component's own root class, `.ft-sun-switch`, as the source names it. */
+
+.ft-sun-switch {
+	appearance: none;
+	background: none;
+	border: 0;
+	padding: 0;
+	margin: 0;
+	display: inline-block;
+	position: relative;
+	line-height: 0;
+	color: inherit;
+	cursor: pointer;
+	touch-action: manipulation;
+	border-radius: 4px;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.ft-sun-switch:focus-visible {
+	outline: 2px solid var(--ft-accent, currentColor);
+	outline-offset: 2px;
+}
+
+.ft-sun-switch:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
+.ft-sun-switch .ft-sun-switch-canvas {
+	display: block;
+	width: calc((2 * var(--ft-sun-r) + 1) * var(--ft-sun-cell));
+	height: calc((2 * var(--ft-sun-r) + 1) * var(--ft-sun-cell));
+	image-rendering: pixelated;
+	pointer-events: none;
+}
+
+/* HDR squares over the sun canvas: same box, transparent between squares. */
+.ft-sun-switch .ft-sun-switch-hdr {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	image-rendering: pixelated;
+	pointer-events: none;
+}

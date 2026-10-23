@@ -141,6 +141,7 @@ export * from "./components/sticky-scroll/index.js";
 export * from "./components/story-thread/index.js";
 export * from "./components/streaming-text/index.js";
 export * from "./components/subagent-list/index.js";
+export * from "./components/sun-switch/index.js";
 export * from "./components/switch/index.js";
 export * from "./components/tabs/index.js";
 export * from "./components/terminal-block/index.js";

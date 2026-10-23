@@ -1081,5 +1081,35 @@
 			"react": "react/src/components/avatar/avatar-core.ts",
 			"vue": "vue/src/components/avatar/avatar-core.ts"
 		}
+	},
+	{
+		"id": "sun-switch/sun-switch-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sun-switch/sun-switch-core.ts",
+			"react": "react/src/components/sun-switch/sun-switch-core.ts",
+			"vue": "vue/src/components/sun-switch/sun-switch-core.ts"
+		}
+	},
+	{
+		"id": "sun-switch/pixel-wave-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sun-switch/pixel-wave-core.ts",
+			"react": "react/src/components/sun-switch/pixel-wave-core.ts",
+			"vue": "vue/src/components/sun-switch/pixel-wave-core.ts"
+		}
+	},
+	{
+		"id": "sun-switch/sun-switch-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sun-switch/sun-switch-hdr.ts",
+			"react": "react/src/components/sun-switch/sun-switch-hdr.ts",
+			"vue": "vue/src/components/sun-switch/sun-switch-hdr.ts"
+		}
 	}
 ]

@@ -129,6 +129,7 @@
 	"story-thread": false,
 	"streaming-text": true,
 	"subagent-list": true,
+	"sun-switch": false,
 	"switch": true,
 	"tabs": true,
 	"terminal-block": true,

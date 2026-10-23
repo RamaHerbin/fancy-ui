@@ -73,6 +73,7 @@
 		"marquee",
 		"datamosh-transition",
 		"pulse-beam",
+		"sun-switch",
 		"animated-beam",
 		"apple-card-carousel",
 		"animated-testimonials",

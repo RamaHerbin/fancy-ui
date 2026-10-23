@@ -23,6 +23,7 @@ export * from "./dock/index.js";
 export * from "./image-trail-cursor/index.js";
 export * from "./interactive-grid-pattern/index.js";
 export * from "./interactive-hover-button/index.js";
+export * from "./sun-switch/index.js";
 export * from "./gradient-button/index.js";
 export * from "./logo-cloud/index.js";
 export * from "./direction-aware-hover/index.js";

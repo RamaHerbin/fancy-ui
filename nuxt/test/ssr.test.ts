@@ -320,7 +320,11 @@ describe("SSR → hydration → navigation through the module", async () => {
 		for (let i = 0; i < 3; i++) {
 			await page.getByTestId("to-other").click();
 			await page.getByTestId("other").waitFor();
-			await expect.poll(() => page.getByTestId("ticker").textContent()).toMatch(/4,?242/);
+			// The ticker animates for 1 s and starts a frame after mount, so vitest's
+			// default 1 s poll ends on the last frames and can read 4,241 on a slow run.
+			await expect
+				.poll(() => page.getByTestId("ticker").textContent(), { timeout: 5_000 })
+				.toMatch(/4,?242/);
 			away ??= await snapshot(page);
 			await page.getByTestId("to-index").click();
 			await page.getByTestId("index").waitFor();
