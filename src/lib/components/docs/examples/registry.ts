@@ -1245,6 +1245,24 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Pinned to the top of a scrolling container with a blurred background.",
 		},
 	],
+	"story-thread": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Scroll inside the box: the sections pan sideways and the thread draws itself from node to node.",
+		},
+		{
+			name: "Branches",
+			title: "Branches",
+			description: "Segments that leave the same node fork, advance together and meet again.",
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description: "The same thread running down a plain stack, dashed.",
+		},
+	],
 	"tick-nav": [
 		{
 			name: "BasicUsage",

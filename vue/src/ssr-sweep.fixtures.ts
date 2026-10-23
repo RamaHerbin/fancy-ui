@@ -120,6 +120,7 @@ export const fixtures: Record<string, Record<string, unknown>> = {
 	"root:StaticLogoCloud": {"logos":[{"name":"Acme","path":"/acme.svg"}]},
 	"root:Step": {"label":"x"},
 	"root:StickyScroll": {"items":[{"id":"a","label":"One"},{"id":"b","label":"Two"}]},
+	"root:StoryThread": {"layout":"vertical"},
 	"root:StreamingText": {"text":"Partial answer"},
 	"root:SubagentList": {"agents":[{"id":"researcher","name":"Researcher","task":"Read the changelog for breaking changes","status":"running","progress":0.62,"model":"mini"},{"id":"writer","name":"Writer","task":"Draft the migration note","status":"done","model":"pro"}]},
 	"root:TabsContent": {"value":"x","forceMount":true},

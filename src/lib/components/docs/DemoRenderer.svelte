@@ -169,6 +169,7 @@
 		"navbar",
 		"sidebar",
 		"tick-nav",
+		"story-thread",
 		"tabs",
 		"accordion",
 		"collapsible",

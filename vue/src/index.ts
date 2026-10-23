@@ -138,6 +138,7 @@ export * from "./components/sparkles-text/index.js";
 export * from "./components/status-morph/index.js";
 export * from "./components/stepper/index.js";
 export * from "./components/sticky-scroll/index.js";
+export * from "./components/story-thread/index.js";
 export * from "./components/streaming-text/index.js";
 export * from "./components/subagent-list/index.js";
 export * from "./components/sun-switch/index.js";

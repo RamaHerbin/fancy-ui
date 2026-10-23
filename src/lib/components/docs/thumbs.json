@@ -126,6 +126,7 @@
 	"status-morph": true,
 	"stepper": true,
 	"sticky-scroll": true,
+	"story-thread": false,
 	"streaming-text": true,
 	"subagent-list": true,
 	"sun-switch": false,
