@@ -70,3 +70,7 @@ idle the loop stops rescheduling.
   so there is no reliable auto-detect; `tone="auto"` is a possible follow-up.
 - `prefers-reduced-motion: reduce` → no loop, no transitions; the layers stay visible
   and static.
+
+## HDR
+
+The beam's blobs are CSS gradients, capped at SDR white. With `hdr` (on by default), `pulse-beam-hdr.ts` feeds the shared HDR light layer (`_internals/hdr/hdr-light.ts`): wherever a stroke blob meets the ring, a stretch of light above white in that blob's colour. Positions, sizes and corner alphas are read from the custom properties the shared loop already writes (`--pb-bx1`, `--pb-bw2`, `--pb-op-tl`…), and the stroke layer's live opacity carries `strength` and the fade in/out. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

@@ -504,6 +504,13 @@ export const registry: Record<string, ComponentMeta> = {
 		tags: ["media", "image", "slider", "comparison", "before-after", "interactive"],
 		props: [
 			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds the seam's light above SDR white through a WebGPU layer with extended tone mapping: the core climbs toward ~1000 nits as the beam lights up; elsewhere nothing changes",
+			},
+			{
 				name: "firstImage",
 				type: "string",
 				default: '""',
@@ -997,6 +1004,13 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/shimmer-button" }],
 		tags: ["button", "shimmer", "gradient", "animation", "cta"],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds a glint above SDR white to the sweep and the hover spot through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
+			},
 			{
 				name: "shimmerColor",
 				type: "string",
@@ -2289,6 +2303,13 @@ export const registry: Record<string, ComponentMeta> = {
 		tags: ["card", "spotlight", "mouse", "gradient", "interactive", "hover"],
 		props: [
 			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds a hot core to the spotlight, in its own colour, through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
+			},
+			{
 				name: "slotClass",
 				type: "string",
 				default: '""',
@@ -3006,6 +3027,13 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds the beam's light above SDR white where it crosses the ring, through a WebGPU layer with extended tone mapping; elsewhere nothing changes",
+			},
 			{
 				name: "active",
 				type: "boolean",

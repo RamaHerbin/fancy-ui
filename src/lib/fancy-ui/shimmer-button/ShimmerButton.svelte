@@ -22,6 +22,12 @@
 		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/**
+		 * On a display that reports HDR, add a glint above SDR white to the
+		 * sweep and the hover spot, in a WebGPU layer with extended tone mapping.
+		 * Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 	};
 
 	export type ShimmerButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
@@ -31,6 +37,12 @@
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { soundFeedback } from "../sound/sound-feedback.js";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { createShimmerProbe } from "./shimmer-button-hdr.js";
+
+	let button: HTMLButtonElement | undefined = $state();
+	let sheen: HTMLSpanElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
 
 	let {
 		class: className,
@@ -43,6 +55,7 @@
 		onclick,
 		onpointermove,
 		sound = false,
+		hdr = true,
 		...restProps
 	}: ShimmerButtonProps = $props();
 
@@ -62,6 +75,16 @@
 		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 
+	$effect(() => {
+		if (!button || !sheen || !hdrCanvas) return;
+		return attachHdrLight({
+			host: button,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: createShimmerProbe(button, sheen, () => ({ color: shimmerColor })),
+		});
+	});
+
 	// The hover sheen follows the pointer: two CSS variables, no re-render.
 	function handlePointerMove(event: PointerEvent) {
 		const el = event.currentTarget as HTMLButtonElement;
@@ -74,6 +97,7 @@
 
 <button
 	use:soundFeedback={hoverFeedback}
+	bind:this={button}
 	class={cn(
 		"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
 		"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
@@ -94,10 +118,15 @@
 	<span class="relative z-10">{@render children?.()}</span>
 
 	<!-- Sweep: a satin band that crosses the button, then rests -->
-	<span class="shimmer-button__sheen" aria-hidden="true"></span>
+	<span bind:this={sheen} class="shimmer-button__sheen" aria-hidden="true"></span>
 
 	<!-- Hover: the sheen follows the pointer -->
 	<span class="shimmer-button__spot" aria-hidden="true"></span>
+
+	{#if hdr}
+		<!-- Glint above SDR white, on HDR displays only. -->
+		<canvas bind:this={hdrCanvas} class="shimmer-button__hdr" aria-hidden="true"></canvas>
+	{/if}
 </button>
 
 <style>
@@ -160,6 +189,15 @@
 		background-repeat: no-repeat;
 		background-position: 100% 0;
 		animation: shimmer-sweep var(--speed) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+	}
+
+	.shimmer-button__hdr {
+		position: absolute;
+		inset: 0;
+		z-index: 21;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
 	}
 
 	.shimmer-button__spot {

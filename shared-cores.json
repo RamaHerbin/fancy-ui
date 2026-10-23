@@ -93,6 +93,56 @@
 		}
 	},
 	{
+		"id": "_internals/hdr/hdr-light.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/hdr/hdr-light.ts",
+			"react": "react/src/internals/hdr/hdr-light.ts",
+			"vue": "vue/src/internals/hdr/hdr-light.ts"
+		}
+	},
+	{
+		"id": "card-spotlight/card-spotlight-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/card-spotlight/card-spotlight-hdr.ts",
+			"react": "react/src/components/card-spotlight/card-spotlight-hdr.ts",
+			"vue": "vue/src/components/card-spotlight/card-spotlight-hdr.ts"
+		}
+	},
+	{
+		"id": "compare/compare-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/compare/compare-hdr.ts",
+			"react": "react/src/components/compare/compare-hdr.ts",
+			"vue": "vue/src/components/compare/compare-hdr.ts"
+		}
+	},
+	{
+		"id": "shimmer-button/shimmer-button-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/shimmer-button/shimmer-button-hdr.ts",
+			"react": "react/src/components/shimmer-button/shimmer-button-hdr.ts",
+			"vue": "vue/src/components/shimmer-button/shimmer-button-hdr.ts"
+		}
+	},
+	{
+		"id": "pulse-beam/pulse-beam-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/pulse-beam/pulse-beam-hdr.ts",
+			"react": "react/src/components/pulse-beam/pulse-beam-hdr.ts",
+			"vue": "vue/src/components/pulse-beam/pulse-beam-hdr.ts"
+		}
+	},
+	{
 		"id": "mosaic-glow/mosaic-glow-core.ts",
 		"kind": "engine-core",
 		"shared": true,

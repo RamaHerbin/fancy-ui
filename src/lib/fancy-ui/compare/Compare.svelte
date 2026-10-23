@@ -63,6 +63,8 @@
 	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { createCompareProbe } from "./compare-hdr.js";
 
 	interface Props {
 		firstImage?: string;
@@ -82,6 +84,12 @@
 		/** Accessible name of the slider */
 		label?: string;
 		onpercentagechange?: (percentage: number) => void;
+		/**
+		 * On a display that reports HDR, add the seam's light above SDR white in
+		 * a WebGPU layer with extended tone mapping: the core climbs toward
+		 * ~1000 nits as the beam lights up. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 		ondragstart?: () => void;
 		ondragend?: () => void;
 		onhoverenter?: () => void;
@@ -107,6 +115,7 @@
 		beamColors,
 		label = "Comparison slider",
 		onpercentagechange,
+		hdr = true,
 		ondragstart,
 		ondragend,
 		onhoverenter,
@@ -134,6 +143,22 @@
 	let lastPx: number | null = null;
 
 	const palette = $derived(beamPalette(beamColors));
+
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	$effect(() => {
+		if (!hdrCanvas || !sliderRef) return;
+		return attachHdrLight({
+			host: sliderRef,
+			canvas: hdrCanvas,
+			pad: 0,
+			probe: createCompareProbe(() => ({
+				percent: sliderXPercent,
+				energy,
+				trail,
+				palette,
+			})),
+		});
+	});
 
 	function setPercent(p: number): void {
 		const next = Math.max(0, Math.min(100, p));
@@ -381,6 +406,15 @@
 		<span class="compare-beam__pulse"></span>
 		<span class="compare-beam__pulse compare-beam__pulse--late"></span>
 	</div>
+
+	{#if hdr}
+		<!-- The seam's light above SDR white, on HDR displays only. -->
+		<canvas
+			bind:this={hdrCanvas}
+			class="pointer-events-none absolute inset-0 z-40 h-full w-full"
+			aria-hidden="true"
+		></canvas>
+	{/if}
 
 	<!-- Handle, above the beam and not blended with it -->
 	<div

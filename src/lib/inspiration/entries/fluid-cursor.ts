@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/fluid-cursor",
 	addedAt: "2026-09-26",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["hover"],
 	styleTags: ["playful", "glow", "hdr"],
@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "Velocity, not position, drives each splat, so a fast flick throws a long plume and a slow drag leaves a soft wisp. Dye and velocity dissipate at different rates, which is what makes the trail curl before it fades.",
 		whenToUse: "A playful hero or a portfolio splash where the cursor is the toy.",
 		watch:
-			"A WebGL simulation on window-level mouse and touch listeners. Under reduced motion it stays an empty canvas, and it is a singleton by default — one per page. Blank until the pointer moves.",
+			"A WebGL simulation on window-level mouse and touch listeners. Under reduced motion it stays an empty canvas, and it is a singleton by default — one per page. Blank until the pointer moves. With HDR on, the fluid renders through WebGPU with extended tone mapping on displays that support it.",
 		clues: [
 			"WebGL fluid sim",
 			"splat force from pointer velocity",
@@ -51,8 +51,9 @@ const entry: FancyUIReference = {
 				max: 0.6,
 				step: 0.05,
 			},
+			{ key: "hdr", type: "boolean", label: "HDR" },
 		],
-		defaults: { splatRadius: 0.2, curl: 3, colorIntensity: 0.15 },
+		defaults: { splatRadius: 0.2, curl: 3, colorIntensity: 0.15, hdr: true },
 		mount: "intent",
 	},
 	capture: { sweep: true, delay: 1800 },

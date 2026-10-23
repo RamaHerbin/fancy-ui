@@ -10,7 +10,7 @@ const entry: FancyUIReference = {
 	creator: "FancyUI",
 	sourceUrl: "/docs/components/shimmer-button",
 	addedAt: "2026-10-03",
-	verifiedAt: "2026-10-03",
+	verifiedAt: "2026-10-21",
 	status: "published",
 	interactionTags: ["ambient", "hover"],
 	styleTags: ["glow", "minimal"],
@@ -20,7 +20,7 @@ const entry: FancyUIReference = {
 		why: "The idle loop sweeps a satin band across the pill and then rests, so it invites without strobing. On hover the sheen jumps to the pointer, so the button answers the cursor rather than looping past it.",
 		whenToUse: "A single sign-up or early-access action on a dark hero.",
 		watch:
-			"It sets `--radius` on its root, which overrides the theme token for any `rounded-*` child. Reduced motion leaves a static sheen.",
+			"It sets `--radius` on its root, which overrides the theme token for any `rounded-*` child. Reduced motion leaves a static sheen. On an HDR display a WebGPU glint above SDR white rides the sweep, read from its live CSS position; elsewhere nothing changes.",
 		clues: [
 			"sweep-then-rest keyframes",
 			"pointermove → --mx / --my",
@@ -44,8 +44,9 @@ const entry: FancyUIReference = {
 					{ value: "5s", label: "5s" },
 				],
 			},
+			{ key: "hdr", type: "boolean", label: "HDR" },
 		],
-		defaults: { shimmerColor: "#ffffff", shimmerDuration: "3s" },
+		defaults: { shimmerColor: "#ffffff", shimmerDuration: "3s", hdr: true },
 	},
 	capture: { hover: [0.56, 0.5], delay: 1400 },
 };

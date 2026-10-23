@@ -1,17 +1,19 @@
 <script lang="ts">
 	import type { PlaygroundValues } from "$lib/inspiration/types.js";
 	import { PulseBeam } from "$lib/fancy-ui/pulse-beam";
+	import HdrBadge from "$lib/components/inspiration/HdrBadge.svelte";
 	import type { PulseBeamPalette, PulseBeamVariant } from "$lib/fancy-ui/pulse-beam";
 
 	let { values }: { values: PlaygroundValues } = $props();
 </script>
 
-<div class="flex h-full w-full items-center justify-center overflow-hidden p-6">
+<div class="relative flex h-full w-full items-center justify-center overflow-hidden p-6">
 	<PulseBeam
 		radius={16}
 		palette={values.palette as PulseBeamPalette}
 		variant={values.variant as PulseBeamVariant}
 		speed={values.speed as number}
+		hdr={values.hdr !== false}
 		class="w-full max-w-[260px]"
 	>
 		<div class="bg-card rounded-[16px] p-3">
@@ -25,4 +27,5 @@
 			</div>
 		</div>
 	</PulseBeam>
+	<HdrBadge />
 </div>

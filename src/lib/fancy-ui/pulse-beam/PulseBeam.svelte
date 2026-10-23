@@ -30,6 +30,12 @@
 		colors?: string[];
 		/** Overall intensity, 0–1 */
 		strength?: number;
+		/**
+		 * On a display that reports HDR, add the beam's light above SDR white
+		 * where it crosses the ring, in a WebGPU layer with extended tone
+		 * mapping. Elsewhere nothing changes.
+		 */
+		hdr?: boolean;
 		/** Corner radius in px, applied to the wrapper and every layer */
 		radius?: number;
 		/** Multiplier for the breathing and drift periods */
@@ -57,10 +63,13 @@
 	import {
 		LAYER_PRESETS,
 		buildLayerBackgrounds,
+		strokeLights,
 		buildOscillators,
 		motionPreset,
 	} from "./pulse-beam-data.js";
 	import { registerPulse } from "./pulse-beam-loop.js";
+	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 
 	let {
 		class: className,
@@ -71,6 +80,7 @@
 		palette = "colorful",
 		colors,
 		strength = 1,
+		hdr = true,
 		radius = 16,
 		speed = 1,
 		tone = "dark",
@@ -106,6 +116,19 @@
 	const motion = $derived(motionPreset(variant, tone, speed));
 	const oscillators = $derived(buildOscillators(motion));
 	const hueEnabled = $derived(hueShift && !isMono);
+	let strokeEl: HTMLDivElement | undefined = $state();
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	const hdrBlobs = $derived(strokeLights(variant, palette, colors));
+	$effect(() => {
+		const host = ref;
+		if (!host || !strokeEl || !hdrCanvas) return;
+		return attachHdrLight({
+			host,
+			canvas: hdrCanvas,
+			probe: createPulseBeamProbe(host, strokeEl, () => ({ blobs: hdrBlobs })),
+		});
+	});
+
 	const backgrounds = $derived(
 		buildLayerBackgrounds({ variant, palette, colors, tone, op: motion.op })
 	);
@@ -250,14 +273,28 @@
 	{@render children?.()}
 	<div class="pulse-beam__layer pulse-beam__glow" style:background={backgrounds.glow}></div>
 	<div
+		bind:this={strokeEl}
 		class="pulse-beam__layer pulse-beam__stroke"
 		style:background={backgrounds.stroke}
 		ontransitionend={handleTransitionEnd}
 	></div>
 	<div class="pulse-beam__layer pulse-beam__bloom" style:background={backgrounds.bloom}></div>
+	{#if hdr}
+		<!-- Light above SDR white where the beam crosses the ring, on HDR displays only. -->
+		<canvas bind:this={hdrCanvas} class="pulse-beam__hdr" aria-hidden="true"></canvas>
+	{/if}
 </div>
 
 <style>
+	.pulse-beam__hdr {
+		position: absolute;
+		top: -24px;
+		left: -24px;
+		width: calc(100% + 48px);
+		height: calc(100% + 48px);
+		pointer-events: none;
+	}
+
 	.pulse-beam {
 		position: relative;
 		isolation: isolate;
