@@ -15,6 +15,7 @@ export interface DocsNavEntry {
 const GETTING_STARTED = [
 	{ href: "/docs/getting-started/introduction", key: "page.introduction" },
 	{ href: "/docs/getting-started/installation", key: "page.installation" },
+	{ href: "/docs/getting-started/copy-source", key: "install.copySource" },
 	{ href: "/docs/getting-started/theming", key: "page.theming" },
 	{ href: "/docs/getting-started/theme-generator", key: "page.themeGenerator" },
 	{ href: "/docs/getting-started/changelog", key: "page.changelog" },

@@ -14,6 +14,7 @@ import {
 	VUE_REGISTRY_ITEM_SCHEMA_URL,
 	VUE_REGISTRY_SCHEMA_URL,
 } from "../constants.js";
+import { VUE_EXCLUSIONS, excludedBy } from "../exclusions.js";
 import { TYPE_PACKAGES } from "../stack.js";
 import type { RegistryStack, SharedItem } from "../stack.js";
 
@@ -78,16 +79,9 @@ export function vueGroupOf(relPath: string): string | null {
 	return null;
 }
 
-/** Tests, fixtures, the test setup, the Web Audio mock, READMEs and other kinds. */
+/** Tests, fixtures, the test setup, the Web Audio mock, READMEs and other kinds (`../exclusions.ts`). */
 export function vueIsExcluded(relPath: string): boolean {
-	const file = relPath.split("/").pop() ?? relPath;
-	if (!KEPT_KIND.test(file)) return true;
-	if (/\.test\.ts$/.test(file)) return true;
-	if (/\.fixtures\.ts$/.test(file)) return true;
-	if (file === "test-setup.ts") return true;
-	if (file === "web-audio-mock.ts") return true;
-	if (/^README/i.test(file)) return true;
-	return false;
+	return excludedBy(VUE_EXCLUSIONS, relPath);
 }
 
 export const vueStack: RegistryStack = Object.freeze<RegistryStack>({
