@@ -219,7 +219,8 @@ modules it needs are pulled in automatically. Import from there
 (\`$lib/components/ui/fancy/<slug>\`) instead of \`fancy-ui-svelte\`; \`cn\` comes
 from the project's own \`$lib/utils\`. The components' \`light-dark()\` colours
 follow \`color-scheme\`: add \`:root { color-scheme: light dark } .dark { color-scheme: dark }\`
-to the project CSS if it does not declare it.
+to the project CSS if it does not declare it. Setup, updates and limits:
+${SITE_URL}/docs/getting-started/copy-source.
 
 If the project uses Tailwind v3 or no Tailwind, stop and tell the user:
 fancy-ui-svelte requires Tailwind CSS v4.
@@ -298,7 +299,8 @@ ${REGISTRY_BASE}/registry.json). The files land in \`fancy/\` under the project'
 from \`fancy-ui-react\`, and skip \`fancy-ui-react/styles.css\` (each component
 imports its own CSS). The components' \`light-dark()\` colours follow
 \`color-scheme\`: add \`:root { color-scheme: light dark } .dark { color-scheme: dark }\`
-to the project CSS if it does not declare it.`;
+to the project CSS if it does not declare it. Setup, updates and limits:
+${SITE_URL}/docs/getting-started/copy-source.`;
 
 const VUE_GUIDE = `## Vue
 
@@ -347,7 +349,8 @@ ${REGISTRY_BASE_VUE}/registry.json). The files land in \`fancy/\` under the proj
 from \`fancy-ui-vue\`, and skip \`fancy-ui-vue/styles.css\` (each component
 carries its own styles). The components' \`light-dark()\` colours follow
 \`color-scheme\`: add \`:root { color-scheme: light dark } .dark { color-scheme: dark }\`
-to the project CSS if it does not declare it. In Nuxt, keep the copied tree out
+to the project CSS if it does not declare it. Setup, updates and limits:
+${SITE_URL}/docs/getting-started/copy-source. In Nuxt, keep the copied tree out
 of component auto-import: \`components: { dirs: [{ path: "~/components", ignore: ["ui/fancy/**"] }] }\`.`;
 
 function header(componentCount: number): string {

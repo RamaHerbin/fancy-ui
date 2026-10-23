@@ -14,6 +14,7 @@ import { registry } from "$lib/fancy-ui/registry.js";
 import { SITE_URL } from "$lib/site.js";
 import { buildRegistry } from "./build.js";
 import type { BuildOutput } from "./build.js";
+import type { Provenance } from "./types.js";
 import { serverModulesFrom } from "./graph.js";
 import { reactStack } from "./stacks/react.js";
 import { svelteStack } from "./stacks/svelte.js";
@@ -24,6 +25,9 @@ import rootPackage from "../../../../package.json";
 import vuePackage from "../../../../vue/package.json";
 
 interface PackageJson {
+	name: string;
+	version: string;
+	license: string;
 	dependencies?: Record<string, string>;
 	devDependencies?: Record<string, string>;
 }
@@ -36,6 +40,19 @@ interface PackageJson {
  */
 function versionsOf(pkg: PackageJson): Record<string, string> {
 	return { ...pkg.devDependencies, ...pkg.dependencies };
+}
+
+/**
+ * Licence and provenance for every item of a package's registry: the copy
+ * says which package and version it was cut from, under which licence.
+ */
+function provenanceOf(pkg: PackageJson): Provenance {
+	return {
+		author: `fancy-ui <${SITE_URL}>`,
+		license: pkg.license,
+		package: pkg.name,
+		version: pkg.version,
+	};
 }
 
 const PREFIX = "/react/src/";
@@ -147,6 +164,7 @@ export function registryOutput(): BuildOutput {
 		meta: componentMeta(),
 		siteUrl: SITE_URL,
 		versions: versionsOf(reactPackage),
+		provenance: provenanceOf(reactPackage),
 		serverModules: serverModules(),
 		// Decided by the CLI acceptance run (2026-10-19): Next 16 resolves neither
 		// "./X.js" → X.tsx under Turbopack nor under webpack; Vite and tsc do.
@@ -167,6 +185,7 @@ export function svelteRegistryOutput(): BuildOutput {
 		meta: componentMeta(),
 		siteUrl: SITE_URL,
 		versions: versionsOf(rootPackage),
+		provenance: provenanceOf(rootPackage),
 	});
 	return svelteMemo;
 }
@@ -182,6 +201,7 @@ export function vueRegistryOutput(): BuildOutput {
 		meta: componentMeta(),
 		siteUrl: SITE_URL,
 		versions: versionsOf(vuePackage),
+		provenance: provenanceOf(vuePackage),
 	});
 	return vueMemo;
 }

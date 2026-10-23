@@ -14,7 +14,7 @@ describe("sourcePathForRoute", () => {
 		.map((d) => d.name);
 
 	it("covers every getting-started route with an existing file", () => {
-		expect(gettingStarted.length).toBe(5);
+		expect(gettingStarted.length).toBe(6);
 		for (const slug of gettingStarted) {
 			const path = sourcePathForRoute(`/docs/getting-started/${slug}`);
 			expect(path, slug).not.toBeNull();

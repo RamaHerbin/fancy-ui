@@ -7,6 +7,7 @@
  */
 
 import { REGISTRY_ITEM_SCHEMA_URL, REGISTRY_NAME, REGISTRY_SCHEMA_URL } from "../constants.js";
+import { REACT_EXCLUSIONS, excludedBy } from "../exclusions.js";
 import { stripJsExtensions } from "../graph.js";
 import { TYPE_PACKAGES, docsFor } from "../stack.js";
 import type { RegistryStack, SharedItem, TransformContext } from "../stack.js";
@@ -83,18 +84,13 @@ export function groupOf(relPath: string): string | null {
 }
 
 /**
- * Files that never ship: tests, harnesses, the Web Audio mock, READMEs and
- * anything that is not `.ts` / `.tsx` / `.css`. (`dev.ts` is decided by the
- * builder, which keeps it only when a kept file imports it.)
+ * Files that never ship: the named list in `../exclusions.ts` (tests,
+ * harnesses, the Web Audio mock, READMEs and anything that is not `.ts` /
+ * `.tsx` / `.css`). (`dev.ts` is decided by the builder, which keeps it only
+ * when a kept file imports it.)
  */
 export function isExcluded(relPath: string): boolean {
-	const file = relPath.split("/").pop() ?? relPath;
-	if (!/\.(ts|tsx|css)$/.test(file)) return true;
-	if (/\.test\.tsx?$/.test(file)) return true;
-	if (/Harness\.tsx?$/.test(file)) return true;
-	if (/^web-audio-mock\.ts$/.test(file)) return true;
-	if (/^README/i.test(file)) return true;
-	return false;
+	return excludedBy(REACT_EXCLUSIONS, relPath);
 }
 
 /** `utils.ts` → `utils.js`: the output name `client-boundary.mjs` lists. */
