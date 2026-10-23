@@ -20,7 +20,7 @@ import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import { createCompareProbe } from "./compare-hdr.js";
@@ -149,6 +149,11 @@ export function Compare({
 	const [sliderEl, sliderElRef] = useElementRef<HTMLDivElement>();
 	const composedSliderRef = useComposedRefs<HTMLDivElement>(sliderRef, sliderElRef);
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 	// Each piece of state the markup reads is mirrored in a ref: the rAF loops
 	// (autoplay, glide, beam) are long-lived closures and must see live values,
 	// as the reference's closures read its $state live.
@@ -494,7 +499,7 @@ export function Compare({
 				<span className="compare-beam__pulse compare-beam__pulse--late"></span>
 			</div>
 
-			{hdr ? (
+			{hdr && hdrCapable ? (
 				<canvas
 					ref={hdrCanvasRef}
 					className="pointer-events-none absolute inset-0 z-40 h-full w-full"

@@ -105,7 +105,7 @@ export interface CompareProps {
 import { callListener } from "../../internals/call-listener.js";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { createCompareProbe } from "./compare-hdr.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
 
@@ -162,6 +162,12 @@ let beamRAF: number | null = null;
 let lastPx: number | null = null;
 
 const palette = computed(() => beamPalette(beamColors));
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 watch(
@@ -468,7 +474,7 @@ onMounted(() => {
 
 		<!-- The seam's light above SDR white, on HDR displays only. -->
 		<canvas
-			v-if="hdr"
+			v-if="hdr && hdrCapable"
 			ref="hdrCanvas"
 			class="pointer-events-none absolute inset-0 z-40 h-full w-full"
 			aria-hidden="true"

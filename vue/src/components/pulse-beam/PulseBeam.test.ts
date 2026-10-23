@@ -393,15 +393,32 @@ describe("PulseBeam", () => {
 		});
 	});
 
-	it("renders the HDR overlay canvas by default, and none with hdr off", () => {
+	it("renders the HDR overlay canvas only where WebGPU and an HDR display exist", async () => {
+		// jsdom: no navigator.gpu, so no canvas at all.
+		const sdr = render(PulseBeam);
+		await nextTick();
+		expect(sdr.container.querySelector("canvas")).toBeNull();
+		cleanup();
+
+		vi.stubGlobal("navigator", { ...navigator, gpu: {} });
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query === "(dynamic-range: high)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+		}));
 		const on = render(PulseBeam);
+		await nextTick();
 		const canvas = on.container.querySelector("canvas");
 		expect(canvas).not.toBeNull();
-		expect(canvas?.getAttribute("aria-hidden")).toBe("true");
-		// jsdom has no WebGPU: the layer never starts, so no flag.
+		// The light itself never starts without a real adapter: no flag.
 		expect(on.container.querySelector("[data-hdr]")).toBeNull();
 		cleanup();
 		const off = render(PulseBeam, { props: { hdr: false } });
+		await nextTick();
 		expect(off.container.querySelector("canvas")).toBeNull();
+		vi.unstubAllGlobals();
 	});
 });

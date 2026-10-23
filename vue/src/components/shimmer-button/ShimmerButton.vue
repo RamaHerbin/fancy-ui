@@ -31,11 +31,11 @@ export interface ShimmerButtonProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useAttrs, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { createShimmerProbe } from "./shimmer-button-hdr.js";
 
 defineOptions({ name: "ShimmerButton", inheritAttrs: false });
@@ -63,6 +63,12 @@ useSoundFeedback(button, () => ({
 defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 const sheen = useTemplateRef<HTMLSpanElement>("sheen");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
@@ -147,7 +153,12 @@ function handlePointerMove(event: PointerEvent) {
 		<span class="shimmer-button__spot" aria-hidden="true"></span>
 
 		<!-- Glint above SDR white, on HDR displays only. -->
-		<canvas v-if="hdr" ref="hdrCanvas" class="shimmer-button__hdr" aria-hidden="true"></canvas>
+		<canvas
+			v-if="hdr && hdrCapable"
+			ref="hdrCanvas"
+			class="shimmer-button__hdr"
+			aria-hidden="true"
+		></canvas>
 	</button>
 </template>
 

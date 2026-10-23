@@ -12,7 +12,7 @@ import {
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { cn } from "../../utils.js";
 import {
 	LAYER_PRESETS,
@@ -129,6 +129,11 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 	const [hostNode, hostNodeRef] = useElementRef<HTMLDivElement>();
 	const [strokeEl, strokeElRef] = useElementRef<HTMLDivElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 	const setHostRef = useComposedRefs<HTMLDivElement>(forwardedRef, hostRef, hostNodeRef);
 
 	const setPhase = (next: Phase) => {
@@ -337,7 +342,9 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 				className="pulse-beam__layer pulse-beam__bloom"
 				style={{ background: backgrounds.bloom }}
 			/>
-			{hdr ? <canvas ref={hdrCanvasRef} className="pulse-beam__hdr" aria-hidden="true" /> : null}
+			{hdr && hdrCapable ? (
+				<canvas ref={hdrCanvasRef} className="pulse-beam__hdr" aria-hidden="true" />
+			) : null}
 		</div>
 	);
 });

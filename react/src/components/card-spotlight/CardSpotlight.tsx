@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { cn } from "../../utils.js";
 import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
@@ -47,6 +47,11 @@ export function CardSpotlight({
 	// the card and re-running its class merges.
 	const pointerRef = useRef({ x: restingX, y: restingY });
 	const hoveringRef = useRef(false);
+	// The canvas exists only where the light can run; SSR and SDR devices render none.
+	const [hdrCapable, setHdrCapable] = useState(false);
+	useEffect(() => {
+		setHdrCapable(hdrLightAvailable());
+	}, []);
 
 	const [host, hostRef] = useElementRef<HTMLDivElement>();
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
@@ -117,7 +122,7 @@ export function CardSpotlight({
 				className="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 				style={{ background: restingBackground, opacity: gradientOpacity }}
 			></div>
-			{hdr ? (
+			{hdr && hdrCapable ? (
 				<canvas
 					ref={hdrCanvasRef}
 					className="pointer-events-none absolute inset-0 h-full w-full"

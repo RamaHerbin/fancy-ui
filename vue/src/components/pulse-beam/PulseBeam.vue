@@ -67,7 +67,7 @@ import {
 	motionPreset,
 } from "./pulse-beam-data.js";
 import { registerPulse } from "./pulse-beam-loop.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { createPulseBeamProbe } from "./pulse-beam-hdr.js";
 
 defineOptions({ name: "PulseBeam", inheritAttrs: false });
@@ -126,6 +126,12 @@ const monoFactor = computed(() => (isMono.value ? 0.5 : 1));
 const motion = computed(() => motionPreset(variant, tone, speed));
 const oscillators = computed(() => buildOscillators(motion.value));
 const hueEnabled = computed(() => hueShift && !isMono.value);
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
+
 const strokeEl = useTemplateRef<HTMLDivElement>("strokeEl");
 const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 const hdrBlobs = computed(() => strokeLights(variant, palette, colors));
@@ -341,7 +347,12 @@ onBeforeUnmount(() => teardownResize());
 			:style="{ backgroundImage: backgrounds.bloom }"
 		></div>
 		<!-- Light above SDR white where the beam crosses the ring, on HDR displays only. -->
-		<canvas v-if="hdr" ref="hdrCanvas" class="pulse-beam__hdr" aria-hidden="true"></canvas>
+		<canvas
+			v-if="hdr && hdrCapable"
+			ref="hdrCanvas"
+			class="pulse-beam__hdr"
+			aria-hidden="true"
+		></canvas>
 	</div>
 </template>
 

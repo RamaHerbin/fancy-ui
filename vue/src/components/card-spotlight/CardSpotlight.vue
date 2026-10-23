@@ -22,9 +22,9 @@ export interface CardSpotlightProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
-import { attachHdrLight } from "../../internals/hdr/hdr-light.js";
+import { attachHdrLight, hdrLightAvailable } from "../../internals/hdr/hdr-light.js";
 import { createCardSpotlightProbe } from "./card-spotlight-hdr.js";
 
 defineOptions({ name: "CardSpotlight", inheritAttrs: false });
@@ -50,6 +50,12 @@ function handleMouseMove(e: MouseEvent) {
 	mouseX.value = e.clientX - rect.left;
 	mouseY.value = e.clientY - rect.top;
 }
+
+/** The overlay exists only where WebGPU and an HDR display do: never on the server. */
+const hdrCapable = ref(false);
+onMounted(() => {
+	hdrCapable.value = hdrLightAvailable();
+});
 
 let hovering = false;
 const host = useTemplateRef<HTMLDivElement>("host");
@@ -111,7 +117,7 @@ const backgroundStyle = computed(
 		></div>
 		<!-- Light above SDR white, on HDR displays only. -->
 		<canvas
-			v-if="hdr"
+			v-if="hdr && hdrCapable"
 			ref="hdrCanvas"
 			class="pointer-events-none absolute inset-0 h-full w-full"
 			aria-hidden="true"
