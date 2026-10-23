@@ -69,10 +69,13 @@
 	// of the generic single-tag usage.
 	export const skipDirectRender = new Set([
 		"mosaic-glow",
+		"magnetic-field",
+		"pixel-scene",
 		"border-beam",
 		"marquee",
 		"datamosh-transition",
 		"pulse-beam",
+		"sun-switch",
 		"animated-beam",
 		"apple-card-carousel",
 		"animated-testimonials",
@@ -168,6 +171,7 @@
 		"navbar",
 		"sidebar",
 		"tick-nav",
+		"story-thread",
 		"tabs",
 		"accordion",
 		"collapsible",

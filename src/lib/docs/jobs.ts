@@ -52,7 +52,16 @@ export const JOBS: Job[] = [
 		id: "navigate",
 		title: "Navigate",
 		blurb: "Move between pages, sections and states.",
-		slugs: ["navbar", "tabs", "breadcrumb", "pagination", "command-menu", "tick-nav", "sidebar"],
+		slugs: [
+			"navbar",
+			"tabs",
+			"breadcrumb",
+			"pagination",
+			"command-menu",
+			"tick-nav",
+			"story-thread",
+			"sidebar",
+		],
 	},
 	{
 		id: "progress",

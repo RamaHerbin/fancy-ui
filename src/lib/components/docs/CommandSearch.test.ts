@@ -34,9 +34,9 @@ describe("CommandSearch ranking", () => {
 		expect(labels()[0]).toBe("Button");
 	});
 
-	it("leaves the empty query as it was: five pages, then the first eight components", () => {
+	it("leaves the empty query as it was: six pages, then the first eight components", () => {
 		render(CommandSearch, { open: true });
-		expect(document.querySelectorAll('[data-result="page"]').length).toBe(5);
+		expect(document.querySelectorAll('[data-result="page"]').length).toBe(6);
 		expect(document.querySelectorAll('[data-result="component"]').length).toBe(8);
 	});
 

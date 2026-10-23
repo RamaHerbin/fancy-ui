@@ -30,6 +30,7 @@ const STATIC_PATHS = [
 	"/inspiration",
 	"/docs/getting-started/introduction",
 	"/docs/getting-started/installation",
+	"/docs/getting-started/copy-source",
 	"/docs/getting-started/theming",
 	"/docs/getting-started/theme-generator",
 	"/docs/getting-started/changelog",

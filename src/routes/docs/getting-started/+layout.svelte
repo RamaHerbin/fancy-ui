@@ -9,6 +9,7 @@
 	const PAGE_KEYS = {
 		introduction: "page.introduction",
 		installation: "page.installation",
+		"copy-source": "install.copySource",
 		theming: "page.theming",
 		"theme-generator": "page.themeGenerator",
 		changelog: "page.changelog",

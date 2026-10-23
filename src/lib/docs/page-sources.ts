@@ -8,6 +8,7 @@ import { recipesRegistry } from "./recipes/registry.js";
 const GETTING_STARTED_SOURCES: Record<string, string> = {
 	introduction: "src/lib/components/docs/IntroductionPage.svelte",
 	installation: "src/lib/components/docs/InstallationPage.svelte",
+	"copy-source": "src/lib/docs/copy-source-guide.ts",
 	theming: "src/lib/components/docs/ThemingPage.svelte",
 	"theme-generator": "src/routes/docs/getting-started/theme-generator/+page.svelte",
 	changelog: "src/lib/components/docs/ChangelogPage.svelte",

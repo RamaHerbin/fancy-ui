@@ -74,6 +74,11 @@ jobs:
       # fails when a shipped slug has no entry in thumbs.json, when a listed
       # thumbnail file is missing, or when one is a near-blank frame.
       - run: pnpm test
+      # The Svelte CLI add-on (sv-addon/): types, CSS/dependency rules and the add-on run
+      # through sv's engine twice on sv's own templates. Offline; the CLI end to end is
+      # the sv-addon consumer below.
+      - run: pnpm --filter fancy-ui-sv run check
+      - run: pnpm --filter fancy-ui-sv test
       - run: pnpm build
       # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
       - run: pnpm check:registry-items
@@ -675,10 +680,12 @@ jobs:
     # examples/consumers, each copied outside the checkout so nothing can
     # resolve from the monorepo's node_modules: SvelteKit and Svelte + Vite for
     # fancy-ui-svelte, React + Vite and Next for fancy-ui-react, Vue + Vite and
-    # Nuxt for fancy-ui-vue, Nuxt through the fancy-ui-nuxt module. Builds,
-    # then a Playwright smoke per app. A failure here is about the published
-    # shape (exports, files, declared dependencies, Tailwind entry), not the
-    # source. See examples/consumers/README.md.
+    # Nuxt for fancy-ui-vue, Nuxt through the fancy-ui-nuxt module, an Astro
+    # static site with Svelte islands, plus SvelteKit apps created by the
+    # Svelte CLI and set up by the fancy-ui-sv add-on. Builds, then a
+    # Playwright smoke per app. A failure here is about
+    # the published shape (exports, files, declared dependencies, Tailwind
+    # entry), not the source. See examples/consumers/README.md.
     #
     # Three shards on three runners: run-all.mjs deals the sorted consumer
     # list round-robin (`--shard k/3`), so an app added under scripts/consumers

@@ -959,6 +959,16 @@
 		}
 	},
 	{
+		"id": "story-thread/story-thread-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/story-thread/story-thread-core.ts",
+			"react": "react/src/components/story-thread/story-thread-core.ts",
+			"vue": "vue/src/components/story-thread/story-thread-core.ts"
+		}
+	},
+	{
 		"id": "tick-nav/tick-nav-core.ts",
 		"kind": "engine-core",
 		"shared": true,
@@ -1070,6 +1080,86 @@
 			"svelte": "src/lib/fancy-ui/avatar/avatar-core.ts",
 			"react": "react/src/components/avatar/avatar-core.ts",
 			"vue": "vue/src/components/avatar/avatar-core.ts"
+		}
+	},
+	{
+		"id": "pixel-scene/pixel-scene-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/pixel-scene/pixel-scene-core.ts",
+			"react": "react/src/components/pixel-scene/pixel-scene-core.ts",
+			"vue": "vue/src/components/pixel-scene/pixel-scene-core.ts"
+		}
+	},
+	{
+		"id": "pixel-scene/pixel-scene-scenes.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/pixel-scene/pixel-scene-scenes.ts",
+			"react": "react/src/components/pixel-scene/pixel-scene-scenes.ts",
+			"vue": "vue/src/components/pixel-scene/pixel-scene-scenes.ts"
+		}
+	},
+	{
+		"id": "pixel-scene/pixel-scene-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/pixel-scene/pixel-scene-hdr.ts",
+			"react": "react/src/components/pixel-scene/pixel-scene-hdr.ts",
+			"vue": "vue/src/components/pixel-scene/pixel-scene-hdr.ts"
+		}
+	},
+	{
+		"id": "magnetic-field/magnetic-field-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/magnetic-field/magnetic-field-core.ts",
+			"react": "react/src/components/magnetic-field/magnetic-field-core.ts",
+			"vue": "vue/src/components/magnetic-field/magnetic-field-core.ts"
+		}
+	},
+	{
+		"id": "magnetic-field/magnetic-field-source.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/magnetic-field/magnetic-field-source.ts",
+			"react": "react/src/components/magnetic-field/magnetic-field-source.ts",
+			"vue": "vue/src/components/magnetic-field/magnetic-field-source.ts"
+		}
+	},
+	{
+		"id": "sun-switch/sun-switch-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sun-switch/sun-switch-core.ts",
+			"react": "react/src/components/sun-switch/sun-switch-core.ts",
+			"vue": "vue/src/components/sun-switch/sun-switch-core.ts"
+		}
+	},
+	{
+		"id": "sun-switch/pixel-wave-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sun-switch/pixel-wave-core.ts",
+			"react": "react/src/components/sun-switch/pixel-wave-core.ts",
+			"vue": "vue/src/components/sun-switch/pixel-wave-core.ts"
+		}
+	},
+	{
+		"id": "sun-switch/sun-switch-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sun-switch/sun-switch-hdr.ts",
+			"react": "react/src/components/sun-switch/sun-switch-hdr.ts",
+			"vue": "vue/src/components/sun-switch/sun-switch-hdr.ts"
 		}
 	}
 ]
