@@ -8,6 +8,7 @@
 	padding: 0;
 	margin: 0;
 	display: inline-block;
+	position: relative;
 	line-height: 0;
 	color: inherit;
 	cursor: pointer;
@@ -30,6 +31,17 @@
 	display: block;
 	width: calc((2 * var(--ft-sun-r) + 1) * var(--ft-sun-cell));
 	height: calc((2 * var(--ft-sun-r) + 1) * var(--ft-sun-cell));
+	image-rendering: pixelated;
+	pointer-events: none;
+}
+
+/* HDR squares over the sun canvas: same box, transparent between squares. */
+.ft-sun-switch .ft-sun-switch-hdr {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
 	image-rendering: pixelated;
 	pointer-events: none;
 }

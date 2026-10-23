@@ -286,9 +286,9 @@ describe("buildRegistry with the vue stack on the real vue/src tree", () => {
 		).toEqual(["internals", "internals-dom", "internals-motion", "sound", "utils"]);
 	});
 
-	// Observed with accordion, collapsible, follow-button, badge and avatar: 515 shipped files. The gate pins the exact number.
-	it("ships 515 files, every one registry:ui under the steering path, no target", () => {
-		expect(all).toHaveLength(515);
+	// Observed with accordion, collapsible, follow-button, badge and avatar: 516 shipped files. The gate pins the exact number.
+	it("ships 516 files, every one registry:ui under the steering path, no target", () => {
+		expect(all).toHaveLength(516);
 		for (const f of all) {
 			expect(f.type, f.path).toBe("registry:ui");
 			expect(f.path.startsWith(VUE_PATH_PREFIX), f.path).toBe(true);

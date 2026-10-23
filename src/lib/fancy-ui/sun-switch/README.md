@@ -66,8 +66,9 @@ await pixelWave({
 
 `pixelWave` calls `apply` exactly once and never rejects. It accepts `mode`,
 `scope`, `fill`, `cell`, `dot`, `haloCells`, `duration`, `palette`, `ease`,
-`reducedMotion` and `live`. `live` names an element that keeps rendering live
-above the transition, so it is not frozen in the old snapshot. `isWaving()`
+`reducedMotion`, `hdr`, `live` and `liveHdr`. `live` names an element that keeps
+rendering live above the transition, so it is not frozen in the old snapshot;
+`liveHdr` does the same for a second element drawn above it. `isWaving()`
 reports whether a wave is running. `WAVE_CSS` is the stylesheet that
 `pixelWave` adds to the document on its first wave. It is exported for reference;
 you do not need to include it yourself. Its rules only apply while
@@ -94,6 +95,7 @@ own animations.
 | `fill`            | `string`                           | —              | Colour of the old-state sheet (contained mode and browsers without view transitions). Defaults to the first opaque background from `scope` (or `body`) up |
 | `duration`        | `number`                           | `1300`         | Duration of the wave in milliseconds (ease in-out cubic)                                                                                                  |
 | `haloCells`       | `number`                           | `9`            | Thickness of the dithered halo leading the wave front, in cells                                                                                           |
+| `hdr`             | `boolean`                          | `true`         | On HDR displays with WebGPU, the sun and the wave halo glow above SDR white as hard squares                                                               |
 | `sound`           | `boolean`                          | `false`        | Plays the toggle cue (on for day, off for night) once the user has enabled sound                                                                          |
 | `label`           | `string`                           | `"Day mode"`   | Accessible name. The checked state is announced as on or off                                                                                              |
 | `disabled`        | `boolean`                          | `false`        | Blocks interaction                                                                                                                                        |
@@ -128,6 +130,20 @@ consumer `onclick` runs after the switch has started its wave.
   is drawn when its Bayer 4×4 threshold is under `D^0.7`, where `D` is the
   depth into the band. The switch's canvas renders live above the snapshots:
   cells the front has passed use the new ink, the others keep the old one.
+- **HDR.** With `hdr` (on by default), the switch checks after mount whether
+  WebGPU exists and the display reports `(dynamic-range: high)`. Only then does
+  it lay a second canvas over the sun (`sun-switch-hdr.ts`: `rgba16float`,
+  `colorSpace: "srgb"`, `toneMapping: { mode: "extended" }`) and redraw the
+  painted squares there at `glow ×` their colour: the day sun at 2.2, sun cells
+  under the lens at 4.9, horizon cells under the lens at 1.6. The wave halo
+  gets its own WebGPU canvas over the halo canvas, each square at
+  `1.5 + 3.4 × D`, so the dense inner rim reaches 4.9 (about 1000 nits against
+  a 203-nit SDR white) and the sparse fringe stays near SDR. The canvas reads
+  extended (gamma-encoded) sRGB, so each channel is sent as
+  `encode(linear(c) × glow)`: a glow of 1 is the 2D dot exactly. Squares only,
+  no blur. One GPU device is shared by the page; if it is lost, the layer is
+  started again after 600 ms, 1.2 s, then 1.8 s, and after three losses the
+  2D picture carries on alone. The host gets `data-hdr` while the layer runs.
 - **Second click.** A click during a wave cancels it and applies the new value
   at once. Clicks are never dropped. A click made while a page view transition
   is running is caught on the document (the transition hit-tests every point
@@ -151,8 +167,8 @@ consumer `onclick` runs after the switch has started its wave.
 
 ## Styling hooks
 
-- `data-state="day" | "night"` on the button, and `data-waving` during its own
-  wave.
+- `data-state="day" | "night"` on the button, `data-waving` during its own
+  wave and `data-hdr` while the HDR layer runs.
 - `--ft-accent` colours the focus ring (falls back to `currentColor`).
 - `html[data-fancy-sun-waving]` is set during a page wave.
 
@@ -171,6 +187,11 @@ consumer `onclick` runs after the switch has started its wave.
 - **Clip animation support.** Animating `::view-transition-new(root)` needs
   `Element.animate()` with `pseudoElement`. Where that throws, the theme flips
   at once and only the halo sweeps over the page.
+- **HDR during a view transition.** In `document` mode the HDR halo and the
+  HDR sun are named elements of the transition, so they render through the
+  browser's transition snapshots. A browser that composites those snapshots in
+  SDR shows the halo at SDR white until the wave ends; the contained and sheet
+  paths draw it directly.
 - **One wave at a time.** Waves are global. A second one, from any switch or
   from `pixelWave`, ends the running one first.
 - **Sound** uses the library's `toggle-on` / `toggle-off` cues. There is no

@@ -14,6 +14,8 @@
 //   synchronously and a canvas paints a sheet of the old colour with a staircase
 //   hole, the live element drawn onto it, plus the halo;
 // - reduced motion: `apply` only.
+// On HDR displays (WebGPU + `(dynamic-range: high)`) the halo squares are drawn
+// again above SDR white on a WebGPU canvas laid over the halo canvas.
 // A second call while a wave runs skips the running wave first (its own `apply`
 // still runs, once), then applies the new state instantly.
 
@@ -31,12 +33,16 @@ import {
 	type Ctx2D,
 	type SunPalette,
 } from "./sun-switch-core.js";
+import { startSunHdr, sunHdrAvailable, type SunHdrLayer } from "./sun-switch-hdr.js";
 
 export const WAVE_ATTR = "data-fancy-sun-waving";
 export const WAVE_NAME = "fancy-sun-wave";
 export const LIVE_NAME = "fancy-sun-live";
+export const WAVE_HDR_NAME = "fancy-sun-wave-hdr";
+export const LIVE_HDR_NAME = "fancy-sun-live-hdr";
 export const WAVE_STYLE_ID = "fancy-sun-wave-styles";
 export const HALO_ATTR = "data-fancy-sun-halo";
+export const HALO_HDR_ATTR = "data-fancy-sun-halo-hdr";
 export const SHEET_ATTR = "data-fancy-sun-sheet";
 export const GHOST_ATTR = "data-fancy-sun-ghost";
 
@@ -61,12 +67,18 @@ html[${WAVE_ATTR}]::view-transition-new(root),
 html[${WAVE_ATTR}]::view-transition-group(${WAVE_NAME}),
 html[${WAVE_ATTR}]::view-transition-new(${WAVE_NAME}),
 html[${WAVE_ATTR}]::view-transition-group(${LIVE_NAME}),
-html[${WAVE_ATTR}]::view-transition-new(${LIVE_NAME}) {
+html[${WAVE_ATTR}]::view-transition-new(${LIVE_NAME}),
+html[${WAVE_ATTR}]::view-transition-group(${WAVE_HDR_NAME}),
+html[${WAVE_ATTR}]::view-transition-new(${WAVE_HDR_NAME}),
+html[${WAVE_ATTR}]::view-transition-group(${LIVE_HDR_NAME}),
+html[${WAVE_ATTR}]::view-transition-new(${LIVE_HDR_NAME}) {
 	animation: none;
 	mix-blend-mode: normal;
 }
 html[${WAVE_ATTR}]::view-transition-old(${WAVE_NAME}),
-html[${WAVE_ATTR}]::view-transition-old(${LIVE_NAME}) {
+html[${WAVE_ATTR}]::view-transition-old(${LIVE_NAME}),
+html[${WAVE_ATTR}]::view-transition-old(${WAVE_HDR_NAME}),
+html[${WAVE_ATTR}]::view-transition-old(${LIVE_HDR_NAME}) {
 	display: none;
 }
 html[${WAVE_ATTR}]::view-transition-new(root) {
@@ -86,6 +98,11 @@ export interface PixelWaveOptions {
 	scope?: HTMLElement | null;
 	/** Element kept live during the wave (named `fancy-sun-live`, kept out of the sheet). */
 	live?: HTMLElement | null;
+	/** A second live element, drawn above `live` (the switch's HDR canvas), named
+	 * `fancy-sun-live-hdr` during a view transition. */
+	liveHdr?: HTMLElement | null;
+	/** HDR displays: the halo also glows above SDR white on a WebGPU canvas. Default true. */
+	hdr?: boolean;
 	/** Colour of the old-state sheet. Default: first opaque background from scope/body up. */
 	fill?: string;
 	cell?: number;
@@ -314,6 +331,19 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 	cs.border = "0";
 	cs.imageRendering = "pixelated";
 
+	// HDR: a WebGPU canvas over the halo canvas, same box; the halo squares are
+	// drawn there again at `haloGlow(D) ×` their colour once the device is up.
+	let hdrCanvas: HTMLCanvasElement | null = null;
+	let hdrLayer: SunHdrLayer | null = null;
+	if (o.hdr !== false && sunHdrAvailable()) {
+		hdrCanvas = doc.createElement("canvas");
+		hdrCanvas.setAttribute(HALO_HDR_ATTR, "");
+		hdrCanvas.setAttribute("aria-hidden", "true");
+		hdrCanvas.width = canvas.width;
+		hdrCanvas.height = canvas.height;
+		hdrCanvas.style.cssText = cs.cssText;
+	}
+
 	// Sheet path: the live element (a canvas) is drawn onto the sheet where the
 	// sheet is opaque, so it shows on the old colour instead of in a hole.
 	let liveDraw: { el: HTMLCanvasElement; x: number; y: number; w: number; h: number } | null = null;
@@ -346,6 +376,8 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 	/** The live element's own inline transition name, restored on cleanup. */
 	let liveName = "";
 	let livePriority = "";
+	let liveHdrName = "";
+	let liveHdrPriority = "";
 	let vt: ViewTransitionLike | null = null;
 	let loopDone = false;
 	let vtDone = !useVT;
@@ -378,12 +410,20 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 		cancelFrame(raf);
 		raf = 0;
 		canvas.remove();
+		hdrCanvas?.remove();
+		hdrLayer?.destroy();
+		hdrLayer = null;
 		ghost?.remove();
 		if (useVT) {
 			html.removeAttribute(WAVE_ATTR);
 			if (o.live) {
 				if (liveName) o.live.style.setProperty("view-transition-name", liveName, livePriority);
 				else o.live.style.removeProperty("view-transition-name");
+			}
+			if (o.liveHdr) {
+				if (liveHdrName)
+					o.liveHdr.style.setProperty("view-transition-name", liveHdrName, liveHdrPriority);
+				else o.liveHdr.style.removeProperty("view-transition-name");
 			}
 		}
 		if (active === wave) active = null;
@@ -409,7 +449,10 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 				paintSheet(ctx, sheetColor, W, H, dpr, rows, null);
 				if (liveDraw) drawLive(ctx, liveDraw);
 			}
-			paintHalo(ctx, { cx: tx, cy: ty, R, halo, cell, dot, ox, oy, W, H, palette, dpr });
+			const glow = hdrLayer?.sink ?? null;
+			glow?.clear();
+			paintHalo(ctx, { cx: tx, cy: ty, R, halo, cell, dot, ox, oy, W, H, palette, dpr, glow });
+			hdrLayer?.render(canvas.width, canvas.height, Math.max(1, Math.round(dot * dpr)));
 		}
 		const poly = clipping && vt ? staircasePolygon(rows) : "";
 		if (clipping && vt && poly !== lastPoly) {
@@ -458,6 +501,13 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 	active = wave;
 	if (ghost && scope) scope.append(ghost);
 	(scope ?? doc.body).append(canvas);
+	if (hdrCanvas) {
+		canvas.after(hdrCanvas);
+		void startSunHdr(hdrCanvas).then((layer) => {
+			if (done) layer?.destroy();
+			else hdrLayer = layer;
+		});
+	}
 	try {
 		ctx =
 			typeof canvas.getContext === "function"
@@ -474,7 +524,13 @@ export function pixelWave(o: PixelWaveOptions): Promise<void> {
 			livePriority = o.live.style.getPropertyPriority("view-transition-name");
 			o.live.style.setProperty("view-transition-name", LIVE_NAME);
 		}
+		if (o.liveHdr) {
+			liveHdrName = o.liveHdr.style.getPropertyValue("view-transition-name");
+			liveHdrPriority = o.liveHdr.style.getPropertyPriority("view-transition-name");
+			o.liveHdr.style.setProperty("view-transition-name", LIVE_HDR_NAME);
+		}
 		canvas.style.setProperty("view-transition-name", WAVE_NAME);
+		hdrCanvas?.style.setProperty("view-transition-name", WAVE_HDR_NAME);
 		html.setAttribute(WAVE_ATTR, "");
 		try {
 			const start = (doc as unknown as { startViewTransition(cb: () => void): ViewTransitionLike })

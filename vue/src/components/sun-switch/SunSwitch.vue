@@ -35,6 +35,8 @@ export interface SunSwitchProps {
 	duration?: number;
 	/** Thickness of the dithered halo leading the wave front, in cells. */
 	haloCells?: number;
+	/** On HDR displays, the sun and the wave halo glow above SDR white (WebGPU). */
+	hdr?: boolean;
 	/** Plays the toggle cue through the sound controller. */
 	sound?: boolean;
 	/** Accessible name of the switch. */
@@ -62,6 +64,12 @@ import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { flipWait, isWaving, markFlip, pixelWave } from "./pixel-wave-core.js";
 import { SUN_PALETTE, createSunPainter, type SunPainter } from "./sun-switch-core.js";
+import {
+	SUN_HDR_RESTART_MS,
+	SUN_HDR_RESTARTS,
+	startSunHdr,
+	sunHdrAvailable,
+} from "./sun-switch-hdr.js";
 
 defineOptions({ name: "SunSwitch", inheritAttrs: false });
 
@@ -81,6 +89,7 @@ const {
 	fill,
 	duration = 1300,
 	haloCells = 9,
+	hdr = true,
 	sound = false,
 	label = "Day mode",
 	disabled = false,
@@ -92,6 +101,7 @@ const checked = defineModel<boolean>("checked", { default: true });
 
 const el = useTemplateRef<HTMLButtonElement>("ref");
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
+const hdrCanvas = useTemplateRef<HTMLCanvasElement>("hdrCanvas");
 defineExpose({ ref: el });
 
 const attrs = useAttrs();
@@ -135,6 +145,15 @@ const reduced = useReducedMotion();
 
 /** The canvas painter; null before mount and under jsdom (no 2D context). */
 let painter: SunPainter | null = null;
+/** Set once the painter exists, so the HDR watcher can attach to it. */
+const painterReady = shallowRef(false);
+/** False on the server and the first client render: the HDR canvas appears only after mount. */
+const mounted = shallowRef(false);
+const hdrCapable = shallowRef(false);
+const hdrOn = shallowRef(false);
+/** Bumped to start the HDR layer again after a device loss; the watcher below reads it. */
+const hdrRun = shallowRef(0);
+let hdrRestarts = 0;
 /** True while THIS instance's wave runs (drives `aria-busy` / `data-waving`). */
 const waving = shallowRef(false);
 
@@ -175,6 +194,8 @@ let teardown: (() => void) | null = null;
 // The painter lives for the component's lifetime; prop changes reach it
 // through the watchers below.
 onMounted(() => {
+	mounted.value = true;
+	hdrCapable.value = hdr && sunHdrAvailable();
 	const canvas = canvasEl.value;
 	if (!canvas) return;
 	const p = createSunPainter(canvas, {
@@ -191,6 +212,7 @@ onMounted(() => {
 	});
 	if (!p) return;
 	painter = p;
+	painterReady.value = true;
 	readInk();
 
 	let visible = true;
@@ -269,8 +291,74 @@ onMounted(() => {
 		inkFrame = 0;
 		p.destroy();
 		painter = null;
+		painterReady.value = false;
 	};
 });
+
+// HDR: decided after mount only, so SSR and hydration render the 2D canvas alone.
+watch(
+	() => hdr,
+	(on) => {
+		hdrCapable.value = mounted.value && on && sunHdrAvailable();
+	}
+);
+
+watch(
+	[hdrCanvas, painterReady, hdrCapable, hdrRun],
+	([canvas, ready, capable], _old, onCleanup) => {
+		const p = painter;
+		if (!canvas || !ready || !capable || !p) return;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		let retry: ReturnType<typeof setTimeout> | null = null;
+		// A lost device usually comes back (GPU process restarted, driver reset):
+		// start again after a growing pause, a few times, before giving the layer up.
+		const restart = () => {
+			if (hdrRestarts >= SUN_HDR_RESTARTS) {
+				hdrCapable.value = false;
+				return;
+			}
+			hdrRestarts++;
+			retry = setTimeout(() => {
+				retry = null;
+				hdrRun.value++;
+			}, SUN_HDR_RESTART_MS * hdrRestarts);
+		};
+		void startSunHdr(canvas).then((layer) => {
+			if (cancelled || painter !== p) {
+				layer?.destroy();
+				return;
+			}
+			if (!layer) {
+				// Nothing to start on the first try (no adapter, tone mapping refused): give
+				// up at once. During a restart the GPU may still be on its way back.
+				if (hdrRestarts === 0) hdrCapable.value = false;
+				else restart();
+				return;
+			}
+			p.setGlowTarget(layer);
+			hdrOn.value = true;
+			stop = () => {
+				p.setGlowTarget(null);
+				layer.destroy();
+				hdrOn.value = false;
+			};
+			void layer.lost.then(() => {
+				if (cancelled) return;
+				stop?.();
+				stop = null;
+				restart();
+			});
+		});
+		onCleanup(() => {
+			cancelled = true;
+			stop?.();
+			stop = null;
+			if (retry !== null) clearTimeout(retry);
+		});
+	},
+	{ flush: "post" }
+);
 
 onBeforeUnmount(() => {
 	clearTimeout(closeTimer);
@@ -584,6 +672,8 @@ function startWave(next: boolean) {
 		mode,
 		scope,
 		live: canvas ?? null,
+		liveHdr: hdrCanvas.value,
+		hdr,
 		fill,
 		cell,
 		dot,
@@ -636,6 +726,7 @@ function startWave(next: boolean) {
 		:aria-busy="waving ? 'true' : undefined"
 		:data-state="checked ? 'day' : 'night'"
 		:data-waving="waving ? '' : undefined"
+		:data-hdr="hdrOn ? '' : undefined"
 		:disabled="disabled"
 		:class="cn('ft-sun-switch', className)"
 		:style="{ '--ft-sun-r': String(sunRadius()), '--ft-sun-cell': `${cell}px` }"
@@ -656,6 +747,7 @@ function startWave(next: boolean) {
 			aria-hidden="true"
 			:style="{ color: ink }"
 		></canvas>
+		<canvas v-if="hdrCapable" ref="hdrCanvas" class="ft-sun-switch-hdr" aria-hidden="true"></canvas>
 	</button>
 </template>
 
@@ -667,6 +759,7 @@ function startWave(next: boolean) {
 	padding: 0;
 	margin: 0;
 	display: inline-block;
+	position: relative;
 	line-height: 0;
 	color: inherit;
 	cursor: pointer;
@@ -689,6 +782,17 @@ function startWave(next: boolean) {
 	display: block;
 	width: calc((2 * var(--ft-sun-r) + 1) * var(--ft-sun-cell));
 	height: calc((2 * var(--ft-sun-r) + 1) * var(--ft-sun-cell));
+	image-rendering: pixelated;
+	pointer-events: none;
+}
+
+/* HDR squares over the sun canvas: same box, transparent between squares. */
+.ft-sun-switch-hdr {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
 	image-rendering: pixelated;
 	pointer-events: none;
 }

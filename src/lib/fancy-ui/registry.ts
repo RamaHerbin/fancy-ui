@@ -1703,6 +1703,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Thickness of the dithered halo that leads the wave front, in cells.",
 			},
 			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On HDR displays with WebGPU, redraws the sun and the wave halo as hard squares brighter than SDR white. Elsewhere nothing is created.",
+			},
+			{
 				name: "sound",
 				type: "boolean",
 				default: "false",

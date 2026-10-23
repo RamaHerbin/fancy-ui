@@ -97,6 +97,60 @@ export function parseInk(css: string): ParsedColor | null {
 	return { r, g, b, a: Math.min(1, Math.max(0, a)) };
 }
 
+// --- HDR glow ---------------------------------------------------------------
+
+/** Glow of the day sun at rest (× SDR white), on HDR displays. */
+export const SUN_GLOW_DAY = 2.2;
+/** Glow of a sun cell under the lens. */
+export const SUN_GLOW_LENS = 4.9;
+/** Glow of a horizon / reflection cell under the lens. */
+export const HORIZON_GLOW_LENS = 1.6;
+
+/** Halo glow at depth D: the dense inner rim peaks, the sparse fringe stays near SDR. */
+export function haloGlow(D: number): number {
+	return 1.5 + 3.4 * Math.min(1, Math.max(0, D));
+}
+
+/**
+ * Receives every painted square that should glow on an HDR display: its
+ * top-left corner in device px, its colour as `0xRRGGBB` (what the 2D canvas
+ * shows) and its glow (× SDR white). The 2D painting is unchanged.
+ */
+export interface GlowSink {
+	clear(): void;
+	push(px: number, py: number, rgb: number, glow: number): void;
+}
+
+/** What the painter hands its frames to: a sink and a render call. */
+export interface SunGlowTarget {
+	readonly sink: GlowSink;
+	render(width: number, height: number, size: number): void;
+}
+
+const RGB_CACHE = new Map<string, number>();
+
+/** `0xRRGGBB` of an opaque-enough CSS colour `parseInk` reads, else -1. Cached. */
+export function rgbOf(css: string): number {
+	const hit = RGB_CACHE.get(css);
+	if (hit !== undefined) return hit;
+	const c = parseInk(css);
+	const v =
+		c && c.a > 0
+			? (Math.round(Math.min(255, Math.max(0, c.r))) << 16) |
+				(Math.round(Math.min(255, Math.max(0, c.g))) << 8) |
+				Math.round(Math.min(255, Math.max(0, c.b)))
+			: -1;
+	if (RGB_CACHE.size > 64) RGB_CACHE.clear();
+	RGB_CACHE.set(css, v);
+	return v;
+}
+
+/** `a` blended toward `b` by `t` (sRGB, like the 2D canvas does). */
+export function mixRgb(a: number, b: number, t: number): number {
+	const ch = (s: number) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t) & 255;
+	return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
 export interface SunCell {
 	x: number;
 	y: number;
@@ -286,6 +340,8 @@ export interface HaloParams {
 	palette: SunPalette;
 	/** Device pixel ratio of the canvas backing store. Default 1. */
 	dpr?: number;
+	/** HDR: every halo square is also pushed here, glowing by depth ({@link haloGlow}). */
+	glow?: GlowSink | null;
 }
 
 /**
@@ -325,7 +381,9 @@ export function paintHalo(ctx: Ctx2D, p: HaloParams): number {
 				ctx.fillStyle = p.palette[ci];
 				lastColor = ci;
 			}
-			ctx.fillRect(Math.round((x * cell + ox) * dpr), py, size, size);
+			const px = Math.round((x * cell + ox) * dpr);
+			ctx.fillRect(px, py, size, size);
+			if (p.glow) p.glow.push(px, py, rgbOf(p.palette[ci]), haloGlow(D));
 			count++;
 		}
 	}
@@ -503,6 +561,8 @@ export interface SunPainter {
 	/** Pointer in canvas cells; `on` opens / closes the lens. */
 	pointer(cellX: number, cellY: number, on: boolean): void;
 	setFront(front: SunFront | null): void;
+	/** HDR: every painted frame is also handed to `target` (null detaches it). */
+	setGlowTarget(target: SunGlowTarget | null): void;
 	resize(): void;
 	/** Resumes after `sleep()`: paints once and restarts the loop if anything animates. */
 	wake(): void;
@@ -543,6 +603,8 @@ export function paintSun(
 		ink: string;
 		lens: Lens | null;
 		front: SunFront | null;
+		/** HDR: the day sun and the cells under the lens are also pushed here. */
+		glow?: GlowSink | null;
 	}
 ): void {
 	const { cell, dpr } = o;
@@ -579,6 +641,20 @@ export function paintSun(
 			alpha = c.layer === "sun" ? o.nightAlpha : HORIZON_ALPHA;
 		}
 		if (alpha <= 0) continue;
+		const px = Math.round(c.x * cell * dpr);
+		const py = Math.round(c.y * cell * dpr);
+		if (o.glow && alpha === 1) {
+			const rgb = rgbOf(style);
+			if (lensed) {
+				o.glow.push(px, py, rgb, c.layer === "sun" ? SUN_GLOW_LENS : HORIZON_GLOW_LENS);
+			} else if (mix > 0 && rgb >= 0) {
+				// Day at rest: the colour the 2D canvas ends with after the ink tint.
+				const inkC = parseInk(ink);
+				const inkRgb = rgbOf(ink);
+				const t = inkC && inkRgb >= 0 ? mix * inkC.a : 0;
+				o.glow.push(px, py, t > 0 ? mixRgb(rgb, inkRgb, t) : rgb, SUN_GLOW_DAY);
+			}
+		}
 		if (style !== lastStyle) {
 			ctx.fillStyle = style;
 			lastStyle = style;
@@ -587,8 +663,6 @@ export function paintSun(
 			ctx.globalAlpha = alpha;
 			lastAlpha = alpha;
 		}
-		const px = Math.round(c.x * cell * dpr);
-		const py = Math.round(c.y * cell * dpr);
 		ctx.fillRect(px, py, size, size);
 		if (mix > 0) tint.push(px, py, ink);
 	}
@@ -630,6 +704,7 @@ export function createSunPainter(
 	let ink = "rgb(0, 0, 0)";
 	let dpr = 1;
 	let front: SunFront | null = null;
+	let glowTarget: SunGlowTarget | null = null;
 	const lens = createLens({ radius: o.lensRadius });
 	const target: LensTarget = { x: 0, y: 0, on: false };
 	let raf = 0;
@@ -652,6 +727,8 @@ export function createSunPainter(
 	function paint() {
 		dirty = false;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		const hdr = glowTarget;
+		hdr?.sink.clear();
 		paintSun(ctx, raster, {
 			cell: o.cell,
 			dot: o.dot,
@@ -662,7 +739,13 @@ export function createSunPainter(
 			ink,
 			lens: o.lens ? lens : null,
 			front,
+			glow: hdr?.sink ?? null,
 		});
+		hdr?.render(
+			canvas.width,
+			canvas.height,
+			Math.max(1, Math.round(Math.min(o.dot, o.cell) * dpr))
+		);
 	}
 
 	function frame(now: number) {
@@ -732,6 +815,12 @@ export function createSunPainter(
 			if (destroyed) return;
 			front = next;
 			kick();
+		},
+		setGlowTarget(next) {
+			if (destroyed) return;
+			glowTarget = next;
+			if (suspended) dirty = true;
+			else paint();
 		},
 		resize,
 		wake() {

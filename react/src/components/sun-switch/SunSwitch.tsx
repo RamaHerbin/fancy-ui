@@ -10,6 +10,7 @@ import type {
 import { flushSync } from "react-dom";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { observeInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
@@ -17,6 +18,12 @@ import { useSoundCue } from "../../sound/use-sound.js";
 import { flipWait, isWaving, markFlip, pixelWave } from "./pixel-wave-core.js";
 import { SUN_PALETTE, createSunPainter } from "./sun-switch-core.js";
 import type { SunFront, SunPainter, SunPalette } from "./sun-switch-core.js";
+import {
+	SUN_HDR_RESTART_MS,
+	SUN_HDR_RESTARTS,
+	startSunHdr,
+	sunHdrAvailable,
+} from "./sun-switch-hdr.js";
 import "./sun-switch.css";
 
 interface SunSwitchOwnProps {
@@ -63,6 +70,8 @@ interface SunSwitchOwnProps {
 	duration?: number;
 	/** Thickness of the dithered halo leading the wave front, in cells. */
 	haloCells?: number;
+	/** On HDR displays, the sun and the wave halo glow above SDR white (WebGPU). */
+	hdr?: boolean;
 	/** Plays the toggle cue through the sound controller. */
 	sound?: boolean;
 	/** Accessible name of the switch. */
@@ -109,6 +118,7 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 			fill,
 			duration = 1300,
 			haloCells = 9,
+			hdr = true,
 			sound = false,
 			label = "Day mode",
 			disabled = false,
@@ -140,6 +150,15 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 		const canvasRef = useRef<HTMLCanvasElement | null>(null);
 		/** The canvas painter; null before mount and under jsdom (no 2D context). */
 		const painterRef = useRef<SunPainter | null>(null);
+		/** Set once the painter exists, so the HDR effect can attach to it. */
+		const [painterReady, setPainterReady] = useState(false);
+		const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
+		/** False on the server and the first client render: the HDR canvas appears only after mount. */
+		const [hdrCapable, setHdrCapable] = useState(false);
+		const [hdrOn, setHdrOn] = useState(false);
+		/** Bumped to start the HDR layer again after a device loss; the effect below depends on it. */
+		const [hdrRun, setHdrRun] = useState(0);
+		const hdrRestarts = useRef(0);
 		/** True while THIS instance's wave runs (drives `aria-busy` / `data-waving`). */
 		const [waving, setWavingState] = useState(false);
 		const wavingRef = useRef(false);
@@ -168,6 +187,8 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 			fill,
 			duration,
 			haloCells,
+			hdr,
+			hdrCanvas,
 			disabled,
 			reduced,
 		});
@@ -220,6 +241,7 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 			});
 			if (!p) return;
 			painterRef.current = p;
+			setPainterReady(true);
 			readInk();
 
 			let visible = true;
@@ -302,8 +324,68 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 				ink.frame = 0;
 				p.destroy();
 				if (painterRef.current === p) painterRef.current = null;
+				setPainterReady(false);
 			};
 		}, [live, readInk, scheduleInk]);
+
+		// HDR: decided after mount only, so SSR and hydration render the 2D canvas alone.
+		useEffect(() => {
+			setHdrCapable(hdr && sunHdrAvailable());
+		}, [hdr]);
+
+		useEffect(() => {
+			const p = painterRef.current;
+			if (!hdrCanvas || !painterReady || !hdrCapable || !p) return;
+			let cancelled = false;
+			let stop: (() => void) | null = null;
+			let retry: ReturnType<typeof setTimeout> | null = null;
+			// A lost device usually comes back (GPU process restarted, driver reset):
+			// start again after a growing pause, a few times, before giving the layer up.
+			const restart = () => {
+				if (hdrRestarts.current >= SUN_HDR_RESTARTS) {
+					setHdrCapable(false);
+					return;
+				}
+				hdrRestarts.current++;
+				retry = setTimeout(() => {
+					retry = null;
+					setHdrRun((n) => n + 1);
+				}, SUN_HDR_RESTART_MS * hdrRestarts.current);
+			};
+			void startSunHdr(hdrCanvas).then((layer) => {
+				if (cancelled || painterRef.current !== p) {
+					layer?.destroy();
+					return;
+				}
+				if (!layer) {
+					// Nothing to start on the first try (no adapter, tone mapping refused): give
+					// up at once. During a restart the GPU may still be on its way back.
+					if (hdrRestarts.current === 0) setHdrCapable(false);
+					else restart();
+					return;
+				}
+				p.setGlowTarget(layer);
+				setHdrOn(true);
+				stop = () => {
+					p.setGlowTarget(null);
+					layer.destroy();
+					setHdrOn(false);
+				};
+				void layer.lost.then(() => {
+					if (cancelled) return;
+					stop?.();
+					stop = null;
+					restart();
+				});
+			});
+			return () => {
+				cancelled = true;
+				stop?.();
+				stop = null;
+				if (retry !== null) clearTimeout(retry);
+			};
+			// hdrRun is read by no line above: it re-runs the effect after a device loss.
+		}, [hdrCanvas, painterReady, hdrCapable, hdrRun]);
 
 		// Layout props: re-raster and resize.
 		useEffect(() => {
@@ -644,6 +726,8 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 				mode: v.mode,
 				scope: v.scope,
 				live: canvas ?? null,
+				liveHdr: v.hdrCanvas,
+				hdr: v.hdr,
 				fill: v.fill,
 				cell: v.cell,
 				dot: v.dot,
@@ -697,6 +781,7 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 				aria-busy={waving ? "true" : undefined}
 				data-state={checked ? "day" : "night"}
 				data-waving={waving ? "" : undefined}
+				data-hdr={hdrOn ? "" : undefined}
 				disabled={disabled}
 				className={cn("ft-sun-switch", className)}
 				style={
@@ -723,6 +808,9 @@ export const SunSwitch = forwardRef<HTMLButtonElement, SunSwitchProps>(
 					aria-hidden="true"
 					style={{ color: ink }}
 				/>
+				{hdrCapable ? (
+					<canvas ref={hdrCanvasRef} className="ft-sun-switch-hdr" aria-hidden="true" />
+				) : null}
 			</button>
 		);
 	}
