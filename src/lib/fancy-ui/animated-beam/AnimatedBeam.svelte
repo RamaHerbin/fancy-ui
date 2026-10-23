@@ -95,7 +95,7 @@
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte";
 	import type { AnimatedBeamProps } from "./types";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { packetProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -211,6 +211,11 @@
 
 	let svgEl: SVGSVGElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 
 	// The packet's head is wherever the CSS dash animation has put it: read
 	// from the live `stroke-dashoffset` of the core layer each frame.
@@ -383,7 +388,7 @@
 	{/if}
 </svg>
 
-{#if hdr && !reduced.current}
+{#if hdr && hdrCapable && !reduced.current}
 	<!-- The packet's head above SDR white, on HDR displays only. -->
 	<canvas
 		bind:this={hdrCanvas}

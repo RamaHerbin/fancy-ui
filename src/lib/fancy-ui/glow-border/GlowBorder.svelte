@@ -127,7 +127,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { conicBorderProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -143,6 +143,11 @@
 
 	let root: HTMLDivElement | undefined = $state();
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 
 	// The glint's flash, above SDR white: reads the live `--gb-a3` so it rides
 	// the ring with the CSS glint, white at 90% of the turn, tinted either side.
@@ -213,7 +218,7 @@
 	<span class="glow-border__halo"><span></span></span>
 	<span class="glow-border__metal"></span>
 	<span class="glow-border__glint"></span>
-	{#if hdr}
+	{#if hdr && hdrCapable}
 		<!-- The glint's flash above SDR white, on HDR displays only. -->
 		<canvas bind:this={hdrCanvas} class="glow-border__hdr"></canvas>
 	{/if}

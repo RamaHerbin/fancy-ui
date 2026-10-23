@@ -80,7 +80,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { attachHdrLight } from "../_internals/hdr/hdr-light.js";
+	import { attachHdrLight, hdrLightAvailable } from "../_internals/hdr/hdr-light.js";
 	import { meteorsProbe } from "../_internals/hdr/hdr-probes.js";
 
 	let {
@@ -94,6 +94,11 @@
 	}: MeteorsProps = $props();
 
 	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	// Rendered only on a device that can use it: no extra DOM on SDR displays.
+	let hdrCapable = $state(false);
+	$effect(() => {
+		hdrCapable = hdrLightAvailable();
+	});
 
 	// Meteors render no root of their own: the light layer belongs to their
 	// container, and each head is wherever the CSS transform has put it.
@@ -149,7 +154,7 @@
 	></span>
 {/each}
 
-{#if hdr}
+{#if hdr && hdrCapable}
 	<!-- The heads above SDR white, on HDR displays only. -->
 	<canvas
 		bind:this={hdrCanvas}
