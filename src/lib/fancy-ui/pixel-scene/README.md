@@ -26,6 +26,8 @@ The host needs a height — it fills whatever box you give it.
 | `ink`        | `string`                                       | `"currentColor"` | Colour of the resting dots. `currentColor` is read from the host, so it follows the theme. |
 | `paused`     | `boolean`                                      | `false`          | Freeze clouds, birds and lights; the lens still follows the pointer.                       |
 | `wave`       | `boolean`                                      | `true`           | Play a change of `night` as a dithered wave from the sun (instant under reduced motion).   |
+| `surfaces`   | `readonly [day: string, night: string]`        | —                | Background painted by the scene for each theme; the wave carries it. Default transparent.  |
+| `inks`       | `readonly [day: string, night: string]`        | —                | Dot colour for each theme, swapped by the wave. Overrides `ink`.                           |
 | `class`      | `string`                                       | —                | Additional classes on the host. Give it a height.                                          |
 | `children`   | `Snippet`                                      | —                | Copy rendered above the picture.                                                           |
 | `ref`        | `HTMLDivElement \| null`                       | `null`           | Bindable host element.                                                                     |
@@ -79,7 +81,9 @@ Pointer listeners sit on the host, so the lens keeps working over your copy. Eve
 
 ### The wave
 
-With `wave` (on by default), a change of `night` is not a cut: the new palette spreads from the sun, or the moon, or the pointer when the scene has neither, over 1.3 s (ease in-out cubic). The front is a grid-aligned staircase led by a 9-cell halo, Bayer-dithered from a sparse yellow fringe to a dense pink rim, the same grammar as SunSwitch's wave. Both palettes are painted each frame and composited cell by cell, ink included, so the scene keeps moving under the front. On HDR displays every halo cell is a hard square at `1.5 + 3.4 × depth` (4.9 at the rim), SDR inside the copy corner. A second change mid-wave lands the running one and starts the next. The wave also plays while `paused` (the scene clock stays frozen), never under reduced motion.
+With `wave` (on by default), a change of `night` is not a cut: the new palette spreads from the sun, or the moon, or the pointer when the scene has neither, over 1.3 s (ease in-out cubic). The front is a grid-aligned staircase led by a 9-cell halo, Bayer-dithered from a sparse yellow fringe to a dense pink rim, the same grammar as SunSwitch's wave. Both palettes are painted each frame and composited cell by cell, ink included, so the scene keeps moving under the front. On HDR displays every halo cell is a hard square at `1.5 + 3.4 × depth` (4.9 at the rim), and a 7-cell glow of dithered HDR cells lies on each side of the band (pink inside the rim, yellow past the fringe, density `(1 − d)^1.7`, no blur); both stay SDR inside the copy corner.
+
+By default the canvas is transparent and the host's background shows through. With `surfaces` and `inks` the scene owns its colours for both themes: the canvas paints the old surface, the new surface over whole cells behind the front (a grid-aligned staircase), and the dots in the ink of their side, so a click carries the whole card from day to night. The "Hours of low light" example does this, with copy that changes colour once the front has passed it. A second change mid-wave lands the running one and starts the next. The wave also plays while `paused` (the scene clock stays frozen), never under reduced motion.
 
 ## How it paints
 

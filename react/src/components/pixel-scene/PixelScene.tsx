@@ -49,6 +49,10 @@ export interface PixelSceneProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 	paused?: boolean;
 	/** Animate a change of `night` as a dithered wave from the sun (never under reduced motion) */
 	wave?: boolean;
+	/** `[day, night]` background painted by the scene itself; the wave carries it. Default: transparent */
+	surfaces?: readonly [day: string, night: string];
+	/** `[day, night]` dot colours, swapped by the wave; overrides `ink` */
+	inks?: readonly [day: string, night: string];
 	/** Additional classes on the host — give it a height */
 	className?: string;
 	/** Copy rendered above the picture */
@@ -66,6 +70,8 @@ interface CreateProps {
 	ink: string;
 	paused: boolean;
 	wave: boolean;
+	surfaces: readonly [string, string] | null;
+	inks: readonly [string, string] | null;
 }
 
 export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function PixelScene(
@@ -80,6 +86,8 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		ink = "currentColor",
 		paused = false,
 		wave = true,
+		surfaces,
+		inks,
 		className,
 		children,
 		...restProps
@@ -115,6 +123,8 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		ink,
 		paused,
 		wave,
+		surfaces: surfaces ?? null,
+		inks: inks ?? null,
 	});
 
 	useEffect(() => {
@@ -132,6 +142,8 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 				ink: p.ink,
 				paused: p.paused,
 				wave: p.wave,
+				surfaces: p.surfaces,
+				inks: p.inks,
 			}
 		);
 		engineRef.current = engine;
@@ -153,9 +165,20 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		engineRef.current?.setOptions({ cell, dot });
 	}, [cell, dot, engineReady]);
 
+	const surfacesKey = surfaces ? `${surfaces[0]}\n${surfaces[1]}` : "";
+	const inksKey = inks ? `${inks[0]}\n${inks[1]}` : "";
 	useEffect(() => {
-		engineRef.current?.setOptions({ lens, lensRadius, ink, paused, wave });
-	}, [lens, lensRadius, ink, paused, wave, engineReady]);
+		engineRef.current?.setOptions({
+			lens,
+			lensRadius,
+			ink,
+			paused,
+			wave,
+			surfaces: surfacesKey ? (surfacesKey.split("\n") as [string, string]) : null,
+			inks: inksKey ? (inksKey.split("\n") as [string, string]) : null,
+		});
+		// Tuples by value: a new array with the same colours is no change.
+	}, [lens, lensRadius, ink, paused, wave, surfacesKey, inksKey, engineReady]);
 
 	// HDR: decided after mount only, so SSR and hydration render the 2D canvas alone.
 	useEffect(() => {

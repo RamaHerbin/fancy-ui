@@ -39,6 +39,10 @@ export interface PixelSceneProps {
 	paused?: boolean;
 	/** Animate a change of `night` as a dithered wave from the sun (never under reduced motion) */
 	wave?: boolean;
+	/** `[day, night]` background painted by the scene itself; the wave carries it. Default: transparent */
+	surfaces?: readonly [day: string, night: string];
+	/** `[day, night]` dot colours, swapped by the wave; overrides `ink` */
+	inks?: readonly [day: string, night: string];
 	/** Additional classes on the host — give it a height */
 	class?: HTMLAttributes["class"];
 }
@@ -70,6 +74,8 @@ const {
 	ink = "currentColor",
 	paused = false,
 	wave = true,
+	surfaces,
+	inks,
 	class: className,
 } = defineProps<PixelSceneProps>();
 
@@ -109,6 +115,8 @@ onMounted(() => {
 			ink,
 			paused,
 			wave,
+			surfaces: surfaces ?? null,
+			inks: inks ?? null,
 		}
 	);
 	engineReady.value = engine !== null;
@@ -138,7 +146,15 @@ watch(
 );
 
 watch(
-	() => ({ lens, lensRadius, ink, paused, wave }),
+	() => ({
+		lens,
+		lensRadius,
+		ink,
+		paused,
+		wave,
+		surfaces: surfaces ?? null,
+		inks: inks ?? null,
+	}),
 	(next) => engine?.setOptions(next),
 	{ flush: "post" }
 );

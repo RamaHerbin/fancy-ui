@@ -38,6 +38,10 @@
 		paused?: boolean;
 		/** Animate a change of `night` as a dithered wave from the sun (never under reduced motion) */
 		wave?: boolean;
+		/** `[day, night]` background painted by the scene itself; the wave carries it. Default: transparent */
+		surfaces?: readonly [day: string, night: string];
+		/** `[day, night]` dot colours, swapped by the wave; overrides `ink` */
+		inks?: readonly [day: string, night: string];
 		/** Additional classes on the host — give it a height */
 		class?: string;
 		/** Copy rendered above the picture */
@@ -72,6 +76,8 @@
 		ink = "currentColor",
 		paused = false,
 		wave = true,
+		surfaces,
+		inks,
 		class: className,
 		children,
 		ref = $bindable(null),
@@ -109,6 +115,8 @@
 					ink,
 					paused,
 					wave,
+					surfaces: surfaces ?? null,
+					inks: inks ?? null,
 				}
 			)
 		);
@@ -134,7 +142,15 @@
 	});
 
 	$effect(() => {
-		const next = { lens, lensRadius, ink, paused, wave };
+		const next = {
+			lens,
+			lensRadius,
+			ink,
+			paused,
+			wave,
+			surfaces: surfaces ?? null,
+			inks: inks ?? null,
+		};
 		untrack(() => engine?.setOptions(next));
 	});
 

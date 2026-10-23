@@ -307,6 +307,8 @@ export function pixelHalos(g: PixelGrid): void {
 export const WAVE_MS = 1300;
 /** Thickness of the dithered halo that leads the wave front, in cells. */
 export const WAVE_HALO_CELLS = 9;
+/** Width of the dithered HDR glow on each side of the halo band, in cells. */
+export const WAVE_GLOW_CELLS = 7;
 /** Halo colours from the sparse outer fringe to the dense inner rim. */
 export const WAVE_PALETTE: readonly number[] = [0xf7cf4a, 0xf6a24e, 0xef7a5e, 0xea7d9c];
 
@@ -321,6 +323,17 @@ export function waveGlow(D: number): number {
 	return 1.5 + 3.4 * clamp(D, 0, 1);
 }
 
+/**
+ * Glow of a cell in the band around the halo, `d` in [0, 1) from the halo edge
+ * outward, or 0 when the Bayer threshold leaves it dark: density `(1 − d)^1.7`.
+ */
+export function waveBandGlow(x: number, y: number, d: number, inner: boolean): number {
+	if (!(d >= 0 && d < 1)) return 0;
+	const dens = Math.pow(1 - d, 1.7);
+	if (bayer(x, y) >= dens) return 0;
+	return inner ? 1.2 + 2.2 * dens : 1.1 + 1.6 * dens;
+}
+
 /** Radius (cells) at which a front from (ox, oy) has passed every cell, halo included. */
 export function waveCover(ox: number, oy: number, cols: number, rows: number): number {
 	return (
@@ -331,6 +344,7 @@ export function waveCover(ox: number, oy: number, cols: number, rows: number): n
 			Math.hypot(cols - ox, rows - oy)
 		) +
 		WAVE_HALO_CELLS +
+		WAVE_GLOW_CELLS +
 		1
 	);
 }
@@ -365,6 +379,7 @@ export function composeWave(
 		for (let x = 0; x < cols; x++) {
 			const i = y * cols + x;
 			const dist = Math.hypot(x + 0.5 - ox, y + 0.5 - oy);
+			const inCopy = x < copyW && y < copyH;
 			if (dist < Rin) {
 				side[i] = 1;
 				cur.color[i] = next.color[i]!;
@@ -373,16 +388,32 @@ export function composeWave(
 				cur.glow[i] = next.glow[i]!;
 				cur.halo[i] = next.halo[i]!;
 				cur.hcol[i] = next.hcol[i]!;
+				// HDR glow inside the rim: pink, dithered, fading toward the origin
+				const g = inCopy ? 0 : waveBandGlow(x, y, (Rin - dist) / WAVE_GLOW_CELLS, true);
+				if (g > cur.glow[i]!) {
+					cur.glow[i] = g;
+					cur.hcol[i] = WAVE_PALETTE[3]!;
+					if (cur.color[i]! < 0) cur.color[i] = WAVE_PALETTE[3]!;
+				}
 				continue;
 			}
 			side[i] = 0;
-			if (dist >= R) continue;
+			if (dist >= R) {
+				// HDR glow past the fringe: yellow, sparser
+				const g = inCopy ? 0 : waveBandGlow(x, y, (dist - R) / WAVE_GLOW_CELLS, false);
+				if (g > cur.glow[i]!) {
+					cur.glow[i] = g;
+					cur.hcol[i] = WAVE_PALETTE[0]!;
+					if (cur.color[i]! < 0) cur.color[i] = WAVE_PALETTE[0]!;
+				}
+				continue;
+			}
 			const D = (R - dist) / WAVE_HALO_CELLS;
 			if (bayer(x, y) > Math.pow(D, 0.7)) continue;
 			cur.color[i] = WAVE_PALETTE[clamp(Math.floor(D * 4), 0, 3)]!;
 			cur.inkA[i] = 0.9;
 			cur.lit[i] = 1;
-			cur.glow[i] = x < copyW && y < copyH ? 1 : waveGlow(D);
+			cur.glow[i] = inCopy ? 1 : waveGlow(D);
 			cur.halo[i] = 0;
 			cur.hcol[i] = -1;
 		}
@@ -450,9 +481,14 @@ export interface PaintParams {
 	/** Resting dot colour, any canvas colour string. */
 	ink: string;
 	night: boolean;
-	/** During a wave: cells with `side[i] === 1` use the ink alpha of `night` = `sideNight`. */
+	/** During a wave: cells with `side[i] === 1` use `sideInk` at the ink alpha of `sideNight`. */
 	side?: Uint8Array | null;
 	sideNight?: boolean;
+	sideInk?: string;
+	/** Fills the canvas before the dots (the scene owns its background); null = transparent. */
+	surface?: string | null;
+	/** During a wave: whole cells on the new side are filled with it (a grid-aligned staircase). */
+	sideSurface?: string | null;
 	/** Backing-store size to clear, device px (defaults to `ctx.canvas`). */
 	width?: number;
 	height?: number;
@@ -484,6 +520,29 @@ export function paintGrid(
 	const size = Math.max(1, Math.round(p.dot * p.dpr));
 	const inkScale = p.night ? INK_ALPHA_NIGHT : INK_ALPHA_DAY;
 	const side = p.side ?? null;
+	const sideInk = p.sideInk ?? p.ink;
+	ctx.globalAlpha = 1;
+	if (p.surface) {
+		ctx.fillStyle = p.surface;
+		ctx.fillRect(0, 0, w, h);
+	}
+	if (side && p.sideSurface) {
+		ctx.fillStyle = p.sideSurface;
+		for (let y = 0; y < rows; y++) {
+			const y0 = cellOrigin(y, p.cell, p.dpr);
+			const y1 = cellOrigin(y + 1, p.cell, p.dpr);
+			let x0 = -1;
+			for (let x = 0; x <= cols; x++) {
+				const on = x < cols && side[y * cols + x] === 1;
+				if (on && x0 < 0) x0 = x;
+				else if (!on && x0 >= 0) {
+					const a = cellOrigin(x0, p.cell, p.dpr);
+					ctx.fillRect(a, y0, cellOrigin(x, p.cell, p.dpr) - a, y1 - y0);
+					x0 = -1;
+				}
+			}
+		}
+	}
 	const sideScale = p.sideNight ? INK_ALPHA_NIGHT : INK_ALPHA_DAY;
 	const open = lens.r > 0.5;
 	// lens bounding box in cells (rim reaches r + 2)
@@ -491,7 +550,7 @@ export function paintGrid(
 	const lx1 = open ? Math.ceil(lens.x + lens.r + 3) : 0;
 	const ly0 = open ? Math.floor(lens.y - lens.r - 3) : 1;
 	const ly1 = open ? Math.ceil(lens.y + lens.r + 3) : 0;
-	let curStyle = -2; // -2 = nothing set, -1 = ink, else the colour
+	let curStyle = -2; // -2 = nothing set, -1 = ink, -3 = side ink, else the colour
 	let curAlpha = -1;
 	ctx.globalAlpha = 1;
 	for (let y = 0; y < rows; y++) {
@@ -513,11 +572,12 @@ export function paintGrid(
 			} else {
 				const a = inkA[i]!;
 				if (!(a > 0)) continue;
-				style = -1;
-				alpha = Math.min(1, a * (side && side[i] === 1 ? sideScale : inkScale));
+				const onSide = !!side && side[i] === 1;
+				style = onSide ? -3 : -1;
+				alpha = Math.min(1, a * (onSide ? sideScale : inkScale));
 			}
 			if (style !== curStyle) {
-				ctx.fillStyle = style < 0 ? p.ink : cssOf(style);
+				ctx.fillStyle = style === -1 ? p.ink : style === -3 ? sideInk : cssOf(style);
 				curStyle = style;
 			}
 			if (alpha !== curAlpha) {
@@ -605,6 +665,10 @@ export interface PixelSceneOptions {
 	paused?: boolean;
 	/** Animate a change of `night` as a wave from the sun (default true; never under reduced motion). */
 	wave?: boolean;
+	/** `[day, night]` background painted by the canvas; null = transparent (the host shows). */
+	surfaces?: readonly [string, string] | null;
+	/** `[day, night]` dot colours; null = `ink`. */
+	inks?: readonly [string, string] | null;
 	/** Override for tests; default = the live `prefers-reduced-motion` query. */
 	reducedMotion?: boolean;
 	/** HDR hook; a throwing callback is dropped and the 2D picture keeps going. */
@@ -649,6 +713,8 @@ export function createPixelScene(
 	let inkOpt = options.ink ?? "currentColor";
 	let paused = !!options.paused;
 	let waveOn = options.wave ?? true;
+	let surfaces = options.surfaces ?? null;
+	let inks = options.inks ?? null;
 	let rmOverride: boolean | undefined = options.reducedMotion;
 	let onFrame = options.onFrame ?? null;
 
@@ -668,7 +734,7 @@ export function createPixelScene(
 	/** The new theme's picture during a wave. */
 	let nextGrid = createGrid(0, 0);
 	let side = new Uint8Array(0);
-	const wave = { on: false, from: false, ox: 0, oy: 0, start: -1, cover: 0 };
+	const wave = { on: false, from: false, ox: 0, oy: 0, start: -1, cover: 0, oldInk: "" };
 	let cssW = 0;
 	let cssH = 0;
 	let dpr = 1;
@@ -708,6 +774,10 @@ export function createPixelScene(
 			: 1;
 
 	function resolveInk(now: number, force: boolean): void {
+		if (inks) {
+			ink = inks[night ? 1 : 0];
+			return;
+		}
 		if (HEX_RE.test(inkOpt.trim())) {
 			ink = inkOpt.trim();
 			return;
@@ -816,6 +886,7 @@ export function createPixelScene(
 			oy = lensed ? lens.ty : grid.rows * 0.2;
 		}
 		wave.on = true;
+		wave.oldInk = inks ? inks[from ? 1 : 0] : ink;
 		wave.from = from;
 		wave.ox = ox;
 		wave.oy = oy;
@@ -845,10 +916,13 @@ export function createPixelScene(
 			cell,
 			dot,
 			dpr,
-			ink,
+			ink: waving ? wave.oldInk : ink,
 			night: waving ? wave.from : night,
 			side: waving ? side : null,
 			sideNight: night,
+			sideInk: ink,
+			surface: surfaces ? surfaces[(waving ? wave.from : night) ? 1 : 0] : null,
+			sideSurface: surfaces && waving ? surfaces[night ? 1 : 0] : null,
 			width: canvas.width,
 			height: canvas.height,
 		});
@@ -1026,6 +1100,12 @@ export function createPixelScene(
 				wave.on = false;
 				if (waveOn && !reduced() && grid.cols * grid.rows > 0) startWave(night, to);
 				night = to;
+				if (inks) ink = inks[to ? 1 : 0];
+			}
+			if (next.surfaces !== undefined) surfaces = next.surfaces;
+			if (next.inks !== undefined) {
+				inks = next.inks;
+				resolveInk(0, true);
 			}
 			if (next.cell !== undefined && next.cell !== cellOpt) {
 				cellOpt = next.cell;

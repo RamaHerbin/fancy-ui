@@ -1973,6 +1973,19 @@ export const registry: Record<string, ComponentMeta> = {
 					"Plays a change of `night` as a dithered wave spreading from the sun (or moon), led by a halo that glows on HDR displays. Off under reduced motion.",
 			},
 			{
+				name: "surfaces",
+				type: "readonly [day: string, night: string]",
+				default: "—",
+				description:
+					"Background painted by the scene for each theme; the wave carries it from one to the other. Without it the canvas is transparent.",
+			},
+			{
+				name: "inks",
+				type: "readonly [day: string, night: string]",
+				default: "—",
+				description: "Dot colour for each theme, swapped by the wave. Overrides `ink`.",
+			},
+			{
 				name: "class",
 				type: "string",
 				description: "Additional classes on the host. Give it a height.",

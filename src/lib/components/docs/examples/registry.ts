@@ -321,6 +321,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Scenes",
 			description: "Alpine, meadow, sea and mountains, by day and by night.",
 		},
+		{
+			name: "HoursOfLowLight",
+			title: "Hours of low light",
+			description:
+				"The scene owns its surface and ink: a click carries the whole card from day to night on the wave.",
+		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"mosaic-glow": [

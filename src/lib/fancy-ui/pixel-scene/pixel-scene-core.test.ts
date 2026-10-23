@@ -7,6 +7,7 @@ import {
 	LENS_BOOST,
 	LIT_GLOW,
 	MAX_BACKING_PX,
+	WAVE_GLOW_CELLS,
 	WAVE_HALO_CELLS,
 	WAVE_MS,
 	WAVE_PALETTE,
@@ -31,6 +32,7 @@ import {
 	pixelHalos,
 	srgbToLinear,
 	stepLens,
+	waveBandGlow,
 	waveCover,
 	waveGlow,
 	writeCell,
@@ -659,7 +661,7 @@ describe("createPixelScene", () => {
 
 describe("wave", () => {
 	it("covers the farthest corner plus the halo, and glows toward the inner rim", () => {
-		expect(waveCover(0, 0, 30, 40)).toBeCloseTo(50 + WAVE_HALO_CELLS + 1, 5);
+		expect(waveCover(0, 0, 30, 40)).toBeCloseTo(50 + WAVE_HALO_CELLS + WAVE_GLOW_CELLS + 1, 5);
 		expect(waveGlow(0)).toBe(1.5);
 		expect(waveGlow(1)).toBeCloseTo(4.9, 5);
 		expect(easeInOutCubic(0.5)).toBe(0.5);
@@ -685,6 +687,33 @@ describe("wave", () => {
 		expect(cur.emitters).toEqual([50, 0, 0x111111, 2, 1, 1, 0, 0x222222, 2, 1]);
 	});
 
+	it("adds a dithered HDR glow on both sides of the halo, pink inside, yellow outside", () => {
+		const cur = createGrid(80, 4);
+		const next = createGrid(80, 4);
+		composeWave(cur, next, new Uint8Array(320), 0.5, 0.5, 40);
+		const Rin = 40 - WAVE_HALO_CELLS;
+		let inner = 0;
+		let outer = 0;
+		for (let y = 0; y < 4; y++)
+			for (let x = 0; x < 80; x++) {
+				const i = y * 80 + x;
+				const d = Math.hypot(x + 0.5 - 0.5, y + 0.5 - 0.5);
+				if (d < Rin && d >= Rin - WAVE_GLOW_CELLS && cur.glow[i]! > 0) {
+					expect(cur.hcol[i]).toBe(WAVE_PALETTE[3]);
+					inner++;
+				}
+				if (d >= 40 && d < 40 + WAVE_GLOW_CELLS && cur.glow[i]! > 0) {
+					expect(cur.hcol[i]).toBe(WAVE_PALETTE[0]);
+					outer++;
+				}
+				if (d >= 40 + WAVE_GLOW_CELLS) expect(cur.glow[i]).toBe(0);
+			}
+		expect(inner).toBeGreaterThan(0);
+		expect(outer).toBeGreaterThan(0);
+		expect(waveBandGlow(0, 0, 0, true)).toBeCloseTo(3.4, 5);
+		expect(waveBandGlow(0, 0, 1, true)).toBe(0);
+	});
+
 	it("keeps the halo SDR inside the copy corner", () => {
 		const cur = createGrid(30, 1);
 		const next = createGrid(30, 1);
@@ -694,6 +723,41 @@ describe("wave", () => {
 		const lit = [...cur.glow].filter((g) => g > 0);
 		expect(lit.length).toBeGreaterThan(0);
 		expect(lit.every((g) => g === 1)).toBe(true);
+	});
+});
+
+describe("surfaces", () => {
+	it("paints the surface, then the new surface over whole cells on the new side, then side ink", () => {
+		const fills: string[] = [];
+		const ctx = {
+			fillStyle: "",
+			globalAlpha: 1,
+			setTransform: vi.fn(),
+			clearRect: vi.fn(),
+			fillRect: vi.fn(function (this: { fillStyle: string }) {
+				fills.push(this.fillStyle);
+			}),
+			canvas: { width: 20, height: 5 },
+		};
+		const g = createGrid(4, 1);
+		g.color.fill(0x123456);
+		g.inkA.fill(1);
+		const side = new Uint8Array([1, 1, 0, 0]);
+		paintGrid(ctx as never, g, createLens(), {
+			cell: 5,
+			dot: 4,
+			dpr: 1,
+			ink: "#old",
+			night: false,
+			side,
+			sideNight: true,
+			sideInk: "#new",
+			surface: "#daybg",
+			sideSurface: "#nightbg",
+		});
+		expect(fills.slice(0, 2)).toEqual(["#daybg", "#nightbg"]);
+		expect(ctx.fillRect.mock.calls[1]).toEqual([0, 0, 10, 5]);
+		expect(fills.slice(2)).toEqual(["#new", "#new", "#old", "#old"]);
 	});
 });
 
