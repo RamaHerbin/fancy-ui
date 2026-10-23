@@ -195,6 +195,8 @@ function stars(t: number, horizon: number): void {
 const MOON_A = h("#f4ead0");
 const MOON_B = h("#c9b89a");
 function sunDisc(sx: number, sy: number, R: number, cut = 1e9): void {
+	G.sunX = sx + 0.5;
+	G.sunY = sy + 0.5;
 	disc(sx, sy, R, (x, y) => {
 		if (y >= cut) return;
 		const band = clamp(Math.floor(((y - (sy - R)) / (2 * R)) * 4), 0, 3);
@@ -566,6 +568,8 @@ function alpine(t: number): void {
 		const mx = Math.floor(C * 0.9);
 		const my = Math.max(4, Math.floor(R * 0.13));
 		const mr = 3.2;
+		G.sunX = mx + 0.5;
+		G.sunY = my + 0.5;
 		disc(mx, my, mr, (x, y, dd) => {
 			if (x - mx > mr * 0.25 && dd > mr * 0.55) return;
 			put(x, y, dd > mr * 0.7 ? P.moonRim : P.moon, 0.6, G_MOON, 0.6);

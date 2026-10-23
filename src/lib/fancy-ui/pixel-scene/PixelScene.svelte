@@ -36,6 +36,8 @@
 		ink?: string;
 		/** Freeze the scene's animations (the lens still follows the pointer) */
 		paused?: boolean;
+		/** Animate a change of `night` as a dithered wave from the sun (never under reduced motion) */
+		wave?: boolean;
 		/** Additional classes on the host — give it a height */
 		class?: string;
 		/** Copy rendered above the picture */
@@ -69,6 +71,7 @@
 		hdr = true,
 		ink = "currentColor",
 		paused = false,
+		wave = true,
 		class: className,
 		children,
 		ref = $bindable(null),
@@ -105,6 +108,7 @@
 					lensRadius,
 					ink,
 					paused,
+					wave,
 				}
 			)
 		);
@@ -130,7 +134,7 @@
 	});
 
 	$effect(() => {
-		const next = { lens, lensRadius, ink, paused };
+		const next = { lens, lensRadius, ink, paused, wave };
 		untrack(() => engine?.setOptions(next));
 	});
 

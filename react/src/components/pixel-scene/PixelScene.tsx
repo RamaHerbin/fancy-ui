@@ -47,6 +47,8 @@ export interface PixelSceneProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 	ink?: string;
 	/** Freeze the scene's animations (the lens still follows the pointer) */
 	paused?: boolean;
+	/** Animate a change of `night` as a dithered wave from the sun (never under reduced motion) */
+	wave?: boolean;
 	/** Additional classes on the host — give it a height */
 	className?: string;
 	/** Copy rendered above the picture */
@@ -63,6 +65,7 @@ interface CreateProps {
 	lensRadius: number;
 	ink: string;
 	paused: boolean;
+	wave: boolean;
 }
 
 export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function PixelScene(
@@ -76,6 +79,7 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		hdr = true,
 		ink = "currentColor",
 		paused = false,
+		wave = true,
 		className,
 		children,
 		...restProps
@@ -110,6 +114,7 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 		lensRadius,
 		ink,
 		paused,
+		wave,
 	});
 
 	useEffect(() => {
@@ -126,6 +131,7 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 				lensRadius: p.lensRadius,
 				ink: p.ink,
 				paused: p.paused,
+				wave: p.wave,
 			}
 		);
 		engineRef.current = engine;
@@ -148,8 +154,8 @@ export const PixelScene = forwardRef<HTMLDivElement, PixelSceneProps>(function P
 	}, [cell, dot, engineReady]);
 
 	useEffect(() => {
-		engineRef.current?.setOptions({ lens, lensRadius, ink, paused });
-	}, [lens, lensRadius, ink, paused, engineReady]);
+		engineRef.current?.setOptions({ lens, lensRadius, ink, paused, wave });
+	}, [lens, lensRadius, ink, paused, wave, engineReady]);
 
 	// HDR: decided after mount only, so SSR and hydration render the 2D canvas alone.
 	useEffect(() => {

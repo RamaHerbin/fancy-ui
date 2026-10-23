@@ -25,6 +25,7 @@ The host needs a height — it fills whatever box you give it.
 | `hdr`        | `boolean`                                      | `true`           | On a display that reports HDR, redraw the lit cells above SDR white in a WebGPU layer.     |
 | `ink`        | `string`                                       | `"currentColor"` | Colour of the resting dots. `currentColor` is read from the host, so it follows the theme. |
 | `paused`     | `boolean`                                      | `false`          | Freeze clouds, birds and lights; the lens still follows the pointer.                       |
+| `wave`       | `boolean`                                      | `true`           | Play a change of `night` as a dithered wave from the sun (instant under reduced motion).   |
 | `class`      | `string`                                       | —                | Additional classes on the host. Give it a height.                                          |
 | `children`   | `Snippet`                                      | —                | Copy rendered above the picture.                                                           |
 | `ref`        | `HTMLDivElement \| null`                       | `null`           | Bindable host element.                                                                     |
@@ -76,6 +77,10 @@ Pointer listeners sit on the host, so the lens keeps working over your copy. Eve
 </PixelScene>
 ```
 
+### The wave
+
+With `wave` (on by default), a change of `night` is not a cut: the new palette spreads from the sun, or the moon, or the pointer when the scene has neither, over 1.3 s (ease in-out cubic). The front is a grid-aligned staircase led by a 9-cell halo, Bayer-dithered from a sparse yellow fringe to a dense pink rim, the same grammar as SunSwitch's wave. Both palettes are painted each frame and composited cell by cell, ink included, so the scene keeps moving under the front. On HDR displays every halo cell is a hard square at `1.5 + 3.4 × depth` (4.9 at the rim), SDR inside the copy corner. A second change mid-wave lands the running one and starts the next. The wave also plays while `paused` (the scene clock stays frozen), never under reduced motion.
+
 ## How it paints
 
 Each frame a scene painter fills the whole grid through one call, `put(x, y, colour, inkAlpha, lit, haloCells)`:
@@ -97,7 +102,7 @@ To exercise the path in a headless browser, start it with WebGPU enabled and stu
 
 ## Reduced motion
 
-With `prefers-reduced-motion: reduce` the scene is frozen (constant time) and the lens snaps to the pointer instead of easing. There is no animation loop: one paint per pointer event, prop change or theme change. The picture itself is still painted.
+With `prefers-reduced-motion: reduce` the scene is frozen (constant time) and the lens snaps to the pointer instead of easing. There is no animation loop: one paint per pointer event, prop change or theme change, and a `night` change is a cut, without the wave. The picture itself is still painted.
 
 ## Performance
 

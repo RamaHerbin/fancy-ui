@@ -7,14 +7,19 @@ import {
 	LENS_BOOST,
 	LIT_GLOW,
 	MAX_BACKING_PX,
+	WAVE_HALO_CELLS,
+	WAVE_MS,
+	WAVE_PALETTE,
 	backingDpr,
 	bayer,
 	cellOrigin,
 	clearGrid,
+	composeWave,
 	createGrid,
 	createLens,
 	createPixelScene,
 	cssOf,
+	easeInOutCubic,
 	effectiveCell,
 	encodeExt,
 	grad,
@@ -26,6 +31,8 @@ import {
 	pixelHalos,
 	srgbToLinear,
 	stepLens,
+	waveCover,
+	waveGlow,
 	writeCell,
 	type PixelGrid,
 	type PixelSceneFrame,
@@ -437,11 +444,79 @@ describe("createPixelScene", () => {
 		run(96);
 		expect(rafs).toHaveLength(0);
 		const frozen = times[times.length - 1];
+		// A night change still plays its wave while paused, scene clock frozen, then sleeps.
 		engine.setOptions({ night: true });
 		run(112);
-		expect(times[times.length - 1]).toBe(frozen);
+		expect(rafs).toHaveLength(1);
+		run(112 + WAVE_MS + 16);
+		run(112 + WAVE_MS + 32);
+		expect(times.every((t, i) => i < 2 || t === frozen)).toBe(true);
+		expect(rafs).toHaveLength(0);
+		engine.setOptions({ wave: false, night: false });
+		run(2000);
 		expect(rafs).toHaveLength(0);
 		engine.destroy();
+	});
+
+	it("plays a night change as a wave from the sun, painting both themes, then settles", () => {
+		const nights: boolean[] = [];
+		const { ctx } = recordingCtx();
+		const host = document.createElement("div");
+		Object.defineProperty(host, "clientWidth", { value: 200 });
+		Object.defineProperty(host, "clientHeight", { value: 100 });
+		const canvas = document.createElement("canvas");
+		canvas.getContext = vi.fn(() => ctx) as never;
+		const frames: PixelSceneFrame[] = [];
+		const painter = vi.fn((_t: number, g: PixelGrid, night: boolean) => {
+			nights.push(night);
+			g.sunX = 30.5;
+			g.sunY = 4.5;
+			for (let i = 0; i < g.color.length; i++) {
+				g.color[i] = night ? 0x112233 : 0xddeeff;
+				g.inkA[i] = 0.5;
+			}
+		});
+		const engine = createPixelScene(
+			{ host, canvas },
+			{
+				painter,
+				reducedMotion: false,
+				onFrame: (f) => frames.push({ ...f, color: f.color.slice() }),
+			}
+		)!;
+		run(16);
+		nights.length = 0;
+		engine.setOptions({ night: true });
+		run(32); // wave starts
+		run(32 + WAVE_MS / 2);
+		expect(nights).toContain(false);
+		expect(nights).toContain(true);
+		const mid = frames.at(-1)!;
+		const at = (x: number, y: number) => mid.color[y * mid.cols + x];
+		expect(at(30, 4)).toBe(0x112233); // the sun has turned
+		expect(at(0, mid.rows - 1)).toBe(0xddeeff); // the far corner has not
+		expect(WAVE_PALETTE).toContain([...mid.color].find((c) => WAVE_PALETTE.includes(c)) ?? -1); // halo cells on the front
+		run(32 + WAVE_MS + 16);
+		run(32 + WAVE_MS + 32);
+		const done = frames.at(-1)!;
+		expect([...done.color].every((c) => c === 0x112233)).toBe(true);
+		engine.destroy();
+	});
+
+	it("switches at once under reduced motion or with wave off", () => {
+		for (const opts of [{ reducedMotion: true }, { wave: false }]) {
+			const nights: boolean[] = [];
+			const { engine } = setup({
+				...opts,
+				painter: (_t: number, _g: PixelGrid, night: boolean) => nights.push(night),
+			});
+			run(16);
+			nights.length = 0;
+			engine.setOptions({ night: true });
+			run(32);
+			expect(nights).toEqual([true]);
+			engine.destroy();
+		}
 	});
 
 	it("does not loop under reduced motion: one paint per pointer event, time frozen", () => {
@@ -579,6 +654,46 @@ describe("createPixelScene", () => {
 		host.dispatchEvent(Object.assign(new Event("pointermove"), { clientX: 20, clientY: 10 }));
 		run(32);
 		expect(painter.mock.calls.length).toBe(calls);
+	});
+});
+
+describe("wave", () => {
+	it("covers the farthest corner plus the halo, and glows toward the inner rim", () => {
+		expect(waveCover(0, 0, 30, 40)).toBeCloseTo(50 + WAVE_HALO_CELLS + 1, 5);
+		expect(waveGlow(0)).toBe(1.5);
+		expect(waveGlow(1)).toBeCloseTo(4.9, 5);
+		expect(easeInOutCubic(0.5)).toBe(0.5);
+	});
+
+	it("composes: new picture inside, dithered halo on the band, old picture outside", () => {
+		const cur = createGrid(60, 1);
+		const next = createGrid(60, 1);
+		cur.color.fill(0x111111);
+		next.color.fill(0x222222);
+		next.emitters.push(1, 0, 0x222222, 2, 1);
+		cur.emitters.push(50, 0, 0x111111, 2, 1);
+		const side = new Uint8Array(60);
+		composeWave(cur, next, side, 0.5, 0.5, 20);
+		expect(cur.color[2]).toBe(0x222222);
+		expect(side[2]).toBe(1);
+		expect(cur.color[40]).toBe(0x111111);
+		expect(side[40]).toBe(0);
+		const band = [...cur.color.slice(11, 20)];
+		expect(band.some((c) => WAVE_PALETTE.includes(c))).toBe(true);
+		const lit = [...cur.glow.slice(11, 20)].filter((g) => g > 0);
+		expect(Math.max(...lit)).toBeLessThanOrEqual(4.9 + 1e-6);
+		expect(cur.emitters).toEqual([50, 0, 0x111111, 2, 1, 1, 0, 0x222222, 2, 1]);
+	});
+
+	it("keeps the halo SDR inside the copy corner", () => {
+		const cur = createGrid(30, 1);
+		const next = createGrid(30, 1);
+		next.copyW = 30;
+		next.copyH = 1;
+		composeWave(cur, next, new Uint8Array(30), 0.5, 0.5, 20);
+		const lit = [...cur.glow].filter((g) => g > 0);
+		expect(lit.length).toBeGreaterThan(0);
+		expect(lit.every((g) => g === 1)).toBe(true);
 	});
 });
 

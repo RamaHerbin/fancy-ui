@@ -1966,6 +1966,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Freezes clouds, birds and lights; the lens still follows the pointer.",
 			},
 			{
+				name: "wave",
+				type: "boolean",
+				default: "true",
+				description:
+					"Plays a change of `night` as a dithered wave spreading from the sun (or moon), led by a halo that glows on HDR displays. Off under reduced motion.",
+			},
+			{
 				name: "class",
 				type: "string",
 				description: "Additional classes on the host. Give it a height.",

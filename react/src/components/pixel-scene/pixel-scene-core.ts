@@ -181,6 +181,9 @@ export interface PixelGrid {
 	 */
 	copyW: number;
 	copyH: number;
+	/** Centre of the sun (or moon) in cells, -1 when the frame has none. Set by the painter. */
+	sunX: number;
+	sunY: number;
 }
 
 export const INK_ALPHA_NIGHT = 0.6;
@@ -212,6 +215,8 @@ export function createGrid(cols: number, rows: number): PixelGrid {
 		emitters: [],
 		copyW: 0,
 		copyH: 0,
+		sunX: -1,
+		sunY: -1,
 	};
 	clearGrid(g);
 	return g;
@@ -227,6 +232,8 @@ export function clearGrid(g: PixelGrid): void {
 	g.emitters.length = 0;
 	g.copyW = 0;
 	g.copyH = 0;
+	g.sunX = -1;
+	g.sunY = -1;
 }
 
 /**
@@ -294,6 +301,96 @@ export function pixelHalos(g: PixelGrid): void {
 	}
 }
 
+// --- day / night wave --------------------------------------------------------
+
+/** Duration of a day / night wave, ms (ease in-out cubic). */
+export const WAVE_MS = 1300;
+/** Thickness of the dithered halo that leads the wave front, in cells. */
+export const WAVE_HALO_CELLS = 9;
+/** Halo colours from the sparse outer fringe to the dense inner rim. */
+export const WAVE_PALETTE: readonly number[] = [0xf7cf4a, 0xf6a24e, 0xef7a5e, 0xea7d9c];
+
+export function easeInOutCubic(t: number): number {
+	if (!(t > 0)) return 0;
+	if (t >= 1) return 1;
+	return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+}
+
+/** Glow of a halo cell at depth D (1 = inner rim, 0 = outer fringe). */
+export function waveGlow(D: number): number {
+	return 1.5 + 3.4 * clamp(D, 0, 1);
+}
+
+/** Radius (cells) at which a front from (ox, oy) has passed every cell, halo included. */
+export function waveCover(ox: number, oy: number, cols: number, rows: number): number {
+	return (
+		Math.max(
+			Math.hypot(ox, oy),
+			Math.hypot(cols - ox, oy),
+			Math.hypot(ox, rows - oy),
+			Math.hypot(cols - ox, rows - oy)
+		) +
+		WAVE_HALO_CELLS +
+		1
+	);
+}
+
+/**
+ * Composites one wave frame into `cur` (the old picture): cells the front has
+ * passed (`dist < R − halo`) take `next`'s content, the halo band is
+ * Bayer-dithered with `D^0.7` and lit at {@link waveGlow} (SDR inside the copy
+ * corner), the rest keeps the old picture. Emitters follow their side.
+ * `side[i]` is set to 1 for cells on the new side, 0 elsewhere.
+ */
+export function composeWave(
+	cur: PixelGrid,
+	next: PixelGrid,
+	side: Uint8Array,
+	ox: number,
+	oy: number,
+	R: number
+): void {
+	const { cols, rows } = cur;
+	const Rin = R - WAVE_HALO_CELLS;
+	const em: number[] = [];
+	for (let k = 0; k + 4 < cur.emitters.length; k += 5)
+		if (Math.hypot(cur.emitters[k]! + 0.5 - ox, cur.emitters[k + 1]! + 0.5 - oy) >= Rin)
+			em.push(...cur.emitters.slice(k, k + 5));
+	for (let k = 0; k + 4 < next.emitters.length; k += 5)
+		if (Math.hypot(next.emitters[k]! + 0.5 - ox, next.emitters[k + 1]! + 0.5 - oy) < Rin)
+			em.push(...next.emitters.slice(k, k + 5));
+	const copyW = next.copyW || cur.copyW || 0;
+	const copyH = next.copyH || cur.copyH || 0;
+	for (let y = 0; y < rows; y++) {
+		for (let x = 0; x < cols; x++) {
+			const i = y * cols + x;
+			const dist = Math.hypot(x + 0.5 - ox, y + 0.5 - oy);
+			if (dist < Rin) {
+				side[i] = 1;
+				cur.color[i] = next.color[i]!;
+				cur.inkA[i] = next.inkA[i]!;
+				cur.lit[i] = next.lit[i]!;
+				cur.glow[i] = next.glow[i]!;
+				cur.halo[i] = next.halo[i]!;
+				cur.hcol[i] = next.hcol[i]!;
+				continue;
+			}
+			side[i] = 0;
+			if (dist >= R) continue;
+			const D = (R - dist) / WAVE_HALO_CELLS;
+			if (bayer(x, y) > Math.pow(D, 0.7)) continue;
+			cur.color[i] = WAVE_PALETTE[clamp(Math.floor(D * 4), 0, 3)]!;
+			cur.inkA[i] = 0.9;
+			cur.lit[i] = 1;
+			cur.glow[i] = x < copyW && y < copyH ? 1 : waveGlow(D);
+			cur.halo[i] = 0;
+			cur.hcol[i] = -1;
+		}
+	}
+	cur.emitters.length = 0;
+	cur.emitters.push(...em);
+}
+
 // --- lens --------------------------------------------------------------------
 
 export interface Lens {
@@ -353,6 +450,9 @@ export interface PaintParams {
 	/** Resting dot colour, any canvas colour string. */
 	ink: string;
 	night: boolean;
+	/** During a wave: cells with `side[i] === 1` use the ink alpha of `night` = `sideNight`. */
+	side?: Uint8Array | null;
+	sideNight?: boolean;
 	/** Backing-store size to clear, device px (defaults to `ctx.canvas`). */
 	width?: number;
 	height?: number;
@@ -383,6 +483,8 @@ export function paintGrid(
 	ctx.clearRect(0, 0, w, h);
 	const size = Math.max(1, Math.round(p.dot * p.dpr));
 	const inkScale = p.night ? INK_ALPHA_NIGHT : INK_ALPHA_DAY;
+	const side = p.side ?? null;
+	const sideScale = p.sideNight ? INK_ALPHA_NIGHT : INK_ALPHA_DAY;
 	const open = lens.r > 0.5;
 	// lens bounding box in cells (rim reaches r + 2)
 	const lx0 = open ? Math.floor(lens.x - lens.r - 3) : 1;
@@ -412,7 +514,7 @@ export function paintGrid(
 				const a = inkA[i]!;
 				if (!(a > 0)) continue;
 				style = -1;
-				alpha = Math.min(1, a * inkScale);
+				alpha = Math.min(1, a * (side && side[i] === 1 ? sideScale : inkScale));
 			}
 			if (style !== curStyle) {
 				ctx.fillStyle = style < 0 ? p.ink : cssOf(style);
@@ -501,6 +603,8 @@ export interface PixelSceneOptions {
 	lensRadius?: number;
 	ink?: string;
 	paused?: boolean;
+	/** Animate a change of `night` as a wave from the sun (default true; never under reduced motion). */
+	wave?: boolean;
 	/** Override for tests; default = the live `prefers-reduced-motion` query. */
 	reducedMotion?: boolean;
 	/** HDR hook; a throwing callback is dropped and the 2D picture keeps going. */
@@ -544,6 +648,7 @@ export function createPixelScene(
 	let lensRadius = normalizeLensRadius(options.lensRadius);
 	let inkOpt = options.ink ?? "currentColor";
 	let paused = !!options.paused;
+	let waveOn = options.wave ?? true;
 	let rmOverride: boolean | undefined = options.reducedMotion;
 	let onFrame = options.onFrame ?? null;
 
@@ -560,6 +665,10 @@ export function createPixelScene(
 	const reduced = () => (rmOverride !== undefined ? rmOverride : mqReduced);
 
 	let grid = createGrid(0, 0);
+	/** The new theme's picture during a wave. */
+	let nextGrid = createGrid(0, 0);
+	let side = new Uint8Array(0);
+	const wave = { on: false, from: false, ox: 0, oy: 0, start: -1, cover: 0 };
 	let cssW = 0;
 	let cssH = 0;
 	let dpr = 1;
@@ -665,6 +774,8 @@ export function createPixelScene(
 		const rows = cssH > 0 ? Math.ceil(cssH / cell) : 0;
 		if (cols !== grid.cols || rows !== grid.rows) {
 			grid = createGrid(cols, rows);
+			nextGrid = createGrid(cols, rows);
+			side = new Uint8Array(cols * rows);
 			frame.color = grid.color;
 			frame.glow = grid.glow;
 			frame.hcol = grid.hcol;
@@ -682,7 +793,7 @@ export function createPixelScene(
 
 	function schedule(): void {
 		if (raf || destroyed) return;
-		if (!awake() || !(animating() || lensMoving || dirty)) {
+		if (!awake() || !(animating() || lensMoving || dirty || wave.on)) {
 			last = 0;
 			if (awake()) armInkPoll();
 			else clearInkPoll();
@@ -693,17 +804,51 @@ export function createPixelScene(
 		raf = requestAnimationFrame(tick);
 	}
 
+	/** Starts a wave from the sun of either picture, else the lens, else the top right. */
+	function startWave(from: boolean, to: boolean): void {
+		clearGrid(nextGrid);
+		painter(t, nextGrid, to);
+		let ox = grid.sunX >= 0 ? grid.sunX : nextGrid.sunX;
+		let oy = grid.sunX >= 0 ? grid.sunY : nextGrid.sunY;
+		if (!(ox >= 0)) {
+			const lensed = lens.r > 0.5 || lens.tr > 0;
+			ox = lensed ? lens.tx : grid.cols * 0.85;
+			oy = lensed ? lens.ty : grid.rows * 0.2;
+		}
+		wave.on = true;
+		wave.from = from;
+		wave.ox = ox;
+		wave.oy = oy;
+		wave.start = -1;
+		wave.cover = waveCover(ox, oy, grid.cols, grid.rows);
+	}
+
 	function render(now: number): void {
 		resolveInk(now, false);
 		clearGrid(grid);
-		painter(t, grid, night);
+		let waving = false;
+		if (wave.on) {
+			if (wave.start < 0) wave.start = now;
+			const p = Math.min(1, Math.max(0, (now - wave.start) / WAVE_MS));
+			if (p >= 1) wave.on = false;
+			else {
+				waving = true;
+				painter(t, grid, wave.from);
+				clearGrid(nextGrid);
+				painter(t, nextGrid, night);
+				composeWave(grid, nextGrid, side, wave.ox, wave.oy, easeInOutCubic(p) * wave.cover);
+			}
+		}
+		if (!waving) painter(t, grid, night);
 		pixelHalos(grid);
 		paintGrid(c2d, grid, lens, {
 			cell,
 			dot,
 			dpr,
 			ink,
-			night,
+			night: waving ? wave.from : night,
+			side: waving ? side : null,
+			sideNight: night,
 			width: canvas.width,
 			height: canvas.height,
 		});
@@ -874,7 +1019,14 @@ export function createPixelScene(
 			if (destroyed) return;
 			let relayout = false;
 			if (next.painter !== undefined && next.painter !== painter) painter = next.painter;
-			if (next.night !== undefined) night = !!next.night;
+			if (next.wave !== undefined) waveOn = !!next.wave;
+			if (next.night !== undefined && !!next.night !== night) {
+				const to = !!next.night;
+				// A change mid-wave lands the running one: the new wave starts from its target.
+				wave.on = false;
+				if (waveOn && !reduced() && grid.cols * grid.rows > 0) startWave(night, to);
+				night = to;
+			}
 			if (next.cell !== undefined && next.cell !== cellOpt) {
 				cellOpt = next.cell;
 				relayout = true;

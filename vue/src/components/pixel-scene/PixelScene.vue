@@ -37,6 +37,8 @@ export interface PixelSceneProps {
 	ink?: string;
 	/** Freeze the scene's animations (the lens still follows the pointer) */
 	paused?: boolean;
+	/** Animate a change of `night` as a dithered wave from the sun (never under reduced motion) */
+	wave?: boolean;
 	/** Additional classes on the host — give it a height */
 	class?: HTMLAttributes["class"];
 }
@@ -67,6 +69,7 @@ const {
 	hdr = true,
 	ink = "currentColor",
 	paused = false,
+	wave = true,
 	class: className,
 } = defineProps<PixelSceneProps>();
 
@@ -105,6 +108,7 @@ onMounted(() => {
 			lensRadius,
 			ink,
 			paused,
+			wave,
 		}
 	);
 	engineReady.value = engine !== null;
@@ -134,7 +138,7 @@ watch(
 );
 
 watch(
-	() => ({ lens, lensRadius, ink, paused }),
+	() => ({ lens, lensRadius, ink, paused, wave }),
 	(next) => engine?.setOptions(next),
 	{ flush: "post" }
 );
