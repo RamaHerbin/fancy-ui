@@ -1,6 +1,6 @@
 # Consumer apps
 
-Seven minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
+Eight minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
 
 - a dependency the package imports but does not declare,
 - a file missing from the `files` allow-list, or a broken `exports` entry,
@@ -9,7 +9,7 @@ Seven minimal apps that install a fancy-ui package the way someone outside the r
 
 None of them is a workspace member (`pnpm-workspace.yaml` globs `examples/*`, not `examples/consumers/*`), and the repo never installs them.
 
-An eighth consumer, `sv-addon`, has no app of its own: it creates apps with the Svelte CLI and sets them up with the `fancy-ui-sv` add-on (see [The Svelte CLI add-on](#the-svelte-cli-add-on)).
+A ninth consumer, `sv-addon`, has no app of its own: it creates apps with the Svelte CLI and sets them up with the `fancy-ui-sv` add-on (see [The Svelte CLI add-on](#the-svelte-cli-add-on)).
 
 | App           | Package           | Framework                                            |
 | ------------- | ----------------- | ---------------------------------------------------- |
@@ -20,6 +20,7 @@ An eighth consumer, `sv-addon`, has no app of its own: it creates apps with the 
 | `vue-vite`    | `fancy-ui-vue`    | Vue 3 + Vite                                         |
 | `nuxt`        | `fancy-ui-vue`    | Nuxt, server-rendered then hydrated                  |
 | `nuxt-module` | `fancy-ui-nuxt`   | Nuxt via the module, no imports, `nuxt typecheck`    |
+| `astro`       | `fancy-ui-svelte` | Astro static build, Svelte islands, `ClientRouter`   |
 | `sv-addon`    | `fancy-ui-sv`     | SvelteKit apps made by `sv create` + `sv add`        |
 
 ## Running them
@@ -33,7 +34,7 @@ scripts/consumers/next.sh        # one app, directly
 KEEP_CONSUMER=1 scripts/consumers/next.sh   # keep the scratch copy for debugging
 ```
 
-`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it as three **Consumers** shards on three runners; `--shard` deals the sorted app list round-robin, so a new `<name>.sh` here joins a shard with nothing to add in `ci.yml`.
+`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. `astro.sh` exits 77 on a Node older than 22.23.4, the floor Astro 7 enforces at launch; locally it is listed as `skip`, but with `CI` set (and for any other script) exit 77 is a failure. The Consumers shards use `check-latest: true` on Node 22 so the runner always has a recent enough 22.x. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it as three **Consumers** shards on three runners; `--shard` deals the sorted app list round-robin, so a new `<name>.sh` here joins a shard with nothing to add in `ci.yml`.
 
 Prerequisites: the repo installed (`pnpm install`), Playwright's Chromium (`pnpm exec playwright install chromium`), network access for `npm install`, and `rsync`.
 
@@ -95,6 +96,18 @@ The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to 
 - **Events**: the consumer's `onclick` on `Button` and `onOpenChange` on `Dialog` run, with the `true` then `false` the component reports when opened with Enter and closed with Escape.
 - **Install snippets**: the stylesheet, first-component and usage snippets from `src/lib/docs/install-snippets.ts` live in each app (`src/app.css`, `src/snippets/`) and render in the page. The types snippet (`src/snippets/types.ts`) renders nothing, so the `sveltekit` app type-checks it with strict `svelte-check` before building: a removed `BorderBeamProps` export or a wrong prop name fails the run. `src/lib/docs/consumer-snippets.test.ts` fails when they drift from the docs.
 - **Cameleon** (`svelte-vite` only): `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin builds and mounts in a plain Vite app, so a build failure is a defect, not a known gap.
+
+## Astro: what it adds
+
+`astro` builds a static site with `astro build` and serves it with `astro preview` (`--ignore-lock` keeps the server in the foreground; Astro 7 otherwise detaches it when it detects a coding agent). The app is also the playground for the Astro section of the Installation page: `src/styles/global.css`, `astro.config.mjs`, `src/components/Hero.astro` and `src/islands/Counter.svelte` carry that page's snippets verbatim (`src/lib/docs/consumer-snippets.test.ts`). The smoke checks:
+
+- **Static by default**: a page whose components have no `client:*` directive downloads no script at all, and BorderBeam, Meteors and Marquee still animate from CSS.
+- **Islands**: `client:load` islands hydrate (the `astro-island` loses its `ssr` attribute), a `client:visible` one below the fold waits until scrolled to, the default slot reaches the island as `children` and a named slot as a snippet of the same name, and handlers, a Dialog `trigger` snippet and `onOpenChange` written in the island wrapper run.
+- **No library-wide chunk**: every island loads its own wrapper module, never the package root, the page's scripts stay under 250 KB, and none contains three.js or GSAP.
+- **Island cost**: the build is measured from disk against the figures on the Installation page (`ASTRO_ISLAND_COST` in `src/lib/docs/astro-snippets.ts`, within 15 %): a page with one `RainbowButton` island through a local wrapper, and, in a second build (`dist-barrel`, adding `variants/barrel.astro`), the same button hydrated from the package root, which must weigh over 1 MB with three.js and GSAP and also inflate the wrapper page of that build.
+- **Multiple instances**: two counters keep separate state, two FluidCursor islands own a WebGL canvas each, and the canvas follows a 1280 → 390 → 1280 px resize.
+- **Reduced motion**: BorderBeam and Meteors stop animating, and FluidCursor hydrates without binding a GPU context.
+- **ClientRouter**: three A → B → A round trips mount and destroy each island once per visit, leave one live WebGL context, keep the `requestAnimationFrame` rate flat, and a `transition:persist` island is mounted once and keeps its state.
 
 ## The Svelte CLI add-on
 

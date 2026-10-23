@@ -4,6 +4,7 @@
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
 	import { INSTALL_SNIPPETS, INSTALL_VARIANTS } from "$lib/docs/install-snippets.js";
+	import { ASTRO_GUIDE, inlineCode } from "$lib/docs/astro-snippets.js";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
 	import type { Framework } from "$lib/inspiration/types.js";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
@@ -195,6 +196,31 @@
 		</div>
 		<p class="caption">{t("install.peerDeps.bundledNote")}</p>
 	</section>
+
+	<!-- Technical reference kept in English (CONTRIBUTING.md, "What stays English"). -->
+	{#snippet inline(text: string)}
+		{#each inlineCode(text) as part, i (i)}{#if part.code}<code class="chip">{part.text}</code
+				>{:else}{part.text}{/if}{/each}
+	{/snippet}
+	{#if framework === "svelte"}
+		<section class="sec" lang="en">
+			<h2 id={ASTRO_GUIDE.id}>{ASTRO_GUIDE.title}</h2>
+			{#each ASTRO_GUIDE.blocks as block, i (i)}
+				{#if block.kind === "code"}
+					<CodeBlock lang={block.lang} code={block.code} />
+				{:else if block.kind === "note"}
+					<div class="note astro-gap">
+						<span class="note-ic" aria-hidden="true">✦</span>
+						<p class="note-body">{@render inline(block.text)}</p>
+					</div>
+				{:else if block.kind === "caption"}
+					<p class="caption astro-gap">{@render inline(block.text)}</p>
+				{:else}
+					<p class="sec-body astro-gap">{@render inline(block.text)}</p>
+				{/if}
+			{/each}
+		</section>
+	{/if}
 
 	<section class="sec">
 		<h2 id="next-steps">{t("install.nextSteps.heading")}</h2>
@@ -492,6 +518,12 @@
 		flex-wrap: wrap;
 		gap: 8px;
 		margin-bottom: 8px;
+	}
+
+	/* Astro ----------------------------------------------------------------- */
+	.install p.astro-gap,
+	.install .note.astro-gap {
+		margin-top: 16px;
 	}
 
 	/* Next steps ------------------------------------------------------------ */
