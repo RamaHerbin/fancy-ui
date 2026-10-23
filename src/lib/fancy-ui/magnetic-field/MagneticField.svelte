@@ -167,7 +167,8 @@
 
 	// The in-view observer alone depends on `radius`: a new margin replaces it
 	// without detaching the pointer, so a resting pointer keeps pulling. It
-	// reads the same state as the effect above, so it re-runs after it.
+	// reads the same state as the effect above, so it re-runs after it. Keep
+	// this list in sync with that effect's reads: `onVisible` is not reactive.
 	$effect(() => {
 		const node = ref;
 		void [core, source, disabled, reduced.current];

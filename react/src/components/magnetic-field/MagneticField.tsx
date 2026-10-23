@@ -196,7 +196,8 @@ export const MagneticField = forwardRef<HTMLDivElement, MagneticFieldProps>(func
 	}, [core, node, source, disabled, reduced]);
 
 	// The in-view observer alone depends on `radius`: a new margin replaces it
-	// without detaching the pointer, so a resting pointer keeps pulling.
+	// without detaching the pointer, so a resting pointer keeps pulling. Keep
+	// its deps a superset of the effect above: it reads the ref that one sets.
 	useEffect(() => {
 		const onVisible = onVisibleRef.current;
 		if (!node || !onVisible) return;
