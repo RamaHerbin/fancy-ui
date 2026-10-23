@@ -61,6 +61,30 @@ function preferReducedMotion() {
 	})) as unknown as typeof window.matchMedia;
 }
 
+/** A reduced-motion query whose answer the test can flip, firing `change`. */
+function controllableReducedMotion(initial: boolean) {
+	let matches = initial;
+	const listeners = new Set<(event: { matches: boolean }) => void>();
+	const mql = (query: string) => ({
+		get matches() {
+			return query.includes("prefers-reduced-motion") && matches;
+		},
+		media: query,
+		onchange: null,
+		addEventListener: (_: string, fn: (event: { matches: boolean }) => void) => listeners.add(fn),
+		removeEventListener: (_: string, fn: (event: { matches: boolean }) => void) =>
+			listeners.delete(fn),
+		addListener: () => {},
+		removeListener: () => {},
+		dispatchEvent: () => false,
+	});
+	window.matchMedia = mql as unknown as typeof window.matchMedia;
+	return (next: boolean) => {
+		matches = next;
+		for (const fn of [...listeners]) fn({ matches: next });
+	};
+}
+
 describe("TracingBeam", () => {
 	const originalMatchMedia = window.matchMedia;
 	const originalInnerHeight = Object.getOwnPropertyDescriptor(window, "innerHeight");
@@ -237,5 +261,47 @@ describe("TracingBeam", () => {
 		expect(types).toContain("scroll");
 		expect(types).toContain("resize");
 		expect(cancel).toHaveBeenCalledWith(7);
+	});
+
+	it("snaps the lamp and stops the spring when reduced motion turns on mid-flight", async () => {
+		layoutHeaded();
+		const setReduced = controllableReducedMotion(false);
+		// The spring never gets a frame: the lamp stays where it started.
+		vi.stubGlobal("requestAnimationFrame", () => 7);
+		const cancel = vi.fn();
+		vi.stubGlobal("cancelAnimationFrame", cancel);
+
+		const { container } = render(<Headed />);
+		await Promise.resolve();
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tb-progress")).toBe("0px");
+
+		act(() => setReduced(true));
+		expect(root.style.getPropertyValue("--tb-progress")).toBe("280px");
+		expect(cancel).toHaveBeenCalledWith(7);
+		expect(root.getAttribute("data-motion")).toBe("reduced");
+	});
+
+	it("converts viewport measurements to local px under a scaled ancestor", async () => {
+		// Same layout seen through `transform: scale(0.8)`: the content's layout
+		// height is 1250px, so every viewport delta is 1.25 local px.
+		layoutHeaded();
+		vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (
+			this: HTMLElement
+		) {
+			return this.classList.contains("tb-content") ? 1250 : 0;
+		});
+		controllableReducedMotion(true);
+
+		const { container } = render(<Headed />);
+		await Promise.resolve();
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tb-progress")).toBe("350px");
+		expect(root.style.getPropertyValue("--tb-height")).toBe("1250px");
+		const markers = container.querySelectorAll<HTMLElement>("[data-tracing-beam-marker]");
+		expect(markers[0]?.style.top).toBe("187.5px");
+		expect(markers[1]?.style.top).toBe("875px");
+		expect(markers[0]?.getAttribute("data-lit")).toBe("true");
+		expect(markers[1]?.getAttribute("data-lit")).toBe("false");
 	});
 });

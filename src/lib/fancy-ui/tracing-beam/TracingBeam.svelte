@@ -76,6 +76,17 @@
 		return Math.min(max, Math.max(min, value));
 	}
 
+	/**
+	 * Viewport px per local px. A scaled ancestor shrinks every rect we read but
+	 * not the offsets we write, so rect deltas are divided by this before use.
+	 * Sub-pixel rounding of `offsetHeight` is not a transform: it reads as 1.
+	 */
+	function localScale(el: HTMLElement, rect: DOMRect): number {
+		const layout = el.offsetHeight;
+		if (layout <= 0 || rect.height <= 0 || Math.abs(rect.height - layout) < 1) return 1;
+		return rect.height / layout;
+	}
+
 	/** One spring step; schedules the next until the lamp has settled on `target`. */
 	function step(time: number) {
 		const dt = Math.min(MAX_DT, (time - lastTime) / 1000 || 0);
@@ -96,8 +107,9 @@
 	function place() {
 		if (!contentRef) return;
 		const rect = contentRef.getBoundingClientRect();
+		const scale = localScale(contentRef, rect);
 		const line = window.innerHeight * clamp(readingLine, 0, 1);
-		target = clamp(line - rect.top, 0, Math.max(0, rect.height));
+		target = clamp((line - rect.top) / scale, 0, Math.max(0, rect.height / scale));
 		ready = true;
 		if (reduced.current) {
 			cancelAnimationFrame(rafId);
@@ -116,7 +128,8 @@
 	function measure() {
 		if (!contentRef) return;
 		const rect = contentRef.getBoundingClientRect();
-		height = rect.height;
+		const scale = localScale(contentRef, rect);
+		height = rect.height / scale;
 		if (markers) {
 			const headings = contentRef.querySelectorAll<HTMLElement>("h1, h2, h3, h4");
 			const anchors = headings.length ? [...headings] : [...contentRef.children];
@@ -124,7 +137,7 @@
 				.filter((el): el is HTMLElement => el instanceof HTMLElement)
 				.map((el) => {
 					const box = el.getBoundingClientRect();
-					return box.top + box.height / 2 - rect.top;
+					return (box.top + box.height / 2 - rect.top) / scale;
 				});
 		} else {
 			ticks = [];
@@ -153,10 +166,13 @@
 		};
 	});
 
-	// `markers` or `readingLine` changed after mount: re-read the layout.
+	// `markers`, `readingLine` or the motion preference changed after mount:
+	// re-read the layout (`place()` snaps the lamp and stops the spring when
+	// reduced motion turns on mid-flight).
 	$effect(() => {
 		void markers;
 		void readingLine;
+		void reduced.current;
 		if (contentRef) queueMicrotask(measure);
 	});
 </script>
@@ -221,6 +237,17 @@
 		--_tb-hair: rgba(255, 255, 255, 0.1);
 		--_tb-read: 38%;
 		--_tb-spill-a: 18%;
+	}
+
+	/* No `.dark` class but a dark OS: same tuning, unless a `.light` ancestor opts out. */
+	@media (prefers-color-scheme: dark) {
+		.tb-root:not(:global(.light, .light *)) {
+			--_tb-glow: color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool));
+			--_tb-hot: color-mix(in oklab, var(--_tb-glow) 55%, white);
+			--_tb-hair: rgba(255, 255, 255, 0.1);
+			--_tb-read: 38%;
+			--_tb-spill-a: 18%;
+		}
 	}
 
 	.tb-gutter {

@@ -33,6 +33,17 @@
 	--_tb-spill-a: 18%;
 }
 
+/* No `.dark` class but a dark OS: same tuning, unless a `.light` ancestor opts out. */
+@media (prefers-color-scheme: dark) {
+	.tb-root:not(.light, .light *) {
+		--_tb-glow: color-mix(in oklab, var(--_tb-accent) 40%, var(--_tb-cool));
+		--_tb-hot: color-mix(in oklab, var(--_tb-glow) 55%, white);
+		--_tb-hair: rgba(255, 255, 255, 0.1);
+		--_tb-read: 38%;
+		--_tb-spill-a: 18%;
+	}
+}
+
 .tb-root .tb-gutter {
 	position: relative;
 	pointer-events: none;

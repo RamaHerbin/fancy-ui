@@ -42,6 +42,17 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
 
+/**
+ * Viewport px per local px. A scaled ancestor shrinks every rect we read but
+ * not the offsets we write, so rect deltas are divided by this before use.
+ * Sub-pixel rounding of `offsetHeight` is not a transform: it reads as 1.
+ */
+function localScale(el: HTMLElement, rect: DOMRect): number {
+	const layout = el.offsetHeight;
+	if (layout <= 0 || rect.height <= 0 || Math.abs(rect.height - layout) < 1) return 1;
+	return rect.height / layout;
+}
+
 /** Markers the lamp has reached light up; the rest wait. */
 function isLit(offset: number, head: number): boolean {
 	return offset <= head + 0.5;
@@ -116,8 +127,9 @@ export function TracingBeam({
 		if (!content) return;
 		const s = stateRef.current;
 		const rect = content.getBoundingClientRect();
+		const scale = localScale(content, rect);
 		const line = window.innerHeight * clamp(readingLine, 0, 1);
-		s.target = clamp(line - rect.top, 0, Math.max(0, rect.height));
+		s.target = clamp((line - rect.top) / scale, 0, Math.max(0, rect.height / scale));
 		setReady(true);
 		if (reduced) {
 			cancelAnimationFrame(s.rafId);
@@ -156,7 +168,8 @@ export function TracingBeam({
 		if (!content) return;
 		const s = stateRef.current;
 		const rect = content.getBoundingClientRect();
-		setHeight(rect.height);
+		const scale = localScale(content, rect);
+		setHeight(rect.height / scale);
 		if (markers) {
 			const headings = content.querySelectorAll<HTMLElement>("h1, h2, h3, h4");
 			const anchors = headings.length ? [...headings] : [...content.children];
@@ -164,7 +177,7 @@ export function TracingBeam({
 				.filter((el): el is HTMLElement => el instanceof HTMLElement)
 				.map((el) => {
 					const box = el.getBoundingClientRect();
-					return box.top + box.height / 2 - rect.top;
+					return (box.top + box.height / 2 - rect.top) / scale;
 				});
 		} else {
 			s.ticks = [];
