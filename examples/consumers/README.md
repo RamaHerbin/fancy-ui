@@ -9,6 +9,8 @@ Seven minimal apps that install a fancy-ui package the way someone outside the r
 
 None of them is a workspace member (`pnpm-workspace.yaml` globs `examples/*`, not `examples/consumers/*`), and the repo never installs them.
 
+An eighth consumer, `sv-addon`, has no app of its own: it creates apps with the Svelte CLI and sets them up with the `fancy-ui-sv` add-on (see [The Svelte CLI add-on](#the-svelte-cli-add-on)).
+
 | App           | Package           | Framework                                            |
 | ------------- | ----------------- | ---------------------------------------------------- |
 | `sveltekit`   | `fancy-ui-svelte` | SvelteKit, server-rendered then hydrated             |
@@ -18,11 +20,12 @@ None of them is a workspace member (`pnpm-workspace.yaml` globs `examples/*`, no
 | `vue-vite`    | `fancy-ui-vue`    | Vue 3 + Vite                                         |
 | `nuxt`        | `fancy-ui-vue`    | Nuxt, server-rendered then hydrated                  |
 | `nuxt-module` | `fancy-ui-nuxt`   | Nuxt via the module, no imports, `nuxt typecheck`    |
+| `sv-addon`    | `fancy-ui-sv`     | SvelteKit apps made by `sv create` + `sv add`        |
 
 ## Running them
 
 ```bash
-pnpm consumers                   # all seven, one after the other, then a summary table
+pnpm consumers                   # all of them, one after the other, then a summary table
 pnpm consumers next nuxt         # only these
 pnpm consumers --shard 2/3       # every third app starting at the second (what a CI shard runs)
 pnpm consumers --shard 2/3 --list   # print that selection, run nothing
@@ -92,6 +95,19 @@ The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to 
 - **Events**: the consumer's `onclick` on `Button` and `onOpenChange` on `Dialog` run, with the `true` then `false` the component reports when opened with Enter and closed with Escape.
 - **Install snippets**: the stylesheet, first-component and usage snippets from `src/lib/docs/install-snippets.ts` live in each app (`src/app.css`, `src/snippets/`) and render in the page. The types snippet (`src/snippets/types.ts`) renders nothing, so the `sveltekit` app type-checks it with strict `svelte-check` before building: a removed `BorderBeamProps` export or a wrong prop name fails the run. `src/lib/docs/consumer-snippets.test.ts` fails when they drift from the docs.
 - **Cameleon** (`svelte-vite` only): `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin builds and mounts in a plain Vite app, so a build failure is a defect, not a known gap.
+
+## The Svelte CLI add-on
+
+`scripts/consumers/sv-addon.sh` tests `sv-addon/` (the `fancy-ui-sv` package) with the real CLI, outside the repo. `examples/consumers/sv-addon/` holds only its Playwright config and spec: the apps are generated.
+
+1. Packs `fancy-ui-svelte` (shared with the other Svelte consumers) and the add-on, unpacks the add-on (`sv add file:` takes a folder) next to a private `npm install sv@<version>`, the version pinned in `sv-addon/package.json`. The repo's own `sv` is never used: sv links a `file:` add-on into its own `node_modules`, which would be the pnpm store.
+2. Creates two SvelteKit apps with `sv create --template minimal --types ts`, each in a fresh git repository, and runs `sv add file:<add-on>="demo:yes"` with stdin closed, every option given and an explicit `--cwd`:
+   - `notw`, created with `--no-add-ons`: no Tailwind, so sv runs its official `tailwindcss` add-on first (passed `tailwindcss="plugins:none"` only to avoid its prompt);
+   - `tw`, created with `--add prettier tailwindcss`: the stylesheet is rewritten by hand first (comment, double quotes, a `@custom-variant dark`) and must come out as that file plus one line; this `sv add` installs with npm, so sv formats the result with the project's prettier.
+3. Commits, runs the same `sv add` again and fails unless `git status --porcelain` is empty and a hash of every file is unchanged.
+4. Then points `fancy-ui-svelte` at the local tarball (`consumer_install`: the add-on declares the registry range, the test wants the local build), runs `npm run check` (svelte-check), `npm run build`, and the smoke on `/demo/fancy-ui`: the server HTML holds the components, a click reaches the page's handler once hydrated, `bg-primary` and the tokens resolve, `BorderBeam` animates, the demo menu links the route, and the console stays clean.
+
+The registry path (`npx sv add fancy-ui-sv`, which downloads from npm and checks sv's block list) can only be tested once the package is published.
 
 ## Adding a consumer
 

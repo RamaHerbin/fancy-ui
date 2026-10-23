@@ -91,8 +91,11 @@ describe("llms-full.txt", () => {
 		expect(full).not.toMatch(/\$lib\/fancy-ui/);
 	});
 
-	it("stays well within a model's context (< 80k tokens at ~4 bytes/token)", () => {
-		expect(new TextEncoder().encode(full).length / 4).toBeLessThan(80_000);
+	// Ceiling, not target: 63k tokens at 0.14, 80.7k at 154 components (2026-10-23);
+	// move it again when the file approaches it, trim the per-component pages if
+	// it ever nears half of a 200k context.
+	it("stays well within a model's context (< 100k tokens at ~4 bytes/token)", () => {
+		expect(new TextEncoder().encode(full).length / 4).toBeLessThan(100_000);
 	});
 });
 

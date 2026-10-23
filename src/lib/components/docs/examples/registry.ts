@@ -314,6 +314,21 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 				"A vector trace of a sunset photo that sets into dusk. With the picture source on, the tiles decode the scene being left.",
 		},
 	],
+	"pixel-scene": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Scenes",
+			title: "Scenes",
+			description: "Alpine, meadow, sea and mountains, by day and by night.",
+		},
+		{
+			name: "HoursOfLowLight",
+			title: "Hours of low light",
+			description:
+				"The scene owns its surface and ink, so a click carries the whole card on the wave. Opens on the sea at night; switch the HDR look to compare.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"mosaic-glow": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{
@@ -652,6 +667,22 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"image-generation": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"agent-plan": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"subagent-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"sun-switch": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Contained",
+			title: "Contained",
+			description:
+				'The wave stays inside one card with `mode="contained"`; the page theme is untouched.',
+		},
+		{
+			name: "CustomTrigger",
+			title: "Custom Trigger",
+			description:
+				"Any button can start the wave with `pixelWave()`, from the pointer, with its own palette.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"approval-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],
@@ -1229,6 +1260,24 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Pinned to the top of a scrolling container with a blurred background.",
 		},
 	],
+	"story-thread": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Scroll inside the box: the sections pan sideways and the thread draws itself from node to node.",
+		},
+		{
+			name: "Branches",
+			title: "Branches",
+			description: "Segments that leave the same node fork, advance together and meet again.",
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description: "The same thread running down a plain stack, dashed.",
+		},
+	],
 	"tick-nav": [
 		{
 			name: "BasicUsage",
@@ -1541,6 +1590,27 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Presets",
 			description: "Switch between the entrance/exit looks.",
 		},
+	],
+	"magnetic-field": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"A product card whose pieces lean and drift toward a magnet. Drag the puck close, or bring a mouse near the card.",
+		},
+		{
+			name: "PointerField",
+			title: "Pointer Field",
+			description:
+				"A cloud of tags that follows the pointer, and a status line that shows when the field is awake.",
+		},
+		{
+			name: "Repel",
+			title: "Repel",
+			description:
+				"`polarity={-1}` with a sticky puck: drag it through the grid and the tiles part around it. Works on touch.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	magnetic: [
 		{

@@ -1,0 +1,59 @@
+{
+	"name": "fancy-ui-sv",
+	"private": true,
+	"version": "0.17.0",
+	"description": "Svelte CLI add-on for fancy-ui-svelte: installs the package and wires its Tailwind CSS v4 entry with `npx sv add fancy-ui-sv`.",
+	"license": "MIT",
+	"author": "Rama Herbin",
+	"funding": "https://github.com/sponsors/RamaHerbin",
+	"type": "module",
+	"homepage": "https://fancy-ui.rama.app/docs/getting-started/installation",
+	"bugs": {
+		"url": "https://github.com/RamaHerbin/fancy-ui/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RamaHerbin/fancy-ui.git",
+		"directory": "sv-addon"
+	},
+	"keywords": [
+		"sv-add",
+		"sv",
+		"svelte",
+		"sveltekit",
+		"fancy-ui",
+		"tailwindcss"
+	],
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"default": "./dist/index.mjs"
+		}
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "vite build",
+		"check": "tsc --noEmit",
+		"test": "vitest run",
+		"test:sdk": "vitest run --config vitest.sdk.config.ts",
+		"prepublishOnly": "pnpm run build"
+	},
+	"peerDependencies": {
+		"sv": "^1.1.1"
+	},
+	"devDependencies": {
+		"@sveltejs/sv-utils": "1.0.2",
+		"@types/node": "^25.2.3",
+		"sv": "1.1.1",
+		"typescript": "^5.9.3",
+		"vite": "^7.2.6",
+		"vitest": "^4.1.8"
+	},
+	"engines": {
+		"node": ">=20.19.0"
+	}
+}

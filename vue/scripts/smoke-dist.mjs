@@ -39,15 +39,17 @@ const root = new URL("../", import.meta.url);
 const dist = new URL("dist/", root);
 
 /**
- * Measured on this package's own build (2026-10-02): 531 kB of JS and
- * 85.7 kB of CSS gzipped for the full ported component set — the CSS grew by
- * a third when twenty-one components took on their redesigned styles.
+ * Measured on this package's own build (2026-10-23): 620 kB of JS and
+ * 89 kB of CSS gzipped for 154 components — the JS crossed the previous
+ * 600 kB ceiling when three canvas components with their own engines
+ * (sun-switch, story-thread, pixel-scene, 46 kB together) landed the same day;
+ * on 2026-10-02 it was 531 kB and 85.7 kB.
  * Ceilings sit ~15% above that measurement so they catch a regression (e.g.
  * `three` or `gsap` losing its `external` entry) rather than policing normal
  * growth; re-measure and move both numbers again the next time the build's
  * actual size approaches either ceiling.
  */
-const BUDGET_GZIP_JS = 600 * 1024;
+const BUDGET_GZIP_JS = 720 * 1024;
 const BUDGET_GZIP_CSS = 100 * 1024;
 
 /**

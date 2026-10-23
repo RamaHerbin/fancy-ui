@@ -12,6 +12,7 @@ import {
 	SVELTE_REGISTRY_ITEM_SCHEMA_URL,
 	SVELTE_REGISTRY_SCHEMA_URL,
 } from "../constants.js";
+import { SVELTE_EXCLUSIONS, excludedBy } from "../exclusions.js";
 import { rewriteSpecifiers, specifiers } from "../graph.js";
 import { TYPE_PACKAGES } from "../stack.js";
 import type { RegistryStack, SharedItem } from "../stack.js";
@@ -66,16 +67,9 @@ export function svelteGroupOf(relPath: string): string | null {
 	return svelteComponentOf(relPath);
 }
 
-/** Tests, test components, harnesses, the Web Audio mock, READMEs and the template. */
+/** Tests, test components, harnesses, the Web Audio mock, READMEs and the template (`../exclusions.ts`). */
 export function svelteIsExcluded(relPath: string): boolean {
-	const file = relPath.split("/").pop() ?? relPath;
-	if (/(^|\/)_template\//.test(relPath)) return true;
-	if (!/\.(svelte|ts)$/.test(file)) return true;
-	if (/\.test\.(ts|svelte)$/.test(file)) return true;
-	if (/Harness/.test(file)) return true;
-	if (file === "web-audio-mock.ts") return true;
-	if (/^README/i.test(file)) return true;
-	return false;
+	return excludedBy(SVELTE_EXCLUSIONS, relPath);
 }
 
 /** `$lib/utils.js` → the utils placeholder; any other `$lib/` import cannot ship. */
@@ -99,6 +93,7 @@ export const svelteStack: RegistryStack = Object.freeze<RegistryStack>({
 	schemaUrl: SVELTE_REGISTRY_SCHEMA_URL,
 	itemSchemaUrl: SVELTE_REGISTRY_ITEM_SCHEMA_URL,
 	registryName: REGISTRY_NAME,
+	alwaysListRegistryDependencies: true,
 	isKeptKind: (relPath: string) => /\.(svelte|ts)$/.test(relPath),
 	isCode: (relPath: string) => /\.(svelte|ts)$/.test(relPath),
 	isExcluded: svelteIsExcluded,

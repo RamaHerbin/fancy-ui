@@ -33,6 +33,11 @@ export interface RegistryStack {
 	schemaUrl: string;
 	itemSchemaUrl: string;
 	registryName: string;
+	/**
+	 * Write `registryDependencies` even when empty. The Svelte CLI's registry
+	 * schema requires the key on every index entry.
+	 */
+	alwaysListRegistryDependencies?: boolean;
 	/** File kinds that ship at all. */
 	isKeptKind(relPath: string): boolean;
 	/** Kinds whose text is scanned for imports (code, not css). */
