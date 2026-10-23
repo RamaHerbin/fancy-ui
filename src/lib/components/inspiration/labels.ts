@@ -77,8 +77,16 @@ export function cardFrameworks(
 	return [...out];
 }
 
-/** Up to two tags for a card: the first style, then the first interaction. */
+/**
+ * Up to two tags for a card: the first style, then the first interaction.
+ * `hdr` is a capability rather than a look, so when an entry has it, it
+ * leads and the first other style follows.
+ */
 export function cardTags(entry: Reference): string[] {
-	const tags: (string | undefined)[] = [entry.styleTags[0], entry.interactionTags[0]];
+	const hdr = entry.styleTags.includes("hdr");
+	const style = entry.styleTags.find((tag) => tag !== "hdr");
+	const tags: (string | undefined)[] = hdr
+		? ["hdr", style ?? entry.interactionTags[0]]
+		: [style, entry.interactionTags[0]];
 	return tags.filter((tag): tag is string => Boolean(tag));
 }
