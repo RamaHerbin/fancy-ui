@@ -530,12 +530,12 @@ export function attachHdrLight(options: AttachHdrLightOptions): () => void {
 	// and releases its GPU resources.
 	const range = typeof window.matchMedia === "function" ? window.matchMedia(HDR_QUERY) : null;
 	const onRange = (e: MediaQueryListEvent): void => (e.matches ? start() : halt());
-	range?.addEventListener("change", onRange);
+	range?.addEventListener?.("change", onRange);
 	if (range?.matches) start();
 
 	return () => {
 		detached = true;
-		range?.removeEventListener("change", onRange);
+		range?.removeEventListener?.("change", onRange);
 		halt();
 	};
 }

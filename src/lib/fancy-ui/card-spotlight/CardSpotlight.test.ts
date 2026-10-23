@@ -28,7 +28,10 @@ function stubSwitchableDisplay() {
 }
 
 describe("CardSpotlight", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	it("renders the wrapper with the base card classes", () => {
 		const { container } = render(CardSpotlight);
@@ -97,7 +100,5 @@ describe("CardSpotlight", () => {
 		setHdr(false);
 		flushSync();
 		expect(container.querySelector("canvas")).toBeNull();
-		cleanup();
-		vi.unstubAllGlobals();
 	});
 });

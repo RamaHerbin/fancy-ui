@@ -24,7 +24,10 @@ function stubSwitchableDisplay() {
 }
 
 describe("CardSpotlight", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	it("renders the wrapper with the base card classes", () => {
 		const { container } = render(CardSpotlight);
@@ -97,7 +100,6 @@ describe("CardSpotlight", () => {
 		const off = render(CardSpotlight);
 		await nextTick();
 		expect(off.container.querySelector("canvas")).toBeNull();
-		vi.unstubAllGlobals();
 	});
 	it("adds and drops the canvas as the window moves between SDR and HDR displays", async () => {
 		const setHdr = stubSwitchableDisplay();
@@ -110,7 +112,5 @@ describe("CardSpotlight", () => {
 		setHdr(false);
 		await nextTick();
 		expect(container.querySelector("canvas")).toBeNull();
-		cleanup();
-		vi.unstubAllGlobals();
 	});
 });
