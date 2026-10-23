@@ -27,11 +27,13 @@ An eighth consumer, `sv-addon`, has no app of its own: it creates apps with the 
 ```bash
 pnpm consumers                   # all of them, one after the other, then a summary table
 pnpm consumers next nuxt         # only these
+pnpm consumers --shard 2/3       # every third app starting at the second (what a CI shard runs)
+pnpm consumers --shard 2/3 --list   # print that selection, run nothing
 scripts/consumers/next.sh        # one app, directly
 KEEP_CONSUMER=1 scripts/consumers/next.sh   # keep the scratch copy for debugging
 ```
 
-`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it in the **Consumers** job, after the package jobs.
+`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. It builds and packs each package once per run and shares the tarball between the apps that use it. CI runs it as three **Consumers** shards on three runners; `--shard` deals the sorted app list round-robin, so a new `<name>.sh` here joins a shard with nothing to add in `ci.yml`.
 
 Prerequisites: the repo installed (`pnpm install`), Playwright's Chromium (`pnpm exec playwright install chromium`), network access for `npm install`, and `rsync`.
 
