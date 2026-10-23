@@ -23,7 +23,7 @@
 	<div bind:this={to} class={node}><Sparkles class="size-5" strokeWidth={1.5} /></div>
 	{#if container && from && to}
 		<AnimatedBeam
-			hdr={values.hdr !== false}
+			hdr={values.hdr === true}
 			containerRef={container}
 			fromRef={from}
 			toRef={to}

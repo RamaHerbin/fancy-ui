@@ -27,7 +27,7 @@
 		/** Content */
 		children?: Snippet;
 		/**
-		 * On a display that reports HDR, light the beams' heads above SDR white
+		 * Beta, off by default. On a display that reports HDR, light the beams' heads above SDR white
 		 * in a WebGPU layer with extended tone mapping, following the CSS travel
 		 * and the ignite flicker exactly. Elsewhere nothing changes.
 		 */
@@ -85,7 +85,7 @@
 		duration = 6,
 		class: className,
 		children,
-		hdr = true,
+		hdr = false,
 		style,
 		...restProps
 	}: NeonBorderProps = $props();

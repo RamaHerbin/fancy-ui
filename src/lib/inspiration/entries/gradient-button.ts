@@ -36,9 +36,9 @@ const entry: FancyUIReference = {
 		knobs: [
 			{ key: "duration", type: "range", label: "Lap (ms)", min: 1000, max: 6000, step: 250 },
 			{ key: "blur", type: "range", label: "Glow", min: 0, max: 12, step: 1 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { duration: 3000, blur: 4, hdr: true },
+		defaults: { duration: 3000, blur: 4, hdr: false },
 	},
 	capture: { hover: [0.52, 0.5], delay: 1400 },
 };

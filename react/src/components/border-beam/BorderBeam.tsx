@@ -52,7 +52,7 @@ export interface BorderBeamProps {
 	/** Travel counter-clockwise instead of clockwise */
 	reverse?: boolean;
 	/**
-	 * On a display that reports HDR, push the comet's white-hot head above
+	 * Beta, off by default. On a display that reports HDR, push the comet's white-hot head above
 	 * SDR white in a WebGPU layer with extended tone mapping, following the
 	 * CSS ride exactly. Elsewhere nothing changes.
 	 */
@@ -135,7 +135,7 @@ export function BorderBeam({
 	tail = 0.25,
 	glow = 0.6,
 	reverse = false,
-	hdr = true,
+	hdr = false,
 }: BorderBeamProps) {
 	const [root, rootRef] = useElementRef<HTMLDivElement>();
 	const [spark, sparkRef] = useElementRef<HTMLSpanElement>();

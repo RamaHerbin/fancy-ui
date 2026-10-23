@@ -35,14 +35,21 @@ describe("Meteors HDR layer", () => {
 		stubHdrCapable();
 		const { container } = render(
 			<div>
-				<Meteors />
+				<Meteors hdr />
 			</div>
 		);
 		expect(container.querySelector("canvas")).not.toBeNull();
 	});
 
-	it("never renders a canvas with hdr={false}", () => {
+	it("keeps HDR off by default, and never renders a canvas with hdr={false}", () => {
 		stubHdrCapable();
+		const byDefault = render(
+			<div>
+				<Meteors />
+			</div>
+		);
+		expect(byDefault.container.querySelector("canvas")).toBeNull();
+		cleanup();
 		const { container } = render(
 			<div>
 				<Meteors hdr={false} />

@@ -41,9 +41,9 @@ const entry: FancyUIReference = {
 					{ value: "none", label: "none" },
 				],
 			},
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { color1: "#0496ff", color2: "#ff0a54", animationType: "half", hdr: true },
+		defaults: { color1: "#0496ff", color2: "#ff0a54", animationType: "half", hdr: false },
 	},
 };
 

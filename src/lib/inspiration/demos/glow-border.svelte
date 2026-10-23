@@ -12,7 +12,7 @@
 		<p class="mt-2 text-2xl font-semibold tracking-tight">$24</p>
 		<p class="text-muted-foreground mt-1 text-xs">Every component, every port.</p>
 		<GlowBorder
-			hdr={values.hdr !== false}
+			hdr={values.hdr === true}
 			borderRadius={14}
 			preset={values.preset as GlowBorderPreset}
 			strength={values.strength as number}

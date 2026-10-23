@@ -38,6 +38,6 @@ Give the content its own background: the tube is the 1.5 px padding ring around 
 - On first paint the light layer flickers once (`neon-ignite`, 0.9 s), then the glow breathes between two opacities (`neon-hum`, 2.8 s). Light pages get a fainter glow; `.dark` switches to the full one.
 - `prefers-reduced-motion`: no travel, flicker or hum — the beams rest where they are.
 
-## HDR
+## HDR (beta)
 
-With `hdr` (on by default) the shared HDR light layer (`_internals/hdr/`) reads the live, animated `--neon-angle` and the tube's live opacity (the ignite flicker), and burns each beam's head above SDR white as it travels. The static `animationType="none"` tube gets no HDR light. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+With `hdr` (beta, off by default — pass `hdr` to opt in), the shared HDR light layer (`_internals/hdr/`) reads the live, animated `--neon-angle` and the tube's live opacity (the ignite flicker), and burns each beam's head above SDR white as it travels. The static `animationType="none"` tube gets no HDR light. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

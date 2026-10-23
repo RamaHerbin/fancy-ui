@@ -157,9 +157,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, burns the packet's head and the arrival bloom above SDR white through a WebGPU layer with extended tone mapping, drawn into containerRef; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, burns the packet's head and the arrival bloom above SDR white through a WebGPU layer with extended tone mapping, drawn into containerRef; elsewhere nothing changes",
 			},
 			{
 				name: "containerRef",
@@ -438,9 +438,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, burns the comet's head above SDR white through a WebGPU layer with extended tone mapping, following the CSS ride; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, burns the comet's head above SDR white through a WebGPU layer with extended tone mapping, following the CSS ride; elsewhere nothing changes",
 			},
 			{
 				name: "size",
@@ -1481,9 +1481,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, flashes the glint above SDR white through a WebGPU layer with extended tone mapping, riding the CSS glint; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, flashes the glint above SDR white through a WebGPU layer with extended tone mapping, riding the CSS glint; elsewhere nothing changes",
 			},
 			{
 				name: "preset",
@@ -1542,9 +1542,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, lights the spinning arc above SDR white through a WebGPU layer with extended tone mapping, reading the live --gb-angle so it turns with the CSS; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, lights the spinning arc above SDR white through a WebGPU layer with extended tone mapping, reading the live --gb-angle so it turns with the CSS; elsewhere nothing changes",
 			},
 			{
 				name: "colors",
@@ -1728,9 +1728,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, burns the heads above SDR white through a WebGPU layer with extended tone mapping, drawn into the meteors' container; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, burns the heads above SDR white through a WebGPU layer with extended tone mapping, drawn into the meteors' container; elsewhere nothing changes",
 			},
 			{ name: "count", type: "number", default: "20", description: "Number of meteors to render" },
 			{
@@ -2074,9 +2074,9 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "hdr",
 				type: "boolean",
-				default: "true",
+				default: "false",
 				description:
-					"On a display that reports HDR, burns the beams' heads above SDR white through a WebGPU layer with extended tone mapping, following the CSS travel and ignite; elsewhere nothing changes",
+					"Beta, off by default. On a display that reports HDR, burns the beams' heads above SDR white through a WebGPU layer with extended tone mapping, following the CSS travel and ignite; elsewhere nothing changes",
 			},
 			{ name: "color1", type: "string", default: '"#0496ff"', description: "First neon color" },
 			{ name: "color2", type: "string", default: '"#ff0a54"', description: "Second neon color" },

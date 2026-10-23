@@ -63,6 +63,6 @@ With `prefers-reduced-motion: reduce` nothing travels and nothing fades in: the 
 
 The root and every layer are decorative: the root carries `aria-hidden="true"` and `pointer-events: none`.
 
-## HDR
+## HDR (beta)
 
-With `hdr` (on by default) the shared HDR light layer (`_internals/hdr/`) follows the `.bb-spark` rider — wherever the CSS `offset-path` has put it this frame, read from its live box — and burns the head above SDR white, with a short trail built from its recent positions. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+With `hdr` (beta, off by default — pass `hdr` to opt in), the shared HDR light layer (`_internals/hdr/`) follows the `.bb-spark` rider — wherever the CSS `offset-path` has put it this frame, read from its live box — and burns the head above SDR white, with a short trail built from its recent positions. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

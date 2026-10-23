@@ -32,9 +32,9 @@ const entry: FancyUIReference = {
 			{ key: "count", type: "range", label: "Count", min: 5, max: 40, step: 1 },
 			{ key: "angle", type: "range", label: "Angle", min: 180, max: 270, step: 5 },
 			{ key: "speed", type: "range", label: "Speed", min: 0.5, max: 2, step: 0.1 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { count: 20, angle: 215, speed: 1, hdr: true },
+		defaults: { count: 20, angle: 215, speed: 1, hdr: false },
 	},
 };
 

@@ -23,7 +23,7 @@ export interface MeteorsProps {
 	/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 	seed?: number;
 	/**
-	 * On a display that reports HDR, make the heads burn above SDR white in a
+	 * Beta, off by default. On a display that reports HDR, make the heads burn above SDR white in a
 	 * WebGPU layer with extended tone mapping, following the CSS fall
 	 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
 	 */
@@ -95,7 +95,7 @@ const {
 	speed = 1,
 	color,
 	seed = 1,
-	hdr = true,
+	hdr = false,
 } = defineProps<MeteorsProps>();
 
 /** The overlay exists only where WebGPU and an HDR display do: never on the server. */

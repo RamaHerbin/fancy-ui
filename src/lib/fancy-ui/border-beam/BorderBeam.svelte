@@ -44,7 +44,7 @@
 		/** Travel counter-clockwise instead of clockwise */
 		reverse?: boolean;
 		/**
-		 * On a display that reports HDR, push the comet's white-hot head above
+		 * Beta, off by default. On a display that reports HDR, push the comet's white-hot head above
 		 * SDR white in a WebGPU layer with extended tone mapping, following the
 		 * CSS ride exactly. Elsewhere nothing changes.
 		 */
@@ -119,7 +119,7 @@
 		tail = 0.25,
 		glow = 0.6,
 		reverse = false,
-		hdr = true,
+		hdr = false,
 	}: BorderBeamProps = $props();
 
 	let root: HTMLDivElement | undefined = $state();

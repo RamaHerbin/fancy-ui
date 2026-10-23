@@ -10,7 +10,7 @@
 	class="bg-background relative flex h-full w-full items-center justify-center overflow-hidden p-6"
 >
 	<Meteors
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 		count={values.count as number}
 		angle={values.angle as number}
 		speed={values.speed as number}

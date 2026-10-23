@@ -20,7 +20,7 @@
 		/** Intensity of the glint and its glow, 0–1 */
 		strength?: number;
 		/**
-		 * On a display that reports HDR, flash the glint above SDR white in a
+		 * Beta, off by default. On a display that reports HDR, flash the glint above SDR white in a
 		 * WebGPU layer with extended tone mapping, riding the CSS glint exactly.
 		 * Elsewhere nothing changes.
 		 */
@@ -138,7 +138,7 @@
 		duration = 10,
 		preset = "chromatic",
 		strength = 0.8,
-		hdr = true,
+		hdr = false,
 	}: GlowBorderProps = $props();
 
 	let root: HTMLDivElement | undefined = $state();

@@ -8,7 +8,7 @@
 
 <div class="relative flex h-full w-full items-center justify-center p-6">
 	<NeonBorder
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 		color1={values.color1 as string}
 		color2={values.color2 as string}
 		animationType={values.animationType as "none" | "half" | "full"}

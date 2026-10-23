@@ -45,6 +45,6 @@ With `prefers-reduced-motion: reduce` there are no packets and no bloom. The fib
 - Give the connected elements a higher `z-index` than the beam (for example `relative z-10`) so the fibre ends and the bloom sit behind them.
 - Horizontal, vertical and diagonal links all work: the packet follows the path itself.
 
-## HDR
+## HDR (beta)
 
-With `hdr` (on by default) a canvas is added to `containerRef` and the shared HDR light layer (`_internals/hdr/`) burns the packet's head above SDR white, read from the core layer's live `stroke-dashoffset` (scaled by `pathLength`) and placed with `getPointAtLength`, plus the arrival bloom at the node. No HDR layer under reduced motion. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+With `hdr` (beta, off by default — pass `hdr` to opt in), a canvas is added to `containerRef` and the shared HDR light layer (`_internals/hdr/`) burns the packet's head above SDR white, read from the core layer's live `stroke-dashoffset` (scaled by `pathLength`) and placed with `getPointAtLength`, plus the arrival bloom at the node. No HDR layer under reduced motion. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

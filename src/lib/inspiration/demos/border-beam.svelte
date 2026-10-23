@@ -17,7 +17,7 @@
 			<div class="h-full w-2/3 rounded-full bg-white/30"></div>
 		</div>
 		<BorderBeam
-			hdr={values.hdr !== false}
+			hdr={values.hdr === true}
 			colorFrom={values.colorFrom as string}
 			colorTo={values.colorTo as string}
 			tail={values.tail as number}

@@ -29,12 +29,15 @@ describe("GradientButton HDR layer", () => {
 
 	it("renders the overlay canvas on a WebGPU, HDR-capable device", () => {
 		stubHdrCapable();
-		const { container } = render(<GradientButton />);
+		const { container } = render(<GradientButton hdr />);
 		expect(container.querySelector("canvas")).not.toBeNull();
 	});
 
-	it("never renders a canvas with hdr={false}", () => {
+	it("keeps HDR off by default, and never renders a canvas with hdr={false}", () => {
 		stubHdrCapable();
+		const byDefault = render(<GradientButton />);
+		expect(byDefault.container.querySelector("canvas")).toBeNull();
+		cleanup();
 		const { container } = render(<GradientButton hdr={false} />);
 		expect(container.querySelector("canvas")).toBeNull();
 	});

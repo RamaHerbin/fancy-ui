@@ -24,7 +24,7 @@ export interface NeonBorderProps {
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
 	/**
-	 * On a display that reports HDR, light the beams' heads above SDR white
+	 * Beta, off by default. On a display that reports HDR, light the beams' heads above SDR white
 	 * in a WebGPU layer with extended tone mapping, following the CSS travel
 	 * and the ignite flicker exactly. Elsewhere nothing changes.
 	 */
@@ -81,7 +81,7 @@ const {
 	animationType = "half",
 	duration = 6,
 	class: className,
-	hdr = true,
+	hdr = false,
 } = defineProps<NeonBorderProps>();
 
 const attrs = useAttrs();

@@ -53,7 +53,7 @@ export interface AnimatedBeamProps {
 	/** Seed for the default `duration`, so server and browser agree. */
 	seed?: number;
 	/**
-	 * On a display that reports HDR, make the packet's head and the arrival
+	 * Beta, off by default. On a display that reports HDR, make the packet's head and the arrival
 	 * bloom burn above SDR white in a WebGPU layer with extended tone mapping,
 	 * following the CSS dash animation exactly. Draws into `containerRef`.
 	 * Elsewhere nothing changes.
@@ -203,7 +203,7 @@ export function AnimatedBeam({
 	tail = 0.35,
 	glow = 0.6,
 	seed = 1,
-	hdr = true,
+	hdr = false,
 }: AnimatedBeamProps) {
 	// Stable across server render and hydration — the counterpart of `$props.id()`.
 	const uid = useFancyId("beam");

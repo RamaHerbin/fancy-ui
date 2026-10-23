@@ -120,7 +120,7 @@
 		tail = 0.35,
 		glow = 0.6,
 		seed = 1,
-		hdr = true,
+		hdr = false,
 	}: AnimatedBeamProps = $props();
 
 	// Stable across server render and hydration — no Math.random() anywhere.

@@ -8,7 +8,7 @@
 
 <div class="relative flex h-full w-full items-center justify-center p-6">
 	<GradientButton
-		hdr={values.hdr !== false}
+		hdr={values.hdr === true}
 		duration={values.duration as number}
 		blur={values.blur as number}
 		class="text-sm font-medium"

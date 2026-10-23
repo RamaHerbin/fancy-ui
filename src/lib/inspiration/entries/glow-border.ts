@@ -46,9 +46,9 @@ const entry: FancyUIReference = {
 				],
 			},
 			{ key: "strength", type: "range", label: "Strength", min: 0, max: 1, step: 0.05 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { preset: "chromatic", strength: 0.8, hdr: true },
+		defaults: { preset: "chromatic", strength: 0.8, hdr: false },
 	},
 };
 

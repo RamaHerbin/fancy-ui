@@ -33,7 +33,7 @@ type BaseProps = {
 	 */
 	sound?: boolean;
 	/**
-	 * On a display that reports HDR, add the beam's light above SDR white on
+	 * Beta, off by default. On a display that reports HDR, add the beam's light above SDR white on
 	 * the border, in a WebGPU layer with extended tone mapping, following the
 	 * CSS spin exactly. Elsewhere nothing changes.
 	 */
@@ -76,7 +76,7 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 			children,
 			onClick,
 			sound = false,
-			hdr = true,
+			hdr = false,
 			...restProps
 		},
 		ref

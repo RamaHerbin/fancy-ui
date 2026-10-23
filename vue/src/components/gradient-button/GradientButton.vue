@@ -28,7 +28,7 @@ export interface GradientButtonProps {
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/**
-	 * On a display that reports HDR, add the beam's light above SDR white on
+	 * Beta, off by default. On a display that reports HDR, add the beam's light above SDR white on
 	 * the border, in a WebGPU layer with extended tone mapping, following the
 	 * CSS spin exactly. Elsewhere nothing changes.
 	 */
@@ -77,7 +77,7 @@ const {
 	onclick,
 	sound = false,
 	disabled = false,
-	hdr = true,
+	hdr = false,
 } = defineProps<GradientButtonProps>();
 const button = useTemplateRef<HTMLButtonElement>("button");
 

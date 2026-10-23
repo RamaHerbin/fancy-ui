@@ -36,9 +36,9 @@ const entry: FancyUIReference = {
 		knobs: [
 			{ key: "pulses", type: "range", label: "Packets", min: 1, max: 6, step: 1 },
 			{ key: "curvature", type: "range", label: "Curve", min: -120, max: 120, step: 10 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { pulses: 2, curvature: -60, hdr: true },
+		defaults: { pulses: 2, curvature: -60, hdr: false },
 	},
 	capture: { delay: 2400 },
 };

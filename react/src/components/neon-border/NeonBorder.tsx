@@ -32,7 +32,7 @@ export interface NeonBorderProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 	/** Content */
 	children?: ReactNode;
 	/**
-	 * On a display that reports HDR, light the beams' heads above SDR white
+	 * Beta, off by default. On a display that reports HDR, light the beams' heads above SDR white
 	 * in a WebGPU layer with extended tone mapping, following the CSS travel
 	 * and the ignite flicker exactly. Elsewhere nothing changes.
 	 */
@@ -92,7 +92,7 @@ export function NeonBorder({
 	duration = 6,
 	className,
 	children,
-	hdr = true,
+	hdr = false,
 	style,
 	...rest
 }: NeonBorderProps) {

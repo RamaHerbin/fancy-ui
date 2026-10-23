@@ -27,7 +27,7 @@ export interface MeteorsProps {
 	/** Seed for the field — same seed, same shower (and the same markup on server and client) */
 	seed?: number;
 	/**
-	 * On a display that reports HDR, make the heads burn above SDR white in a
+	 * Beta, off by default. On a display that reports HDR, make the heads burn above SDR white in a
 	 * WebGPU layer with extended tone mapping, following the CSS fall
 	 * exactly. Draws into the meteors' container. Elsewhere nothing changes.
 	 */
@@ -109,7 +109,7 @@ export function Meteors({
 	speed = 1,
 	color,
 	seed = 1,
-	hdr = true,
+	hdr = false,
 }: MeteorsProps) {
 	const [hdrCanvas, hdrCanvasRef] = useElementRef<HTMLCanvasElement>();
 	// The canvas exists only where the light can run; SSR and SDR devices render none.

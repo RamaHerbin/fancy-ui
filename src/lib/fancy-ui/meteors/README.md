@@ -32,6 +32,6 @@ The meteors are absolutely positioned: give the parent `position: relative`, a s
 - The head is the span (a `box-shadow` glow); the tail is its `::before`, a gradient that fades out behind the head. One `meteor-fall` keyframe rotates to `angle` and translates along it, fading in over the first 8%; flaring meteors use `meteor-fall-flare`, which swells the glow at ~74%.
 - `prefers-reduced-motion`: no animation — each meteor is drawn once, still, part-way along its path.
 
-## HDR
+## HDR (beta)
 
-With `hdr` (on by default) a canvas is added to the meteors' container and the shared HDR light layer (`_internals/hdr/`) burns each visible head above SDR white, read from the head's live box and opacity. The CSS tail carries the streak. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+With `hdr` (beta, off by default — pass `hdr` to opt in), a canvas is added to the meteors' container and the shared HDR light layer (`_internals/hdr/`) burns each visible head above SDR white, read from the head's live box and opacity. The CSS tail carries the streak. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

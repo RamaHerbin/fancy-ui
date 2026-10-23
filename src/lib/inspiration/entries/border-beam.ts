@@ -38,9 +38,9 @@ const entry: FancyUIReference = {
 			{ key: "colorFrom", type: "color", label: "From" },
 			{ key: "colorTo", type: "color", label: "To" },
 			{ key: "tail", type: "range", label: "Tail", min: 0.05, max: 0.8, step: 0.05 },
-			{ key: "hdr", type: "boolean", label: "HDR" },
+			{ key: "hdr", type: "boolean", label: "HDR (beta)" },
 		],
-		defaults: { colorFrom: "#8ec5ff", colorTo: "#c084fc", tail: 0.25, hdr: true },
+		defaults: { colorFrom: "#8ec5ff", colorTo: "#c084fc", tail: 0.25, hdr: false },
 	},
 	capture: { delay: 2600 },
 };

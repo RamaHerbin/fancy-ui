@@ -45,6 +45,6 @@ The parent needs `position: relative` (the ring is an `absolute inset-0` overlay
 - **Themes**: every palette has a dark and a light version, both passed as CSS variables; `.dark` on an ancestor switches to the bright one. Light pages get deeper tones and a fainter halo, so the metal still reads on white.
 - `prefers-reduced-motion`: nothing turns; the metal and the glint rest at fixed angles.
 
-## HDR
+## HDR (beta)
 
-With `hdr` (on by default) the shared HDR light layer (`_internals/hdr/`) reads the live, animated `--gb-a3` and flashes the glint above SDR white at the same spot — white at its peak, tinted either side. The metal reflections stay SDR. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.
+With `hdr` (beta, off by default — pass `hdr` to opt in), the shared HDR light layer (`_internals/hdr/`) reads the live, animated `--gb-a3` and flashes the glint above SDR white at the same spot — white at its peak, tinted either side. The metal reflections stay SDR. It runs only on displays that report HDR with WebGPU extended tone mapping; elsewhere nothing is created.

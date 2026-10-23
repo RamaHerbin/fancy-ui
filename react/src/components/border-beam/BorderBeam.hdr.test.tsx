@@ -29,12 +29,15 @@ describe("BorderBeam HDR layer", () => {
 
 	it("renders the overlay canvas on a WebGPU, HDR-capable device", () => {
 		stubHdrCapable();
-		const { container } = render(<BorderBeam />);
+		const { container } = render(<BorderBeam hdr />);
 		expect(container.querySelector("canvas")).not.toBeNull();
 	});
 
-	it("never renders a canvas with hdr={false}", () => {
+	it("keeps HDR off by default, and never renders a canvas with hdr={false}", () => {
 		stubHdrCapable();
+		const byDefault = render(<BorderBeam />);
+		expect(byDefault.container.querySelector("canvas")).toBeNull();
+		cleanup();
 		const { container } = render(<BorderBeam hdr={false} />);
 		expect(container.querySelector("canvas")).toBeNull();
 	});
