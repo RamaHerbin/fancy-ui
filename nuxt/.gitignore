@@ -1,0 +1,8 @@
+dist
+.nuxt
+.output
+node_modules
+playground/.nuxt
+playground/.output
+test/fixtures/**/.nuxt
+test/fixtures/**/.output
