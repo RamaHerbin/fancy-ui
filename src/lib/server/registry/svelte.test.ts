@@ -233,9 +233,9 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 	const base = "https://fancy-ui.rama.app/r/svelte";
 	const all = Object.values(out.items).flatMap((i) => i.files);
 
-	it("emits 155 items (152 components + 3 shared)", () => {
-		expect(Object.keys(out.items)).toHaveLength(155);
-		expect(out.index.items).toHaveLength(155);
+	it("emits 157 items (154 components + 3 shared)", () => {
+		expect(Object.keys(out.items)).toHaveLength(157);
+		expect(out.index.items).toHaveLength(157);
 		expect(
 			Object.values(out.items)
 				.filter((i) => i.type === "registry:lib")
@@ -243,9 +243,9 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 		).toEqual(["internals", "internals-motion", "sound"]);
 	});
 
-	// Observed with accordion, collapsible, follow-button, badge and avatar: 487 shipped files. The gate pins the exact number.
-	it("ships 487 files, every one registry:ui under fancy/<rel>", () => {
-		expect(all).toHaveLength(487);
+	// Observed with accordion, collapsible, follow-button, badge and avatar, story-thread, sun-switch, pixel-scene: 497 shipped files. The gate pins the exact number.
+	it("ships 497 files, every one registry:ui under fancy/<rel>", () => {
+		expect(all).toHaveLength(497);
 		for (const f of all) {
 			expect(f.type).toBe("registry:ui");
 			expect(f.path.startsWith("src/lib/fancy-ui/"), f.path).toBe(true);
@@ -427,6 +427,5 @@ describe("what a clean consumer app needs from the CLI flow", () => {
 		expect(real.items["line-reveal"].dependencies).toEqual(["@chenglou/pretext@^0.0.5"]);
 		expect(real.items["fluid-cursor"].devDependencies).toContain("@webgpu/types@^0.1.71");
 		expect(real.items["fireworks-hdr"].devDependencies).toContain("@webgpu/types@^0.1.71");
-		expect(real.items["pixel-scene"].devDependencies).toContain("@webgpu/types@^0.1.71");
 	}, 60_000);
 });

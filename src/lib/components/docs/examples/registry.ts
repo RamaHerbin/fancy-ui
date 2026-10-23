@@ -667,6 +667,22 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"image-generation": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"agent-plan": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"subagent-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"sun-switch": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Contained",
+			title: "Contained",
+			description:
+				'The wave stays inside one card with `mode="contained"`; the page theme is untouched.',
+		},
+		{
+			name: "CustomTrigger",
+			title: "Custom Trigger",
+			description:
+				"Any button can start the wave with `pixelWave()`, from the pointer, with its own palette.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"approval-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],
@@ -1242,6 +1258,24 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "StickyBar",
 			title: "Sticky Bar",
 			description: "Pinned to the top of a scrolling container with a blurred background.",
+		},
+	],
+	"story-thread": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Scroll inside the box: the sections pan sideways and the thread draws itself from node to node.",
+		},
+		{
+			name: "Branches",
+			title: "Branches",
+			description: "Segments that leave the same node fork, advance together and meet again.",
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description: "The same thread running down a plain stack, dashed.",
 		},
 	],
 	"tick-nav": [
