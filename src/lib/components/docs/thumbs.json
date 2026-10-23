@@ -84,6 +84,7 @@
 	"liquid-text": true,
 	"logo-cloud": true,
 	"magnetic": true,
+	"magnetic-field": false,
 	"marquee": true,
 	"matrix-rain": true,
 	"meteors": true,

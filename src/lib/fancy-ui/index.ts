@@ -168,6 +168,7 @@ export * from "./avatar/index.js";
 export * from "./reveal/index.js";
 export * from "./presence/index.js";
 export * from "./magnetic/index.js";
+export * from "./magnetic-field/index.js";
 export * from "./pressable/index.js";
 export * from "./scroll-progress/index.js";
 export * from "./status-morph/index.js";
