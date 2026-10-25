@@ -1,0 +1,12 @@
+---
+// NOT part of the main build. scripts/consumers/astro.sh copies it into
+// src/pages for a second build (dist-barrel) only: it hydrates RainbowButton
+// straight from the package root, the pattern the docs warn against, and
+// would otherwise pull the library-wide chunk into the other pages' islands.
+import { RainbowButton } from "fancy-ui-svelte";
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Package-root island">
+	<RainbowButton client:visible>From the package root</RainbowButton>
+</Base>

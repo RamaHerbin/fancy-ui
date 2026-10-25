@@ -1,0 +1,22 @@
+---
+// Every component here renders without a client directive: the page must load
+// no JavaScript at all, and the CSS-driven effects still animate.
+import { BorderBeam, Button, Marquee, Meteors, RainbowButton } from "fancy-ui-svelte";
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+---
+
+<Base title="Static page">
+	<h1 class="text-2xl font-semibold">Static page</h1>
+	<Button data-testid="button">Primary</Button>
+	<RainbowButton>Rainbow, no handler</RainbowButton>
+	<div class="relative overflow-hidden rounded-xl border p-6">
+		Light effect
+		<BorderBeam />
+	</div>
+	<section data-testid="hero"><Hero /></section>
+	<Marquee><span class="px-4">One</span><span class="px-4">Two</span></Marquee>
+	<div class="relative h-40 overflow-hidden rounded-xl border" data-testid="meteors">
+		<Meteors />
+	</div>
+</Base>

@@ -12,7 +12,10 @@
 // i % n + 1), which is how CI spreads them over runners: a consumer added to
 // this folder lands in a shard by itself, with no list in ci.yml to forget.
 // Each package is built and packed once per run: the scripts share the
-// tarballs through CONSUMER_PACKS_DIR.
+// tarballs through CONSUMER_PACKS_DIR. Exit 77 means "cannot run here" (astro.sh
+// on a Node older than Astro's floor). It is honoured only for the scripts in
+// MAY_SKIP, and only locally: with CI set, a skip is a failure, so the job can
+// never go green without running every app.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -67,6 +70,9 @@ if (listOnly) {
 	process.exit(0);
 }
 
+const MAY_SKIP = new Set(["astro"]);
+const inCi = Boolean(process.env.CI);
+
 const packs = mkdtempSync(join(tmpdir(), "fancy-ui-consumer-packs-"));
 const results = [];
 try {
@@ -78,13 +84,14 @@ try {
 			env: { ...process.env, CONSUMER_PACKS_DIR: packs },
 		});
 		const seconds = Math.round((Date.now() - started) / 1000);
-		const ok = run.status === 0;
-		results.push({
-			name,
-			ok,
-			seconds,
-			detail: ok ? "" : run.error ? String(run.error) : `exit ${run.status ?? run.signal}`,
-		});
+		const skipped = run.status === 77 && MAY_SKIP.has(name) && !inCi;
+		const ok = run.status === 0 || skipped;
+		let detail = "";
+		if (!ok) {
+			detail = run.error ? String(run.error) : `exit ${run.status ?? run.signal}`;
+			if (run.status === 77) detail += inCi ? " (skip is a failure in CI)" : " (skip not allowed)";
+		}
+		results.push({ name, ok, skipped, seconds, detail });
 	}
 } finally {
 	rmSync(packs, { recursive: true, force: true });
@@ -96,13 +103,15 @@ console.log(`${"-".repeat(width)}  ------  ------`);
 for (const r of results) {
 	const time = `${r.seconds}s`.padStart(6);
 	console.log(
-		`${r.name.padEnd(width)}  ${(r.ok ? "pass" : "FAIL").padEnd(6)}  ${time}${r.detail ? `  ${r.detail}` : ""}`
+		`${r.name.padEnd(width)}  ${(r.skipped ? "skip" : r.ok ? "pass" : "FAIL").padEnd(6)}  ${time}${r.detail ? `  ${r.detail}` : ""}`
 	);
 }
 const failed = results.filter((r) => !r.ok);
+const skipped = results.filter((r) => r.skipped).length;
+const skipNote = skipped ? ` (${skipped} skipped)` : "";
 console.log(
 	failed.length
-		? `\n${failed.length} of ${results.length} consumer(s) failed`
-		: `\nall ${results.length} consumers passed`
+		? `\n${failed.length} of ${results.length} consumer(s) failed${skipNote}`
+		: `\nall ${results.length - skipped} consumers passed${skipNote}`
 );
 process.exit(failed.length ? 1 : 0);
