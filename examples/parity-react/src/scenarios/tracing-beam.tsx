@@ -4,7 +4,7 @@ import { TracingBeam } from "fancy-ui-react";
 export default function Scenario() {
 	return (
 		<TracingBeam>
-			<div className="max-w-2xl space-y-16 pl-8">
+			<div className="max-w-2xl space-y-16">
 				<div>
 					<span className="mb-2 block text-xs font-semibold tracking-wider text-emerald-500 uppercase">
 						v0.1

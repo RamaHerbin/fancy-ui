@@ -6484,18 +6484,18 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": [],
+			"motion": ["raf", "media-query"],
 			"sound": false,
 			"components": []
 		},
 		"browserAPIs": ["ResizeObserver", "scroll"],
 		"runtimeDeps": [],
 		"setContext": false,
-		"hasStyleBlock": false,
+		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["TracingBeam"],
-		"loc": 157,
+		"loc": 412,
 		"testFiles": [],
 		"svelteFiles": 1,
 		"bindables": [],
@@ -6509,9 +6509,7 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [
-			"each instance uses its own generated gradient id with useFancyId for the gradient and its stroke reference, so two beams on one page no longer share one spring-animated gradient (upstream fix, Svelte parity pending)"
-		],
+		"divergences": [],
 		"minors": [],
 		"lastFailure": null
 	},
