@@ -3129,6 +3129,42 @@
 		"lastFailure": null
 	},
 	{
+		"slug": "math-bubble",
+		"sveltePath": "src/lib/fancy-ui/math-bubble",
+		"reactPath": "react/src/components/math-bubble",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "graphics",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "canvas2d",
+		"deps": {
+			"internals": ["dom/ssr", "dom/use-live-ref", "handwrite-core"],
+			"motion": ["in-view", "media-query", "anchored"],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": ["canvas2d", "requestAnimationFrame", "IntersectionObserver", "matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["MathBubble", "createMathBubble", "MATH_BUBBLE_DEFAULTS"],
+		"loc": 222,
+		"testFiles": ["MathBubble.test.ts", "MathBubble.ssr.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`play()` / `reset()` are the Svelte component's exported functions; here they are reached through a ref (`forwardRef` + `useImperativeHandle`, typed `MathBubbleHandle`).",
+			"`class` → `className` (PORTING.md).",
+			"The engine (`handwrite-*.ts`, `glyphs/`) is the shared framework-free core, byte-identical to the Svelte copy; the component only memoises the drawings, keeps the shown formula and the still/canvas mode in React state, and runs the rAF loop from refs.",
+			"The `t` still paints in a layout effect once its canvas is in the DOM, where the Svelte effect re-runs when the bound canvas appears."
+		],
+		"lastFailure": null
+	},
+	{
 		"slug": "matrix-rain",
 		"sveltePath": "src/lib/fancy-ui/matrix-rain",
 		"reactPath": "react/src/components/matrix-rain",

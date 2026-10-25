@@ -86,6 +86,7 @@
 	"magnetic": true,
 	"magnetic-field": false,
 	"marquee": true,
+	"math-bubble": false,
 	"matrix-rain": true,
 	"meteors": true,
 	"mosaic-glow": true,
