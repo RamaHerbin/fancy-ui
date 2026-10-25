@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"A meter is guidance, not a policy — validate on the server. The reveal toggle is `aria-pressed`. Do not rely on colour alone for the strength label.",
 		clues: ["strength() per input", "segmented meter", "aria-live"],
 	},
-	curatedRank: 32,
+	curatedRank: 39,
 	collections: ["micro-interactions"],
 	components: [{ slug: "password-input", relation: "exact" }],
 	demo: {

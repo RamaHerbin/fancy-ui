@@ -32,7 +32,7 @@ const entry: ExternalReference = {
 			"Intl.NumberFormat parts",
 		],
 	},
-	curatedRank: 36,
+	curatedRank: 43,
 	collections: ["micro-interactions"],
 	components: [
 		{

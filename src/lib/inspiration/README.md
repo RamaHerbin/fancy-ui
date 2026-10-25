@@ -120,7 +120,7 @@ pnpm vitest run src/lib/inspiration
 
 ## curatedRank
 
-Lower comes first in the curated sort; `featured(6)` on the homepage takes the six lowest. Ranks 1–35 are FancyUI entries, 36–41 the external references. Keep ranks unique, give a new entry the next free number, and move it up only when it should displace something on the homepage. Unranked entries sort after ranked ones.
+Lower comes first in the curated sort; `featured(11)` on the homepage takes the eleven lowest. Ranks 1–42 are FancyUI entries, 43–48 the external references. Keep ranks unique, give a new entry the next free number, and move it up only when it should displace something on the homepage. Unranked entries sort after ranked ones.
 
 ## Pending and drafts
 

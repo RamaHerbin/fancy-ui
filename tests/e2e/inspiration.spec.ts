@@ -101,15 +101,13 @@ test.describe("inspiration gallery", () => {
 		await page.emulateMedia({ reducedMotion: "no-preference" });
 		await open(page, "/inspiration");
 		const mounted = page.locator("[data-demo-mounted]");
-		await cards(page).nth(0).hover();
+		// Two demos that mount on hover; `mount: "intent"` ones wait for Play.
+		const [first, second] = ["tick-nav", "pulse-beam"];
+		await page.locator(`article.ic[data-slug="${first}"]`).hover();
 		await expect(mounted).toHaveCount(1);
-		await expect(
-			page.locator('[data-stage="' + (await slugOf(page, 0)) + '"] [data-demo-mounted]')
-		).toHaveCount(1);
-		await cards(page).nth(1).hover();
-		await expect(
-			page.locator('[data-stage="' + (await slugOf(page, 1)) + '"] [data-demo-mounted]')
-		).toHaveCount(1);
+		await expect(page.locator(`[data-stage="${first}"] [data-demo-mounted]`)).toHaveCount(1);
+		await page.locator(`article.ic[data-slug="${second}"]`).hover();
+		await expect(page.locator(`[data-stage="${second}"] [data-demo-mounted]`)).toHaveCount(1);
 		// The first one unmounts after its short hysteresis.
 		await expect(mounted).toHaveCount(1, { timeout: 3000 });
 		await page.keyboard.press("Escape");
@@ -134,10 +132,6 @@ test.describe("inspiration gallery", () => {
 		});
 	}
 });
-
-async function slugOf(page: Page, index: number) {
-	return (await cards(page).nth(index).getAttribute("data-slug"))!;
-}
 
 test.describe("inspiration detail", () => {
 	test("a published reference renders and an unknown one is a 404", async ({ page, request }) => {

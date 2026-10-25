@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			'The status is announced through a polite `role="status"`. Guard against a second press while a request is in flight. The morph lives under `no-preference`.',
 		clues: ["single path morph", "stroke-dasharray", "reset timer", "tone current / semantic"],
 	},
-	curatedRank: 23,
+	curatedRank: 30,
 	collections: ["micro-interactions"],
 	components: [{ slug: "status-morph", relation: "exact" }],
 	demo: {

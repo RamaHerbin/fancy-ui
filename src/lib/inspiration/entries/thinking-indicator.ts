@@ -30,7 +30,7 @@ const entry: FancyUIReference = {
 			"timer hidden from AT while running",
 		],
 	},
-	curatedRank: 14,
+	curatedRank: 23,
 	collections: ["ai-interfaces"],
 	components: [{ slug: "thinking-indicator", relation: "exact" }],
 	demo: {

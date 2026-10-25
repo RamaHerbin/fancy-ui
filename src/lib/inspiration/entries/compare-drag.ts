@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			'The root is a real `role="slider"` with keyboard steps. The default size is a fixed 400×400 — override it with `class`. Autoplay is not gated by reduced motion and keeps running off-screen.',
 		clues: ["clip-path inset", "pointer capture", "hover vs drag mode", "beam trail from velocity"],
 	},
-	curatedRank: 9,
+	curatedRank: 18,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "compare", relation: "exact" }],
 	demo: {
