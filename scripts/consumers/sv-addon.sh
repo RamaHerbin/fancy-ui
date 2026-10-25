@@ -24,6 +24,14 @@ consumer_pack fancy-ui-svelte . pnpm package
 # pnpm store), and `sv` resolves from the folder's real path.
 CLI="$WORK/cli"
 mkdir -p "$CLI/addon" "$WORK/addon-pack"
+# On a release bump the root version is not on the registry yet, and the tw app installs
+# what the add-on declares before switching to the tarball: build against the latest
+# published version then.
+ROOT_VERSION="$(node -p "require('$ROOT/package.json').version")"
+if ! npm view "fancy-ui-svelte@$ROOT_VERSION" version 2>/dev/null | grep -q .; then
+	export FANCY_UI_SV_VERSION="$(npm view fancy-ui-svelte version)"
+	echo "consumer: fancy-ui-svelte@$ROOT_VERSION is not published, the add-on declares ^$FANCY_UI_SV_VERSION"
+fi
 (cd "$ROOT" && pnpm --filter fancy-ui-sv run build)
 (cd "$ROOT/sv-addon" && pnpm pack --pack-destination "$WORK/addon-pack" >/dev/null)
 ADDON_TGZ=("$WORK/addon-pack"/fancy-ui-sv-*.tgz)

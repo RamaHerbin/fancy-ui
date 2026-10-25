@@ -7,8 +7,10 @@ const { version, peerDependencies } = JSON.parse(
 	readFileSync(new URL("../package.json", import.meta.url), "utf8")
 ) as { version: string; peerDependencies: Record<string, string> };
 
+// FANCY_UI_SV_VERSION overrides the version for a build that must install from the registry
+// before the root version is published (the consumer test on a release bump).
 export const define = {
-	__FANCY_VERSION__: JSON.stringify(version),
+	__FANCY_VERSION__: JSON.stringify(process.env.FANCY_UI_SV_VERSION || version),
 	__SVELTE_PEER__: JSON.stringify(peerDependencies.svelte),
 };
 
