@@ -8,7 +8,7 @@
 <script lang="ts">
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { createMathBubble, type MathBubble } from "./handwrite-core.js";
+	import { createMathBubble, type MathBubble as Drawing } from "./handwrite-core.js";
 	import { cycleDuration } from "./handwrite-timeline.js";
 	import type { MathBubbleProps } from "./types.js";
 	import { inView } from "../_internals/motion/in-view.js";
@@ -37,7 +37,7 @@
 	const reduced = createReducedMotion();
 
 	const formulas = $derived(Array.isArray(formula) ? (formula.length ? formula : [""]) : [formula]);
-	const drawings: MathBubble[] = $derived(
+	const drawings: Drawing[] = $derived(
 		formulas.map((f) =>
 			createMathBubble(f, { bubble, tail, tailOffset, speed, seed, size, strokeWidth, hold })
 		)
@@ -74,7 +74,7 @@
 		return { i, local };
 	}
 
-	function paint(drawing: MathBubble, ms: number): void {
+	function paint(drawing: Drawing, ms: number): void {
 		const el = canvas;
 		if (!el || !root) return;
 		const ctx = el.getContext("2d");
