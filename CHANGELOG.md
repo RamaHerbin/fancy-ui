@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.18.0
+
+_The low-light release._
+
+This one was made at the hour when the light goes. Four small landscapes are painted dot by dot on a grid, each with a day and a night, and a lens follows the pointer to show them in full colour. A pixel sun switches the theme: click it and the new colours spread from it in a staircase wave, led by a dithered halo. A reading lamp now travels down the rail beside long pages, items lean toward a magnet, and a dotted thread draws a story from node to node as you scroll.
+
+On a display that can show more than white, the sun, the lit windows, the stars and the wave climb past that white, as hard squares with halos built from dithered cells. Everywhere else the picture stays exactly as drawn.
+
+_Below: what changed in the Svelte package. The site changes ride along with it, since the docs live here._
+
+### Minor Changes
+
+- e8f2c64: Add MagneticField: a field in which every `MagneticItem` is pulled toward a magnet and leans toward the magnet's side, then springs home without overshoot when the magnet leaves. The pull falls off smoothly with the distance from each item's edge, lighter items (`mass`) move and lean more than heavy ones, and `polarity={-1}` repels. The magnet is the pointer by default, a controlled `position`, or a draggable, keyboard-operable `MagnetPuck`. Reduced motion keeps every item at rest. The motion lives in a framework-free core shared by the Svelte, React and Vue packages.
+- d452e5e: Add PixelScene: an animated pixel-art landscape painted on a dot grid. At rest only sparse ink dots and the lit cells show; a round lens that follows the pointer reveals the full picture in colour, with a dithered rim. Four scenes (alpine, meadow, sea, mountains), each with complete day and night palettes. On HDR displays the sun, windows, stars, fireflies and the lens are redrawn as hard squares brighter than SDR white in a WebGPU layer, with halos built from dithered cells; nothing is created elsewhere. Reduced motion freezes the scene and snaps the lens. The engine, the scenes and the HDR layer are framework-free cores shared by the Svelte, React and Vue packages.
+- b9f0487: feat: add StoryThread and StoryNode, a narrative thread for scroll stories. Sections pan sideways as the page scrolls while a dotted line draws itself from node to node, a glowing head rides its tip, nodes light up as it reaches them, and segments can fork and meet again. Vertical layout below 900 × 520 px, optional `sound` tick on each node.
+- cfc8b0b: Add SunSwitch: a theme switch drawn as a pixel sun. On hover a soft lens follows the pointer and shows the sun's true colours over a monochrome scene; on click the new theme spreads from the sun as a view transition clipped by a grid-aligned staircase, led by a dithered halo in the sun's four colours. The component only reports the new value through `onCheckedChange` (called inside the transition), so any theme system can flip there. Browsers without view transitions, and a `contained` mode scoped to one element, get the same wave painted over a sheet of the old colour. Reduced motion switches instantly. The wave is also exported on its own as `pixelWave()` for any trigger. Rendering and the wave live in framework-free cores shared by the Svelte, React and Vue packages.
+- 5824459: TracingBeam redesigned as a reading lamp on a rail. The lamp sits on the reader's line of sight (`readingLine`) and trails the scroll on a spring; what has been read stays softly lit; a marker on the rail stands for every heading in the content and lights up as the lamp passes it. The rail now lives in its own gutter column (`--tracing-beam-gutter`) instead of hanging outside the wrapper, so it is never clipped; colours follow the theme (`accent` / `--tracing-beam-accent`) instead of fixed hex values; and under `prefers-reduced-motion` the lamp still tracks the page instead of disappearing. Fixes the beam that stayed unlit on most pages (its scroll maths assumed the wrapper filled the viewport) and the shared gradient id that made every beam after the first follow the first one.
+
+### Patch Changes
+
+- 6b46cd4: Astro setup documented in the README and on the Installation page: the official Svelte integration plus the Tailwind entry, components rendered statically by default, and hydrated components imported through a local `.svelte` file, since a `client:*` directive on a package-root import ships the whole library to the browser. A new consumer app (`examples/consumers/astro`, `pnpm consumers astro`) builds that setup from the packed tarball and checks it in Chromium, `ClientRouter` navigations included. No change to the package itself.
+- 16055a2: Copy-source registries: every item now carries its author and `meta` (MIT licence, the package and version its files were cut from, its docs page), the Svelte index lists `registryDependencies` on every entry as its CLI's schema requires, and the generated indexes and items are validated against the registry CLIs' published JSON Schemas in CI. A new docs page, Getting started → Copy source, covers prerequisites per framework, the add command, updating a copied component, mixing copies with the package, dark mode and what the registries leave out.
+
 ## 0.17.0
 
 _The night-shift release._
