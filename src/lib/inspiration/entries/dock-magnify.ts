@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			'Magnification is off under `hover: none` and reduced motion. The dock is a `role="toolbar"`. Width-driven layout reflows neighbours on every move, which costs more than a transform on long rows.',
 		clues: ["distance → scale curve", "width-driven layout, not transform", "spring settle"],
 	},
-	curatedRank: 11,
+	curatedRank: 20,
 	collections: ["micro-interactions"],
 	components: [{ slug: "dock", relation: "exact" }],
 	demo: {

@@ -24,7 +24,7 @@ const entry: FancyUIReference = {
 			"It listens to `mousemove` only — no touch or pen — so on phones it is a plain card. There is nothing to see at rest. The root carries an unnamed Tailwind `group`, so `group-hover:` inside the card fires on card hover.",
 		clues: ["radial-gradient at pointer", "CSS vars from mousemove", "opacity ramp on enter"],
 	},
-	curatedRank: 8,
+	curatedRank: 17,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "card-spotlight", relation: "exact" }],
 	demo: {

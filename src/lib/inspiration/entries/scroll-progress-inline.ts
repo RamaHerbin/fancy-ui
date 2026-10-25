@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			'Exposed as `role="progressbar"` with `aria-valuenow`. Nested scroll containers each need their own bar.',
 		clues: ["target element", "scaleX from scrollTop / scrollHeight", "position inline"],
 	},
-	curatedRank: 35,
+	curatedRank: 41,
 	collections: ["micro-interactions"],
 	components: [{ slug: "scroll-progress", relation: "exact" }],
 	demo: { module: "scroll-progress-inline" },

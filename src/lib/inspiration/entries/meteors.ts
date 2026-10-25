@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"It renders bare spans: the parent must be `relative overflow-hidden`. Reduced motion freezes the meteors part-way along their paths. Check text contrast over the brightest streaks.",
 		clues: ["seeded PRNG", "per-meteor delay / scale", "angle", "depth → speed"],
 	},
-	curatedRank: 7,
+	curatedRank: 16,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "meteors", relation: "exact" }],
 	demo: {

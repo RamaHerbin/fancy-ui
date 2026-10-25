@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Assistive tech hears the final value through a live region, not every intermediate digit. Reduced motion swaps synchronously. Use tabular numerals or widths jump.",
 		clues: ["keyed per grapheme", "inline-grid clip", "direction auto", "tabular-nums"],
 	},
-	curatedRank: 25,
+	curatedRank: 32,
 	collections: ["micro-interactions"],
 	components: [{ slug: "text-roll", relation: "exact" }],
 	demo: {

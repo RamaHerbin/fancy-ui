@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"WebGL on a window-level pointer listener, with a static fallback under reduced motion and below a width. The canvas is decorative; keep the real text in the DOM for assistive tech.",
 		clues: ["fluid velocity field", "UV displacement", "chromatic ratio", "static below a width"],
 	},
-	curatedRank: 33,
+	curatedRank: 40,
 	components: [{ slug: "liquid-text", relation: "exact" }],
 	demo: {
 		module: "liquid-text",
