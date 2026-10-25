@@ -24,6 +24,8 @@ export interface RegistryItem {
 	type: RegistryItemType;
 	title: string;
 	description: string;
+	/** Who publishes the item, `name <url>`. */
+	author?: string;
 	categories?: string[];
 	/** npm package names, unpinned. */
 	dependencies?: string[];
@@ -33,6 +35,27 @@ export interface RegistryItem {
 	registryDependencies?: string[];
 	docs?: string;
 	files: RegistryFile[];
+	/** Licence and provenance: the npm package and version the files are a copy of. */
+	meta?: RegistryItemMeta;
+}
+
+export interface RegistryItemMeta {
+	license: string;
+	/** npm package the sources are published in, e.g. `fancy-ui-react`. */
+	package: string;
+	/** That package's version at build time; compare with an installed copy to see what changed. */
+	version: string;
+	/** Docs page of the component (components only). */
+	source?: string;
+}
+
+/** Licence and provenance stamped on every item. */
+export interface Provenance {
+	/** `author` field, `name <url>`. */
+	author: string;
+	license: string;
+	package: string;
+	version: string;
 }
 
 export interface RegistryIndex {
@@ -74,6 +97,8 @@ export interface BuildInput {
 	 * sources.ts) because the Next bundlers do not map "./X.js" to X.tsx.
 	 */
 	stripJsExtension?: boolean;
+	/** When given, every item carries `author` and `meta` (licence, package, version, docs page). */
+	provenance?: Provenance;
 }
 
 export interface BuildOutput {

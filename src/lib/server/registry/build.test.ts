@@ -363,6 +363,58 @@ describe("buildRegistry on fixtures", () => {
 	});
 });
 
+describe("buildRegistry provenance and guards", () => {
+	const provenance = {
+		author: "fancy-ui <https://example.test>",
+		license: "MIT",
+		package: "fancy-ui-react",
+		version: "1.2.3",
+	};
+
+	it("stamps author and meta (licence, package, version, docs page) on every item when asked", () => {
+		const out = build(
+			{ "utils.ts": UTILS, "components/alpha/Alpha.tsx": 'import { cn } from "../../utils.js";\n' },
+			{ provenance }
+		);
+		expect(out.items.alpha.author).toBe(provenance.author);
+		expect(out.items.alpha.meta).toEqual({
+			license: "MIT",
+			package: "fancy-ui-react",
+			version: "1.2.3",
+			source: `${SITE}/docs/components/alpha?framework=react`,
+		});
+		// Shared items have no docs page.
+		expect(out.items.utils.meta).toEqual({
+			license: "MIT",
+			package: "fancy-ui-react",
+			version: "1.2.3",
+		});
+		expect(out.index.items.find((i) => i.name === "alpha")?.meta?.license).toBe("MIT");
+	});
+
+	it("adds neither author nor meta without provenance", () => {
+		const out = build({ "components/alpha/Alpha.tsx": "export const A = 1;\n" });
+		expect(out.items.alpha).not.toHaveProperty("author");
+		expect(out.items.alpha).not.toHaveProperty("meta");
+	});
+
+	it.each([
+		'import { Button } from "fancy-ui-react";\n',
+		'import "fancy-ui-svelte/tailwind.css";\n',
+		'export { X } from "fancy-ui-vue";\n',
+		'const m = import("fancy-ui-cameleon/skins");\n',
+	])("throws when a shipped file imports a fancy-ui npm package: %s", (code) => {
+		expect(() => build({ "components/alpha/Alpha.tsx": code })).toThrow(
+			/react\/src\/components\/alpha\/Alpha\.tsx imports the npm package "fancy-ui-/
+		);
+	});
+
+	it("does not mistake a lookalike package for its own", () => {
+		const out = build({ "components/alpha/Alpha.tsx": 'import x from "fancy-ui-reactor";\n' });
+		expect(out.items.alpha.dependencies).toEqual(["fancy-ui-reactor"]);
+	});
+});
+
 describe("buildRegistry on the real react/src tree", () => {
 	// jsdom gives import.meta.url a non-file scheme; vitest runs from the repo root.
 	const root = `${resolve(process.cwd(), "react/src")}/`;
@@ -421,9 +473,9 @@ describe("buildRegistry on the real react/src tree", () => {
 		expect(rb?.content).toContain('from "../../utils"');
 	});
 
-	it("emits 157 items (151 components + 6 shared)", () => {
-		expect(Object.keys(out.items)).toHaveLength(157);
-		expect(out.index.items).toHaveLength(157);
+	it("emits 161 items (155 components + 6 shared)", () => {
+		expect(Object.keys(out.items)).toHaveLength(161);
+		expect(out.index.items).toHaveLength(161);
 		const shared = Object.values(out.items).filter((i) => i.type === "registry:lib");
 		expect(shared.map((i) => i.name)).toEqual([
 			"internals",

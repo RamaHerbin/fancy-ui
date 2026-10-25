@@ -31,6 +31,9 @@ export const THUMB_HINTS = {
 	// Tried hero and example stages with a hover: the rings never rise above the
 	// blank-frame threshold in a still capture.
 	ripple: { skip: true },
+	// Scroll-driven: a still capture of the hero or example stage shows only the
+	// first node's caption on an empty rail, so keep the fallback tile instead.
+	"story-thread": { skip: true },
 	"flickering-grid": { stage: 1 },
 	"bg-falling-stars": { stage: 1 },
 	"border-beam": { stage: 1 },

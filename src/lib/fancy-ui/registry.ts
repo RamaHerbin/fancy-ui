@@ -1592,6 +1592,150 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
 	},
 
+	"sun-switch": {
+		name: "SunSwitch",
+		slug: "sun-switch",
+		description:
+			"A theme switch drawn as a pixel sun. Hover it for a lens on its true colours; click it and the new theme spreads from the sun in a dithered, grid-aligned wave.",
+		category: "buttons",
+		group: "fancy",
+		status: "done",
+		tags: ["switch", "theme", "dark mode", "pixel", "dither", "view transition", "canvas"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "true",
+				description: "Day (true) or night (false). Bindable.",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description:
+					"Called with the new value from inside the view transition's update callback. Flip your theme here; the component never changes classes on the document. Flip the theme synchronously: the new snapshot is taken as soon as it returns.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "10",
+				description: "Sun radius in cells. The canvas is 2 × radius + 1 cells square.",
+			},
+			{
+				name: "cell",
+				type: "number",
+				default: "5",
+				description: "Grid pitch in CSS pixels, shared by the sun, the wave front and its halo.",
+			},
+			{
+				name: "dot",
+				type: "number",
+				default: "4",
+				description: "Size of each square dot in CSS pixels (at most `cell`).",
+			},
+			{
+				name: "palette",
+				type: "[string, string, string, string]",
+				default: "SUN_PALETTE",
+				description:
+					"Four colours from the top of the sun to the bottom. The halo reuses them: densest rim in the last colour, sparse fringe in the first.",
+			},
+			{
+				name: "ink",
+				type: "string",
+				default: '"currentColor"',
+				description:
+					"Monochrome colour of the night sun and the horizon outside the lens. Resolved from the computed colour of the button, so it follows the theme.",
+			},
+			{
+				name: "nightAlpha",
+				type: "number",
+				default: "0.42",
+				description: "Opacity of the ink sun at night.",
+			},
+			{
+				name: "horizon",
+				type: "boolean",
+				default: "true",
+				description: "Draws a few sparse rows of dots under the sun for the lens to reveal.",
+			},
+			{
+				name: "lens",
+				type: "boolean",
+				default: "true",
+				description:
+					"On hover, a soft circular lens follows the pointer and shows the true colours under it.",
+			},
+			{
+				name: "lensRadius",
+				type: "number",
+				default: "7",
+				description: "Lens radius in cells; about two thirds of the sun reads best.",
+			},
+			{
+				name: "mode",
+				type: '"document" | "contained"',
+				default: '"document"',
+				description:
+					"`document` runs the wave as a view transition over the whole page. `contained` paints it over `scope` only, with a sheet of the old colour that the wave cuts away.",
+			},
+			{
+				name: "scope",
+				type: "HTMLElement | null",
+				description:
+					"The element the wave covers in contained mode. It needs `position: relative` and `overflow: hidden`.",
+			},
+			{
+				name: "fill",
+				type: "string",
+				description:
+					"Colour of the old-state sheet in contained mode and browsers without view transitions. Defaults to the first opaque background found from `scope` (or the body) upwards.",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "1300",
+				description: "Duration of the wave in milliseconds (ease in-out cubic).",
+			},
+			{
+				name: "haloCells",
+				type: "number",
+				default: "9",
+				description: "Thickness of the dithered halo that leads the wave front, in cells.",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On HDR displays with WebGPU, redraws the sun and the wave halo as hard squares brighter than SDR white. Elsewhere nothing is created.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the toggle cue (on for day, off for night) through the sound controller, once the user has enabled sound.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Day mode"',
+				description: "Accessible name of the switch. Its checked state is announced as on or off.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the button.",
+			},
+		],
+	},
+
 	marquee: {
 		name: "Marquee",
 		slug: "marquee",
@@ -1893,6 +2037,117 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Bindable overlay element",
 			},
 			{ name: "class", type: "string", description: "Additional classes on the overlay" },
+		],
+	},
+
+	"pixel-scene": {
+		name: "PixelScene",
+		slug: "pixel-scene",
+		description:
+			"An animated pixel-art landscape on a dot grid: sparse ink dots at rest, full colour under a round lens that follows the pointer, separate day and night palettes, and on HDR displays lit windows, stars and the sun drawn as squares brighter than SDR white. Four scenes: alpine, meadow, sea and mountains.",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["pixel", "dither", "canvas", "scene", "lens", "hdr", "landscape"],
+		props: [
+			{
+				name: "scene",
+				type: '"alpine" | "meadow" | "sea" | "mountains"',
+				default: '"alpine"',
+				description: "Which landscape to paint.",
+			},
+			{
+				name: "night",
+				type: "boolean",
+				default: "false",
+				description:
+					"Night palette: stars, moonlit snow, lit windows. The component never changes it; toggle it from your own click or theme.",
+			},
+			{
+				name: "cell",
+				type: "number",
+				default: "5",
+				description:
+					"Grid pitch in CSS pixels. Very large boxes use a coarser pitch so a frame stays under about 72 000 cells.",
+			},
+			{
+				name: "dot",
+				type: "number",
+				default: "4",
+				description: "Edge of each square dot in CSS pixels (at most `cell`).",
+			},
+			{
+				name: "lens",
+				type: "boolean",
+				default: "true",
+				description:
+					"Shows the picture in full colour under a round lens that follows the pointer.",
+			},
+			{
+				name: "lensRadius",
+				type: "number",
+				default: "21",
+				description: "Lens radius in cells. Its rim is dithered on the grid.",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, redraws the sun, windows, stars and the lens in a WebGPU layer brighter than SDR white. Elsewhere nothing is created.",
+			},
+			{
+				name: "hdrLook",
+				type: '"calibrated" | "vivid"',
+				default: '"calibrated"',
+				description:
+					"HDR rendering: calibrated levels (glow 1 is the SDR dot, sRGB), or vivid, a hotter, wider-gamut look (display-p3) with lamps at the panel peak.",
+			},
+			{
+				name: "ink",
+				type: "string",
+				default: '"currentColor"',
+				description:
+					"Colour of the resting dots outside the lens. Resolved on the host, so it follows the theme.",
+			},
+			{
+				name: "paused",
+				type: "boolean",
+				default: "false",
+				description: "Freezes clouds, birds and lights; the lens still follows the pointer.",
+			},
+			{
+				name: "wave",
+				type: "boolean",
+				default: "true",
+				description:
+					"Plays a change of `night` as a dithered wave spreading from the sun (or moon), led by a halo that glows on HDR displays. Off under reduced motion.",
+			},
+			{
+				name: "surfaces",
+				type: "readonly [day: string, night: string]",
+				default: "—",
+				description:
+					"Background painted by the scene for each theme; the wave carries it from one to the other. Without it the canvas is transparent.",
+			},
+			{
+				name: "inks",
+				type: "readonly [day: string, night: string]",
+				default: "—",
+				description: "Dot colour for each theme, swapped by the wave. Overrides `ink`.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes on the host. Give it a height.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Copy rendered above the picture. Keep it in the top-left corner, which every scene leaves open.",
+			},
 		],
 	},
 
@@ -3300,17 +3555,39 @@ export const registry: Record<string, ComponentMeta> = {
 	"tracing-beam": {
 		name: "TracingBeam",
 		slug: "tracing-beam",
-		description: "Vertical SVG beam that highlights scroll progress alongside content",
+		description:
+			"A reading lamp on a rail beside long-form content: it trails the reader's eye on a spring, leaves what has been read softly lit, and ticks off each heading as it passes",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
 		],
-		tags: ["scroll", "animation", "svg", "beam", "progress", "sidebar"],
-		slots: [
-			{ name: "children", description: "Long-form content rendered alongside the tracing beam" },
+		tags: ["scroll", "animation", "beam", "progress", "reading", "sidebar", "headings"],
+		props: [
+			{
+				name: "accent",
+				type: "string",
+				default: "undefined (follows --primary, falls back to oklch(0.7 0.13 285))",
+				description:
+					"Colour of the lamp, its trail and the lit markers. Any CSS colour; also settable via the --tracing-beam-accent CSS variable.",
+			},
+			{
+				name: "readingLine",
+				type: "number",
+				default: "0.38",
+				description:
+					"Where the reader's eye is assumed to be, as a fraction of the viewport height from the top. The lamp sits on that line, clamped to the content.",
+			},
+			{
+				name: "markers",
+				type: "boolean",
+				default: "true",
+				description:
+					"Draw a marker on the rail for every heading (h1–h4) inside the content, or for every direct child when there is none. Markers light up as the lamp passes them.",
+			},
 		],
+		slots: [{ name: "children", description: "Long-form content the beam reads alongside" }],
 	},
 	"displacement-text": {
 		name: "DisplacementText",
@@ -8325,6 +8602,97 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"story-thread": {
+		name: "StoryThread",
+		slug: "story-thread",
+		description:
+			"A narrative thread for scroll stories: the page pans sideways through your sections while a dotted line draws itself from node to node, a glowing head rides its tip, nodes light up as it reaches them, and segments can fork and meet again.",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"story",
+			"storytelling",
+			"scrollytelling",
+			"path",
+			"thread",
+			"timeline",
+			"horizontal scroll",
+			"svg",
+			"narrative",
+		],
+		props: [
+			{
+				name: "layout",
+				type: '"auto" | "horizontal" | "vertical"',
+				default: '"auto"',
+				description:
+					"`horizontal` pins a full-height viewport and pans the content sideways as the page scrolls; `vertical` keeps a plain stack with the thread running down it. `auto` is horizontal from 900 × 520 px up.",
+			},
+			{
+				name: "segments",
+				type: "StoryThreadSegment[]",
+				default: "[]",
+				description:
+					"Segments as `{ nodes: string[], color? }`, each through a list of StoryNode ids. Empty draws one segment through every node in document order. Segments that leave the same node draw a fork whose branches advance together.",
+			},
+			{
+				name: "lead",
+				type: "number",
+				default: "0.7",
+				description:
+					"Where the tip of the thread sits in the viewport, 0..1 along the reading axis.",
+			},
+			{
+				name: "tension",
+				type: "number",
+				default: "0.55",
+				description: "Curve tension between nodes: 0 draws straight lines, 1 long flat tangents.",
+			},
+			{
+				name: "dash",
+				type: '"dotted" | "dashed" | "solid"',
+				default: '"dotted"',
+				description: "Stroke pattern of the thread.",
+			},
+			{
+				name: "head",
+				type: "boolean",
+				default: "true",
+				description: "Draws a glowing dot at the tip of every segment while it is drawing.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a soft `tick` each time the thread reaches a node going forward. Only audible once the user has enabled sound.",
+			},
+			{
+				name: "onReach",
+				type: "(id: string) => void",
+				description: "Called with a node's id each time the thread reaches it going forward.",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: '"Story"',
+				description: "Accessible name of the region.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the root.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The story: sections holding `<StoryNode id>` anchors (`variant` `dot` or `ring`). Size the sections yourself; in the horizontal layout they sit side by side at full height.",
+			},
+		],
+	},
 	sidebar: {
 		name: "Sidebar",
 		slug: "sidebar",
@@ -9708,6 +10076,201 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "children",
 				description: "The single wrapped element — a button, icon link, or card.",
+			},
+		],
+	},
+
+	"magnetic-field": {
+		name: "MagneticField",
+		slug: "magnetic-field",
+		description:
+			"Items are pulled toward a magnet and lean toward it, light ones more than heavy ones, then spring home. The magnet is the pointer or a draggable puck.",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["magnet", "pointer", "spring", "physics", "attract", "repel", "drag", "compound"],
+		props: [
+			{
+				name: "source",
+				type: '"pointer" | "manual"',
+				default: '"pointer"',
+				description:
+					'Where the magnet comes from. `"pointer"` follows a mouse or pen anywhere within `radius` of an item (touch is ignored); `"manual"` reads `position` instead. A `MagnetPuck` placed inside the field drives it in either mode while it is held.',
+			},
+			{
+				name: "position",
+				type: "MagneticPoint | null",
+				default: "null",
+				description:
+					"The magnet's position in px, relative to the field's padding box, used when `source` is `\"manual\"`. `null` means no magnet, and the items spring back to rest.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "220",
+				description:
+					"Falloff distance from the item's nearest edge, in px: an item pulls hardest when the magnet touches or overlaps it and stops moving once the magnet is `radius` px away. It can still lean up to twice as far.",
+			},
+			{
+				name: "strength",
+				type: "number",
+				default: "1",
+				description:
+					"Global pull multiplier, applied on top of each item's own `strength`. `0` turns the effect off without detaching anything.",
+			},
+			{
+				name: "maxTranslate",
+				type: "number",
+				default: "24",
+				description: "Largest distance, in px, that any item travels toward the magnet.",
+			},
+			{
+				name: "maxRotate",
+				type: "number",
+				default: "6",
+				description:
+					"Largest lean, in degrees. Items lean toward the magnet's side like a crowd turning its head: clockwise when it is to their left, counter-clockwise when it is to their right.",
+			},
+			{
+				name: "spring",
+				type: "MagneticSpringPreset | Partial<MagneticSpring>",
+				default: '"default"',
+				description:
+					'How items move and settle: `"soft"`, `"default"` or `"snappy"`, or your own `{ stiffness, damping, mass }` (missing keys come from `"default"`).',
+			},
+			{
+				name: "polarity",
+				type: "1 | -1",
+				default: "1",
+				description:
+					"`1` attracts and `-1` repels. Only translation flips; the lean stays the same.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Detaches every listener and springs each item back to rest.",
+			},
+			{
+				name: "onActiveChange",
+				type: "(active: boolean) => void",
+				description:
+					"Called when the field wakes up (a magnet is engaged or an item is still settling) and when it goes back to sleep.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Element reference (bindable).",
+			},
+			{
+				name: "MagneticItem.mass",
+				type: "number",
+				default: "1",
+				description:
+					"How heavy the item is. Above 1 it moves and leans less and settles more slowly; below 1 it is livelier.",
+			},
+			{
+				name: "MagneticItem.strength",
+				type: "number",
+				default: "1",
+				description: "Per-item pull multiplier, applied on top of the field's `strength`.",
+			},
+			{
+				name: "MagneticItem.pull",
+				type: "boolean",
+				default: "true",
+				description: "Whether the item moves toward the magnet.",
+			},
+			{
+				name: "MagneticItem.rotate",
+				type: "boolean",
+				default: "true",
+				description: "Whether the item leans toward the magnet.",
+			},
+			{
+				name: "MagneticItem.inline",
+				type: "boolean",
+				default: "false",
+				description:
+					"Renders `<span>` wrappers with `display: inline-block` instead of block `<div>`s, for items that sit inside a line of text or an inline row.",
+			},
+			{
+				name: "MagneticItem.class",
+				type: "string",
+				description: "Additional CSS classes, on the static outer wrapper.",
+			},
+			{
+				name: "MagneticItem.ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Reference to the static outer wrapper (bindable).",
+			},
+			{
+				name: "MagnetPuck.position",
+				type: "MagneticPoint",
+				default: "{ x: 48, y: 48 }",
+				description:
+					"The puck's centre in px, relative to its positioned parent (the field's padding box when it sits inside a `MagneticField`, where the field must be that parent: no positioned element in between). Bindable; dragging and the arrow keys update it.",
+			},
+			{
+				name: "MagnetPuck.onPositionChange",
+				type: "(position: MagneticPoint) => void",
+				description:
+					"Called with each new position while the puck is dragged or moved with the keyboard.",
+			},
+			{
+				name: "MagnetPuck.size",
+				type: "number",
+				default: "40",
+				description: "Diameter in px.",
+			},
+			{
+				name: "MagnetPuck.sticky",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the puck keeps attracting once released. By default it attracts only while held, and the items spring back when it is let go.",
+			},
+			{
+				name: "MagnetPuck.label",
+				type: "string",
+				default: '"Magnet"',
+				description:
+					"Accessible name. A built-in hint naming the keys describes the puck; pass your own `aria-describedby` to replace it.",
+			},
+			{
+				name: "MagnetPuck.onHeldChange",
+				type: "(held: boolean) => void",
+				description:
+					"Called when the puck is picked up (pointer down, or Space/Enter) and put down.",
+			},
+			{
+				name: "MagnetPuck.class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "MagnetPuck.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Element reference (bindable).",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "The content. Wrap each element that should react in a `MagneticItem`.",
+			},
+			{ name: "MagneticItem.children", description: "The element that reacts." },
+			{
+				name: "MagnetPuck.children",
+				description: "A custom face. Leave it out for the default black disc.",
 			},
 		],
 	},

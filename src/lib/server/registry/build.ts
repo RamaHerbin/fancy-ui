@@ -13,7 +13,9 @@ import {
 	referencedTypePackages,
 	relativeSpecifiers,
 	resolveSpecifier,
+	specifiers,
 } from "./graph.js";
+import { OWN_PACKAGE } from "./exclusions.js";
 import { docsFor } from "./stack.js";
 import type { TransformContext } from "./stack.js";
 import { reactStack } from "./stacks/react.js";
@@ -89,6 +91,12 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 	const edges = new Map<string, string[]>();
 	for (const path of candidates) {
 		if (!stack.isCode(path)) continue;
+		const own = specifiers(input.files[path]).find((spec) => OWN_PACKAGE.test(spec));
+		if (own !== undefined) {
+			throw new Error(
+				`Registry: ${root}/${path} imports the npm package "${own}" — copied code must not depend on the package.`
+			);
+		}
 		const targets: string[] = [];
 		for (const spec of relativeSpecifiers(input.files[path])) {
 			const resolved = resolveSpecifier(path, spec, allPaths);
@@ -198,18 +206,36 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 		if (!meta && !shared) {
 			throw new Error(`Registry: no metadata for item "${name}".`);
 		}
+		const provenance = input.provenance;
 		items[name] = {
 			$schema: stack.itemSchemaUrl,
 			name,
 			type,
 			title: meta ? meta.name : shared.title,
 			description: meta ? meta.description : shared.description,
+			...(provenance ? { author: provenance.author } : {}),
 			...(meta ? { categories: [meta.category] } : {}),
 			...(dependencies.length > 0 ? { dependencies: dependencies.map(pin) } : {}),
 			...(devDependencies.length > 0 ? { devDependencies: devDependencies.map(pin) } : {}),
-			...(registryDependencies.length > 0 ? { registryDependencies } : {}),
+			...(registryDependencies.length > 0 || stack.alwaysListRegistryDependencies
+				? { registryDependencies }
+				: {}),
 			...(isComponent && dependencies.length > 0 ? { docs: docsFor(dependencies) } : {}),
 			files: registryFiles,
+			...(provenance
+				? {
+						meta: {
+							license: provenance.license,
+							package: provenance.package,
+							version: provenance.version,
+							...(meta
+								? {
+										source: `${input.siteUrl.replace(/\/+$/, "")}/docs/components/${name}${stack.id === "svelte" ? "" : `?framework=${stack.id}`}`,
+									}
+								: {}),
+						},
+					}
+				: {}),
 		};
 	}
 

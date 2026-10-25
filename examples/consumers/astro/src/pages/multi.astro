@@ -1,0 +1,22 @@
+---
+// Several instances of the same islands on one page: each owns its state, its
+// DOM and its canvas.
+import { Meteors } from "fancy-ui-svelte";
+import Base from "../layouts/Base.astro";
+import FluidIsland from "../islands/FluidIsland.svelte";
+import RainbowCounter from "../islands/RainbowCounter.svelte";
+---
+
+<Base title="Multiple instances">
+	<h1 class="text-2xl font-semibold">Multiple instances</h1>
+	<RainbowCounter id="rainbow-1" client:load>First</RainbowCounter>
+	<RainbowCounter id="rainbow-2" client:load>Second</RainbowCounter>
+	<FluidIsland id="fluid-1" client:visible />
+	<FluidIsland id="fluid-2" client:visible />
+	<div class="relative h-24 overflow-hidden rounded-xl border" data-testid="meteors-1">
+		<Meteors seed={1} />
+	</div>
+	<div class="relative h-24 overflow-hidden rounded-xl border" data-testid="meteors-2">
+		<Meteors seed={2} />
+	</div>
+</Base>

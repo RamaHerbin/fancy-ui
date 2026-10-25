@@ -1,206 +1,259 @@
-import { useRef, useState, type ReactNode } from "react";
-import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
-import { useFancyId } from "../../internals/use-id.js";
+import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { rafThrottle } from "../../internals/motion/raf.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
+import "./tracing-beam.css";
 
 export interface TracingBeamProps {
-	/** Additional CSS classes */
+	/** Additional CSS classes for the outer wrapper */
 	className?: string;
-	/** Content the beam traces alongside */
+	/** Long-form content the beam reads alongside */
 	children?: ReactNode;
+	/**
+	 * Colour of the lamp, its trail and the lit markers. Any CSS colour.
+	 * Unset, it follows the theme's `--primary` token and falls back to a
+	 * soft violet when no theme is present. Also settable from CSS via
+	 * `--tracing-beam-accent`.
+	 */
+	accent?: string;
+	/**
+	 * Where the reader's eye is assumed to be, as a fraction of the viewport
+	 * height from the top. The lamp sits on that line, clamped to the content.
+	 */
+	readingLine?: number;
+	/**
+	 * Draw a marker on the rail for every heading (`h1`–`h4`) inside the
+	 * content — or, when there is none, for every direct child. Markers light
+	 * up as the lamp passes them.
+	 */
+	markers?: boolean;
 }
 
-function mapRange(
-	value: number,
-	inMin: number,
-	inMax: number,
-	outMin: number,
-	outMax: number
-): number {
-	return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+/** Spring that carries the lamp: stiff enough to feel attached, loose enough to trail. */
+const TENSION = 120;
+const FRICTION = 22;
+/** Settle threshold, in px and px/s. */
+const PRECISION = 0.05;
+/** Longest frame the spring integrates (a tab coming back is not a 2 s step). */
+const MAX_DT = 1 / 30;
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, value));
 }
 
 /**
- * TracingBeam - Vertical SVG beam that highlights scroll progress alongside content.
+ * Viewport px per local px. A scaled ancestor shrinks every rect we read but
+ * not the offsets we write, so rect deltas are divided by this before use.
+ * Sub-pixel rounding of `offsetHeight` is not a transform: it reads as 1.
  */
-export function TracingBeam({ className = "", children }: TracingBeamProps) {
-	const tracingBeamRef = useRef<HTMLDivElement | null>(null);
+function localScale(el: HTMLElement, rect: DOMRect): number {
+	const layout = el.offsetHeight;
+	if (layout <= 0 || rect.height <= 0 || Math.abs(rect.height - layout) < 1) return 1;
+	return rect.height / layout;
+}
+
+/** Markers the lamp has reached light up; the rest wait. */
+function isLit(offset: number, head: number): boolean {
+	return offset <= head + 0.5;
+}
+
+function sameFlags(a: boolean[], b: boolean[]): boolean {
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+	return true;
+}
+
+/**
+ * TracingBeam - A reading lamp on a rail beside long-form content. The lamp
+ * sits on the reader's line of sight and follows the scroll on a spring; what
+ * has been read stays softly lit, and a marker per heading lights up as the
+ * lamp passes it.
+ */
+export function TracingBeam({
+	className = "",
+	children,
+	accent,
+	readingLine = 0.38,
+	markers = true,
+}: TracingBeamProps) {
+	const reduced = useReducedMotion();
+
+	const rootRef = useRef<HTMLDivElement | null>(null);
 	const contentRef = useRef<HTMLDivElement | null>(null);
-	const gradientRef = useRef<SVGLinearGradientElement | null>(null);
 
-	// One gradient per instance: the stroke references it by functional IRI, so a
-	// shared literal id would make every beam after the first paint the first
-	// beam's spring.
-	const gradientId = useFancyId("tracing-beam-gradient");
+	/** Content height, so the rail's fade and the lamp's clamp know the end. */
+	const [height, setHeight] = useState(0);
+	/** Marker offsets from the top of the content, in px. */
+	const [ticks, setTicks] = useState<number[]>([]);
+	/** One flag per marker: lit once the lamp has reached it. */
+	const [lit, setLit] = useState<boolean[]>([]);
+	const [ready, setReady] = useState(false);
 
-	// State that re-renders markup (circle classes/shadow, svg path, viewBox) —
-	// mirrors the Svelte component's $state driving template expressions.
-	const [svgHeight, setSvgHeight] = useState(0);
-	// The raw scroll progress is a fresh float on every scroll event and feeds
-	// nothing but the three circle expressions below, so only the threshold it
-	// crosses reaches React; the value itself stays in the ref.
-	const [beamStarted, setBeamStarted] = useState(false);
-
-	// Mutable animation state — per-frame spring values never round-trip through
-	// React state; the rAF loop writes the gradient's y1/y2 attributes directly.
+	/**
+	 * Mutable animation state. Where the lamp sits (`head`) is written straight
+	 * to the root as `--tb-progress` from the frame loop instead of through
+	 * state: a re-render per frame would rebuild the gutter to move one custom
+	 * property. State only changes when markup does (a marker lighting up).
+	 */
 	const stateRef = useRef({
-		svgHeight: 0,
-		scrollYProgress: 0,
-		scrollPercentage: 0,
-		springY1: 0,
-		springY2: 0,
-		springVelY1: 0,
-		springVelY2: 0,
+		head: 0,
+		target: 0,
+		velocity: 0,
 		rafId: 0,
+		lastTime: 0,
+		ticks: [] as number[],
+		lit: [] as boolean[],
 	});
 
-	useIsomorphicLayoutEffect(() => {
+	/** Re-derives the lit flags from the current lamp position; re-renders only on a change. */
+	const syncLit = useCallback(() => {
 		const s = stateRef.current;
-
-		function targetY1(): number {
-			return (
-				mapRange(s.scrollYProgress, 0, 0.8, s.scrollYProgress, s.svgHeight) *
-				(1.4 - s.scrollPercentage)
-			);
-		}
-
-		function targetY2(): number {
-			return (
-				mapRange(s.scrollYProgress, 0, 1, s.scrollYProgress, s.svgHeight - 500) *
-				(1.4 - s.scrollPercentage)
-			);
-		}
-
-		function applySpring() {
-			const gradient = gradientRef.current;
-			if (gradient) {
-				gradient.setAttribute("y1", String(s.springY1));
-				gradient.setAttribute("y2", String(s.springY2));
-			}
-		}
-
-		function updateSpring() {
-			const tension = 80;
-			const friction = 26;
-			const precision = 0.01;
-
-			const tY1 = targetY1();
-			const tY2 = targetY2();
-
-			const forceY1 = tension * (tY1 - s.springY1);
-			s.springVelY1 = (s.springVelY1 + forceY1 * 0.001) * (1 - friction * 0.001);
-			s.springY1 += s.springVelY1;
-
-			const forceY2 = tension * (tY2 - s.springY2);
-			s.springVelY2 = (s.springVelY2 + forceY2 * 0.001) * (1 - friction * 0.001);
-			s.springY2 += s.springVelY2;
-
-			applySpring();
-
-			const settled =
-				Math.abs(s.springVelY1) < precision &&
-				Math.abs(tY1 - s.springY1) < precision &&
-				Math.abs(s.springVelY2) < precision &&
-				Math.abs(tY2 - s.springY2) < precision;
-
-			if (!settled) {
-				s.rafId = requestAnimationFrame(updateSpring);
-			}
-		}
-
-		function updateScrollProgress() {
-			const el = tracingBeamRef.current;
-			if (!el) return;
-			const rect = el.getBoundingClientRect();
-			const windowHeight = window.innerHeight;
-			const elementHeight = rect.height;
-
-			s.scrollPercentage = (windowHeight - rect.top) / (windowHeight + elementHeight);
-			s.scrollYProgress = (rect.y / windowHeight) * -1;
-			setBeamStarted(s.scrollYProgress > 0);
-
-			cancelAnimationFrame(s.rafId);
-			s.rafId = requestAnimationFrame(updateSpring);
-		}
-
-		function updateSVGHeight() {
-			const el = contentRef.current;
-			if (!el) return;
-			s.svgHeight = el.offsetHeight;
-			setSvgHeight(s.svgHeight);
-		}
-
-		window.addEventListener("scroll", updateScrollProgress, { passive: true });
-		window.addEventListener("resize", updateScrollProgress, { passive: true });
-		updateScrollProgress();
-
-		const resizeObserver = new ResizeObserver(updateSVGHeight);
-		if (contentRef.current) {
-			resizeObserver.observe(contentRef.current);
-		}
-		updateSVGHeight();
-
-		return () => {
-			cancelAnimationFrame(s.rafId);
-			window.removeEventListener("scroll", updateScrollProgress);
-			window.removeEventListener("resize", updateScrollProgress);
-			resizeObserver.disconnect();
-		};
+		const next = s.ticks.map((offset) => isLit(offset, s.head));
+		if (sameFlags(next, s.lit)) return;
+		s.lit = next;
+		setLit(next);
 	}, []);
 
-	const circleHasShadow = !beamStarted;
-	const circleBg = beamStarted ? "bg-white" : "bg-emerald-500";
-	const circleBorder = beamStarted ? "border-neutral-300" : "border-emerald-600";
-	const svgPath = `M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`;
+	/** Writes the lamp's position to the root and lights the markers it has passed. */
+	const applyHead = useCallback(() => {
+		rootRef.current?.style.setProperty("--tb-progress", `${stateRef.current.head}px`);
+		syncLit();
+	}, [syncLit]);
+
+	/** Reads where the content sits and sends the lamp to the reading line. */
+	const place = useCallback(() => {
+		const content = contentRef.current;
+		if (!content) return;
+		const s = stateRef.current;
+		const rect = content.getBoundingClientRect();
+		const scale = localScale(content, rect);
+		const line = window.innerHeight * clamp(readingLine, 0, 1);
+		s.target = clamp((line - rect.top) / scale, 0, Math.max(0, rect.height / scale));
+		setReady(true);
+		if (reduced) {
+			cancelAnimationFrame(s.rafId);
+			s.rafId = 0;
+			s.velocity = 0;
+			s.head = s.target;
+			applyHead();
+			return;
+		}
+		if (!s.rafId) {
+			/** One spring step; schedules the next until the lamp has settled on `target`. */
+			const step = (time: number) => {
+				const dt = Math.min(MAX_DT, (time - s.lastTime) / 1000 || 0);
+				s.lastTime = time;
+				const force = TENSION * (s.target - s.head) - FRICTION * s.velocity;
+				s.velocity += force * dt;
+				s.head += s.velocity * dt;
+				if (Math.abs(s.velocity) < PRECISION && Math.abs(s.target - s.head) < PRECISION) {
+					s.head = s.target;
+					s.velocity = 0;
+					s.rafId = 0;
+					applyHead();
+					return;
+				}
+				applyHead();
+				s.rafId = requestAnimationFrame(step);
+			};
+			s.lastTime = performance.now();
+			s.rafId = requestAnimationFrame(step);
+		}
+	}, [readingLine, reduced, applyHead]);
+
+	/** Layout reads that only change on resize: content height and marker offsets. */
+	const measure = useCallback(() => {
+		const content = contentRef.current;
+		if (!content) return;
+		const s = stateRef.current;
+		const rect = content.getBoundingClientRect();
+		const scale = localScale(content, rect);
+		setHeight(rect.height / scale);
+		if (markers) {
+			const headings = content.querySelectorAll<HTMLElement>("h1, h2, h3, h4");
+			const anchors = headings.length ? [...headings] : [...content.children];
+			s.ticks = anchors
+				.filter((el): el is HTMLElement => el instanceof HTMLElement)
+				.map((el) => {
+					const box = el.getBoundingClientRect();
+					return (box.top + box.height / 2 - rect.top) / scale;
+				});
+		} else {
+			s.ticks = [];
+		}
+		setTicks(s.ticks);
+		syncLit();
+		place();
+	}, [markers, place, syncLit]);
+
+	// Layout effect: the first measurement is paint-visible geometry (rail
+	// height, lamp position, the lit markers). In a passive effect they would
+	// paint at 0 for a frame and then pop into place. `markers`, `readingLine`
+	// or the motion preference changing after mount re-runs it, which is the
+	// re-read of the layout the source schedules for those changes.
+	useIsomorphicLayoutEffect(() => {
+		const s = stateRef.current;
+		const onScroll = rafThrottle(place);
+		const onResize = rafThrottle(measure);
+
+		const resizeObserver = new ResizeObserver(() => onResize());
+		if (contentRef.current) resizeObserver.observe(contentRef.current);
+		window.addEventListener("scroll", onScroll, { passive: true });
+		window.addEventListener("resize", onResize, { passive: true });
+		measure();
+
+		return () => {
+			onScroll.cancel();
+			onResize.cancel();
+			cancelAnimationFrame(s.rafId);
+			s.rafId = 0;
+			resizeObserver.disconnect();
+			window.removeEventListener("scroll", onScroll);
+			window.removeEventListener("resize", onResize);
+		};
+	}, [place, measure]);
+
+	// `--tb-progress` is owned by the frame loop between renders; a render
+	// re-states the latest value so React never writes a stale one back over it.
+	const rootStyle = {
+		"--tracing-beam-accent": accent,
+		"--tb-progress": `${stateRef.current.head}px`,
+		"--tb-height": `${height}px`,
+	} as CSSProperties;
 
 	return (
 		<div
-			ref={tracingBeamRef}
-			className={cn("relative mx-auto h-full w-full max-w-4xl", className)}
+			ref={rootRef}
+			className={cn("tb-root relative mx-auto w-full max-w-4xl", className)}
+			style={rootStyle}
+			data-motion={reduced ? "reduced" : "full"}
+			data-tracing-beam=""
 		>
-			<div className="absolute top-3 -left-4 md:-left-12">
-				<div
-					className="ml-[27px] flex size-4 items-center justify-center rounded-full border border-neutral-200 shadow-sm"
-					style={{
-						boxShadow: circleHasShadow ? "rgba(0, 0, 0, 0.24) 0px 3px 8px" : "none",
-					}}
-				>
-					<div className={cn("size-2 rounded-full border", circleBg, circleBorder)}></div>
+			{/* Gutter: the rail, its markers and the lamp, all out of the content's way */}
+			<div className="tb-gutter" aria-hidden="true">
+				<div className="tb-rail">
+					<span className="tb-hair"></span>
+					<span className="tb-trail"></span>
 				</div>
-				<svg
-					viewBox={`0 0 20 ${svgHeight}`}
-					width="20"
-					height={svgHeight}
-					className="ml-4 block"
-					aria-hidden="true"
-				>
-					<path d={svgPath} fill="none" stroke="#9091A0" strokeOpacity="0.16"></path>
-					<path
-						d={svgPath}
-						fill="none"
-						stroke={`url(#${gradientId})`}
-						strokeWidth="1.25"
-						className="motion-reduce:hidden"
-					></path>
-					<defs>
-						<linearGradient
-							ref={gradientRef}
-							id={gradientId}
-							gradientUnits="userSpaceOnUse"
-							x1="0"
-							x2="0"
-							y1={0}
-							y2={0}
-						>
-							<stop stopColor="#18CCFC" stopOpacity="0"></stop>
-							<stop stopColor="#18CCFC"></stop>
-							<stop offset="0.325" stopColor="#6344F5"></stop>
-							<stop offset="1" stopColor="#AE48FF" stopOpacity="0"></stop>
-						</linearGradient>
-					</defs>
-				</svg>
+				{ticks.map((offset, index) => (
+					<span
+						key={index}
+						className="tb-tick"
+						style={{ top: `${offset}px` }}
+						data-tracing-beam-marker=""
+						data-lit={lit[index] ?? false}
+					></span>
+				))}
+				<div className="tb-head" data-tracing-beam-head="" data-ready={ready}>
+					<span className="tb-spill"></span>
+					<span className="tb-lamp"></span>
+				</div>
 			</div>
-			<div ref={contentRef}>{children}</div>
+
+			<div ref={contentRef} className="tb-content">
+				{children}
+			</div>
 		</div>
 	);
 }

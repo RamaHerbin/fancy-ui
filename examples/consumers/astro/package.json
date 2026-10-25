@@ -1,0 +1,22 @@
+{
+	"name": "fancy-ui-consumer-astro",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview"
+	},
+	"dependencies": {
+		"@astrojs/svelte": "9.1.1",
+		"astro": "7.4.2",
+		"fancy-ui-svelte": "file:.tarball/fancy-ui-svelte.tgz",
+		"svelte": "^5.43.6",
+		"typescript": "^5.9.0"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.3.3",
+		"tailwindcss": "^4.3.3"
+	}
+}

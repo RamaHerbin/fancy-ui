@@ -57,6 +57,11 @@ const STATIC_SOURCES = {
 		"src/routes/docs/getting-started/installation",
 		"src/lib/components/docs/InstallationPage.svelte",
 	],
+	"/docs/getting-started/copy-source": [
+		"src/routes/docs/getting-started/copy-source",
+		"src/lib/components/docs/CopySourcePage.svelte",
+		"src/lib/docs/copy-source-guide.ts",
+	],
 	"/docs/getting-started/theming": [
 		"src/routes/docs/getting-started/theming",
 		"src/lib/components/docs/ThemingPage.svelte",

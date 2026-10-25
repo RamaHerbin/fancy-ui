@@ -1,0 +1,11 @@
+---
+import Routed from "../../layouts/Routed.astro";
+import FluidIsland from "../../islands/FluidIsland.svelte";
+import RainbowCounter from "../../islands/RainbowCounter.svelte";
+---
+
+<Routed title="Router B">
+	<h1 class="text-2xl font-semibold" data-testid="page">Page B</h1>
+	<FluidIsland id="fluid-b" client:load />
+	<RainbowCounter id="persisted" client:load transition:persist="persisted">Persisted</RainbowCounter>
+</Routed>

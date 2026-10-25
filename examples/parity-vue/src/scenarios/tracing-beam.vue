@@ -5,7 +5,7 @@ import { TracingBeam } from "fancy-ui-vue";
 
 <template>
 	<TracingBeam>
-		<div class="max-w-2xl space-y-16 pl-8">
+		<div class="max-w-2xl space-y-16">
 			<div>
 				<span class="mb-2 block text-xs font-semibold tracking-wider text-emerald-500 uppercase"
 					>v0.1</span

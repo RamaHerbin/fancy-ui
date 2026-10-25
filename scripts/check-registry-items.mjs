@@ -36,9 +36,14 @@
  *   - `dependencies` names a package the stack's package.json does not
  *     depend on (`react/package.json` / the root `package.json` /
  *     `vue/package.json`);
- *   - the item count is not the stack's (React 157 = 151 components + 6
- *     shared modules; Svelte 154 = 151 components + 3 shared modules; Vue 156
- *     = 151 components + 5 shared modules), or (Svelte, Vue) the total file
+ *   - an item's code imports one of fancy-ui's own npm packages
+ *     (`fancy-ui-svelte`, `-react`, `-vue`, `-cameleon`, `-nuxt`): a copy
+ *     must not depend on the package it replaces;
+ *   - an item lacks `author`, or its `meta` does not say MIT, the stack's
+ *     package name and that package's current version;
+ *   - the item count is not the stack's (React 160 = 154 components + 6
+ *     shared modules; Svelte 157 = 154 components + 3 shared modules; Vue 159
+ *     = 154 components + 5 shared modules), or (Svelte, Vue) the total file
  *     count drifts from the pinned one.
  *
  * Usage:
@@ -78,8 +83,8 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
-/** Vue files over all 156 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 511;
+/** Vue files over all 160 items; the generator's real-tree test reports the same. */
+const VUE_EXPECTED_FILES = 533;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
@@ -93,7 +98,7 @@ const STACKS = {
 		id: "react",
 		dir: PAGES_R,
 		urlPath: "/r",
-		expectedCount: 157,
+		expectedCount: 161,
 		targetPrefix: "@ui/fancy/",
 		pathPrefix: "react/src/",
 		excluded: EXCLUDED,
@@ -108,9 +113,9 @@ const STACKS = {
 		id: "svelte",
 		dir: join(PAGES_R, "svelte"),
 		urlPath: "/r/svelte",
-		expectedCount: 154,
+		expectedCount: 158,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 482,
+		expectedFiles: 504,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
@@ -127,7 +132,7 @@ const STACKS = {
 		id: "vue",
 		dir: join(PAGES_R, "vue"),
 		urlPath: "/r/vue",
-		expectedCount: 156,
+		expectedCount: 160,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
 		expectedFiles: VUE_EXPECTED_FILES,
 		/** No `target`: the Vue CLI places a file from its `path` (see the header). */
@@ -149,6 +154,9 @@ const STACKS = {
 };
 
 const SITE_ONLY = [/src\/lib\/server/, /src\/lib\/builder/];
+
+/** fancy-ui's own npm packages; same rule as OWN_PACKAGE in src/lib/server/registry/exclusions.ts. */
+const OWN_PACKAGE = /^fancy-ui-(svelte|react|vue|cameleon|nuxt)(\/|$)/;
 
 // --- configuration read from the repo ----------------------------------------
 
@@ -195,6 +203,12 @@ function creditUrls() {
 function packageName(entry) {
 	const at = entry.indexOf("@", 1);
 	return at === -1 ? entry : entry.slice(0, at);
+}
+
+/** What every item's `meta` must say: licence, package name and version of the stack's package.json. */
+function packageProvenance(stack) {
+	const pkg = JSON.parse(read(join(repoRoot, ...stack.packageJson)));
+	return { license: "MIT", package: pkg.name, version: pkg.version };
 }
 
 function packageDependencies(stack) {
@@ -385,6 +399,17 @@ export function findProblems(snap) {
 		if (!Array.isArray(item.files) || item.files.length === 0) {
 			problems.push(`${where}: no files`);
 		}
+		if (snap.provenance) {
+			if (typeof item.author !== "string" || !item.author)
+				problems.push(`${where}: missing author`);
+			for (const [key, value] of Object.entries(snap.provenance)) {
+				if (item.meta?.[key] !== value) {
+					problems.push(
+						`${where}: meta.${key} is ${JSON.stringify(item.meta?.[key])}, expected ${JSON.stringify(value)}`
+					);
+				}
+			}
+		}
 		for (const file of item.files ?? []) {
 			const fields = TARGET_PREFIX
 				? ["path", "content", "type", "target"]
@@ -422,6 +447,14 @@ export function findProblems(snap) {
 				problems.push(`${where}: excluded file shipped: ${file.path}`);
 			}
 			const content = typeof file.content === "string" ? file.content : "";
+			const cssImports = [...content.matchAll(/@import\s+(?:url\(\s*)?["']([^"']+)["']/g)].map(
+				(m) => m[1]
+			);
+			for (const spec of [...allSpecifiers(content), ...cssImports]) {
+				if (OWN_PACKAGE.test(spec)) {
+					problems.push(`${where}: ${file.path} imports the npm package ${spec}`);
+				}
+			}
 			for (const re of SITE_ONLY) {
 				if (re.test(content)) problems.push(`${where}: ${file.path} mentions ${re.source}`);
 			}
@@ -682,9 +715,57 @@ function reactCases() {
 			stack: STACKS.react,
 		};
 	};
+	/** Require provenance and stamp it on items and index entries alike. */
+	const stamp = (s) => {
+		s.provenance = { license: "MIT", package: "fancy-ui-react", version: "1.0.0" };
+		for (const target of [...Object.values(s.items), ...s.index.items]) {
+			target.author = "fancy-ui <https://example.test>";
+			target.meta = { ...s.provenance };
+		}
+	};
 	/** Each case mutates a good snapshot and names a fragment the problem must contain. */
 	const bad = [
 		["clean fixture passes", () => {}, null],
+		[
+			"npm self-import",
+			(s) => (s.items.button.files[1].content = 'import { Button } from "fancy-ui-react";\n'),
+			"imports the npm package fancy-ui-react",
+		],
+		[
+			"npm self-import (subpath, dynamic)",
+			(s) => (s.items.button.files[1].content = 'const m = import("fancy-ui-cameleon/skins");\n'),
+			"imports the npm package fancy-ui-cameleon/skins",
+		],
+		[
+			"npm self-import (CSS @import)",
+			(s) => (s.items.button.files[2].content = '@import "fancy-ui-react/styles.css";\n.b{}\n'),
+			"imports the npm package fancy-ui-react/styles.css",
+		],
+		["provenance: clean when stamped", (s) => stamp(s), null],
+		[
+			"provenance: licence missing",
+			(s) => {
+				stamp(s);
+				delete s.items.button.meta.license;
+			},
+			"button.json: meta.license",
+		],
+		[
+			"provenance: stale version",
+			(s) => {
+				stamp(s);
+				s.items.utils.meta.version = "0.0.1";
+			},
+			"utils.json: meta.version",
+		],
+		[
+			"provenance: missing author",
+			(s) => {
+				stamp(s);
+				delete s.items.button.author;
+			},
+			"button.json: missing author",
+		],
 		["file on disk missing from index", (s) => s.index.items.pop(), "file, not in index"],
 		["index entry with no file on disk", (s) => delete s.items.button, "button: in index, no file"],
 		["duplicate index names", (s) => s.index.items.push(s.index.items[0]), "duplicate item names"],
@@ -1198,6 +1279,7 @@ function main() {
 		deps: packageDependencies(stack),
 		allDeps: packageAllDependencies(stack),
 		expectedCount: stack.expectedCount,
+		provenance: packageProvenance(stack),
 		stack,
 	});
 	if (problems.length) {
