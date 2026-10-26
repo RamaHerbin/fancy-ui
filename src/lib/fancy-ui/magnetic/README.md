@@ -173,3 +173,7 @@ would outside one.
   `translate(0px, 0px)` is still a transform, so this is constant in that
   media state, not intermittent. Render a fixed-position overlay (tooltip,
   dropdown) in a portal outside the wrapper rather than inside it.
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.

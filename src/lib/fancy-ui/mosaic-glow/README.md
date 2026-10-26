@@ -75,3 +75,7 @@ mosaic keeps animating.
 - Changing `tileSize`, `gap`, `seed`, `noise` or `ambient` rebuilds the grid and resets the trail.
 - The host is `overflow-hidden`; popovers inside it will be clipped.
 - On touch devices the halo follows while a finger is down and then fades; the idle drift takes over after 1.5 s.
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.

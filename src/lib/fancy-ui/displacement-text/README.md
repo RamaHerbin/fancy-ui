@@ -46,3 +46,7 @@ Large text rendered as a Three.js plane whose surface bulges toward the viewer n
 - When `color` is not set, a `MutationObserver` watches `document.documentElement`'s `class` attribute (the app's dark-mode toggle) and regenerates the text texture — or recolors the static text — whenever the resolved color actually changes. No observer runs while `color` is set.
 - Cleanup on unmount: removes the media-query, `pointermove`, `resize` and context-loss listeners, cancels the animation frame, disconnects the observers, removes the renderer's canvas from the DOM, and disposes the renderer, geometry, material, and texture.
 - The container carries `role="img"` and `aria-label={text}` so the headline is exposed to assistive technology in both modes; the appended `<canvas>` itself stays decorative.
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.
