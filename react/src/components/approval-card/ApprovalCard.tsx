@@ -47,7 +47,7 @@ export interface ApprovalCardProps {
 	onApprove?: (state: ApprovalState) => void;
 	/** Called when deny is pressed, with the decision (always `"denied"`). See `onApprove`. */
 	onDeny?: (state: ApprovalState) => void;
-	/** The consumer is executing the decision: both buttons go disabled and the card is `aria-busy`. */
+	/** The consumer is executing the decision: both buttons stay focusable but ignore presses, and the card and buttons are `aria-busy`. */
 	busy?: boolean;
 	/** The detail region between the header and the footer — a diff, a command preview. */
 	children?: ReactNode;
@@ -193,18 +193,21 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 			)}
 
 			{/*
-				One footer element, mounted from the first render, so the live
-				region exists before the decision lands in it — a region that
+				The live region is a static sibling mounted from the first render,
+				so it exists before the decision lands in it — a region that
 				appears at the same moment as its own text is routinely missed by
-				screen readers.
+				screen readers. The footer itself swaps its children and is not live.
 			*/}
-			<div className="ft-approval-foot mt-3" aria-live="polite">
+			<p role="status" className="sr-only">
+				{isPending ? "" : resolvedLabel}
+			</p>
+			<div className="ft-approval-foot mt-3">
 				{isPending ? (
 					<div className="ft-approval-actions flex flex-wrap items-center justify-end gap-2">
 						<button
 							type="button"
-							className="ft-approval-deny text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60"
-							disabled={busy}
+							className="ft-approval-deny text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors aria-busy:cursor-progress aria-busy:opacity-60"
+							aria-busy={busy ? "true" : undefined}
 							onClick={() => decide("denied")}
 						>
 							{denyLabel}
@@ -212,10 +215,10 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 						<button
 							type="button"
 							className={cn(
-								"ft-approval-approve bg-foreground text-background hover:bg-foreground/90 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60",
+								"ft-approval-approve bg-foreground text-background hover:bg-foreground/90 rounded-md px-3 py-1.5 text-xs font-medium transition-colors aria-busy:cursor-progress aria-busy:opacity-60",
 								destructive && "ft-destructive"
 							)}
-							disabled={busy}
+							aria-busy={busy ? "true" : undefined}
 							onClick={() => decide("approved")}
 						>
 							{approveLabel}

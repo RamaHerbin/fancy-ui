@@ -24,7 +24,7 @@
 		onApprove?: () => void;
 		/** Called when deny is pressed, after `state` has been written. */
 		onDeny?: () => void;
-		/** The consumer is executing the decision: both buttons go disabled and the card is `aria-busy`. */
+		/** The consumer is executing the decision: both buttons stay focusable but ignore presses, and the card and buttons are `aria-busy`. */
 		busy?: boolean;
 		/** The detail region between the header and the footer — a diff, a command preview. */
 		children?: Snippet;
@@ -146,26 +146,28 @@
 	{/if}
 
 	<!--
-		One footer element, mounted from the first render, so the live region exists
+		The live region is a static sibling mounted from the first render, so it exists
 		before the decision lands in it — a region that appears at the same moment as
-		its own text is routinely missed by screen readers.
+		its own text is routinely missed by screen readers. The footer itself swaps
+		its children and is not live.
 	-->
-	<div class="ft-approval-foot mt-3" aria-live="polite">
+	<p role="status" class="sr-only">{isPending ? "" : resolvedLabel}</p>
+	<div class="ft-approval-foot mt-3">
 		{#if isPending}
 			<div class="ft-approval-actions flex flex-wrap items-center justify-end gap-2">
 				<button
 					type="button"
-					class="ft-approval-deny text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60"
-					disabled={busy}
+					class="ft-approval-deny text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors aria-busy:cursor-progress aria-busy:opacity-60"
+					aria-busy={busy ? "true" : undefined}
 					onclick={() => decide("denied")}
 				>
 					{denyLabel}
 				</button>
 				<button
 					type="button"
-					class="ft-approval-approve bg-foreground text-background hover:bg-foreground/90 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60"
+					class="ft-approval-approve bg-foreground text-background hover:bg-foreground/90 rounded-md px-3 py-1.5 text-xs font-medium transition-colors aria-busy:cursor-progress aria-busy:opacity-60"
 					class:ft-destructive={destructive}
-					disabled={busy}
+					aria-busy={busy ? "true" : undefined}
 					onclick={() => decide("approved")}
 				>
 					{approveLabel}
