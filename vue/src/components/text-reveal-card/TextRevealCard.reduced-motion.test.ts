@@ -54,7 +54,7 @@ function stubReduce(): void {
 	});
 }
 
-function layers(container: HTMLElement): HTMLElement[] {
+function layers(container: Element): HTMLElement[] {
 	return [
 		container.querySelector(".z-20") as HTMLElement,
 		container.querySelector(".z-50") as HTMLElement,
