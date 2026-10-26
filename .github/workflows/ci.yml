@@ -67,6 +67,8 @@ jobs:
       - run: pnpm check:cores
       # Each package's Tailwind entry compiles to real colour rules and default tokens.
       - run: pnpm check:tailwind
+      # Motion literals match tokens.ts: var(--ft-*) fallbacks exactly, bare and off-token counts never above their pins.
+      - run: pnpm check:motion-tokens
       # The component count the READMEs and package.json state matches the registry.
       - run: pnpm check:readme-count
       - run: pnpm check
