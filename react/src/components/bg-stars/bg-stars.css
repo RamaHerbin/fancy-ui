@@ -17,7 +17,13 @@
 	left: 0;
 	width: 100%;
 	height: 2000px;
-	animation: scroll-stars var(--duration, 50s) linear infinite;
+}
+
+/* Ungated = resting state: a still star field. Only the drift is motion. */
+@media (prefers-reduced-motion: no-preference) {
+	.fancy-bg-stars .star-layer {
+		animation: scroll-stars var(--duration, 50s) linear infinite;
+	}
 }
 
 .fancy-bg-stars .star-field {
