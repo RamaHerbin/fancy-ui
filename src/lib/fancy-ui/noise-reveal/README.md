@@ -40,6 +40,10 @@ A WebGL image reveal driven by a Perlin-noise dissolve mask, a radial gradient t
 | `delay`    | `number`             | `0`      | Delay before reveal in seconds — only applies to `trigger="view"`      |
 | `class`    | `string`             | `""`     | Additional CSS classes on the root                                     |
 
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the reveal still changes state, but it jumps straight to the new value with no tween and the grain holds still. The preference is read live, so toggling it takes effect without a remount.
+
 ## Implementation notes
 
 - The dissolve mask is computed entirely in the fragment shader: a domain-warped Perlin noise (`cnoise`, classic 3D Perlin noise) combined with a radial gradient anchored at the image center that contracts as `uProgress` goes from 0 to 1, clamped and inverted into an alpha value — there's no CPU-side mask texture.
