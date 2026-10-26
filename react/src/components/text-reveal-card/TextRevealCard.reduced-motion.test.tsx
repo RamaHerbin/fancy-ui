@@ -7,9 +7,23 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { TextRevealCard } from "./TextRevealCard.js";
+
+/** jsdom ships no PointerEvent: a mouse event of the pointer type carries `pointerType`.
+    React derives enter/leave from over/out, so those are the types dispatched. */
+function firePointer(
+	el: Element,
+	type: string,
+	init: { clientX?: number; pointerType?: string } = {}
+) {
+	const event = new MouseEvent(type, { bubbles: true, clientX: init.clientX });
+	Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
+	act(() => {
+		el.dispatchEvent(event);
+	});
+}
 
 const SRC = resolve(__dirname, "./text-reveal-card.css");
 
@@ -77,12 +91,12 @@ describe("TextRevealCard reduced motion", () => {
 			expect(el.style.transition).toBe("");
 			expect(el.classList.contains("text-reveal-settle")).toBe(true);
 		}
-		fireEvent.mouseEnter(card);
+		firePointer(card, "pointerover");
 		for (const el of layers(container)) {
 			expect(el.style.transition).toBe("");
 			expect(el.classList.contains("text-reveal-settle")).toBe(false);
 		}
-		fireEvent.mouseLeave(card);
+		firePointer(card, "pointerout");
 		for (const el of layers(container)) {
 			expect(el.style.transition).toBe("");
 			expect(el.classList.contains("text-reveal-settle")).toBe(true);

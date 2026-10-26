@@ -1,6 +1,21 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
+import { nextTick } from "vue";
 import { afterEach, describe, it, expect } from "vitest";
 import TextRevealCard from "./TextRevealCard.vue";
+
+/** jsdom ships no PointerEvent: a mouse event of the pointer type carries `pointerType`. */
+function firePointer(
+	el: Element,
+	type: string,
+	init: { clientX?: number; pointerType?: string } = {}
+) {
+	const event = new MouseEvent(type, {
+		bubbles: !/enter|leave/.test(type),
+		clientX: init.clientX,
+	});
+	Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
+	el.dispatchEvent(event);
+}
 
 describe("TextRevealCard", () => {
 	afterEach(cleanup);
@@ -47,6 +62,23 @@ describe("TextRevealCard", () => {
 		Object.assign(ev, { touches: [{ clientX: 10, clientY: 10 }] });
 		card.dispatchEvent(ev);
 		expect(ev.defaultPrevented).toBe(false);
+	});
+
+	it("a touch pointer does not scrub, a mouse pointer does", async () => {
+		const { container } = render(TextRevealCard);
+		const card = container.firstElementChild as HTMLElement;
+		const layer = container.querySelector(".z-20") as HTMLElement;
+		card.getBoundingClientRect = () => ({ left: 0, width: 200 }) as DOMRect;
+		firePointer(card, "pointerenter", { pointerType: "touch" });
+		firePointer(card, "pointermove", { clientX: 100, pointerType: "touch" });
+		await nextTick();
+		expect(layer.style.opacity).toBe("0");
+		expect(layer.classList.contains("text-reveal-settle")).toBe(true);
+		firePointer(card, "pointerenter", { pointerType: "mouse" });
+		firePointer(card, "pointermove", { clientX: 100, pointerType: "mouse" });
+		await nextTick();
+		expect(layer.style.opacity).toBe("1");
+		expect(layer.style.clipPath).toBe("inset(0 50% 0 0)");
 	});
 
 	describe("keyboard path", () => {

@@ -4,7 +4,7 @@ import {
 	useState,
 	type FocusEvent,
 	type KeyboardEvent,
-	type MouseEvent,
+	type PointerEvent,
 	type ReactNode,
 } from "react";
 import { cn } from "../../utils.js";
@@ -49,7 +49,9 @@ export function TextRevealCard({
 
 	const rotateDeg = (widthPercentage - 50) * 0.1;
 
-	function mouseMoveHandler(event: MouseEvent) {
+	// Hover scrub is for a mouse or pen: a touch pointer is the touch handlers' job.
+	function pointerMoveHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
 		event.preventDefault();
 		const card = cardRef.current;
 		if (card) {
@@ -99,6 +101,16 @@ export function TextRevealCard({
 		setIsMouseOver(true);
 	}
 
+	function pointerEnterHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
+		mouseEnterHandler();
+	}
+
+	function pointerLeaveHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
+		mouseLeaveHandler();
+	}
+
 	// touchmove is attached natively and passive: the card only tracks the
 	// finger, it never cancels the gesture, so the page keeps scrolling
 	// vertically (`touch-pan-y`).
@@ -126,9 +138,9 @@ export function TextRevealCard({
 			onFocus={focusInHandler}
 			onBlur={focusOutHandler}
 			onKeyDown={keyDownHandler}
-			onMouseEnter={mouseEnterHandler}
-			onMouseLeave={mouseLeaveHandler}
-			onMouseMove={mouseMoveHandler}
+			onPointerEnter={pointerEnterHandler}
+			onPointerLeave={pointerLeaveHandler}
+			onPointerMove={pointerMoveHandler}
 			onTouchStart={mouseEnterHandler}
 			onTouchEnd={mouseLeaveHandler}
 		>

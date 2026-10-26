@@ -28,7 +28,9 @@
 
 	let rotateDeg = $derived((widthPercentage - 50) * 0.1);
 
-	function mouseMoveHandler(event: MouseEvent) {
+	// Hover scrub is for a mouse or pen: a touch pointer is the touch handlers' job.
+	function pointerMoveHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
 		event.preventDefault();
 		if (cardRef) {
 			const rect = cardRef.getBoundingClientRect();
@@ -74,6 +76,16 @@
 		isMouseOver = true;
 	}
 
+	function pointerEnterHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
+		mouseEnterHandler();
+	}
+
+	function pointerLeaveHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
+		mouseLeaveHandler();
+	}
+
 	function touchMoveHandler(event: TouchEvent) {
 		if (cardRef) {
 			const rect = cardRef.getBoundingClientRect();
@@ -96,9 +108,9 @@
 	onfocusin={focusInHandler}
 	onfocusout={focusOutHandler}
 	onkeydown={keyDownHandler}
-	onmouseenter={mouseEnterHandler}
-	onmouseleave={mouseLeaveHandler}
-	onmousemove={mouseMoveHandler}
+	onpointerenter={pointerEnterHandler}
+	onpointerleave={pointerLeaveHandler}
+	onpointermove={pointerMoveHandler}
 	ontouchstart={mouseEnterHandler}
 	ontouchend={mouseLeaveHandler}
 	ontouchmove={touchMoveHandler}

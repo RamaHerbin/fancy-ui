@@ -2,6 +2,20 @@ import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { TextRevealCard } from "./TextRevealCard.js";
 
+/** jsdom ships no PointerEvent: a mouse event of the pointer type carries `pointerType`.
+    React derives enter/leave from over/out, so those are the types dispatched. */
+function firePointer(
+	el: Element,
+	type: string,
+	init: { clientX?: number; pointerType?: string } = {}
+) {
+	const event = new MouseEvent(type, { bubbles: true, clientX: init.clientX });
+	Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
+	act(() => {
+		el.dispatchEvent(event);
+	});
+}
+
 /* Counts cn() evaluations so a pointer scrub can be asserted to re-render the card
    alone, never the star field behind it. */
 const cnCalls = vi.hoisted(() => ({ count: 0 }));
@@ -54,7 +68,7 @@ describe("TextRevealCard", () => {
 
 		cnCalls.count = 0;
 		for (const clientX of [20, 40, 60, 80, 100]) {
-			fireEvent.mouseMove(card, { clientX });
+			firePointer(card, "pointermove", { clientX });
 		}
 		const revealLayer = container.querySelector(".z-20") as HTMLElement;
 		expect(revealLayer.style.clipPath).toBe("inset(0 50% 0 0)");
@@ -77,6 +91,21 @@ describe("TextRevealCard", () => {
 		Object.assign(ev, { touches: [{ clientX: 10, clientY: 10 }] });
 		card.dispatchEvent(ev);
 		expect(ev.defaultPrevented).toBe(false);
+	});
+
+	it("a touch pointer does not scrub, a mouse pointer does", () => {
+		const { container } = render(<TextRevealCard />);
+		const card = container.firstElementChild as HTMLElement;
+		const layer = container.querySelector(".z-20") as HTMLElement;
+		card.getBoundingClientRect = () => ({ left: 0, width: 200 }) as DOMRect;
+		firePointer(card, "pointerover", { pointerType: "touch" });
+		firePointer(card, "pointermove", { clientX: 100, pointerType: "touch" });
+		expect(layer.style.opacity).toBe("0");
+		expect(layer.classList.contains("text-reveal-settle")).toBe(true);
+		firePointer(card, "pointerover", { pointerType: "mouse" });
+		firePointer(card, "pointermove", { clientX: 100, pointerType: "mouse" });
+		expect(layer.style.opacity).toBe("1");
+		expect(layer.style.clipPath).toBe("inset(0 50% 0 0)");
 	});
 
 	describe("keyboard path", () => {
