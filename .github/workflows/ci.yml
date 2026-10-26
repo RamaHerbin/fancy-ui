@@ -82,6 +82,8 @@ jobs:
       - run: pnpm build
       # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
       - run: pnpm check:registry-items
+      # Every done registry slug has a React and a Vue parity scenario, or a reasoned entry in scripts/parity/scenario-skips.json.
+      - run: pnpm check:parity-scenarios
       - run: pnpm package
       # No raw bundler environment read survives into the packaged output: a
       # consumer's bundler may not define it, and the read then throws or
