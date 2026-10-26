@@ -46,8 +46,15 @@
 		mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 95%);
 	}
 
-	.logo-cloud-scroll {
-		animation: logo-cloud-scroll 30s linear infinite;
+	/* Resting state: the logos sit still; the scroll only runs without a reduce preference. */
+	@media (prefers-reduced-motion: no-preference) {
+		.logo-cloud-scroll {
+			animation: logo-cloud-scroll 30s linear infinite;
+		}
+
+		.logo-cloud-mask:focus-within .logo-cloud-scroll {
+			animation-play-state: paused;
+		}
 	}
 
 	@keyframes logo-cloud-scroll {

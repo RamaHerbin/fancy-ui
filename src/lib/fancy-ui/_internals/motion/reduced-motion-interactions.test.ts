@@ -172,6 +172,8 @@ interface Rule {
 
 function flattenRules(block: Block, media: string[] = [], out: Rule[] = []): Rule[] {
 	for (const child of block.children) {
+		// A keyframe body is a list of stops (`0%`, `to`), not rules: skip it whole.
+		if (/^@(-\w+-)?keyframes/.test(child.prelude)) continue;
 		if (child.prelude.startsWith("@media")) flattenRules(child, [...media, child.prelude], out);
 		else if (child.prelude.startsWith("@")) flattenRules(child, media, out);
 		else {
@@ -195,11 +197,41 @@ function colourOnly(value: string): boolean {
 		.every((p) => COLOUR_PROP.test(p));
 }
 
+const REDUCE = /prefers-reduced-motion:\s*reduce/;
+
+/**
+ * Selectors that a `reduce` rule takes out of motion: `animation: none`, a swap to
+ * a calmer keyframe (`animation-name`), or the element removed (`display: none`).
+ * An ungated animation on such a selector is the second accepted shape of the
+ * contract, next to wrapping the declaration in `no-preference`.
+ */
+function reduceNeutralised(rules: Rule[]): Set<string> {
+	const out = new Set<string>();
+	for (const r of rules) {
+		if (!r.media.some((m) => REDUCE.test(m))) continue;
+		if (
+			r.decls.some(
+				([p, v]) =>
+					(p === "animation" && /^none\b/.test(v)) ||
+					p === "animation-name" ||
+					(p === "display" && v === "none")
+			)
+		)
+			for (const part of r.selector.split(",")) out.add(part.trim());
+	}
+	return out;
+}
+
 /** Declarations that animate something other than colour, outside no-preference. */
 function ungatedMotionDecls(rules: Rule[]): string[] {
 	const out: string[] = [];
+	const neutralised = reduceNeutralised(rules);
 	for (const r of rules) {
 		if (gated(r)) continue;
+		// The rules inside a `reduce` block are checked by `reduceReEnables`.
+		const underReduce = r.media.some((m) => REDUCE.test(m));
+		const animationOk =
+			underReduce || r.selector.split(",").every((part) => neutralised.has(part.trim()));
 		// A bare duration/delay with no property of its own transitions `all`.
 		const hasProp = r.decls.some(([p]) => p === "transition-property" || p === "transition");
 		for (const [prop, value] of r.decls) {
@@ -208,6 +240,15 @@ function ungatedMotionDecls(rules: Rule[]): string[] {
 				!hasProp &&
 				!/^0(m?s)?$/.test(value)
 			)
+				out.push(`${r.selector} { ${prop}: ${value} }`);
+			// A running animation is motion; `none` / a zero duration is not.
+			if (
+				!animationOk &&
+				(prop === "animation" || prop === "animation-name") &&
+				!/^(none|initial|unset)\b/.test(value)
+			)
+				out.push(`${r.selector} { ${prop}: ${value} }`);
+			if (!animationOk && prop === "animation-duration" && !/^0(m?s)?$/.test(value))
 				out.push(`${r.selector} { ${prop}: ${value} }`);
 			if (prop === "transition-property" && !colourOnly(value))
 				out.push(`${r.selector} { ${prop}: ${value} }`);
@@ -316,6 +357,26 @@ describe("reduced motion snap: compiled Tailwind never leaves an ungated duratio
 // ---------------------------------------------------------------------------
 
 const CSS_SOURCES: Record<string, string[]> = {
+	"logo-cloud": [
+		"src/lib/fancy-ui/logo-cloud/AnimatedLogoCloud.svelte",
+		"vue/src/components/logo-cloud/AnimatedLogoCloud.vue",
+		"react/src/components/logo-cloud/logo-cloud.css",
+	],
+	compare: [
+		"src/lib/fancy-ui/compare/StarField.svelte",
+		"vue/src/components/compare/StarField.vue",
+		"react/src/components/compare/star-field.css",
+	],
+	ripple: [
+		"src/lib/fancy-ui/ripple/Ripple.svelte",
+		"vue/src/components/ripple/Ripple.vue",
+		"react/src/components/ripple/ripple.css",
+	],
+	"text-reveal-card": [
+		"src/lib/fancy-ui/text-reveal-card/TextRevealStars.svelte",
+		"vue/src/components/text-reveal-card/TextRevealStars.vue",
+		"react/src/components/text-reveal-card/text-reveal-stars.css",
+	],
 	focus: [
 		"src/lib/fancy-ui/focus/Focus.svelte",
 		"vue/src/components/focus/Focus.vue",
@@ -356,7 +417,11 @@ function reduceReEnables(rules: Rule[]): string[] {
 		.filter((r) =>
 			r.decls.some(
 				([p, v]) =>
-					(p === "transition-duration" || p === "transition-delay" || p === "transition") &&
+					(p === "transition-duration" ||
+						p === "transition-delay" ||
+						p === "transition" ||
+						p === "animation" ||
+						p === "animation-duration") &&
 					!/^(none|0s)$/.test(v)
 			)
 		)
@@ -389,6 +454,18 @@ describe("reduced motion snap: component CSS only transitions under no-preferenc
 			"@media screen {"
 		);
 		expect(ungatedMotionDecls(flattenRules(parseCss(unwrapped))).length).toBeGreaterThan(0);
+	});
+
+	it("control: an ungated animation is flagged, a gated one is not, keyframes are skipped", () => {
+		const keyframes = "@keyframes y { 0% { opacity: 0; } 100% { opacity: 1; } }";
+		const bare = `.x { animation: y 1s infinite } ${keyframes}`;
+		expect(ungatedMotionDecls(flattenRules(parseCss(bare))).length).toBe(1);
+		const gatedCss = `@media (prefers-reduced-motion: no-preference) { .x { animation: y 1s infinite } } ${keyframes}`;
+		expect(ungatedMotionDecls(flattenRules(parseCss(gatedCss)))).toEqual([]);
+		const named = ".x { animation-name: y; animation-duration: 2s }";
+		expect(ungatedMotionDecls(flattenRules(parseCss(named))).length).toBe(2);
+		const reEnabled = "@media (prefers-reduced-motion: reduce) { .x { animation: y 1s infinite } }";
+		expect(reduceReEnables(flattenRules(parseCss(reEnabled)))).toEqual([".x"]);
 	});
 
 	it("control: the checker flags a document-wide transition re-enabled under reduce", () => {

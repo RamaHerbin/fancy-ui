@@ -58,7 +58,10 @@
 		}
 	}
 
-	.animate-ripple-circle {
-		animation: ripple-effect 2s ease-in-out infinite;
+	/* Resting state: concentric rings stay at full size; only the pulse is gated. */
+	@media (prefers-reduced-motion: no-preference) {
+		.animate-ripple-circle {
+			animation: ripple-effect 2s ease-in-out infinite;
+		}
 	}
 </style>

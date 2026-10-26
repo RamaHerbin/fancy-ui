@@ -45,7 +45,12 @@ const circles = computed(() =>
 		<div
 			v-for="(circle, i) in circles"
 			:key="i"
-			:class="cn('animate-ripple-circle absolute rounded-full shadow-xl motion-reduce:animate-none', circleClass)"
+			:class="
+				cn(
+					'animate-ripple-circle absolute rounded-full shadow-xl motion-reduce:animate-none',
+					circleClass
+				)
+			"
 			:style="`width: ${circle.size}px; height: ${circle.size}px; opacity: ${circle.opacity}; animation-delay: ${circle.delay}ms; border-style: ${circle.borderStyle}; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); border-width: 1px;`"
 		></div>
 	</div>
@@ -64,7 +69,10 @@ const circles = computed(() =>
 </style>
 
 <style scoped>
-.animate-ripple-circle {
-	animation: ripple-effect 2s ease-in-out infinite;
+/* Resting state: concentric rings stay at full size; only the pulse is gated. */
+@media (prefers-reduced-motion: no-preference) {
+	.animate-ripple-circle {
+		animation: ripple-effect 2s ease-in-out infinite;
+	}
 }
 </style>
