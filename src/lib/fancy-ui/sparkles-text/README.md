@@ -17,3 +17,7 @@ Text with animated sparkle star overlay. SVG stars animate with fade/scale/rotat
 <SparklesText text="Sparkle!" />
 <SparklesText text="Golden" colors={{ first: '#FFD700', second: '#FFA500' }} />
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the sparkles stop pulsing and stop regenerating: each star is held still at its mid-twinkle pose, so the text keeps its sparkles without the movement. The preference is read live, so the twinkle resumes if it changes back.
