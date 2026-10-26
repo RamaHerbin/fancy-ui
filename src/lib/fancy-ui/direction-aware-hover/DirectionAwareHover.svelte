@@ -193,15 +193,12 @@
 	});
 
 	let imageContainerClass = $derived(
-		cn(
-			"relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black",
-			{
-				"translate-y-2 md:translate-y-5": direction === "top",
-				"-translate-y-2 md:-translate-y-5": direction === "bottom",
-				"translate-x-2 md:translate-x-5": direction === "left",
-				"-translate-x-2 md:-translate-x-5": direction === "right",
-			}
-		)
+		cn("relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black", {
+			"translate-y-2 md:translate-y-5": direction === "top",
+			"-translate-y-2 md:-translate-y-5": direction === "bottom",
+			"translate-x-2 md:translate-x-5": direction === "left",
+			"-translate-x-2 md:-translate-x-5": direction === "right",
+		})
 	);
 
 	onMount(() => {
@@ -233,10 +230,7 @@
 >
 	<div class="relative size-full overflow-hidden">
 		{#if direction !== null}
-			<div
-				class={overlayClass}
-				transition:fade={{ duration: reducedMotion.current ? 0 : 300 }}
-			></div>
+			<div class={overlayClass} transition:fade={{ duration: reducedMotion.current ? 0 : 300 }}></div>
 		{/if}
 
 		<div class={imageContainerClass}>
@@ -261,4 +255,5 @@
 			min-width: 44px;
 		}
 	}
+
 </style>

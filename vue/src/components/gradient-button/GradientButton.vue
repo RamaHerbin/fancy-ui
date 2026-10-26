@@ -95,10 +95,7 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	callListener(
-		onClick ?? onclick,
-		event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
-	);
+	callListener(onClick ?? onclick, event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds

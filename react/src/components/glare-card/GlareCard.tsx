@@ -118,17 +118,17 @@ export function GlareCard({ className = "", children }: GlareCardProps) {
 	return (
 		<div
 			ref={refElement}
-			className="glare-container relative isolate [aspect-ratio:17/21] w-[320px] ease-[var(--easing)] will-change-transform [contain:layout_style] [perspective:600px] motion-safe:transition-transform motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)]"
+			className="glare-container relative isolate [aspect-ratio:17/21] w-[320px] motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform [contain:layout_style] [perspective:600px] motion-safe:transition-transform"
 			style={initialStyle}
 			onPointerMove={handlePointerMove}
 			onPointerEnter={handlePointerEnter}
 			onPointerLeave={handlePointerLeave}
 		>
-			<div className="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] has-[:focus-visible]:[--opacity:0.6] motion-safe:transition-transform motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)]">
+			<div className="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] has-[:focus-visible]:[--opacity:0.6] motion-safe:transition-transform">
 				<div className="grid size-full mix-blend-soft-light [clip-path:inset(0_0_0_0_round_var(--radius))] [grid-area:1/1]">
 					<div className={cn("size-full bg-slate-950", className)}>{children}</div>
 				</div>
-				<div className="will-change-background grid size-full opacity-[var(--opacity)] mix-blend-soft-light ease-[var(--easing)] [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] motion-safe:transition-opacity motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)]"></div>
+				<div className="will-change-background grid size-full opacity-[var(--opacity)] mix-blend-soft-light motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] motion-safe:transition-opacity"></div>
 				<div className="glare-foil relative grid size-full opacity-[var(--opacity)] [background-blend-mode:hue_hue_hue_overlay] mix-blend-color-dodge will-change-[background] [background:var(--pattern),_var(--rainbow),_var(--diagonal),_var(--shade)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] after:bg-[inherit] after:[background-size:var(--foil-size),_200%_400%,_800%,_200%] after:[background-position:center,_0%_var(--bg-y),_calc(var(--bg-x)*_-1)_calc(var(--bg-y)*_-1),_var(--bg-x)_var(--bg-y)] after:[background-blend-mode:soft-light,_hue,_hard-light] after:mix-blend-exclusion after:content-[''] after:[grid-area:1/1] motion-safe:transition-opacity"></div>
 			</div>
 		</div>

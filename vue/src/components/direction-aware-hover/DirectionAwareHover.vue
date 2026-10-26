@@ -263,15 +263,12 @@ const overlayClass = computed(() => {
 });
 
 const imageContainerClass = computed(() =>
-	cn(
-		"relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black",
-		{
-			"translate-y-2 md:translate-y-5": direction.value === "top",
-			"-translate-y-2 md:-translate-y-5": direction.value === "bottom",
-			"translate-x-2 md:translate-x-5": direction.value === "left",
-			"-translate-x-2 md:-translate-x-5": direction.value === "right",
-		}
-	)
+	cn("relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black", {
+		"translate-y-2 md:translate-y-5": direction.value === "top",
+		"-translate-y-2 md:-translate-y-5": direction.value === "bottom",
+		"translate-x-2 md:translate-x-5": direction.value === "left",
+		"-translate-x-2 md:-translate-x-5": direction.value === "right",
+	})
 );
 
 // Two independent conditional blocks in the source, each with its own
