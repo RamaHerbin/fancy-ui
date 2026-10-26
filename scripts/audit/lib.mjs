@@ -66,7 +66,7 @@ export function parseList(value) {
 /**
  * Resolve the paths every instrument shares. `--repo` defaults to the checkout
  * the script lives in; `--out` (where evidence and logs are written) defaults to
- * `<repo>/.audit-out/audit`, a folder git never tracks.
+ * `<repo>/.audit-out/audit`, a folder git never tracks (`.gitignore` lists `.audit-out/`).
  *
  * @param {Record<string, string>} opts
  */

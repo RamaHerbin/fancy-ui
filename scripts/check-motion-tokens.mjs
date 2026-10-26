@@ -12,7 +12,9 @@
  *   1. HARD FAILURE: a `var(--ft-duration-X, ...)`, `var(--ft-ease-X, ...)` or
  *      `var(--ft-stagger-X, ...)` whose fallback differs from the token X in
  *      tokens.ts (`150ms` and `0.15s` are the same value; a curve is compared
- *      number by number).
+ *      number by number). The same failure applies when the token NAME is not
+ *      declared in tokens.ts (a misspelling such as `--ft-duration-fsat`); only
+ *      these three prefixes are checked, other `--ft-*` vars are out of scope.
  *   2. RATCHET: bare literals that equal a token value (`150ms`, a token curve
  *      written out) and off-token literals with no `off-token:` comment on the same
  *      or the previous line are counted per tree and compared with
@@ -176,22 +178,32 @@ export function tokenVars(s) {
 
 /**
  * Compare one fallback with its token. Returns null when it agrees (or when there
- * is nothing to compare: an unknown token name, or a non-literal fallback).
+ * is nothing to compare: a non-literal fallback). A token name that tokens.ts does
+ * not declare is reported as `unknown`.
  *
- * @returns {null | { expected: string, got: string }}
+ * @returns {null | { expected: string, got: string, unknown?: boolean }}
  */
 export function fallbackMismatch(v, tokens) {
 	const fb = v.fallback;
+	const table =
+		v.family === "ease"
+			? tokens.easings
+			: v.family === "duration"
+				? tokens.durations
+				: tokens.staggers;
+	if (table[v.name] === undefined)
+		return {
+			expected: "a token declared in tokens.ts",
+			got: `unknown name (fallback ${fb})`,
+			unknown: true,
+		};
 	if (/^var\(/.test(fb)) return null;
 	if (v.family === "ease") {
 		const want = tokens.easings[v.name];
-		if (want === undefined) return null;
 		const m = /^cubic-bezier\(([^)]*)\)$/.exec(fb);
 		return m && normCurve(m[1]) === want ? null : { expected: want, got: fb };
 	}
-	const table = v.family === "duration" ? tokens.durations : tokens.staggers;
 	const want = table[v.name];
-	if (want === undefined) return null;
 	return toMs(fb) === want ? null : { expected: `${want}ms`, got: fb };
 }
 
@@ -398,9 +410,19 @@ export function selfTest() {
 		"component vars are not tokens"
 	);
 	eq(
-		scan("a{x: var(--ft-duration-nope, 1ms)}").mismatches,
+		scan("a{transition: x var(--ft-duration-fsat, 150ms)}").mismatches.map((m) => m.unknown),
+		[true],
+		"misspelled token name fails"
+	);
+	eq(
+		scan("a{transition: x var(--ft-ease-ot, cubic-bezier(0.16,1,0.3,1))}").mismatches.length,
+		1,
+		"misspelled curve name fails"
+	);
+	eq(
+		scan("a{transition: x var(--ft-duration-exit, 200ms)}").mismatches,
 		[],
-		"unknown token name is not checked"
+		"declared token name passes"
 	);
 	eq(
 		scan("a{x: var(--ft-sidebar-d, var(--ft-duration-fast, 151ms))}").mismatches.length,
@@ -509,7 +531,9 @@ function main() {
 	if (mismatches.length) {
 		for (const m of mismatches)
 			console.error(
-				`${m.file}:${m.line}: ${m.name} fallback ${m.got} != token ${m.expected} (tokens.ts)`
+				m.unknown
+					? `${m.file}:${m.line}: ${m.name} is not a token declared in tokens.ts (${m.got})`
+					: `${m.file}:${m.line}: ${m.name} fallback ${m.got} != token ${m.expected} (tokens.ts)`
 			);
 		console.error(`FAIL: ${mismatches.length} var(--ft-*) fallback(s) differ from tokens.ts`);
 		process.exit(1);

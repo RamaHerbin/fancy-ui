@@ -16,8 +16,8 @@ Every script takes `--repo` (default: the checkout it lives in), `--out`,
 `--inventory`, `--only slug,slug`, and, for the ones that open a stage,
 `--base-svelte`, `--base-react`, `--base-vue` (defaults `http://localhost:5291`,
 `:5292`, `:5293`). Every script has a JSDoc header that says what it does and what
-it does not catch, exports its pure functions, and runs its own cases with
-`--self-test`. `node --test scripts/audit/audit.test.mjs` covers the pure parts
+it does not catch, and exports its pure functions. Every instrument runs its own cases with
+`--self-test`; `lib.mjs` is covered by `audit.test.mjs` only. `node --test scripts/audit/audit.test.mjs` covers the pure parts
 without a browser or a dev server.
 
 | script | partial | axis | what it does |
@@ -28,13 +28,14 @@ without a browser or a dev server.
 | `rm-check.mjs` | `S3` | A2 (dynamic half) | Settle-aware reduced-motion comparison of two capture sets. Writes `sheet-rm-<theme>.png` and `rm-ratios.json`. |
 | `micro-capture.mjs` | `S4` | A3 (dynamic) | Rest, hover, press and keyboard-focus shots of the first interactive element, with a noise floor. |
 | `perf-sweep.mjs` | `S5` | A4 | CDP task time, rAF rate, long tasks, p95 frame, heap, and a reload lifecycle probe; records `loadAvgAtStart`. |
-| `axe-sweep.mjs` | `S6` | A8 | axe-core in both themes, settled, rest and open states, keyboard check for overlays, demo-chrome tagging. CI gates on the Playwright a11y spec; this is the wider local sweep. |
+| `axe-sweep.mjs` | `S6` | A8 | axe-core in both themes, settled, rest and open states, keyboard check for overlays, demo-chrome tagging. This is the local both-themes sweep; CI does not run it. |
 | `merge-records.mjs` | | | Partials into one `record.json` per slug (rules below). |
 | `build-matrix.mjs` | | | Records into `COMPONENT_IMPROVEMENT_MATRIX.md`, `findings-all.json`, `findings-p0p1.json`, after asserting the cross-record rules. |
 
 `scripts/check-motion-tokens.mjs` (`pnpm check:motion-tokens`) is the CI gate that
 shares the A1 vocabulary: a `var(--ft-*)` fallback that differs from `tokens.ts` is
-a failure, and the counts of bare token-valued and uncommented off-token literals
+a failure, so is a `--ft-duration-*`, `--ft-ease-*` or `--ft-stagger-*` name that
+`tokens.ts` does not declare (a misspelling), and the counts of bare token-valued and uncommented off-token literals
 may not rise above `scripts/motion-tokens-pins.json`.
 
 ### Thresholds
@@ -75,7 +76,7 @@ and raises `A7-disagreement`.
 - anything else: P2. `none` only when there are no findings and every applicable
   axis scores 2 or more. A7 never raises priority above P2.
 
-### Amendment (second iteration)
+### Priority rules R1 and R2
 
 - **R1, no invisible priority drivers.** Every axis that drives a priority must have
   at least one live (not wontfix, not duplicate) P0 or P1 finding on it. When no
@@ -165,8 +166,9 @@ Folder layout per slug:
 
 Frame times are milliseconds after the stage is ready (rest pass) or after the
 gesture ends (pointer pass). A pointer hint already spends 350 ms resting after a
-hover on the capture clock, so the 150 ms flip itself is not photographable there:
-the rubric scores the hover end state and A1 covers the flip duration statically.
+hover on the capture clock, so by default the 150 ms flip itself is not photographed.
+A short `restMs` (for example 100) in the slug's hint photographs it; the rubric
+otherwise scores the hover end state and A1 covers the flip duration statically.
 
 | pass | moments |
 |---|---|
@@ -174,6 +176,7 @@ the rubric scores the hover end state and A1 covers the flip duration statically
 | pointer, hover | 0, 200, 600 |
 | pointer, click | 0, 80, 300, 600 |
 | reduced motion | 0, 300, 1500, 3000 |
+| no preference, reference for rm-check | 0, 600, 1500, 2000, 4000 (rm-check compares the t2000 frame) |
 | ambient loops | 0, 500, 1000, 2000, 4000 |
 
 ## Running an audit

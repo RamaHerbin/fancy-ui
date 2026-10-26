@@ -16,7 +16,9 @@
  *   - end ratio: does the `reduce` end state equal the settled no-preference
  *     state? Only compared when the no-preference run has settled (its t2000 and
  *     t4000 frames agree to under 0.004); otherwise `end_check` says
- *     `ambient-or-unsettled` and the end state does not count.
+ *     `ambient-or-unsettled` and the end state does not count. When the
+ *     no-preference run has no t2000 or t4000 frame, `end_check` says
+ *     `no-reference`: capture it with moments 0,600,1500,2000,4000.
  *
  * Scores (see lib.mjs `scoreRmDynamic`): 0 = motion plays under reduce, 1 = the
  * end state is skipped, 3 = still and equal end state, null = nothing comparable.
@@ -68,7 +70,12 @@ export function rmEntry(x) {
 	const ambient = x.settle != null && !settled;
 	const motionRatio = x.r300_1500 != null ? Math.max(x.r300_1500, x.r1500_3000 ?? 0) : x.still;
 	const prePaint = x.r300_1500 != null && x.still >= STILL_RATIO && motionRatio < STILL_RATIO;
-	const endCheck = x.end == null ? "no-reference" : settled ? "compared" : "ambient-or-unsettled";
+	const endCheck =
+		x.end == null || x.settle == null
+			? "no-reference"
+			: settled
+				? "compared"
+				: "ambient-or-unsettled";
 	return {
 		still_ratio: x.still,
 		motion_ratio: motionRatio,
@@ -126,6 +133,7 @@ export function summariseSlug(slug, entries, motionClass) {
 		([, e]) => e.end_check === "compared" && e.end_ratio != null && e.end_ratio < END_RATIO
 	);
 	const unsettled = list.filter(([, e]) => e.end_check === "ambient-or-unsettled");
+	const noRef = list.filter(([, e]) => e.end_check === "no-reference");
 	const pre = list.filter(([, e]) => e.pre_paint);
 	const svelteOnly = list.every(([k]) => k.startsWith("svelte"));
 	const maxA = Math.max(...list.map(([, e]) => Math.max(e.motion_ratio, e.hover_still_ratio ?? 0)));
@@ -137,10 +145,13 @@ export function summariseSlug(slug, entries, motionClass) {
 		pre.length
 			? `pre-paint at t0 only (t300==t1500==t3000) on ${pre.length}/${list.length} captures, not motion`
 			: "",
+		noRef.length
+			? `end-state not compared on ${noRef.length}/${list.length} captures: no-reference (no-pref t2000 frame missing)`
+			: "",
 		unsettled.length
 			? `end-state not compared on ${unsettled.length}/${list.length} captures: ambient-or-unsettled (no-pref t2000 vs t4000 >= ${STILL_RATIO})`
 			: "",
-		`max motion ratio ${maxA.toFixed(4)} (< ${STILL_RATIO})`,
+		`max motion ratio ${maxA.toFixed(4)} (${maxA < STILL_RATIO ? "<" : ">="} ${STILL_RATIO})`,
 		compared.length
 			? `max end ratio ${maxB.toFixed(4)} (< ${END_RATIO}, ${compared.length} compared)`
 			: "end-state half null, static half decides",
@@ -254,6 +265,20 @@ export function selfTest() {
 	// ambient no-preference run: end not compared, nothing to score -> null
 	const amb = rmEntry({ still: 0, r300_1500: 0, end: 0.5, settle: 0.1 });
 	if (amb.end_check !== "ambient-or-unsettled" || scoreRmDynamic([amb]) !== null) fail("ambient");
+	// no t2000 frame in the no-preference run: no reference, not ambient
+	const noRef = rmEntry({ still: 0, r300_1500: 0, end: 0.5, settle: null });
+	if (noRef.end_check !== "no-reference") fail("missing t2000 is no-reference");
+	const noRefNote = summariseSlug("x", { "svelte-dark": noRef }, "micro").axis.note;
+	if (
+		!noRefNote.includes("no-reference (no-pref t2000 frame missing)") ||
+		noRefNote.includes("ambient")
+	)
+		fail("no-reference note");
+	// the motion note prints the comparison that actually holds
+	if (!summariseSlug("x", { "svelte-dark": calm }, "micro").axis.note.includes("(< "))
+		fail("motion note below threshold");
+	if (!summariseSlug("x", { "svelte-dark": moving }, "micro").axis.note.includes("(>= "))
+		fail("motion note above threshold");
 	const s = summariseSlug("x", { "svelte-dark": moving }, "micro");
 	if (s.bucket !== "a2_0" || s.finding?.priority !== "P0") fail("summary P0");
 	if (summariseSlug("x", {}, "static").axis.na_reason !== "static") fail("static na");
