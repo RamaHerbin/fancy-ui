@@ -413,14 +413,14 @@
 		min-width: 4ch;
 		padding-inline: 0.5rem 0;
 		text-align: right;
-		opacity: 0.45;
+		opacity: 0.7;
 		font-variant-numeric: tabular-nums;
 	}
 
 	.ft-glyph {
 		width: 2.5ch;
 		text-align: center;
-		opacity: 0.7;
+		opacity: 0.45;
 	}
 
 	.ft-code {

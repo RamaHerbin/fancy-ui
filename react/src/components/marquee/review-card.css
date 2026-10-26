@@ -6,7 +6,7 @@
 	--_panel-hover: var(--review-card-panel-hover, #ffffff);
 	--_line: var(--review-card-line, rgba(0, 0, 0, 0.08));
 	--_ink: var(--review-card-ink, #18181b);
-	--_muted: var(--review-card-muted, #71717a);
+	--_muted: var(--review-card-muted, #63636b);
 	--_body: var(--review-card-body, #52525b);
 	--_lift: rgba(255, 255, 255, 1);
 	background: var(--_shell);
@@ -22,7 +22,7 @@
 	--_panel-hover: var(--review-card-panel-hover, #17171a);
 	--_line: var(--review-card-line, rgba(255, 255, 255, 0.08));
 	--_ink: var(--review-card-ink, #f4f4f5);
-	--_muted: var(--review-card-muted, #71717a);
+	--_muted: var(--review-card-muted, #8a8a93);
 	--_body: var(--review-card-body, #a1a1aa);
 	--_lift: rgba(255, 255, 255, 0.1);
 }
