@@ -100,7 +100,7 @@
 		// Tailwind token, so it is a family-level CSS custom property instead.
 		accent: "ft-btn--accent",
 		destructive:
-			"border border-destructive/35 bg-destructive/10 text-destructive hover:bg-destructive/20",
+			"border border-destructive/35 bg-destructive/10 text-[oklch(0.48_0.21_27.325)] dark:text-destructive hover:bg-destructive/20",
 	};
 
 	const classes = $derived(

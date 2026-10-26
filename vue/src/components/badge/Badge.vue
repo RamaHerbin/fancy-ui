@@ -33,7 +33,8 @@ const VARIANT_CLASSES: Record<BadgeVariant, string> = {
 	default: "border-transparent bg-primary text-primary-foreground",
 	secondary: "border-transparent bg-secondary text-secondary-foreground",
 	outline: "border-border text-foreground",
-	destructive: "border-destructive/35 bg-destructive/10 text-destructive",
+	destructive:
+		"border-destructive/35 bg-destructive/10 text-[oklch(0.48_0.21_27.325)] dark:text-destructive",
 	success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
 };
 
