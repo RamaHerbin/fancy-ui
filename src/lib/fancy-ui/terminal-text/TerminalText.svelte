@@ -13,6 +13,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	let {
 		lines,
@@ -67,6 +68,17 @@
 		displayedLines = [];
 		done = false;
 		glitchState = null;
+
+		// Reduced motion: no typing. One timeout at `delay` shows every line and
+		// completes, so `onComplete` still fires and the text is all there.
+		if (reduced.current) {
+			scheduleTimeout(() => {
+				displayedLines = [...lines];
+				done = true;
+				onComplete?.();
+			}, delay);
+			return;
+		}
 
 		let totalDelay = delay;
 
@@ -153,11 +165,18 @@
 		scheduleGlitch();
 	}
 
+	// Read live: the query is started from an effect, never at construction. A
+	// flip while streaming restarts the stream, the way a `lines` change does.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
 	$effect(() => {
-		// React only to lines/speed/delay — changing glitch won't restart the stream
+		// React only to lines/speed/delay/preference — changing glitch won't
+		// restart the stream
 		void lines;
 		void speed;
 		void delay;
+		void reduced.current;
 
 		streamLines();
 
@@ -170,7 +189,8 @@
 		// React to glitch changes without restarting the stream
 		void glitch;
 
-		if (glitch) {
+		// No glitch loop while reduced: it only adds movement.
+		if (glitch && !reduced.current) {
 			startGlitchLoop();
 		} else {
 			glitchState = null;
@@ -200,8 +220,11 @@
 </div>
 
 <style>
-	.cursor-blink {
-		animation: blink 1s step-end infinite;
+	/* The caret is a steady block first and a blinking one second. */
+	@media (prefers-reduced-motion: no-preference) {
+		.cursor-blink {
+			animation: blink 1s step-end infinite;
+		}
 	}
 
 	@keyframes blink {

@@ -16,6 +16,7 @@ export interface TerminalTextProps {
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 
 defineOptions({ name: "TerminalText", inheritAttrs: false });
 
@@ -34,6 +35,11 @@ const GLITCH_GLYPHS = "アイウエオ@#$%&!?░▒▓█▄▀■□▪▫";
 
 const displayedLines = ref<string[]>([]);
 const done = ref(false);
+
+// Live preference; its query starts from its own `onMounted`, registered before
+// the first pass below, so the value is current when that runs. A flip while
+// streaming restarts the stream, the way a `lines` change does.
+const reducedMotion = useReducedMotion();
 const glitchState = ref<{ lineIdx: number; charIdx: number; original: string } | null>(null);
 
 let timeouts: ReturnType<typeof setTimeout>[] = [];
@@ -72,6 +78,17 @@ function streamLines() {
 	displayedLines.value = [];
 	done.value = false;
 	glitchState.value = null;
+
+	// Reduced motion: no typing. One timeout at `delay` shows every line and
+	// completes, so `onComplete` still fires and the text is all there.
+	if (reducedMotion.value) {
+		scheduleTimeout(() => {
+			displayedLines.value = [...lines];
+			done.value = true;
+			onComplete?.();
+		}, delay);
+		return;
+	}
 
 	let totalDelay = delay;
 
@@ -164,8 +181,8 @@ onMounted(() => {
 	streamLines();
 
 	// First pass of the glitch effect (the `else` branch clears `glitchState`,
-	// which is already null at mount).
-	if (glitch) startGlitchLoop();
+	// which is already null at mount). No glitch loop while reduced.
+	if (glitch && !reducedMotion.value) startGlitchLoop();
 });
 
 // React only to lines/speed/delay — changing glitch won't restart the stream.
@@ -185,7 +202,7 @@ onMounted(() => {
 // multi-source watcher element-wise, where a returned array is a fresh
 // identity every pass and would fire the callback unconditionally.
 watch(
-	[() => JSON.stringify(lines), () => speed, () => delay],
+	[() => JSON.stringify(lines), () => speed, () => delay, () => reducedMotion.value],
 	() => {
 		// The source's teardown (`clearAllTimeouts`) is the first thing
 		// `streamLines` does, so the re-run order is preserved.
@@ -196,12 +213,12 @@ watch(
 
 // React to glitch changes without restarting the stream.
 watch(
-	() => glitch,
-	(value) => {
+	[() => glitch, () => reducedMotion.value],
+	([value, reduced]) => {
 		// Teardown of the previous pass, then the body — the source's order.
-		// Exactly one chain is ever alive.
+		// Exactly one chain is ever alive. No glitch loop while reduced.
 		stopGlitchLoop();
-		if (value) {
+		if (value && !reduced) {
 			startGlitchLoop();
 		} else {
 			glitchState.value = null;
@@ -231,8 +248,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.cursor-blink {
-	animation: blink 1s step-end infinite;
+/* The caret is a steady block first and a blinking one second. */
+@media (prefers-reduced-motion: no-preference) {
+	.cursor-blink {
+		animation: blink 1s step-end infinite;
+	}
 }
 
 @keyframes blink {

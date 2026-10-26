@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import "./terminal-text.css";
 
 export interface TerminalTextProps {
@@ -28,6 +29,10 @@ export function TerminalText({
 }: TerminalTextProps) {
 	const [displayedLines, setDisplayedLines] = useState<string[]>([]);
 	const [done, setDone] = useState(false);
+
+	// Live preference. A flip while streaming restarts the stream, the way a
+	// `lines` change does.
+	const reducedMotion = useReducedMotion();
 
 	// Latest-value refs so timeout callbacks read current values, matching the
 	// Svelte closures over reactive props/state.
@@ -123,7 +128,10 @@ export function TerminalText({
 	// stops exactly the chain it started. Keeping it out of the stream's pool
 	// means a lines/speed/delay restart no longer kills the loop, and a glitch
 	// flip no longer leaves an orphaned chain running alongside the new one.
-	function startGlitchLoop(chain: { cancelled: boolean; id: ReturnType<typeof setTimeout> | null }) {
+	function startGlitchLoop(chain: {
+		cancelled: boolean;
+		id: ReturnType<typeof setTimeout> | null;
+	}) {
 		const scheduleGlitch = () => {
 			// Random interval between 2s and 4s
 			const interval = 2000 + Math.random() * 2000;
@@ -144,6 +152,21 @@ export function TerminalText({
 		displayedLinesRef.current = [];
 		setDone(false);
 		glitchStateRef.current = null;
+
+		// Reduced motion: no typing. One timeout at `delay` shows every line and
+		// completes, so `onComplete` still fires and the text is all there.
+		if (reducedMotion) {
+			scheduleTimeout(() => {
+				const all = [...linesRef.current];
+				displayedLinesRef.current = all;
+				setDisplayedLines(all);
+				setDone(true);
+				onCompleteRef.current?.();
+			}, delay);
+			return () => {
+				clearAllTimeouts();
+			};
+		}
 
 		let totalDelay = delay;
 
@@ -183,11 +206,12 @@ export function TerminalText({
 			clearAllTimeouts();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [linesKey, speed, delay]);
+	}, [linesKey, speed, delay, reducedMotion]);
 
 	// React to glitch changes without restarting the stream
 	useEffect(() => {
-		if (!glitch) {
+		// No glitch loop while reduced: it only adds movement.
+		if (!glitch || reducedMotion) {
 			glitchStateRef.current = null;
 			return;
 		}
@@ -203,7 +227,7 @@ export function TerminalText({
 			if (chain.id !== null) clearTimeout(chain.id);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [glitch]);
+	}, [glitch, reducedMotion]);
 
 	return (
 		<div className={cn("terminal-text font-mono text-sm leading-relaxed", className)}>
