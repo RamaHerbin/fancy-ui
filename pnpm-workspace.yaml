@@ -21,5 +21,6 @@ onlyBuiltDependencies:
 
 # The a11y gate hands the e2e runner's page to axe: its playwright-core peer must be the
 # runner's own, not a newer copy pulled in by an optional peer elsewhere in the tree.
+# Keep this block LAST: the React 18 / Vue 3.5 floor CI jobs append their pins under it.
 overrides:
   "@axe-core/playwright>playwright-core": 1.58.2
