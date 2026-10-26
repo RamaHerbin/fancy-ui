@@ -59,8 +59,14 @@
 	transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.review-card:hover .review-card-sheen {
+.review-card:focus-within .review-card-sheen {
 	opacity: 1;
+}
+
+@media (hover: hover) {
+	.review-card:hover .review-card-sheen {
+		opacity: 1;
+	}
 }
 
 .review-card .review-card-avatar {
