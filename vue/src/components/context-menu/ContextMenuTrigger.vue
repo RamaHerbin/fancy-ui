@@ -4,6 +4,12 @@ import type { HTMLAttributes } from "vue";
 export interface ContextMenuTriggerProps {
 	/** Disables the region: `contextmenu` is left alone and the browser's native menu shows instead. */
 	disabled?: boolean;
+	/**
+	 * Opt-in keyboard reach: makes the region a tab stop (`tabindex="0"`) so the
+	 * Menu key and Shift+F10 can open the menu from the keyboard. Off by default,
+	 * because most regions wrap content that already holds a focusable control.
+	 */
+	focusable?: boolean;
 	/** Additional CSS classes, merged onto the wrapping element. */
 	class?: HTMLAttributes["class"];
 }
@@ -24,7 +30,11 @@ import { CONTEXT_MENU_KEY } from "./types.js";
  */
 defineOptions({ name: "ContextMenuTrigger", inheritAttrs: false });
 
-const { disabled = false, class: className } = defineProps<ContextMenuTriggerProps>();
+const {
+	disabled = false,
+	focusable = false,
+	class: className,
+} = defineProps<ContextMenuTriggerProps>();
 
 /** The wrapped region's content. */
 defineSlots<{ default?: () => unknown }>();
@@ -63,7 +73,17 @@ function handleContextMenu(event: MouseEvent): void {
 	}
 }
 
-const classes = computed(() => cn("ft-context-menu-trigger", className));
+/** Read out with the focused region, so a keyboard user learns how to open the menu. */
+const FOCUSABLE_HINT = "Press the Menu key or Shift+F10 to open the context menu";
+
+const classes = computed(() =>
+	cn(
+		"ft-context-menu-trigger",
+		focusable &&
+			"focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none",
+		className
+	)
+);
 </script>
 
 <template>
@@ -80,7 +100,13 @@ const classes = computed(() => cn("ft-context-menu-trigger", className));
 		element isn't one. See the README's Accessibility section for the same
 		note.
 	-->
-	<div ref="region" :class="classes" @contextmenu="handleContextMenu">
+	<div
+		ref="region"
+		:class="classes"
+		:tabindex="focusable ? 0 : undefined"
+		:aria-description="focusable ? FOCUSABLE_HINT : undefined"
+		@contextmenu="handleContextMenu"
+	>
 		<slot />
 	</div>
 </template>

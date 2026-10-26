@@ -31,6 +31,7 @@
 		onOpenChange?: (open: boolean) => void;
 		onSelect?: (label: string) => void;
 		triggerDisabled?: boolean;
+		triggerFocusable?: boolean;
 		withSubmenu?: boolean;
 		subItems?: ItemSpec[];
 		sound?: boolean;
@@ -42,6 +43,7 @@
 		onOpenChange,
 		onSelect,
 		triggerDisabled = false,
+		triggerFocusable = false,
 		withSubmenu = false,
 		subItems = [],
 		sound = false,
@@ -49,7 +51,7 @@
 </script>
 
 <ContextMenu bind:open {onOpenChange} {sound}>
-	<ContextMenuTrigger disabled={triggerDisabled}>
+	<ContextMenuTrigger disabled={triggerDisabled} focusable={triggerFocusable}>
 		<div data-testid="region">Right-click me</div>
 	</ContextMenuTrigger>
 	<ContextMenuContent>

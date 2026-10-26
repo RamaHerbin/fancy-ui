@@ -4,6 +4,12 @@
 	export interface ContextMenuTriggerProps {
 		/** Disables the region: `contextmenu` is left alone and the browser's native menu shows instead. */
 		disabled?: boolean;
+		/**
+		 * Opt-in keyboard reach: makes the region a tab stop (`tabindex="0"`) so the
+		 * Menu key and Shift+F10 can open the menu from the keyboard. Off by default,
+		 * because most regions wrap content that already holds a focusable control.
+		 */
+		focusable?: boolean;
 		/** The wrapped region's content. */
 		children?: Snippet;
 		/** Additional CSS classes, merged onto the wrapping element. */
@@ -20,12 +26,16 @@
 
 	let {
 		disabled = false,
+		focusable = false,
 		children,
 		class: className,
 		ref = $bindable(null),
 	}: ContextMenuTriggerProps = $props();
 
 	const ctx = getContext<ContextMenuRootContext>(CONTEXT_MENU_KEY);
+
+	/** Read out with the focused region, so a keyboard user learns how to open the menu. */
+	const FOCUSABLE_HINT = "Press the Menu key or Shift+F10 to open the context menu";
 
 	// How the keyboard path (the Menu key, Shift+F10) is told apart from a
 	// real right-click: both dispatch the same `contextmenu` event — there is
@@ -52,7 +62,7 @@
 </script>
 
 <!--
-	svelte-ignore a11y_no_static_element_interactions -- `contextmenu` is a
+	svelte-ignore a11y_no_static_element_interactions, a11y_no_noninteractive_tabindex -- `contextmenu` is a
 	pointer gesture with an OS-level keyboard equivalent (the Menu key,
 	Shift+F10), not a role-driven interaction an AT user "activates" via
 	Enter/Space the way a button or link is. There is no ARIA role that
@@ -62,10 +72,19 @@
 	`aria-controls` either, unlike `DropdownMenuTrigger`: those describe a
 	control a user *activates* to open something, and this wrapping element
 	isn't one. See the README's Accessibility section for the same note.
+	The opt-in `focusable` prop adds a tab stop plus `aria-description` so the
+	OS-level shortcut is discoverable; the region still carries no role.
 -->
 <div
 	bind:this={ref}
-	class={cn("ft-context-menu-trigger", className)}
+	class={cn(
+		"ft-context-menu-trigger",
+		focusable &&
+			"focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none",
+		className
+	)}
+	tabindex={focusable ? 0 : undefined}
+	aria-description={focusable ? FOCUSABLE_HINT : undefined}
 	oncontextmenu={handleContextMenu}
 >
 	{@render children?.()}
