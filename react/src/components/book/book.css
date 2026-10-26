@@ -1,7 +1,10 @@
-/* The hover angle is the state; only the tween that turns the cover is motion,
+/* `.fancy-book` is a port-added anchor: the Svelte compiler scoped this rule and
+   the source has no root class to anchor on, so the slug class keeps the generic
+   `.book-cover` name from leaking globally.
+   The hover angle is the state; only the tween that turns the cover is motion,
    so under reduced motion the cover lands on its angle at once. */
 @media (prefers-reduced-motion: no-preference) {
-	.book-cover {
+	.fancy-book .book-cover {
 		transition: transform var(--book-duration, 1000ms) ease;
 	}
 }

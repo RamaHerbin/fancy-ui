@@ -84,7 +84,7 @@
 <style>
 	/* The inline opacity / transform / left are the state; only the tween that
 	   animates them is motion, so under reduced motion the change lands
-   instantly. */
+	   instantly. */
 	@media (prefers-reduced-motion: no-preference) {
 		.box-reveal-content {
 			transition:

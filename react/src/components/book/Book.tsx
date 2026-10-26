@@ -39,7 +39,7 @@ export function Book({
 	return (
 		<div
 			className={cn(
-				"group z-10 w-min [--shadowColor:#bbb] [perspective:800px] dark:[--shadowColor:#111]",
+				"fancy-book group z-10 w-min [--shadowColor:#bbb] [perspective:800px] dark:[--shadowColor:#111]",
 				className
 			)}
 			{...rest}
