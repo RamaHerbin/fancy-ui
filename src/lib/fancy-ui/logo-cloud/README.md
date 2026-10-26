@@ -69,7 +69,7 @@ Each mark renders at `opacity: .85`. When `wordmarks` is provided, `logos` is ig
 
 ## Reduced motion
 
-With `prefers-reduced-motion: reduce` the `AnimatedLogoCloud` strip stops scrolling and rests with its first logos in view, still faded at both edges. Without a reduce preference it scrolls as before, and it pauses while focus is inside the strip.
+With `prefers-reduced-motion: reduce` the `AnimatedLogoCloud` strip stops scrolling, drops the repeated tracks and the edge fade, and lets the one set of logos wrap and centre so every logo is in view. Without a reduce preference it scrolls as before, and it pauses while focus is inside the strip.
 
 ## Implementation Notes
 

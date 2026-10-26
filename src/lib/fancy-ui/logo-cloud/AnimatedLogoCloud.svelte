@@ -57,6 +57,27 @@
 		}
 	}
 
+	/* Reduced motion removes the travel, never the logos: drop the repeated tracks and the
+	   edge fade, and let the one real set wrap and centre so every logo is in view. */
+	@media (prefers-reduced-motion: reduce) {
+		.logo-cloud-mask {
+			mask-image: none;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		.logo-cloud-mask > .logo-cloud-scroll {
+			flex-wrap: wrap;
+			flex-shrink: 1;
+			justify-content: center;
+			width: 100%;
+		}
+
+		.logo-cloud-mask > .logo-cloud-scroll:not(:first-child) {
+			display: none;
+		}
+	}
+
 	@keyframes logo-cloud-scroll {
 		0% {
 			transform: translateX(0);
