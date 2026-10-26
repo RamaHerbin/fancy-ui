@@ -38,6 +38,20 @@ A plain-text anchor styled for prose and inline copy — a colored text link, no
 
 Any other native anchor attribute or listener (`id`, `download`, `hreflang`, `aria-*`, `data-*`, `onkeydown`, ...) goes to the inner `<a>`.
 
+## Accessibility
+
+- A native `<a>`, so it is in the tab order and activates with Enter.
+- The default variant is underlined at rest, so a link inside running text is
+  not distinguished by colour alone (WCAG 1.4.1). `underline="hover"` (the
+  default value) keeps that resting underline and nudges its offset on hover and
+  keyboard focus; `underline="always"` is the heavier form; `underline="none"`
+  opts out, and is only safe when something else marks the link. The muted
+  variant is for supporting copy and underlines on hover and focus only.
+- Focus draws a visible ring, and the external arrow follows keyboard focus as
+  well as hover.
+- `external` adds a visually hidden "(opens in a new tab)" and the
+  `noopener noreferrer` tokens.
+
 ## Implementation Notes
 
 - **Safe `rel` is derived, not just defaulted.** `rel` is guaranteed to contain `noopener noreferrer`

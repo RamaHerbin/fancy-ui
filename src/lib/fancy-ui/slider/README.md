@@ -62,6 +62,17 @@ Inside a `FormField`, drop the `label`/`id` — the surrounding field supplies
 | `ref`           | `HTMLInputElement \| null` | `null`  | Bindable reference to the underlying `<input type="range">`         |
 | `sound`         | `boolean`                  | `false` | Plays the `tick` cue on a committed value change, once sound is on  |
 
+## Accessibility
+
+- A real `<input type="range">`, so arrow keys, Home/End and Page Up/Down
+  work natively and the value is exposed through `aria-valuenow`,
+  `aria-valuemin` and `aria-valuemax`.
+- Give it a name: a surrounding `FormField` label, or `label` (`aria-label`)
+  when there is no visible one. `aria-describedby` and `aria-invalid` merge with
+  the ones a `FormField` provides.
+- The value bubble and the min/max captions are decorative (`aria-hidden`):
+  the input already reports its own value.
+
 ## Native attributes
 
 Any other attribute or listener (`aria-*`, `data-*`, `form`, `onfocus`, `onblur`, `onkeydown`, …) is forwarded to the `<input type="range">`, the element that takes focus and carries the form value. `class` still lands on the outer wrapper. `type`, `value`, `min`, `max`, `step`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax` and the FormField-managed `id`, `disabled` and `aria-invalid` stay authoritative, and a consumer `aria-describedby` is merged with the FormField one. Consumer `oninput` and `onchange` run once, after the internal handling; a disabled slider calls neither.
