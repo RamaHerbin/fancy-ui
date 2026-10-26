@@ -2,11 +2,14 @@
 // Performance protocol for the three packages. See scripts/perf/README.md.
 //
 //   node scripts/perf/measure.mjs <section> [--out DIR] [--reps N] [--port N] [--only svelte|react|vue] [--component NAME] [--cycles N] [--wait-quiet on|off]
+//                                 [--base-svelte URL] [--base-react URL] [--base-vue URL]   (effects, parity route)
 //
 // Sections, in the order `all` runs them:
 //   sizes      JS/CSS weight of each consumer app built from the packed tarball
 //   imports    barrel vs deep import cost, 5 components per package
-//   effects    rAF/s, long tasks, CPU ms/s of 5 effects (Chromium, CDP metrics + tracing)
+//   effects    rAF/s, long tasks, CPU ms/s of 5 effects, idle / moving / offscreen / hidden
+//              (Chromium, CDP metrics + tracing). `--component <slug>` with a slug outside
+//              the 5 measures that component on the parity route instead (no `sizes` needed)
 //   lifecycle  mount/unmount x50 and 10 simultaneous instances (contexts, listeners, heap)
 //   stamp      backfills the run record of stored sections (--measured-commit, --tool-commit)
 //   report     renders scripts/perf/BASELINE-<date>.md from the JSON the others wrote
@@ -63,6 +66,12 @@ const BASE_PORT = Number(opt("port", 5355));
 const ONLY = opt("only", "");
 const COMPONENT = opt("component", "");
 const CYCLES = Number(opt("cycles", 50));
+// Stage servers of the parity bench (scripts/parity/capture.mjs), for `effects --component <slug>`.
+const PARITY_BASE = {
+	svelte: opt("base-svelte", "http://localhost:5291").replace(/\/$/, ""),
+	react: opt("base-react", "http://localhost:5292").replace(/\/$/, ""),
+	vue: opt("base-vue", "http://localhost:5293").replace(/\/$/, ""),
+};
 const DATE = opt("date", "2026-10-21");
 
 mkdirSync(OUT, { recursive: true });
@@ -453,14 +462,50 @@ const gc = async (cdp) => {
 	}
 };
 
-async function openPage(browser, url) {
+/** The parity route of a slug on a stage server (as scripts/parity/capture.mjs). */
+function parityUrl(fw, slug) {
+	const q = encodeURIComponent(slug);
+	return fw === "svelte"
+		? `${PARITY_BASE.svelte}/_parity/${q}?theme=dark`
+		: `${PARITY_BASE[fw]}/?slug=${q}&theme=dark`;
+}
+
+/**
+ * `parity`: the page is a parity stage, not the harness. There is no
+ * window.__perf there, so a stand-in whose box is the stage is installed once
+ * the demo has mounted.
+ */
+async function openPage(browser, url, { parity = false } = {}) {
 	const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 	const page = await context.newPage();
 	await page.addInitScript({ path: join(here, "harness/instrument.js") });
 	const errors = [];
 	page.on("pageerror", (e) => errors.push(String(e)));
 	await page.goto(url);
-	await page.waitForFunction(() => window.__perfReady === true);
+	if (parity) {
+		await page.waitForFunction(
+			() => {
+				const stage = document.querySelector("[data-parity-stage]");
+				return (
+					document.documentElement.dataset.parityReady === "1" ||
+					Boolean(document.querySelector("[data-parity-missing]")) ||
+					Boolean(stage && stage.childElementCount > 0 && !stage.querySelector(".animate-spin"))
+				);
+			},
+			undefined,
+			{ timeout: 30_000 }
+		);
+		if (await page.locator("[data-parity-missing]").count())
+			throw new Error(`no parity scenario at ${url}`);
+		await page.evaluate(() => {
+			window.__perf = {
+				boxRect() {
+					const r = document.querySelector("[data-parity-stage]")?.getBoundingClientRect();
+					return r ? { x: r.x, y: r.y, width: r.width, height: r.height } : null;
+				},
+			};
+		});
+	} else await page.waitForFunction(() => window.__perfReady === true);
 	const cdp = await context.newCDPSession(page);
 	await cdp.send("Performance.enable");
 	await cdp.send("HeapProfiler.enable");
@@ -506,7 +551,109 @@ function aggregateWindows(samples) {
 	return Object.fromEntries(keys.map((k) => [k, medianOf(samples, (s) => s[k])]));
 }
 
+/**
+ * Offscreen: a 3000 px spacer is prepended so the stage sits far below the
+ * 800 px viewport (never scrolled into view), 3 s window. A component that
+ * keeps painting or looping here pays for pixels nobody sees.
+ */
+async function offscreenWindow(page, cdp) {
+	await page.evaluate(() => {
+		const spacer = document.createElement("div");
+		spacer.id = "__perf-spacer";
+		spacer.style.cssText = "height:3000px;flex:none;width:1px";
+		document.body.prepend(spacer);
+		window.scrollTo(0, 0);
+	});
+	await sleep(500);
+	const w = await window_(page, cdp, 3000);
+	await page.evaluate(() => document.getElementById("__perf-spacer")?.remove());
+	return w;
+}
+
+/**
+ * Hidden: `document.hidden` / `visibilityState` are overridden and a
+ * `visibilitychange` is dispatched, 3 s window. Headless Chromium has no
+ * occluded or backgrounded state to ask for (CDP
+ * `Emulation.setFocusEmulationEnabled` only fakes focus, and
+ * `Page.setWebLifecycleState` "frozen" stops everything, which measures the
+ * browser, not the component), so this measures what a component does when it
+ * is told the tab is hidden: pause on `visibilitychange`, or keep going.
+ */
+async function hiddenWindow(page, cdp) {
+	const setHidden = (hidden) =>
+		page.evaluate((h) => {
+			if (h) {
+				Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+				Object.defineProperty(document, "visibilityState", {
+					configurable: true,
+					get: () => "hidden",
+				});
+			} else {
+				delete document.hidden;
+				delete document.visibilityState;
+			}
+			document.dispatchEvent(new Event("visibilitychange"));
+		}, hidden);
+	await setHidden(true);
+	await sleep(500);
+	const w = await window_(page, cdp, 3000);
+	await setHidden(false);
+	return w;
+}
+
+/**
+ * `effects --component <slug>` for a slug outside the harness: the parity
+ * route of each requested framework (Svelte only without --only), same
+ * windows as the harness rows. Stored in effects-parity.json; the baseline
+ * report does not read it.
+ */
+async function runEffectsParity() {
+	const out = [];
+	const fws = ONLY ? [ONLY] : ["svelte"];
+	const { chromium } = await import("@playwright/test");
+	const browser = await chromium.launch({ args: SW_GL });
+	try {
+		const quietWait = await quietGate("effects");
+		for (const fw of fws) {
+			if (!PARITY_BASE[fw]) throw new Error(`unknown --only ${fw}`);
+			const url = parityUrl(fw, COMPONENT);
+			console.log(`\n=== effects (parity route): ${fw} ${url} ===`);
+			const samples = { idle: [], active: [], offscreen: [], hidden: [] };
+			for (let rep = 0; rep < REPS; rep++) {
+				const { context, page, cdp, errors } = await openPage(browser, url, { parity: true });
+				await sleep(1500);
+				samples.idle.push(await window_(page, cdp, 5000));
+				samples.active.push(await window_(page, cdp, 5000, { moveMouse: true }));
+				samples.offscreen.push(await offscreenWindow(page, cdp));
+				samples.hidden.push(await hiddenWindow(page, cdp));
+				if (errors.length) console.log(`  page errors (${fw}):`, errors.slice(0, 2));
+				await context.close();
+			}
+			const row = {
+				name: COMPONENT,
+				reps: REPS,
+				...Object.fromEntries(Object.entries(samples).map(([k, v]) => [k, aggregateWindows(v)])),
+			};
+			for (const k of ["idle", "active", "offscreen", "hidden"])
+				console.log(
+					`  ${k}: ${row[k].cpuMsPerSec.toFixed(1)} CPU ms/s, ${row[k].rafPerSec.toFixed(0)} raf/s, ${row[k].longTasks} long tasks`
+				);
+			out.push({
+				framework: fw,
+				route: url,
+				chromium: browser.version(),
+				run: runWithWait(quietWait),
+				rows: [row],
+			});
+		}
+	} finally {
+		await browser.close();
+	}
+	save("effects-parity", out);
+}
+
 async function runEffects() {
+	if (COMPONENT && !COMPONENT_NAMES.includes(COMPONENT)) return runEffectsParity();
 	const out = [];
 	let port = BASE_PORT;
 	for (const fw of Object.keys(HARNESS)) {
@@ -520,12 +667,16 @@ async function runEffects() {
 			)) {
 				const idle = [];
 				const active = [];
+				const offscreen = [];
+				const hidden = [];
 				for (let rep = 0; rep < REPS; rep++) {
 					const { context, page, cdp, errors } = await openPage(browser, url);
 					if (name !== "none") await page.evaluate((n) => window.__perf.mount(n), name);
 					await sleep(1500);
 					idle.push(await window_(page, cdp, 5000));
 					active.push(await window_(page, cdp, 5000, { moveMouse: true }));
+					offscreen.push(await offscreenWindow(page, cdp));
+					hidden.push(await hiddenWindow(page, cdp));
 					if (errors.length) console.log(`  page errors (${name}):`, errors.slice(0, 2));
 					await context.close();
 				}
@@ -533,6 +684,8 @@ async function runEffects() {
 					name,
 					idle: aggregateWindows(idle),
 					active: aggregateWindows(active),
+					offscreen: aggregateWindows(offscreen),
+					hidden: aggregateWindows(hidden),
 					reps: REPS,
 				});
 				console.log(
@@ -770,6 +923,19 @@ function runReport() {
 	);
 
 	md.push("## 2. Barrel vs deep import (JS only, KB, minified, one component per probe)", "");
+	for (const g of effects) {
+		for (const window of ["offscreen", "hidden"]) {
+			const rows = g.rows.filter((r) => r.name !== "none" && r[window]);
+			if (!rows.length) continue;
+			const worst = Math.max(...rows.map((r) => r[window].cpuMsPerSec));
+			const provisional = groupVerdict(g) !== "quiet";
+			budgetRows.push([
+				`${g.framework} ${window} CPU, worst effect (report-only)`,
+				`${f1(worst)} ms/s`,
+				`${proposeBudget(worst, 0.5, 5)} ms/s${provisional ? " (provisional: measured on a loaded machine)" : ""}`,
+			]);
+		}
+	}
 	for (const g of imports) {
 		const base = g.rows.find((r) => r.case === "baseline").js;
 		md.push(`### ${g.pkg} (${g.consumer})`, "");
@@ -844,6 +1010,10 @@ function runReport() {
 					"moving script ms/s",
 					"moving long tasks",
 					"moving long-task ms",
+					"offscreen raf/s",
+					"offscreen CPU ms/s",
+					"hidden raf/s",
+					"hidden CPU ms/s",
 				],
 				g.rows.map((r) => [
 					r.name,
@@ -856,10 +1026,14 @@ function runReport() {
 					f1(r.active.scriptMsPerSec),
 					f1(r.active.longTasks),
 					f1(r.active.longTaskMs),
+					r.offscreen ? f1(r.offscreen.rafPerSec) : "n/a",
+					r.offscreen ? f1(r.offscreen.cpuMsPerSec) : "n/a",
+					r.hidden ? f1(r.hidden.rafPerSec) : "n/a",
+					r.hidden ? f1(r.hidden.cpuMsPerSec) : "n/a",
 				])
 			),
 			"",
-			"`none` is the harness page with nothing mounted. `toast` is a Toaster with 4 visible toasts. CPU is renderer main-thread task time; GPU-process work is not included.",
+			"`none` is the harness page with nothing mounted. `toast` is a Toaster with 4 visible toasts. CPU is renderer main-thread task time; GPU-process work is not included. `offscreen` is a 3 s window with the stage 3000 px below the viewport; `hidden` is a 3 s window after `document.hidden` is overridden to true and `visibilitychange` is dispatched (n/a: the run predates these windows). Both are report-only.",
 			""
 		);
 	}
