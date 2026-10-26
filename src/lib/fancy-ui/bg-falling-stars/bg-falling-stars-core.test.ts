@@ -165,4 +165,25 @@ describe("createFallingStars", () => {
 			engine!.destroy();
 		});
 	});
+	it("reducedMotion paints one still frame without scheduling, and resumes when cleared", () => {
+		const ctx = makeCtx();
+		const canvas = makeCanvas(ctx);
+		const engine = createFallingStars({ canvas }, { count: 3, reducedMotion: true }, () => 0.5)!;
+
+		expect(rafSpy).not.toHaveBeenCalled();
+		expect(ctx.clearRect).toHaveBeenCalledTimes(1);
+		expect(ctx.fill).toHaveBeenCalledTimes(3);
+
+		// A colour change repaints the idle frame.
+		engine.setOptions({ color: "#ff0000" });
+		expect(ctx.clearRect).toHaveBeenCalledTimes(2);
+		expect(rafSpy).not.toHaveBeenCalled();
+
+		engine.setOptions({ reducedMotion: false });
+		expect(rafSpy).toHaveBeenCalledTimes(1);
+
+		engine.setOptions({ reducedMotion: true });
+		rafCallbacks.shift()!(0);
+		expect(rafCallbacks).toHaveLength(0);
+	});
 });

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 
 /**
  * FallingStarsBg - Canvas-based 3D starfield background
@@ -135,8 +136,14 @@ export function FallingStarsBg({
 	// running loop reads it through a ref, so a colour change repaints on the
 	// next frame instead of tearing the starfield down and re-seeding it.
 	const colorRef = useRef(color);
+	// Reduced motion: one still frame instead of the rAF loop. A flip restarts the
+	// effect below; the same `seed` lays out the same sky, so the picture is stable.
+	const reducedMotion = useReducedMotion();
+	// Set by the effect while the loop is idle, so a colour change can repaint it.
+	const repaintRef = useRef<(() => void) | null>(null);
 	useEffect(() => {
 		colorRef.current = color;
+		repaintRef.current?.();
 	}, [color]);
 
 	useEffect(() => {
@@ -233,6 +240,11 @@ export function FallingStarsBg({
 				}
 			}
 
+			// One still frame under reduced motion: paint, then idle.
+			if (reducedMotion) {
+				rafId = 0;
+				return;
+			}
 			rafId = requestAnimationFrame(loop);
 		}
 
@@ -250,16 +262,26 @@ export function FallingStarsBg({
 			});
 		}
 
-		rafId = requestAnimationFrame(loop);
+		if (reducedMotion) {
+			loop();
+			repaintRef.current = loop;
+		} else {
+			rafId = requestAnimationFrame(loop);
+		}
 
-		const resizeObserver = new ResizeObserver(() => resizeCanvas());
+		// Resizing wipes the bitmap; an idle (reduced-motion) loop must repaint.
+		const resizeObserver = new ResizeObserver(() => {
+			resizeCanvas();
+			if (reducedMotion) loop();
+		});
 		resizeObserver.observe(canvas);
 
 		return () => {
+			repaintRef.current = null;
 			if (rafId) cancelAnimationFrame(rafId);
 			resizeObserver.disconnect();
 		};
-	}, [count, seed]);
+	}, [count, seed, reducedMotion]);
 
 	return <canvas ref={canvasRef} className={cn("absolute inset-0 h-full w-full", className)} />;
 }
