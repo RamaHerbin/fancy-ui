@@ -98,6 +98,15 @@ function handlePointerMove(event: PointerEvent) {
 	el.style.setProperty("--ripple-y", `${event.clientY - rect.top}px`);
 }
 
+// Leaving drops the pointer position, so the keyboard-focus glow is centred
+// again (the CSS fallback) instead of parked where the pointer last was. A
+// consumer `@pointerleave` (in `attrs`) runs after this one.
+function handlePointerLeave(event: PointerEvent) {
+	const el = event.currentTarget as HTMLButtonElement;
+	el.style.removeProperty("--ripple-x");
+	el.style.removeProperty("--ripple-y");
+}
+
 function createRipple(event: MouseEvent) {
 	const button = buttonRef.value;
 	if (!button) return;
@@ -136,6 +145,7 @@ function createRipple(event: MouseEvent) {
 		:disabled="disabled"
 		@click="handleClick"
 		@pointermove="handlePointerMove"
+		@pointerleave="handlePointerLeave"
 		v-bind="attrs"
 	>
 		<div class="relative z-10">

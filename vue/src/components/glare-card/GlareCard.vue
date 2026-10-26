@@ -86,6 +86,8 @@ function handlePointerLeave() {
 		refElement.value.style.removeProperty("--duration");
 		rotate.x = 0;
 		rotate.y = 0;
+		glare.x = 50;
+		glare.y = 50;
 	}
 }
 </script>

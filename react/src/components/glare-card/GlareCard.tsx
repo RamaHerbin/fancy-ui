@@ -110,6 +110,7 @@ export function GlareCard({ className = "", children }: GlareCardProps) {
 		if (refElement.current) {
 			refElement.current.style.removeProperty("--duration");
 			rotate.current = { x: 0, y: 0 };
+			glare.current = { x: 50, y: 50 };
 			writeVars();
 		}
 	}

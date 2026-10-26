@@ -80,6 +80,19 @@ describe("GlareCard pointer type and focus", () => {
 		expect(wrapper.getAttribute("style") ?? "").toMatch(/--m-x:\s*50%/);
 	});
 
+	it("recentres the foil when the pointer leaves", async () => {
+		const { container } = render(GlareCard);
+		const wrapper = container.querySelector(".glare-container") as HTMLElement;
+		firePointer(wrapper, "pointermove", { clientX: 100, clientY: 100, pointerType: "mouse" });
+		await nextTick();
+		expect(wrapper.getAttribute("style") ?? "").not.toMatch(/--m-x:\s*50%[;"]/);
+		firePointer(wrapper, "pointerleave", { pointerType: "mouse" });
+		await nextTick();
+		const style = wrapper.getAttribute("style") ?? "";
+		expect(style).toMatch(/--m-x:\s*50%[;"]/);
+		expect(style).toMatch(/--m-y:\s*50%[;"]/);
+	});
+
 	it("lights the foil when focus lands inside, same as hover", () => {
 		const { container } = render(GlareCard);
 		const panel = container.querySelector(".glare-container > div") as HTMLElement;

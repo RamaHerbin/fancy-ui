@@ -65,6 +65,7 @@
 		if (refElement) {
 			refElement.style.removeProperty("--duration");
 			rotate = { x: 0, y: 0 };
+			glare = { x: 50, y: 50 };
 		}
 	}
 </script>

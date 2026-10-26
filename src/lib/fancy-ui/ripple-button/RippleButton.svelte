@@ -56,6 +56,7 @@
 		children,
 		onclick,
 		onpointermove,
+		onpointerleave,
 		sound = false,
 		...restProps
 	}: RippleButtonProps = $props();
@@ -89,6 +90,15 @@
 		onpointermove?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 
+	// Leaving drops the pointer position, so the keyboard-focus glow is centred
+	// again (the CSS fallback) instead of parked where the pointer last was.
+	function handlePointerLeave(event: PointerEvent) {
+		const el = event.currentTarget as HTMLButtonElement;
+		el.style.removeProperty("--ripple-x");
+		el.style.removeProperty("--ripple-y");
+		onpointerleave?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
+
 	function createRipple(event: MouseEvent) {
 		if (!buttonRef) return;
 
@@ -118,6 +128,7 @@
 	data-rippling={ripples.length > 0 ? "" : undefined}
 	onclick={handleClick}
 	onpointermove={handlePointerMove}
+	onpointerleave={handlePointerLeave}
 	{...restProps}
 >
 	<div class="relative z-10">

@@ -44,6 +44,22 @@ describe("RippleButton", () => {
 		}
 	});
 
+	it("drops the pointer position on leave so the focus glow is centred again", async () => {
+		const onPointerleave = vi.fn();
+		render(RippleButton, { attrs: { onPointerleave } });
+		const button = screen.getByRole("button");
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		await fireEvent(
+			button,
+			new MouseEvent("pointermove", { clientX: 60, clientY: 30, bubbles: true })
+		);
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("50px");
+		await fireEvent(button, new MouseEvent("pointerleave"));
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("");
+		expect(button.style.getPropertyValue("--ripple-y")).toBe("");
+		expect(onPointerleave).toHaveBeenCalledTimes(1);
+	});
+
 	it("tracks the pointer for the hover glow and forwards a consumer onpointermove", async () => {
 		const onPointermove = vi.fn();
 		render(RippleButton, { attrs: { onPointermove } });
