@@ -30,6 +30,7 @@ export interface HyperTextProps {
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { cn } from "../../utils.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 
 defineOptions({ name: "HyperText", inheritAttrs: false });
 
@@ -74,7 +75,7 @@ watch(
 	(next) => {
 		displayText.value = next;
 	},
-	{ flush: "post" },
+	{ flush: "post" }
 );
 
 function getRandomLetter(random: () => number): string {
@@ -101,7 +102,7 @@ function startAnimation() {
 		const target = text;
 		if (iterations < target.length) {
 			displayText.value = displayText.value.map((l, i) =>
-				l === " " ? l : i <= iterations ? (target[i] ?? l) : getRandomLetter(random),
+				l === " " ? l : i <= iterations ? (target[i] ?? l) : getRandomLetter(random)
 			);
 			iterations += 0.1;
 		} else {
@@ -113,6 +114,13 @@ function startAnimation() {
 
 function triggerAnimation() {
 	iterations = 0;
+	// One-shot read at the interaction (or at mount): under reduced motion the
+	// text is shown whole and never scrambled.
+	if (prefersReducedMotion()) {
+		stopAnimation();
+		displayText.value = text.split("");
+		return;
+	}
 	startAnimation();
 }
 
@@ -136,11 +144,7 @@ onBeforeUnmount(stopAnimation);
 				v-for="(letter, i) in displayText"
 				:key="i"
 				:class="cn('hyper-text-char inline-block font-mono', letter === ' ' ? 'w-3' : '')"
-				:style="{
-					animation: 'hyperFadeIn 0.3s ease forwards',
-					animationDelay: `${i * (duration / (text.length * 10))}ms`,
-					opacity: 0,
-				}"
+				:style="{ '--hyper-text-delay': `${i * (duration / (text.length * 10))}ms` }"
 			>
 				{{ letter.toUpperCase() }}
 			</span>
@@ -157,6 +161,17 @@ onBeforeUnmount(stopAnimation);
 	100% {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+</style>
+
+<style scoped>
+/* Resting state is the ungated default: every character visible, in place. */
+@media (prefers-reduced-motion: no-preference) {
+	.hyper-text-char {
+		opacity: 0;
+		animation: hyperFadeIn 0.3s ease forwards;
+		animation-delay: var(--hyper-text-delay, 0s);
 	}
 }
 </style>

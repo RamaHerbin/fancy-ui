@@ -1,4 +1,4 @@
-/* Keyframes referenced by the inline `animation` shorthand on each
+/* Keyframes referenced by the gated `animation` rule on each
    `.hyper-text-char`. The name is part of the visual contract — the Svelte
    source declares it as a global keyframes block — so it is kept identical. */
 @keyframes hyperFadeIn {
@@ -9,5 +9,14 @@
 	100% {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+/* Resting state is the ungated default: every character visible, in place. */
+@media (prefers-reduced-motion: no-preference) {
+	.hyper-text .hyper-text-char {
+		opacity: 0;
+		animation: hyperFadeIn 0.3s ease forwards;
+		animation-delay: var(--hyper-text-delay, 0s);
 	}
 }

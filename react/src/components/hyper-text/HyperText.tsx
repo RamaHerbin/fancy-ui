@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import "./hyper-text.css";
 
 /**
@@ -114,6 +115,13 @@ export function HyperText({
 
 	function triggerAnimation() {
 		iterationsRef.current = 0;
+		// One-shot read at the interaction (or at mount): under reduced motion the
+		// text is shown whole and never scrambled.
+		if (prefersReducedMotion()) {
+			stopAnimation();
+			writeDisplayText(textRef.current.split(""));
+			return;
+		}
 		startAnimation();
 	}
 
@@ -137,11 +145,11 @@ export function HyperText({
 					<span
 						key={i}
 						className={cn("hyper-text-char inline-block font-mono", letter === " " ? "w-3" : "")}
-						style={{
-							animation: "hyperFadeIn 0.3s ease forwards",
-							animationDelay: `${i * (duration / (text.length * 10))}ms`,
-							opacity: 0,
-						}}
+						style={
+							{
+								"--hyper-text-delay": `${i * (duration / (text.length * 10))}ms`,
+							} as CSSProperties
+						}
 					>
 						{letter.toUpperCase()}
 					</span>
