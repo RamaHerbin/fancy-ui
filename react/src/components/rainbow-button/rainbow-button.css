@@ -98,19 +98,34 @@
 	border-radius: calc(0.75rem + var(--glow-reach));
 }
 
-.rainbow-button:hover .rainbow-button__beam,
 .rainbow-button:focus-visible .rainbow-button__beam {
 	opacity: 1;
 }
 
-.rainbow-button:hover .rainbow-button__glow,
+@media (hover: hover) {
+	.rainbow-button:hover .rainbow-button__beam {
+		opacity: 1;
+	}
+}
+
 .rainbow-button:focus-visible .rainbow-button__glow {
 	opacity: 0.6;
 }
 
-.rainbow-button:hover,
+@media (hover: hover) {
+	.rainbow-button:hover .rainbow-button__glow {
+		opacity: 0.6;
+	}
+}
+
 .rainbow-button:focus-visible {
 	animation: beam-spin calc(var(--rainbow-speed, 2s) * 1.5) linear infinite;
+}
+
+@media (hover: hover) {
+	.rainbow-button:hover {
+		animation: beam-spin calc(var(--rainbow-speed, 2s) * 1.5) linear infinite;
+	}
 }
 
 @keyframes beam-spin {
@@ -120,9 +135,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.rainbow-button:hover,
 	.rainbow-button:focus-visible {
 		animation: none;
 		--beam-angle: 200deg;
+	}
+
+	@media (hover: hover) {
+		.rainbow-button:hover {
+			animation: none;
+			--beam-angle: 200deg;
+		}
 	}
 }

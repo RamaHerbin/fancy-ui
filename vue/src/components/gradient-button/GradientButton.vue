@@ -95,7 +95,10 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	callListener(onClick ?? onclick, event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	callListener(
+		onClick ?? onclick,
+		event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	);
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds
@@ -208,9 +211,14 @@ function handleClick(event: MouseEvent) {
 	padding: calc(var(--gb-blur) * 1.75);
 }
 
-.gradient-button:hover .gradient-glow,
 .gradient-button:focus-visible .gradient-glow {
 	opacity: 0.8;
+}
+
+@media (hover: hover) {
+	.gradient-button:hover .gradient-glow {
+		opacity: 0.8;
+	}
 }
 
 .gradient-button:focus-visible {

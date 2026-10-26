@@ -159,28 +159,52 @@ function handleClick(event: MouseEvent) {
 
 /* ---- hover / keyboard focus ---------------------------------------------- */
 
-.ihb:hover .ihb-fill,
 .ihb:focus-visible .ihb-fill {
 	clip-path: circle(150% at var(--ihb-dot-x) 50%);
 }
 
-.ihb:hover .ihb-rest,
+@media (hover: hover) {
+	.ihb:hover .ihb-fill {
+		clip-path: circle(150% at var(--ihb-dot-x) 50%);
+	}
+}
+
 .ihb:focus-visible .ihb-rest {
 	opacity: 0;
 	transform: translateY(-70%);
 	filter: blur(4px);
 }
 
-.ihb:hover .ihb-hover,
+@media (hover: hover) {
+	.ihb:hover .ihb-rest {
+		opacity: 0;
+		transform: translateY(-70%);
+		filter: blur(4px);
+	}
+}
+
 .ihb:focus-visible .ihb-hover {
 	opacity: 1;
 	transform: none;
 }
 
-.ihb:hover .ihb-arrow,
+@media (hover: hover) {
+	.ihb:hover .ihb-hover {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 .ihb:focus-visible .ihb-arrow {
 	opacity: 1;
 	transform: none;
+}
+
+@media (hover: hover) {
+	.ihb:hover .ihb-arrow {
+		opacity: 1;
+		transform: none;
+	}
 }
 
 .ihb:focus-visible {
@@ -242,14 +266,24 @@ function handleClick(event: MouseEvent) {
 	}
 
 	/* On the way in, stagger: label a beat after the fill, arrow after it. */
-	.ihb:hover .ihb-hover,
 	.ihb:focus-visible .ihb-hover {
 		transition-delay: 60ms;
 	}
 
-	.ihb:hover .ihb-arrow,
+	@media (hover: hover) {
+		.ihb:hover .ihb-hover {
+			transition-delay: 60ms;
+		}
+	}
+
 	.ihb:focus-visible .ihb-arrow {
 		transition-delay: 160ms;
+	}
+
+	@media (hover: hover) {
+		.ihb:hover .ihb-arrow {
+			transition-delay: 160ms;
+		}
 	}
 }
 </style>

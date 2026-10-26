@@ -76,7 +76,7 @@
 	use:soundFeedback={hoverFeedback}
 	class={cn(
 		"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
-		"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
+		"transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]",
 		className
 	)}
 	style={styleVars}
@@ -174,13 +174,21 @@
 		);
 	}
 
-	.shimmer-button:hover .shimmer-button__spot {
+	.shimmer-button:focus-visible .shimmer-button__spot {
 		opacity: 1;
 	}
 
+	@media (hover: hover) {
+		.shimmer-button:hover .shimmer-button__spot {
+			opacity: 1;
+		}
+	}
+
 	/* The pointer takes over from the sweep while hovering. */
-	.shimmer-button:hover .shimmer-button__sheen {
-		opacity: 0;
+	@media (hover: hover) {
+		.shimmer-button:hover .shimmer-button__sheen {
+			opacity: 0;
+		}
 	}
 
 	.shimmer-button:focus-visible {
