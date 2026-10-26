@@ -111,6 +111,22 @@ describe("DirectionAwareHover", () => {
 			expect(img.className).not.toContain("translate-y-2");
 		});
 
+		it("stays presented after the pointer leaves when keyboard focus arrived under it", async () => {
+			delete (window as unknown as Record<string, unknown>).ontouchstart;
+			const { container } = render(DirectionAwareHover, { props: { imageUrl: "/t.jpg" } });
+			const figure = container.querySelector('[role="figure"]') as HTMLElement;
+			figure.matches = ((selector: string) =>
+				selector === ":focus-visible") as typeof figure.matches;
+			await fireEvent(figure, Object.assign(new Event("pointerenter"), { pointerType: "mouse" }));
+			await fireEvent.focusIn(figure);
+			await fireEvent(figure, Object.assign(new Event("pointerleave"), { pointerType: "mouse" }));
+			await nextTick();
+			const img = figure.querySelector("img")!.parentElement as HTMLElement;
+			expect(img.className).toContain("translate-y-2");
+			await fireEvent.focusOut(figure);
+			expect(img.className).not.toContain("translate-y-2");
+		});
+
 		it("ignores touch pointers on the hover path", async () => {
 			// jsdom reports touch support, which would switch the hover path off for every pointer.
 			delete (window as unknown as Record<string, unknown>).ontouchstart;

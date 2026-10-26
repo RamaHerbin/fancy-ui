@@ -82,6 +82,21 @@ describe("TextRevealCard", () => {
 	});
 
 	describe("keyboard path", () => {
+		it("stays revealed after the pointer leaves when keyboard focus arrived under it", async () => {
+			const { container } = render(TextRevealCard);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			card.matches = ((selector: string) => selector === ":focus-visible") as typeof card.matches;
+			firePointer(card, "pointerenter");
+			await fireEvent.focusIn(card);
+			firePointer(card, "pointerleave");
+			await new Promise((resolve) => setTimeout(resolve, 150));
+			await tick();
+			expect(layer.style.opacity).toBe("1");
+			await fireEvent.focusOut(card);
+			expect(layer.style.opacity).toBe("0");
+		});
+
 		it("is focusable", () => {
 			const { container } = render(TextRevealCard);
 			expect(container.firstElementChild).toHaveAttribute("tabindex", "0");

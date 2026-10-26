@@ -69,7 +69,15 @@
 
 	function handleFocusIn() {
 		// A click focuses the root too, while the pointer already chose a direction: keep it.
-		if (direction !== null) return;
+		// Keyboard focus still arms the flag, so the card stays presented once the pointer leaves.
+		if (direction !== null) {
+			try {
+				if (divRef?.matches(":focus-visible")) focusPresented = true;
+			} catch {
+				// `:focus-visible` unsupported: treat it as pointer focus
+			}
+			return;
+		}
 		focusPresented = true;
 		direction = "top";
 	}

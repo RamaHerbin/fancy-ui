@@ -39,7 +39,7 @@ export function CardContainer({
 
 	const contextValue = useMemo<Card3DContextValue>(() => ({ isMouseEntered }), [isMouseEntered]);
 
-	// Touch and pen-less pointers never tilt: only a mouse or pen steers the card.
+	// Touch pointers never tilt: only a mouse or pen steers the card.
 	const steers = (e: PointerEvent<HTMLDivElement>) => e.pointerType !== "touch";
 
 	function handlePointerMove(e: PointerEvent<HTMLDivElement>) {

@@ -61,7 +61,15 @@ let focusRevealed = false;
 
 function focusInHandler() {
 	// A click focuses the card too, while the pointer already drives the scrub.
-	if (isMouseOver.value) return;
+	// Keyboard focus still arms the flag, so the text stays revealed once the pointer leaves.
+	if (isMouseOver.value) {
+		try {
+			if (cardRef.value?.matches(":focus-visible")) focusRevealed = true;
+		} catch {
+			// `:focus-visible` unsupported: treat it as pointer focus
+		}
+		return;
+	}
 	focusRevealed = true;
 	widthPercentage.value = 100;
 }
