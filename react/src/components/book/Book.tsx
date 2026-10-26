@@ -42,6 +42,7 @@ export function Book({
 				"fancy-book group z-10 w-min [--shadowColor:#bbb] [perspective:800px] dark:[--shadowColor:#111]",
 				className
 			)}
+			tabIndex={isStatic ? undefined : 0}
 			{...rest}
 		>
 			<div
@@ -50,7 +51,7 @@ export function Book({
 					"book-cover relative aspect-[3/4] [transform-style:preserve-3d]",
 					isStatic
 						? "[transform:rotateY(-30deg)]"
-						: "[transform:rotateY(0deg)] group-hover:[transform:rotateY(-30deg)]",
+						: "[transform:rotateY(0deg)] group-hover:[transform:rotateY(-30deg)] group-focus-visible:[transform:rotateY(-30deg)]",
 					radiusMap[radius]
 				)}
 			>
