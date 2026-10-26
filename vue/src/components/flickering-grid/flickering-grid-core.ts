@@ -31,6 +31,12 @@ export interface FlickeringGridLiveOptions {
 	width?: number;
 	/** Fixed height in pixels (defaults to container height) */
 	height?: number;
+	/**
+	 * Reduced-motion preference, owned by the wrapper (the core never reads
+	 * `matchMedia`). When true the grid paints one still frame while in view and
+	 * idles; a flip back to false resumes the flicker.
+	 */
+	reducedMotion?: boolean;
 }
 
 export interface FlickeringGridEngine {
@@ -45,7 +51,7 @@ export interface FlickeringGridEngine {
 	destroy(): void;
 }
 
-const DEFAULTS: Omit<Required<FlickeringGridLiveOptions>, "width" | "height"> = {
+const DEFAULTS: Omit<Required<FlickeringGridLiveOptions>, "width" | "height" | "reducedMotion"> = {
 	squareSize: 4,
 	gridGap: 6,
 	flickerChance: 0.3,
@@ -134,8 +140,11 @@ export function createFlickeringGrid(
 	const ctx = el.canvas.getContext("2d");
 	if (!ctx) return null;
 
-	const opts: Omit<Required<FlickeringGridLiveOptions>, "width" | "height"> &
-		Pick<FlickeringGridLiveOptions, "width" | "height"> = { ...DEFAULTS, ...options };
+	const opts: Omit<Required<FlickeringGridLiveOptions>, "width" | "height" | "reducedMotion"> &
+		Pick<FlickeringGridLiveOptions, "width" | "height" | "reducedMotion"> = {
+		...DEFAULTS,
+		...options,
+	};
 
 	let isInView = false;
 	let animationFrameId: number | undefined;
@@ -205,16 +214,39 @@ export function createFlickeringGrid(
 		const deltaTime = (time - lastTime) / 1000;
 		lastTime = time;
 
+		// One still frame under reduced motion: the squares keep their seeded
+		// opacities (no flicker), paint once, then idle until the preference
+		// flips back or the grid re-enters the viewport.
+		if (opts.reducedMotion) {
+			drawGrid();
+			animationFrameId = undefined;
+			return;
+		}
+
 		updateSquares(deltaTime);
 		drawGrid();
 		animationFrameId = requestAnimationFrame(animate);
+	}
+
+	/** Repaint the still frame of an idle (reduced-motion, in-view) engine. */
+	function repaintIdle() {
+		if (opts.reducedMotion && isInView && animationFrameId === undefined) drawGrid();
 	}
 
 	updateCanvasSize();
 
 	return {
 		setOptions(next) {
+			if (destroyed) return;
+			const wasReduced = opts.reducedMotion;
 			Object.assign(opts, next);
+			if (wasReduced && !opts.reducedMotion) {
+				if (isInView && animationFrameId === undefined) {
+					animationFrameId = requestAnimationFrame(animate);
+				}
+			} else {
+				repaintIdle();
+			}
 		},
 		setInView(nextIsInView) {
 			// Faithful to the original IntersectionObserver callback: assign, then
@@ -230,6 +262,7 @@ export function createFlickeringGrid(
 		resize() {
 			if (destroyed) return;
 			updateCanvasSize();
+			repaintIdle();
 		},
 		destroy() {
 			if (destroyed) return;

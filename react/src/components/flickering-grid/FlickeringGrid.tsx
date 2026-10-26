@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 
 /**
  * FlickeringGrid - Canvas-based grid with flickering opacity squares
@@ -155,6 +156,15 @@ export function FlickeringGrid({
 	const widthRef = useLiveRef(width);
 	const heightRef = useLiveRef(height);
 
+	// Reduced motion: one still frame while in view instead of the flicker loop.
+	// A flip restarts the effect below; the same `seed` re-lays the same squares.
+	const reducedMotion = useReducedMotion();
+	// Set by the effect while the loop is idle, so a prop change can repaint it.
+	const repaintRef = useRef<(() => void) | null>(null);
+	useEffect(() => {
+		repaintRef.current?.();
+	}, [color, squareSize, gridGap, maxOpacity]);
+
 	// `seed` IS a dependency: it defines the stream from its first value on, so
 	// changing it has to restart the grid.
 	useEffect(() => {
@@ -244,15 +254,30 @@ export function FlickeringGrid({
 			const deltaTime = (time - lastTime) / 1000;
 			lastTime = time;
 
+			// One still frame under reduced motion: the squares keep their seeded
+			// opacities, paint once, then idle until the grid re-enters the viewport.
+			if (reducedMotion) {
+				drawGrid();
+				animationFrameId = undefined;
+				return;
+			}
+
 			updateSquares(deltaTime);
 			drawGrid();
 			animationFrameId = requestAnimationFrame(animate);
 		}
 
+		/** Repaint the still frame of an idle (reduced-motion, in-view) grid. */
+		function repaintIdle() {
+			if (reducedMotion && isInView && animationFrameId === undefined) drawGrid();
+		}
+		repaintRef.current = repaintIdle;
+
 		updateCanvasSize();
 
 		const resizeObserver = new ResizeObserver(() => {
 			updateCanvasSize();
+			repaintIdle();
 		});
 
 		const intersectionObserver = new IntersectionObserver(
@@ -275,6 +300,7 @@ export function FlickeringGrid({
 		intersectionObserver.observe(canvasEl);
 
 		return () => {
+			repaintRef.current = null;
 			if (animationFrameId) cancelAnimationFrame(animationFrameId);
 			resizeObserver.disconnect();
 			intersectionObserver.disconnect();
@@ -283,6 +309,7 @@ export function FlickeringGrid({
 		container,
 		canvas,
 		seed,
+		reducedMotion,
 		squareSizeRef,
 		gridGapRef,
 		flickerChanceRef,

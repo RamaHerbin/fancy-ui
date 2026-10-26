@@ -300,4 +300,29 @@ describe("createFlickeringGrid", () => {
 		tick(16);
 		expect(draws.fillStyles[0]).toMatch(/^rgba\(255, 0, 0,/);
 	});
+	it("reducedMotion draws one still frame when in view, then idles, and resumes when cleared", () => {
+		const { container, canvas, draws } = makeElements();
+		const engine = createFlickeringGrid({ container, canvas }, { reducedMotion: true })!;
+		expect(pending.size).toBe(0);
+
+		engine.setInView(true);
+		expect(pending.size).toBe(1);
+		tick(16);
+		expect(draws.clearRectCalls).toBe(1);
+		expect(pending.size).toBe(0);
+
+		// A resize repaints the idle frame instead of leaving the canvas blank.
+		engine.resize();
+		expect(draws.clearRectCalls).toBe(2);
+		expect(pending.size).toBe(0);
+
+		engine.setOptions({ reducedMotion: false });
+		expect(pending.size).toBe(1);
+		tick(32);
+		expect(pending.size).toBe(1);
+
+		engine.setOptions({ reducedMotion: true });
+		tick(48);
+		expect(pending.size).toBe(0);
+	});
 });
