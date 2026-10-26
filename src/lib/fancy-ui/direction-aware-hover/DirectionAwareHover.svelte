@@ -63,7 +63,26 @@
 		}
 	}
 
-	function handleMouseEnter(event: MouseEvent) {
+	// Keyboard path: focus shows the fully presented state (overlay in from the top,
+	// image shifted, caption mounted). Nothing is announced: the caption is already in the DOM.
+	let focusPresented = false;
+
+	function handleFocusIn() {
+		// A click focuses the root too, while the pointer already chose a direction: keep it.
+		if (direction !== null) return;
+		focusPresented = true;
+		direction = "top";
+	}
+
+	function handleFocusOut(event: FocusEvent) {
+		if (event.relatedTarget instanceof Node && divRef?.contains(event.relatedTarget)) return;
+		if (!focusPresented) return;
+		focusPresented = false;
+		direction = null;
+	}
+
+	function handlePointerEnter(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
 		if (isMobile) return;
 		if (!divRef) return;
 
@@ -71,9 +90,10 @@
 		direction = mapDirection(fetchedDirection);
 	}
 
-	function handleMouseLeave() {
+	function handlePointerLeave(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
 		if (isMobile) return;
-		direction = null;
+		direction = focusPresented ? "top" : null;
 	}
 
 	function handleTouchStart(event: TouchEvent) {
@@ -150,16 +170,20 @@
 		let transformClasses = "";
 		switch (direction) {
 			case "top":
-				transformClasses = "-translate-y-full group-hover/card:translate-y-0";
+				transformClasses =
+					"-translate-y-full group-hover/card:translate-y-0 group-focus-within/card:translate-y-0";
 				break;
 			case "bottom":
-				transformClasses = "translate-y-full group-hover/card:translate-y-0";
+				transformClasses =
+					"translate-y-full group-hover/card:translate-y-0 group-focus-within/card:translate-y-0";
 				break;
 			case "left":
-				transformClasses = "-translate-x-full group-hover/card:translate-x-0";
+				transformClasses =
+					"-translate-x-full group-hover/card:translate-x-0 group-focus-within/card:translate-x-0";
 				break;
 			case "right":
-				transformClasses = "translate-x-full group-hover/card:translate-x-0";
+				transformClasses =
+					"translate-x-full group-hover/card:translate-x-0 group-focus-within/card:translate-x-0";
 				break;
 			default:
 				transformClasses = "";
@@ -169,12 +193,15 @@
 	});
 
 	let imageContainerClass = $derived(
-		cn("relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black", {
-			"translate-y-2 md:translate-y-5": direction === "top",
-			"-translate-y-2 md:-translate-y-5": direction === "bottom",
-			"translate-x-2 md:translate-x-5": direction === "left",
-			"-translate-x-2 md:-translate-x-5": direction === "right",
-		})
+		cn(
+			"relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black",
+			{
+				"translate-y-2 md:translate-y-5": direction === "top",
+				"-translate-y-2 md:-translate-y-5": direction === "bottom",
+				"translate-x-2 md:translate-x-5": direction === "left",
+				"-translate-x-2 md:-translate-x-5": direction === "right",
+			}
+		)
 	);
 
 	onMount(() => {
@@ -190,18 +217,26 @@
 	});
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	bind:this={divRef}
 	class={containerClass}
-	onmouseenter={handleMouseEnter}
-	onmouseleave={handleMouseLeave}
+	tabindex="0"
+	onpointerenter={handlePointerEnter}
+	onpointerleave={handlePointerLeave}
+	onfocusin={handleFocusIn}
+	onfocusout={handleFocusOut}
 	ontouchstart={handleTouchStart}
 	ontouchend={handleTouchEnd}
 	role="figure"
 >
 	<div class="relative size-full overflow-hidden">
 		{#if direction !== null}
-			<div class={overlayClass} transition:fade={{ duration: reducedMotion.current ? 0 : 300 }}></div>
+			<div
+				class={overlayClass}
+				transition:fade={{ duration: reducedMotion.current ? 0 : 300 }}
+			></div>
 		{/if}
 
 		<div class={imageContainerClass}>
@@ -226,5 +261,4 @@
 			min-width: 44px;
 		}
 	}
-
 </style>

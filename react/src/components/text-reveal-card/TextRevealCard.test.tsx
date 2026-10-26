@@ -1,4 +1,4 @@
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { TextRevealCard } from "./TextRevealCard.js";
 
@@ -77,5 +77,32 @@ describe("TextRevealCard", () => {
 		Object.assign(ev, { touches: [{ clientX: 10, clientY: 10 }] });
 		card.dispatchEvent(ev);
 		expect(ev.defaultPrevented).toBe(false);
+	});
+
+	describe("keyboard path", () => {
+		it("is focusable", () => {
+			const { container } = render(<TextRevealCard />);
+			expect(container.firstElementChild).toHaveAttribute("tabindex", "0");
+		});
+
+		it("focus reveals the full text, Escape returns to rest", () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			act(() => card.focus());
+			expect(layer.style.opacity).toBe("1");
+			expect(layer.style.clipPath).toContain("inset(0 0%");
+			fireEvent.keyDown(card, { key: "Escape" });
+			expect(layer.style.opacity).toBe("0");
+		});
+
+		it("blur returns to rest", () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			act(() => card.focus());
+			act(() => card.blur());
+			expect(layer.style.opacity).toBe("0");
+		});
 	});
 });

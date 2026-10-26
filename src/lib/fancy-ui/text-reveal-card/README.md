@@ -38,3 +38,9 @@ A card that reveals text as the user drags their mouse horizontally. Features an
 ## Reduced motion
 
 With `prefers-reduced-motion: reduce` the star field behind the hidden text stays still: each star rests where it was placed, at its own brightness, instead of drifting and fading. The pointer reveal is unchanged.
+
+## Accessibility
+
+- The card is focusable (`tabindex="0"`, `role="group"`): keyboard focus reveals the full text at once, with no partial scrub. Escape or blur returns to rest.
+- Nothing extra is announced on focus: the revealed text is already in the DOM.
+- The pointer scrub is unchanged.

@@ -53,11 +53,35 @@ function mouseMoveHandler(event: MouseEvent) {
 	}
 }
 
+// Keyboard path: focus shows the fully revealed text (no partial scrub);
+// Escape or blur returns to rest. Nothing extra is announced: the text is in the DOM.
+let focusRevealed = false;
+
+function focusInHandler() {
+	// A click focuses the card too, while the pointer already drives the scrub.
+	if (isMouseOver.value) return;
+	focusRevealed = true;
+	widthPercentage.value = 100;
+}
+
+function focusOutHandler(event: FocusEvent) {
+	if (event.relatedTarget instanceof Node && cardRef.value?.contains(event.relatedTarget)) return;
+	if (!focusRevealed) return;
+	focusRevealed = false;
+	widthPercentage.value = 0;
+}
+
+function keyDownHandler(event: KeyboardEvent) {
+	if (event.key !== "Escape" || !focusRevealed) return;
+	focusRevealed = false;
+	widthPercentage.value = 0;
+}
+
 function mouseLeaveHandler() {
 	isMouseOver.value = false;
 	setTimeout(() => {
 		if (!isMouseOver.value) {
-			widthPercentage.value = 0;
+			widthPercentage.value = focusRevealed ? 100 : 0;
 		}
 	}, 100);
 }
@@ -85,7 +109,11 @@ function touchMoveHandler(event: TouchEvent) {
 				className
 			)
 		"
-		role="presentation"
+		role="group"
+		tabindex="0"
+		@focusin="focusInHandler"
+		@focusout="focusOutHandler"
+		@keydown="keyDownHandler"
 		@mouseenter="mouseEnterHandler"
 		@mouseleave="mouseLeaveHandler"
 		@mousemove="mouseMoveHandler"

@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import {
+	useEffect,
+	useRef,
+	useState,
+	type FocusEvent,
+	type KeyboardEvent,
+	type MouseEvent,
+	type ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { TextRevealStars } from "./TextRevealStars.js";
 import "./text-reveal-card.css";
@@ -51,12 +59,37 @@ export function TextRevealCard({
 		}
 	}
 
+	// Keyboard path: focus shows the fully revealed text (no partial scrub);
+	// Escape or blur returns to rest. Nothing extra is announced: the text is in the DOM.
+	const focusRevealedRef = useRef(false);
+
+	function focusInHandler() {
+		// A click focuses the card too, while the pointer already drives the scrub.
+		if (isMouseOverRef.current) return;
+		focusRevealedRef.current = true;
+		setWidthPercentage(100);
+	}
+
+	function focusOutHandler(event: FocusEvent<HTMLDivElement>) {
+		if (event.relatedTarget instanceof Node && cardRef.current?.contains(event.relatedTarget))
+			return;
+		if (!focusRevealedRef.current) return;
+		focusRevealedRef.current = false;
+		setWidthPercentage(0);
+	}
+
+	function keyDownHandler(event: KeyboardEvent<HTMLDivElement>) {
+		if (event.key !== "Escape" || !focusRevealedRef.current) return;
+		focusRevealedRef.current = false;
+		setWidthPercentage(0);
+	}
+
 	function mouseLeaveHandler() {
 		isMouseOverRef.current = false;
 		setIsMouseOver(false);
 		setTimeout(() => {
 			if (!isMouseOverRef.current) {
-				setWidthPercentage(0);
+				setWidthPercentage(focusRevealedRef.current ? 100 : 0);
 			}
 		}, 100);
 	}
@@ -88,7 +121,11 @@ export function TextRevealCard({
 				"relative w-full max-w-[40rem] touch-pan-y touch-pinch-zoom overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8",
 				className
 			)}
-			role="presentation"
+			role="group"
+			tabIndex={0}
+			onFocus={focusInHandler}
+			onBlur={focusOutHandler}
+			onKeyDown={keyDownHandler}
 			onMouseEnter={mouseEnterHandler}
 			onMouseLeave={mouseLeaveHandler}
 			onMouseMove={mouseMoveHandler}

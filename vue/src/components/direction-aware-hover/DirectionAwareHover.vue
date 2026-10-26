@@ -124,7 +124,27 @@ function mapDirection(d: number): Direction {
 	}
 }
 
-function handleMouseEnter(event: MouseEvent) {
+// Keyboard path: focus shows the fully presented state (overlay in from the top,
+// image shifted, caption mounted). Nothing is announced: the caption is already in the DOM.
+let focusPresented = false;
+
+function handleFocusIn() {
+	// A click focuses the root too, while the pointer already chose a direction: keep it.
+	if (direction.value !== null) return;
+	focusPresented = true;
+	direction.value = "top";
+	lastDirection.value = "top";
+}
+
+function handleFocusOut(event: FocusEvent) {
+	if (event.relatedTarget instanceof Node && divRef.value?.contains(event.relatedTarget)) return;
+	if (!focusPresented) return;
+	focusPresented = false;
+	direction.value = null;
+}
+
+function handlePointerEnter(event: PointerEvent) {
+	if (event.pointerType === "touch") return;
 	if (isMobile.value) return;
 	if (!divRef.value) return;
 
@@ -133,9 +153,10 @@ function handleMouseEnter(event: MouseEvent) {
 	lastDirection.value = direction.value;
 }
 
-function handleMouseLeave() {
+function handlePointerLeave(event: PointerEvent) {
+	if (event.pointerType === "touch") return;
 	if (isMobile.value) return;
-	direction.value = null;
+	direction.value = focusPresented ? "top" : null;
 }
 
 function handleTouchStart(event: TouchEvent) {
@@ -219,16 +240,20 @@ const overlayClass = computed(() => {
 	let transformClasses = "";
 	switch (overlayDirection.value) {
 		case "top":
-			transformClasses = "-translate-y-full group-hover/card:translate-y-0";
+			transformClasses =
+				"-translate-y-full group-hover/card:translate-y-0 group-focus-within/card:translate-y-0";
 			break;
 		case "bottom":
-			transformClasses = "translate-y-full group-hover/card:translate-y-0";
+			transformClasses =
+				"translate-y-full group-hover/card:translate-y-0 group-focus-within/card:translate-y-0";
 			break;
 		case "left":
-			transformClasses = "-translate-x-full group-hover/card:translate-x-0";
+			transformClasses =
+				"-translate-x-full group-hover/card:translate-x-0 group-focus-within/card:translate-x-0";
 			break;
 		case "right":
-			transformClasses = "translate-x-full group-hover/card:translate-x-0";
+			transformClasses =
+				"translate-x-full group-hover/card:translate-x-0 group-focus-within/card:translate-x-0";
 			break;
 		default:
 			transformClasses = "";
@@ -238,12 +263,15 @@ const overlayClass = computed(() => {
 });
 
 const imageContainerClass = computed(() =>
-	cn("relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black", {
-		"translate-y-2 md:translate-y-5": direction.value === "top",
-		"-translate-y-2 md:-translate-y-5": direction.value === "bottom",
-		"translate-x-2 md:translate-x-5": direction.value === "left",
-		"-translate-x-2 md:-translate-x-5": direction.value === "right",
-	})
+	cn(
+		"relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black",
+		{
+			"translate-y-2 md:translate-y-5": direction.value === "top",
+			"-translate-y-2 md:-translate-y-5": direction.value === "bottom",
+			"translate-x-2 md:translate-x-5": direction.value === "left",
+			"-translate-x-2 md:-translate-x-5": direction.value === "right",
+		}
+	)
 );
 
 // Two independent conditional blocks in the source, each with its own
@@ -278,8 +306,11 @@ onMounted(() => {
 		ref="divRef"
 		:class="containerClass"
 		role="figure"
-		@mouseenter="handleMouseEnter"
-		@mouseleave="handleMouseLeave"
+		tabindex="0"
+		@pointerenter="handlePointerEnter"
+		@pointerleave="handlePointerLeave"
+		@focusin="handleFocusIn"
+		@focusout="handleFocusOut"
 		@touchstart="handleTouchStart"
 		@touchend="handleTouchEnd"
 	>
