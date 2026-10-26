@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { observeInView } from "../../internals/motion/in-view.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 
 /**
  * NoiseReveal - A WebGL image reveal driven by a Perlin-noise dissolve mask.
@@ -206,6 +207,13 @@ export function NoiseReveal({
 	// on every toggle.
 	const revealedRef = useLiveRef(revealed);
 
+	// Live reduced-motion preference. Read inside the running loop through a ref,
+	// so a flip never rebuilds the scene (it would re-create the renderer): the
+	// loop idles after one still frame and `syncReducedRef` wakes it on a flip.
+	const reducedMotion = useReducedMotion();
+	const reducedRef = useLiveRef(reducedMotion);
+	const syncReducedRef = useRef(() => {});
+
 	// The whole scene is built and torn down inside one effect, exactly as the
 	// source's `$effect` does. The dependency array is the set that `$effect`
 	// reads reactively: `src` and `duration` are captured into locals at setup,
@@ -270,6 +278,11 @@ export function NoiseReveal({
 		};
 		fitPlane(width, height);
 
+		// Re-enters the loop when it is idle. Reduced motion renders one still
+		// frame, then waits for a wake: a target change, the texture landing, a
+		// resize or a preference flip. Assigned once the loop below exists.
+		let wake = () => {};
+
 		let texture: THREE.Texture | null = null;
 		new THREE.TextureLoader().load(_src, (loaded) => {
 			loaded.colorSpace = THREE.SRGBColorSpace;
@@ -280,23 +293,26 @@ export function NoiseReveal({
 				image.naturalWidth || 1,
 				image.naturalHeight || 1
 			);
+			// The texture lands asynchronously: an idle loop must repaint, otherwise
+			// a reduced-motion user would see a blank plane.
+			wake();
 		});
 
-		const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		let progress = material.uniforms.uProgress!.value as number;
 		const tween = { from: progress, to: progress, start: 0, active: false };
 
 		const target = (value: number) => {
 			if (value === tween.to) return;
 			tween.to = value;
-			if (reducedMotion) {
+			if (reducedRef.current) {
 				progress = value;
 				tween.active = false;
-				return;
+			} else {
+				tween.from = progress;
+				tween.start = performance.now();
+				tween.active = true;
 			}
-			tween.from = progress;
-			tween.start = performance.now();
-			tween.active = true;
+			wake();
 		};
 		setSetTarget(() => target);
 
@@ -307,6 +323,8 @@ export function NoiseReveal({
 			camera.updateProjectionMatrix();
 			renderer.setSize(r.width, r.height, false);
 			fitPlane(r.width, r.height);
+			// setSize cleared the drawing buffer; repaint if the loop is idle.
+			wake();
 		};
 
 		window.addEventListener("resize", handleResize);
@@ -324,15 +342,19 @@ export function NoiseReveal({
 		// with synchronously, exactly as the first `animate()` call did.
 		let animationId = 0;
 		const animate = () => {
-			animationId = requestAnimationFrame(animate);
 			if (tween.active) {
 				const t = getProgress(performance.now() - tween.start, _duration * 1000);
 				progress = lerp(tween.from, tween.to, easeInOutCubic(t));
 				if (t >= 1) tween.active = false;
 			}
 			material.uniforms.uProgress!.value = progress;
-			material.uniforms.uTime!.value = clock.getElapsedTime() - pausedTime;
+			// Reduced motion freezes the grain: uTime keeps its last value.
+			if (!reducedRef.current) {
+				material.uniforms.uTime!.value = clock.getElapsedTime() - pausedTime;
+			}
 			renderer.render(scene, camera);
+			// One still frame under reduced motion, then idle (0 = no queued frame).
+			animationId = reducedRef.current && !tween.active ? 0 : requestAnimationFrame(animate);
 		};
 
 		const start = () => {
@@ -353,6 +375,15 @@ export function NoiseReveal({
 
 		start();
 
+		syncReducedRef.current = () => {
+			// Snap an in-flight tween to its destination, then repaint/resume.
+			if (reducedRef.current && tween.active) {
+				progress = tween.to;
+				tween.active = false;
+			}
+			wake();
+		};
+
 		// Every frame evaluates the noise twice per fragment at the device pixel ratio,
 		// so a canvas that is off screen or in a background tab is pure cost. The mask
 		// is computed from scratch each frame and keeps no state to rebuild, so the
@@ -369,6 +400,9 @@ export function NoiseReveal({
 			else if (onScreen) start();
 		};
 		document.addEventListener("visibilitychange", handleVisibility);
+		wake = () => {
+			if (onScreen && !document.hidden) start();
+		};
 
 		const inViewHandle = observeInView(container, {
 			once: false,
@@ -381,6 +415,8 @@ export function NoiseReveal({
 		});
 
 		return () => {
+			syncReducedRef.current = () => {};
+			wake = () => {};
 			setSetTarget(null);
 			window.removeEventListener("resize", handleResize);
 			document.removeEventListener("visibilitychange", handleVisibility);
@@ -393,6 +429,11 @@ export function NoiseReveal({
 			texture?.dispose();
 		};
 	}, [container, src, duration, trigger, revealedRef]);
+
+	// Reduced motion flip: snap/repaint (reduced) or resume the loop (cleared).
+	useEffect(() => {
+		syncReducedRef.current();
+	}, [reducedMotion]);
 
 	// Viewport trigger: reveal once on first intersection
 	useEffect(() => {
