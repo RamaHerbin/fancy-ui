@@ -28,6 +28,12 @@ export interface MatrixRainLiveOptions {
 	glyphSize?: number;
 	/** Alpha of the per-frame fade-trail rectangle. Per-frame. */
 	fadeOpacity?: number;
+	/**
+	 * Reduced-motion preference, owned by the wrapper (the core stays free of
+	 * `matchMedia`). When true the engine paints one still frame and idles; a
+	 * flip back to false resumes the loop.
+	 */
+	reducedMotion?: boolean;
 }
 
 export interface MatrixRainEngine {
@@ -42,6 +48,7 @@ const DEFAULTS: Required<MatrixRainLiveOptions> = {
 	density: 1.0,
 	glyphSize: 16,
 	fadeOpacity: 0.05,
+	reducedMotion: false,
 };
 
 // Explicit key-by-key merge: an `undefined` value must fall back to the current
@@ -57,6 +64,7 @@ function merge(
 		density: next.density ?? base.density,
 		glyphSize: next.glyphSize ?? base.glyphSize,
 		fadeOpacity: next.fadeOpacity ?? base.fadeOpacity,
+		reducedMotion: next.reducedMotion ?? base.reducedMotion,
 	};
 }
 
@@ -108,6 +116,9 @@ export function createMatrixRain(
 		ctx.fillStyle = "black";
 		ctx.fillRect(0, 0, canvasW, canvasH);
 		initColumns(canvasW, canvasH);
+		// The repaint above wiped the canvas; an idle (reduced-motion) engine has
+		// no scheduled frame to refill it, so paint one now.
+		if (opts.reducedMotion && rafId === null) draw();
 	}
 
 	function draw() {
@@ -157,11 +168,18 @@ export function createMatrixRain(
 		}
 
 		ctx.shadowBlur = 0;
+		// One still frame under reduced motion: paint, then idle until the
+		// preference flips back (setOptions wakes the loop).
+		if (opts.reducedMotion) {
+			rafId = null;
+			return;
+		}
 		rafId = requestAnimationFrame(draw);
 	}
 
+	// resize() already paints the one still frame when reduced motion is on.
 	resize();
-	rafId = requestAnimationFrame(draw);
+	if (!opts.reducedMotion) rafId = requestAnimationFrame(draw);
 
 	return {
 		setOptions(next) {
@@ -173,6 +191,9 @@ export function createMatrixRain(
 			// re-randomisation) when — and only when — glyphSize or density changed.
 			if (opts.glyphSize !== prev.glyphSize || opts.density !== prev.density) {
 				resize();
+			}
+			if (prev.reducedMotion && !opts.reducedMotion && rafId === null) {
+				rafId = requestAnimationFrame(draw);
 			}
 		},
 		resize,

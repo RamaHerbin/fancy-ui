@@ -285,4 +285,29 @@ describe("createMatrixRain", () => {
 		// floor(0.42 * (15 / 1)) = 6 rows down => y = 0 with glyphSize 0.
 		expect(fillTexts.filter((t) => t.style === "#ffffff")).toHaveLength(300);
 	});
+	it("reducedMotion paints one still frame, schedules nothing, and resumes when cleared", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+		expect(frames).toHaveLength(0);
+		// 300 / 16 => 18 columns; the single frame drew a head + body per column.
+		expect(fillTexts).toHaveLength(36);
+
+		// Layout changes repaint a frame instead of leaving a blank canvas.
+		fillTexts.length = 0;
+		engine.setOptions({ glyphSize: 32 });
+		expect(frames).toHaveLength(0);
+		expect(fillTexts.length).toBeGreaterThan(0);
+
+		engine.setOptions({ reducedMotion: false });
+		expect(frames).toHaveLength(1);
+		tick();
+		expect(frames).toHaveLength(1);
+
+		// Flipping back to reduced lets the pending frame finish, then idles.
+		engine.setOptions({ reducedMotion: true });
+		tick();
+		expect(frames).toHaveLength(0);
+	});
 });

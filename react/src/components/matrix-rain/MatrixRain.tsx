@@ -3,6 +3,7 @@ import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { observeInView } from "../../internals/motion/in-view.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 
 /**
  * MatrixRain - Canvas2D "digital rain" background
@@ -83,6 +84,10 @@ export function MatrixRain({
 	// Component-scoped in the source (`let frameCount = 0`), so it survives a
 	// re-init rather than restarting the `speed < 1` frame-skip phase.
 	const frameCountRef = useRef(0);
+
+	// Reduced motion: one still frame instead of the rAF loop. A flip restarts the
+	// effect below; the same `seed` re-seeds the same columns.
+	const reducedMotion = useReducedMotion();
 
 	useEffect(() => {
 		if (!canvas) return;
@@ -170,6 +175,11 @@ export function MatrixRain({
 			}
 
 			ctx.shadowBlur = 0;
+			// One still frame under reduced motion: paint, then idle.
+			if (reducedMotion) {
+				rafId = 0;
+				return;
+			}
 			rafId = requestAnimationFrame(draw);
 		}
 
@@ -198,14 +208,18 @@ export function MatrixRain({
 			ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, canvasW, canvasH);
 			init(canvasW, canvasH);
+			// The repaint above wiped the canvas; an idle (reduced-motion) loop has
+			// no queued frame to refill it, so paint the still frame now.
+			if (reducedMotion) draw();
 		};
 
+		// Under reduced motion `resize()` paints the one still frame itself.
 		resize();
 
 		const observer = new ResizeObserver(resize);
 		observer.observe(canvas);
 
-		start();
+		if (!reducedMotion) start();
 
 		// A rain used as a page background is off screen most of the time, and
 		// every frame it paints there costs a full-canvas `fillRect` plus two
@@ -223,8 +237,9 @@ export function MatrixRain({
 			once: false,
 			threshold: 0,
 			onChange: (intersecting) => {
-				if (intersecting) start();
-				else stop();
+				if (intersecting) {
+					if (!reducedMotion) start();
+				} else stop();
 			},
 		});
 
@@ -233,7 +248,7 @@ export function MatrixRain({
 			inViewHandle.destroy();
 			observer.disconnect();
 		};
-	}, [canvas, glyphSize, density, seed, colorRef, speedRef, fadeOpacityRef]);
+	}, [canvas, glyphSize, density, seed, reducedMotion, colorRef, speedRef, fadeOpacityRef]);
 
 	return <canvas ref={canvasRef} className={cn("block h-full w-full bg-black", className)} />;
 }
