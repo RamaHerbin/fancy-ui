@@ -65,10 +65,9 @@
 	<!-- Content (fades up) -->
 	<div
 		class="box-reveal-content"
-		style="opacity:{isInView ? 1 : 0};transform:translateY({isInView
-			? 0
-			: 25}px);transition:opacity {duration}s ease {delay * 2}s,transform {duration}s ease {delay *
-			2}s"
+		style="opacity:{isInView ? 1 : 0};transform:translateY({isInView ? 0 : 25}px)"
+		style:--box-reveal-duration="{duration}s"
+		style:--box-reveal-delay="{delay * 2}s"
 	>
 		{@render children()}
 	</div>
@@ -76,8 +75,25 @@
 	<!-- Sliding box overlay -->
 	<div
 		class="box-reveal-overlay absolute inset-0 z-20"
-		style="background:{color};left:{isInView
-			? '100%'
-			: '0%'};transition:left {duration}s ease-in {delay}s"
+		style="background:{color};left:{isInView ? '100%' : '0%'}"
+		style:--box-reveal-duration="{duration}s"
+		style:--box-reveal-delay="{delay}s"
 	></div>
 </div>
+
+<style>
+	/* The inline opacity / transform / left are the state; only the tween that
+	   animates them is motion, so under reduced motion the change lands
+   instantly. */
+	@media (prefers-reduced-motion: no-preference) {
+		.box-reveal-content {
+			transition:
+				opacity var(--box-reveal-duration, 0.5s) ease var(--box-reveal-delay, 0.5s),
+				transform var(--box-reveal-duration, 0.5s) ease var(--box-reveal-delay, 0.5s);
+		}
+
+		.box-reveal-overlay {
+			transition: left var(--box-reveal-duration, 0.5s) ease-in var(--box-reveal-delay, 0.25s);
+		}
+	}
+</style>

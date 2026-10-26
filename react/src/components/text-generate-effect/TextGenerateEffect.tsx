@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
+import "./text-generate-effect.css";
 
 export interface TextGenerateEffectProps {
 	words: string;
@@ -56,17 +58,18 @@ export function TextGenerateEffect({
 	}, []);
 
 	return (
-		<div className={cn("leading-snug tracking-wide", className)}>
+		<div className={cn("text-generate-effect leading-snug tracking-wide", className)}>
 			<div ref={scopeRef}>
 				{wordsArray.map((word, idx) => (
 					<span
 						key={word + idx}
-						className="inline-block"
-						style={{
-							opacity: 0,
-							filter: filter ? "blur(10px)" : "none",
-							transition: `opacity ${duration}s, filter ${duration}s`,
-						}}
+						className="tge-word inline-block"
+						style={
+							{
+								"--tge-duration": `${duration}s`,
+								"--tge-blur": filter ? "blur(10px)" : "none",
+							} as CSSProperties
+						}
 					>
 						{word}
 						{"\u00A0"}

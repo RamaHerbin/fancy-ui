@@ -12,3 +12,7 @@ Typewriter-style text reveal that fades in words one by one with an optional blu
 | `delay` | `number` | `0` | Initial delay before animation starts (ms) |
 | `stagger` | `number` | `200` | Delay between each word appearing (ms) |
 | `class` | `string` | — | Additional CSS classes |
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` every word shows at once, sharp and fully opaque, with no fade or blur-in. The stagger timers still run but their writes change nothing visible.
