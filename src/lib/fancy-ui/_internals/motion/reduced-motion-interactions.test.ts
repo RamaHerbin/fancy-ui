@@ -170,10 +170,20 @@ interface Rule {
 	media: string[];
 }
 
+/** The `@keyframes` of each flattened source, by name, so a `reduce` rule that swaps
+ * `animation-name` can be resolved against the same source. */
+const KEYFRAMES = new WeakMap<Rule[], Map<string, Block>>();
+
 function flattenRules(block: Block, media: string[] = [], out: Rule[] = []): Rule[] {
 	for (const child of block.children) {
-		// A keyframe body is a list of stops (`0%`, `to`), not rules: skip it whole.
-		if (/^@(-\w+-)?keyframes/.test(child.prelude)) continue;
+		// A keyframe body is a list of stops (`0%`, `to`), not rules: record it, skip it.
+		const kf = /^@(?:-\w+-)?keyframes\s+([\w-]+)/.exec(child.prelude);
+		if (kf) {
+			const known = KEYFRAMES.get(out) ?? new Map<string, Block>();
+			known.set(kf[1], child);
+			KEYFRAMES.set(out, known);
+			continue;
+		}
 		if (child.prelude.startsWith("@media")) flattenRules(child, [...media, child.prelude], out);
 		else if (child.prelude.startsWith("@")) flattenRules(child, media, out);
 		else {
@@ -199,21 +209,46 @@ function colourOnly(value: string): boolean {
 
 const REDUCE = /prefers-reduced-motion:\s*reduce/;
 
+/** Properties a keyframe stop may not set for the swap to count as calmer. */
+const KEYFRAME_MOTION_PROP =
+	/^(transform|translate|scale|rotate|opacity|filter|backdrop-filter|clip-path)$/;
+
 /**
- * Selectors that a `reduce` rule takes out of motion: `animation: none`, a swap to
- * a calmer keyframe (`animation-name`), or the element removed (`display: none`).
- * An ungated animation on such a selector is the second accepted shape of the
- * contract, next to wrapping the declaration in `no-preference`.
+ * Swap targets reviewed by hand: a `reduce` rule may point `animation-name` at one of
+ * these although its keyframes animate opacity, because the result is the contract's
+ * "static opacity change" (CONTRACTS section 5, bullet 3), never travel.
+ * - `ripple-fade` (ripple-button): `transform` is `scale(1)` at both stops, only the
+ *   opacity of the press glow fades 1 -> 0. No expansion remains.
+ */
+const REVIEWED_REDUCE_SWAPS = new Set(["ripple-fade"]);
+
+/** Does the keyframe `name` (resolved in the same source) animate no motion property? */
+function calmKeyframe(name: string, keyframes: Map<string, Block> | undefined): boolean {
+	if (name === "none") return true;
+	if (REVIEWED_REDUCE_SWAPS.has(name)) return true;
+	const body = keyframes?.get(name);
+	if (!body) return false; // unknown keyframe: cannot prove it calm
+	return body.children.every((stop) => stop.decls.every(([p]) => !KEYFRAME_MOTION_PROP.test(p)));
+}
+
+/**
+ * Selectors that a `reduce` rule takes out of motion: `animation: none` / `animation-name:
+ * none`, a swap to a calmer keyframe (`animation-name` whose keyframe sets no transform,
+ * opacity, filter or clip-path, or one listed in REVIEWED_REDUCE_SWAPS), or the element
+ * removed (`display: none`). An ungated animation on such a selector is the second
+ * accepted shape of the contract, next to wrapping the declaration in `no-preference`.
  */
 function reduceNeutralised(rules: Rule[]): Set<string> {
 	const out = new Set<string>();
+	const keyframes = KEYFRAMES.get(rules);
 	for (const r of rules) {
 		if (!r.media.some((m) => REDUCE.test(m))) continue;
 		if (
 			r.decls.some(
 				([p, v]) =>
 					(p === "animation" && /^none\b/.test(v)) ||
-					p === "animation-name" ||
+					(p === "animation-name" &&
+						v.split(",").every((n) => calmKeyframe(n.trim(), keyframes))) ||
 					(p === "display" && v === "none")
 			)
 		)
@@ -516,6 +551,23 @@ describe("reduced motion snap: component CSS only transitions under no-preferenc
 		expect(ungatedMotionDecls(flattenRules(parseCss(named))).length).toBe(2);
 		const reEnabled = "@media (prefers-reduced-motion: reduce) { .x { animation: y 1s infinite } }";
 		expect(reduceReEnables(flattenRules(parseCss(reEnabled)))).toEqual([".x"]);
+	});
+
+	it("control: a reduce swap to a moving keyframe is not neutralised, a calm one or none is", () => {
+		const moving = "@keyframes m { 0% { transform: scale(0); } 100% { transform: scale(1); } }";
+		const calm = "@keyframes c { 0% { color: red; } 100% { color: blue; } }";
+		const base = ".x { animation: m 1s infinite }";
+		const check = (reduce: string, kf: string) =>
+			ungatedMotionDecls(
+				flattenRules(
+					parseCss(`${base} @media (prefers-reduced-motion: reduce) { ${reduce} } ${kf}`)
+				)
+			);
+		expect(check(".x { animation-name: m }", moving).length).toBeGreaterThan(0);
+		expect(check(".x { animation-name: ghost }", moving).length).toBeGreaterThan(0);
+		expect(check(".x { animation-name: c }", `${moving} ${calm}`)).toEqual([]);
+		expect(check(".x { animation-name: none }", moving)).toEqual([]);
+		expect(check(".x { animation: none }", moving)).toEqual([]);
 	});
 
 	it("control: the checker flags a document-wide transition re-enabled under reduce", () => {
