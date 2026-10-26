@@ -93,3 +93,7 @@ Shots are `shots/<fw>/<slug>/<theme>-<t>@<state>.png`. `--states all|none|<names
 A state never passes by default. A missing scenario, a stage that is down, a target that does not resolve to one element, an expectation that does not hold or a shot that was not written is an error naming `<slug>@<state>`, and the capture exits non-zero. The diff exits non-zero too when one framework has a state shot another lacks.
 
 The state helpers have unit tests: `node --test scripts/parity/states.test.mjs`.
+
+## Scenario coverage gate
+
+`pnpm check:parity-scenarios` (CI `check` job) fails when a registry slug with status `done` has no React scenario (`examples/parity-react/src/scenarios/<slug>.tsx`) or no Vue scenario (`examples/parity-vue/src/scenarios/<slug>.vue`), unless `scripts/parity/scenario-skips.json` lists the slug with a reason (`{ "<slug>": "why it cannot be photographed" }`). A skip entry that is stale (both scenarios exist, or the slug is not a done registry slug) fails too. A scenario mirrors the Svelte stage: the `BasicUsage.svelte` example for slugs in `skipDirectRender`, otherwise the `defaultProps` and `previewBox` wrapper of `DemoRenderer.svelte`. `node scripts/parity/check-scenarios.mjs --self-test` runs the built-in checks.
