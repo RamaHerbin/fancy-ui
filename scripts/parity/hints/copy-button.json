@@ -2,15 +2,52 @@
 	"states": {
 		"idle": {
 			"steps": [],
-			"expect": [{ "role": "button", "name": "Copy" }]
+			"expect": [
+				{
+					"role": "button",
+					"name": "Copy"
+				}
+			]
 		},
 		"copied": {
-			"steps": [{ "clipboard": "ok" }, { "click": { "role": "button", "name": "Copy" } }],
-			"expect": [{ "role": "button", "name": "Copied" }]
+			"steps": [
+				{
+					"clipboard": "ok"
+				},
+				{
+					"click": {
+						"role": "button",
+						"name": "Copy"
+					}
+				}
+			],
+			"expect": [
+				{
+					"role": "button",
+					"name": "Copied"
+				}
+			],
+			"moments": [0, 80, 300, 600, 1200]
 		},
 		"failed": {
-			"steps": [{ "clipboard": "denied" }, { "click": { "role": "button", "name": "Copy" } }],
-			"expect": [{ "role": "button", "name": "Copy failed" }]
+			"steps": [
+				{
+					"clipboard": "denied"
+				},
+				{
+					"click": {
+						"role": "button",
+						"name": "Copy"
+					}
+				}
+			],
+			"expect": [
+				{
+					"role": "button",
+					"name": "Copy failed"
+				}
+			],
+			"moments": [0, 80, 300, 600, 1200]
 		}
 	}
 }

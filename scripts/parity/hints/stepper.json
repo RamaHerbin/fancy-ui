@@ -1,0 +1,22 @@
+{
+	"states": {
+		"action": {
+			"steps": [
+				{
+					"click": {
+						"role": "button",
+						"name": "Continue"
+					}
+				}
+			],
+			"expect": [
+				{
+					"role": "button",
+					"name": "Back"
+				}
+			],
+			"moments": [0, 80, 300, 600, 1200],
+			"noSettle": true
+		}
+	}
+}

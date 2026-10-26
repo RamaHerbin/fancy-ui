@@ -14,7 +14,7 @@
  *        [--fw svelte,react,vue] [--theme light,dark] [--moments 0,600,1500]
  *        [--base-svelte http://localhost:5291] [--base-react http://localhost:5292]
  *        [--base-vue http://localhost:5293] [--out .parity] [--concurrency 4]
- *        [--reduced-motion no-preference|reduce] [--states all|none|open,focus,long,idle,copied,failed,action]
+ *        [--reduced-motion no-preference|reduce] [--states all|none|open,close,focus,long,idle,copied,failed,action]
  *
  * Output (git-ignored):
  *   <out>/shots/<fw>/<slug>/<theme>-<t>.png        rest pass
@@ -37,15 +37,19 @@
  *     animation the first time it sees one and pins its currentTime to the
  *     fake time elapsed since then; finite ones that have run their course are
  *     finish()ed so `finished` promises and finish events still fire.
+ *     This is also what pins WAAPI: document.getAnimations() lists CSS
+ *     animations, transitions and element.animate() alike, so a Web Animation
+ *     started by a component rides the fake clock with no extra hook.
  *   - The clock stays frozen until the stage is ready, fonts are loaded, the
  *     stage's images are decoded and the network is idle, so how long the page
  *     took to load in real time never shows in the frame. t = 0 is that
  *     instant.
  *
  * Per-slug tweaks live in scripts/parity/hints/<slug>.json:
- *   { "hover"?: [fx, fy], "sweep"?: true, "click"?: [fx, fy], "skip"?: "reason", "moments"?: number[] }
+ *   { "hover"?: [fx, fy], "sweep"?: true, "click"?: [fx, fy], "restMs"?: number, "skip"?: "reason", "moments"?: number[] }
  * hover/sweep/click follow applyPointerHint (scripts/lib/stage-capture.mjs),
- * with its 350 ms rest after a hover spent on the fake clock; moments of the
+ * with its rest after a hover (350 ms, or "restMs": a short one makes a
+ * 150 ms `fast` flip photographable) spent on the fake clock; moments of the
  * pointer pass count from the end of the gesture.
  *
  * A failing item is recorded in the log and the run goes on. Interaction
@@ -332,7 +336,7 @@ async function applyHint(page, stage, hint) {
 	} else if (hint.hover) {
 		await page.mouse.move(...at(0.2, 0.2));
 		await page.mouse.move(...at(...hint.hover), { steps: 12 });
-		await page.clock.runFor(350);
+		await page.clock.runFor(hint.restMs ?? 350);
 	}
 	if (hint.click) await page.mouse.click(...at(...hint.click));
 }
@@ -373,7 +377,13 @@ async function captureItem(browser, args, item) {
 		if (pointer) await applyHint(page, stage, hint);
 		if (state) {
 			await runSteps(page, stage, slug, state, spec.steps);
-			await settle(page, slug, state);
+			// A close state shoots the exit itself, so it is not run out. The
+			// browser starts the exit's animations on its next real frame: wait
+			// for it, and pin whatever it created, before the first shot.
+			if (item.noSettle) {
+				await new Promise((r) => setTimeout(r, 80));
+				await page.evaluate(() => window.__paritySync());
+			} else await settle(page, slug, state);
 		}
 
 		const dir = join(args.out, "shots", fw, slug);

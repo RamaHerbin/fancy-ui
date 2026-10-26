@@ -1,0 +1,21 @@
+{
+	"states": {
+		"action": {
+			"steps": [
+				{
+					"click": {
+						"role": "button",
+						"name": "Next page"
+					}
+				}
+			],
+			"expect": [
+				{
+					"css": "button"
+				}
+			],
+			"moments": [0, 80, 300, 600, 1200],
+			"noSettle": true
+		}
+	}
+}

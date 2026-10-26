@@ -11,11 +11,13 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+	CLOSE_MOMENTS,
 	STATE_NAMES,
 	entryStatusForState,
 	findStateGaps,
 	parseShotName,
 	planStateItems,
+	resolveStates,
 	stateShotName,
 	validateStates,
 } from "./states.mjs";
@@ -24,8 +26,94 @@ const hintsDir = join(dirname(fileURLToPath(import.meta.url)), "hints");
 const readHint = (slug) => JSON.parse(readFileSync(join(hintsDir, `${slug}.json`), "utf8"));
 const FIVE = ["dialog", "select", "input", "tabs", "tooltip"];
 
-test("the states are open, focus, long, plus idle, copied, failed and action", () => {
-	assert.deepEqual(STATE_NAMES, ["open", "focus", "long", "idle", "copied", "failed", "action"]);
+test("the states are open, close, focus, long, plus idle, copied, failed and action", () => {
+	assert.deepEqual(STATE_NAMES, [
+		"open",
+		"close",
+		"focus",
+		"long",
+		"idle",
+		"copied",
+		"failed",
+		"action",
+	]);
+});
+
+test("a close state is the open steps, a settle and Escape, shot from the first frame", () => {
+	const open = {
+		steps: [{ click: { role: "button", name: "Go" } }],
+		expect: [{ role: "dialog", in: "page" }],
+	};
+	const states = { open, close: { from: "open", expect: [{ role: "button", name: "Go" }] } };
+	validateStates("x", states);
+	const { close } = resolveStates("x", states);
+	assert.deepEqual(close.steps, [...open.steps, { settle: true }, { press: "Escape" }]);
+	assert.deepEqual(close.moments, [0, 50, 100, 150]);
+	assert.deepEqual(CLOSE_MOMENTS, close.moments);
+	assert.equal(close.noSettle, true);
+	assert.deepEqual(close.expect, [{ role: "button", name: "Go" }]);
+	const { items, errors } = planStateItems({
+		slug: "x",
+		hint: { states },
+		fws: ["svelte"],
+		themes: ["light"],
+		wanted: ["close"],
+	});
+	assert.deepEqual(errors, []);
+	assert.equal(items[0].noSettle, true);
+	assert.deepEqual(items[0].moments, [0, 50, 100, 150]);
+});
+
+test("a close state needs a source state and its own expectation", () => {
+	assert.throws(
+		() => validateStates("x", { close: { from: "open", expect: [{ css: "a" }] } }),
+		/must name another state/
+	);
+	assert.throws(
+		() => validateStates("x", { open: { expect: [{ css: "a" }] }, close: { from: "open" } }),
+		/expect/
+	);
+});
+
+test("dialog, popover, dropdown-menu, tooltip, sheet and drawer define a close state", () => {
+	for (const slug of ["dialog", "popover", "dropdown-menu", "tooltip", "sheet", "drawer"]) {
+		const hint = readHint(slug);
+		validateStates(slug, hint.states);
+		const close = resolveStates(slug, hint.states).close;
+		assert.ok(close, `${slug} has no close state`);
+		assert.deepEqual(close.steps.slice(-2), [{ settle: true }, { press: "Escape" }]);
+		assert.deepEqual(close.steps.slice(0, -2), hint.states.open.steps);
+	}
+});
+
+test("a scroll step validates with a numeric y and an optional target", () => {
+	const ok = (scroll) => ({ open: { steps: [{ scroll }], expect: [{ css: "a" }] } });
+	validateStates("x", ok({ y: 300 }));
+	validateStates("x", ok({ y: -40, target: { css: ".list" } }));
+	assert.throws(() => validateStates("x", ok({})), /numeric "y"/);
+	assert.throws(() => validateStates("x", ok({ y: "300" })), /numeric "y"/);
+	assert.throws(() => validateStates("x", ok({ y: 10, target: {} })), /target/);
+});
+
+test("the click-state hints fire the signature move and shoot 0/80/300/600/1200", () => {
+	for (const slug of [
+		"status-morph",
+		"follow-button",
+		"pagination",
+		"stepper",
+		"datamosh-transition",
+		"text-roll",
+	]) {
+		const hint = readHint(slug);
+		validateStates(slug, hint.states);
+		const action = hint.states.action;
+		assert.ok(
+			action.steps.some((s) => s.click),
+			`${slug}@action has no click`
+		);
+		assert.deepEqual(action.moments, [0, 80, 300, 600, 1200]);
+		assert.equal(action.noSettle, true);
+	}
 });
 
 test("a clipboard step validates with ok or denied only", () => {
@@ -86,7 +174,12 @@ for (const slug of FIVE) {
 	test(`${slug} defines open, focus and long states that validate`, () => {
 		const hint = readHint(slug);
 		assert.ok(hint.states, `${slug} hint has no states`);
-		assert.deepEqual(Object.keys(hint.states).sort(), ["focus", "long", "open"]);
+		assert.deepEqual(
+			Object.keys(hint.states)
+				.filter((k) => k !== "close")
+				.sort(),
+			["focus", "long", "open"]
+		);
 		validateStates(slug, hint.states);
 		assert.equal(hint.states.long.variant, "long", `${slug} long state needs the long variant`);
 		for (const [name, spec] of Object.entries(hint.states))
@@ -102,7 +195,7 @@ for (const slug of FIVE) {
 			wanted: "all",
 		});
 		assert.deepEqual(errors, []);
-		assert.equal(items.length, 3 * 2 * 3);
+		assert.equal(items.length, 3 * 2 * Object.keys(readHint(slug).states).length);
 		for (const item of items) assert.ok(item.moments.length > 0);
 	});
 }
