@@ -65,6 +65,7 @@ jobs:
           tests/e2e/error-pages.spec.ts
           tests/e2e/routing.spec.ts
           tests/e2e/seo.spec.ts
+          tests/e2e/a11y-parity.spec.ts
 
       - name: Upload the HTML report
         if: failure()

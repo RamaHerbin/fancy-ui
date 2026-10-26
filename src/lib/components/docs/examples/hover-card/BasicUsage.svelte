@@ -6,6 +6,7 @@
 	{#snippet trigger(describedBy)}
 		<button
 			type="button"
+			data-demo
 			aria-describedby={describedBy}
 			class="text-[13px] font-medium text-violet-300 hover:underline"
 		>
