@@ -57,7 +57,7 @@
 			"book-cover relative aspect-[3/4] [transform-style:preserve-3d]",
 			isStatic
 				? "[transform:rotateY(-30deg)]"
-				: "[transform:rotateY(0deg)] group-hover:[transform:rotateY(-30deg)] group-focus-visible:[transform:rotateY(-30deg)]",
+				: "[transform:rotateY(0deg)] group-hover:[transform:rotateY(-30deg)] group-focus-visible:[transform:rotateY(-30deg)] group-has-[:focus-visible]:[transform:rotateY(-30deg)]",
 			radiusMap[radius]
 		)}
 	>
