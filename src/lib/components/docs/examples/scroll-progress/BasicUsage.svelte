@@ -6,6 +6,7 @@
 
 <div class="mx-auto flex w-full max-w-sm flex-col gap-2 p-6">
 	<ScrollProgress target={box} position="inline" class="text-primary rounded-full" />
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -- a scroll region has to be keyboard reachable -->
 	<div
 		bind:this={box}
 		tabindex="0"

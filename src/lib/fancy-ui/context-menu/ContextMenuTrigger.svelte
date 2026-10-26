@@ -84,7 +84,7 @@
 		className
 	)}
 	tabindex={focusable ? 0 : undefined}
-	aria-description={focusable ? FOCUSABLE_HINT : undefined}
+	{...focusable ? { "aria-description": FOCUSABLE_HINT } : {}}
 	oncontextmenu={handleContextMenu}
 >
 	{@render children?.()}

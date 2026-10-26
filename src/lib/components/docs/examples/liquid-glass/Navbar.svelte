@@ -3,6 +3,7 @@
 </script>
 
 <div class="relative h-[440px] w-full overflow-hidden rounded-lg border bg-[#fafafa]">
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -- a scroll region has to be keyboard reachable -->
 	<div
 		class="absolute inset-0 overflow-y-auto"
 		style="scrollbar-width: none;"
