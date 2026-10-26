@@ -357,6 +357,56 @@ describe("reduced motion snap: compiled Tailwind never leaves an ungated duratio
 // ---------------------------------------------------------------------------
 
 const CSS_SOURCES: Record<string, string[]> = {
+	"letter-pullup": [
+		"src/lib/fancy-ui/letter-pullup/LetterPullup.svelte",
+		"vue/src/components/letter-pullup/LetterPullup.vue",
+		"react/src/components/letter-pullup/letter-pullup.css",
+	],
+	"text-generate-effect": [
+		"src/lib/fancy-ui/text-generate-effect/TextGenerateEffect.svelte",
+		"vue/src/components/text-generate-effect/TextGenerateEffect.vue",
+		"react/src/components/text-generate-effect/text-generate-effect.css",
+	],
+	"box-reveal": [
+		"src/lib/fancy-ui/box-reveal/BoxReveal.svelte",
+		"vue/src/components/box-reveal/BoxReveal.vue",
+		"react/src/components/box-reveal/box-reveal.css",
+	],
+	"hyper-text": [
+		"src/lib/fancy-ui/hyper-text/HyperText.svelte",
+		"vue/src/components/hyper-text/HyperText.vue",
+		"react/src/components/hyper-text/hyper-text.css",
+	],
+	"sparkles-text": [
+		"src/lib/fancy-ui/sparkles-text/SparklesText.svelte",
+		"vue/src/components/sparkles-text/SparklesText.vue",
+		"react/src/components/sparkles-text/sparkles-text.css",
+	],
+	book: [
+		"src/lib/fancy-ui/book/Book.svelte",
+		"vue/src/components/book/Book.vue",
+		"react/src/components/book/book.css",
+	],
+	"flip-words": [
+		"src/lib/fancy-ui/flip-words/FlipWords.svelte",
+		"vue/src/components/flip-words/FlipWords.vue",
+		"react/src/components/flip-words/flip-words.css",
+	],
+	"container-text-flip": [
+		"src/lib/fancy-ui/container-text-flip/ContainerTextFlip.svelte",
+		"vue/src/components/container-text-flip/ContainerTextFlip.vue",
+		"react/src/components/container-text-flip/container-text-flip.css",
+	],
+	"terminal-text": [
+		"src/lib/fancy-ui/terminal-text/TerminalText.svelte",
+		"vue/src/components/terminal-text/TerminalText.vue",
+		"react/src/components/terminal-text/terminal-text.css",
+	],
+	"bg-stars": [
+		"src/lib/fancy-ui/bg-stars/StarsBackground.svelte",
+		"vue/src/components/bg-stars/StarsBackground.vue",
+		"react/src/components/bg-stars/bg-stars.css",
+	],
 	"logo-cloud": [
 		"src/lib/fancy-ui/logo-cloud/AnimatedLogoCloud.svelte",
 		"vue/src/components/logo-cloud/AnimatedLogoCloud.vue",
