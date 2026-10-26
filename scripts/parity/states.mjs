@@ -25,6 +25,18 @@
  *     { "wait": 600 }       fake-clock milliseconds
  *     { "clipboard": "ok" | "denied" }  the next clipboard write resolves or
  *                           is rejected (copy-button: idle, copied, failed)
+ *     { "scroll": { "y": 300, "target"?: target } }  scroll the stage (or the
+ *                           target) by y px, then one 16 ms frame on the fake
+ *                           clock so scroll handlers run
+ *     { "settle": true }    run the fake clock until every finite animation
+ *                           has ended (what a state does after its steps)
+ * - close: the exit of a panel, photographed from its first frame. It borrows
+ *   another state's steps:
+ *     "close": { "from": "open", "expect": [...], "moments"?: [0, 50, 100, 150] }
+ *   resolves to the `open` steps, a settle (the entrance must be over) and
+ *   { "press": "Escape" }, with moments default 0/50/100/150 counted from the
+ *   Escape, and no settling afterwards (the exit is what is being shot).
+ *   "expect" is what is still true while it closes (typically the trigger).
  * - expect: what must hold at every shot, or the item fails. Each entry is a
  *   target plus optional checks: "visible" (default true), "focusVisible"
  *   (it is the focused element and matches :focus-visible), "overflow" (its
@@ -47,13 +59,25 @@
  * <slug>@<state>.
  */
 
-export const STATE_NAMES = ["open", "focus", "long", "idle", "copied", "failed", "action"];
+export const STATE_NAMES = ["open", "close", "focus", "long", "idle", "copied", "failed", "action"];
 export const DEFAULT_STATE_MOMENTS = [0];
+/** A close state is a start-phase capture of the exit. */
+export const CLOSE_MOMENTS = [0, 50, 100, 150];
 /** Fake-clock budget for a state's animations to run out, and the step. */
 const SETTLE_MAX_MS = 5000;
 const SETTLE_STEP_MS = 50;
 
-const STEP_KINDS = ["click", "hover", "focus", "press", "type", "wait", "clipboard"];
+const STEP_KINDS = [
+	"click",
+	"hover",
+	"focus",
+	"press",
+	"type",
+	"wait",
+	"clipboard",
+	"scroll",
+	"settle",
+];
 const CLIPBOARD_MODES = ["ok", "denied"];
 const TARGET_STEPS = ["click", "hover", "focus"];
 
@@ -76,9 +100,34 @@ function checkTarget(where, target) {
 		throw new Error(`${where}: target "in" must be "stage" or "page"`);
 }
 
+/**
+ * Expands `"close": { "from": "<state>" }` into a full state: the source
+ * state's steps, a settle, Escape; moments 0/50/100/150; `noSettle` so the
+ * exit is not run out before the first shot. Other states pass through.
+ */
+export function resolveStates(slug, states) {
+	if (!states || typeof states !== "object" || !states.close?.from) return states;
+	const { from, ...rest } = states.close;
+	const source = states[from];
+	if (!source || source.from)
+		throw new Error(`${slug}@close: "from" must name another state of the hint ("${from}")`);
+	return {
+		...states,
+		close: {
+			...(source.variant ? { variant: source.variant } : {}),
+			steps: [...(source.steps ?? []), { settle: true }, { press: "Escape" }],
+			moments: CLOSE_MOMENTS,
+			...rest,
+			noSettle: true,
+		},
+	};
+}
+
 /** Throws on a malformed `states` block, naming the slug and state. */
-export function validateStates(slug, states) {
-	if (!states || typeof states !== "object") throw new Error(`${slug}: "states" must be an object`);
+export function validateStates(slug, rawStates) {
+	if (!rawStates || typeof rawStates !== "object")
+		throw new Error(`${slug}: "states" must be an object`);
+	const states = resolveStates(slug, rawStates);
 	for (const [name, spec] of Object.entries(states)) {
 		const where = `${slug}@${name}`;
 		if (!STATE_NAMES.includes(name))
@@ -88,6 +137,11 @@ export function validateStates(slug, states) {
 			if (kinds.length !== 1 || !STEP_KINDS.includes(kinds[0]))
 				throw new Error(`${where}: unknown step #${i} ${JSON.stringify(step)}`);
 			if (TARGET_STEPS.includes(kinds[0])) checkTarget(`${where} step #${i}`, step[kinds[0]]);
+			if (kinds[0] === "scroll") {
+				const { y, target } = step.scroll ?? {};
+				if (!Number.isFinite(y)) throw new Error(`${where} step #${i}: scroll needs a numeric "y"`);
+				if (target) checkTarget(`${where} step #${i}`, target);
+			}
 			if (kinds[0] === "clipboard" && !CLIPBOARD_MODES.includes(step.clipboard))
 				throw new Error(`${where}: clipboard step must be one of ${CLIPBOARD_MODES.join(", ")}`);
 		}
@@ -108,10 +162,11 @@ export function validateStates(slug, states) {
 export function planStateItems({ slug, hint, fws, themes, wanted }) {
 	const items = [];
 	const errors = [];
-	const states = hint.states;
-	if (!states || hint.skip) return { items, errors };
+	if (!hint.states || hint.skip) return { items, errors };
+	let states;
 	try {
-		validateStates(slug, states);
+		validateStates(slug, hint.states);
+		states = resolveStates(slug, hint.states);
 	} catch (err) {
 		return { items, errors: [err.message] };
 	}
@@ -131,6 +186,7 @@ export function planStateItems({ slug, hint, fws, themes, wanted }) {
 					state,
 					spec,
 					moments: spec.moments ?? DEFAULT_STATE_MOMENTS,
+					noSettle: Boolean(spec.noSettle),
 				});
 	}
 	return { items, errors };
@@ -226,7 +282,20 @@ export async function runSteps(page, stage, slug, state, steps) {
 		} else if (kind === "press") await page.keyboard.press(arg);
 		else if (kind === "type") await page.keyboard.type(arg);
 		else if (kind === "wait") await page.clock.runFor(arg);
-		else if (kind === "clipboard")
+		else if (kind === "settle") await settle(page, slug, state);
+		else if (kind === "scroll") {
+			const { y, target } = arg;
+			const loc = target ? await resolve(page, stage, target, where) : stage;
+			// Element.scrollBy on the stage or target; the window as a fallback
+			// when nothing in the stage scrolls.
+			await loc.evaluate((el, dy) => {
+				const before = el.scrollTop;
+				el.scrollBy({ top: dy, behavior: "instant" });
+				if (el.scrollTop === before) window.scrollBy({ top: dy, behavior: "instant" });
+			}, y);
+			// One frame on the fake clock: scroll-driven handlers and rAF loops run.
+			await page.clock.runFor(16);
+		} else if (kind === "clipboard")
 			// Headless pages have no reliable clipboard permission: the write
 			// is replaced so the outcome is the same on every stage.
 			await page.evaluate((mode) => {

@@ -14,6 +14,7 @@
 			"variant": "long",
 			"steps": [{ "click": { "role": "button", "name": "Invite member" } }],
 			"expect": [{ "role": "dialog", "in": "page", "overflow": true }]
-		}
+		},
+		"close": { "from": "open", "expect": [{ "role": "button", "name": "Invite member" }] }
 	}
 }

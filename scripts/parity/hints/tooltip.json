@@ -17,6 +17,7 @@
 			"variant": "long",
 			"steps": [{ "hover": { "role": "button", "name": "Share" } }, { "wait": 600 }],
 			"expect": [{ "role": "tooltip", "in": "page", "inStage": true }]
-		}
+		},
+		"close": { "from": "open", "expect": [{ "role": "button", "name": "Add to favorites" }] }
 	}
 }

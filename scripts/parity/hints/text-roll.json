@@ -1,0 +1,22 @@
+{
+	"states": {
+		"action": {
+			"steps": [
+				{
+					"click": {
+						"role": "switch",
+						"name": "Bill yearly, save 20%"
+					}
+				}
+			],
+			"expect": [
+				{
+					"role": "switch",
+					"name": "Bill yearly, save 20%"
+				}
+			],
+			"moments": [0, 80, 300, 600, 1200],
+			"noSettle": true
+		}
+	}
+}

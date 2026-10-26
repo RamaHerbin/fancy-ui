@@ -1,0 +1,141 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "fancy-ui-audit-record-v1",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"slug",
+		"schema",
+		"kind",
+		"category",
+		"motion_class",
+		"render",
+		"sound",
+		"capturable",
+		"na_reason",
+		"axes",
+		"raters",
+		"findings",
+		"score_total",
+		"priority",
+		"tool_versions",
+		"filled_by",
+		"reviewed_by",
+		"iteration",
+		"uncertain_flags"
+	],
+	"properties": {
+		"slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+		"schema": { "const": 1 },
+		"kind": { "enum": ["core", "fancy"] },
+		"category": { "type": "string" },
+		"motion_class": {
+			"enum": ["static", "enter", "micro", "ambient", "pointer", "scroll", "mixed"]
+		},
+		"render": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "enum": ["dom", "svg", "canvas2d", "webgl", "webgpu", "audio"] }
+		},
+		"sound": { "type": "boolean" },
+		"capturable": { "enum": ["full", "rest-only", "pointer-pass", "state-pass", "none"] },
+		"na_reason": {
+			"oneOf": [
+				{ "type": "null" },
+				{ "enum": ["static", "no-gpu-headless", "scroll-driven", "hdr-only", "audio-only"] }
+			]
+		},
+		"axes": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"],
+			"properties": {
+				"A1": { "$ref": "#/$defs/axis" },
+				"A2": { "$ref": "#/$defs/axis" },
+				"A3": { "$ref": "#/$defs/axis" },
+				"A4": { "$ref": "#/$defs/axis" },
+				"A5": { "$ref": "#/$defs/axis" },
+				"A6": { "$ref": "#/$defs/axis" },
+				"A7": { "$ref": "#/$defs/axis" },
+				"A8": { "$ref": "#/$defs/axis" }
+			}
+		},
+		"raters": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"A6": { "type": "array", "items": { "type": "string" } },
+				"A7": { "type": "array", "items": { "type": "string" } },
+				"A6_raw": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 3 } },
+				"A7_raw": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 3 } }
+			}
+		},
+		"findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+		"score_total": { "type": "number", "minimum": 0, "maximum": 24 },
+		"priority": { "enum": ["P0", "P1", "P2", "none"] },
+		"tool_versions": { "type": "object", "additionalProperties": { "type": "string" } },
+		"filled_by": { "type": "string" },
+		"reviewed_by": { "type": "array", "items": { "type": "string" } },
+		"iteration": { "type": "integer", "minimum": 1 },
+		"uncertain_flags": { "type": "array", "items": { "type": "string" } }
+	},
+	"$defs": {
+		"axis": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["score", "evidence", "note"],
+			"properties": {
+				"score": {
+					"oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 0, "maximum": 3 }]
+				},
+				"na_reason": {
+					"enum": [
+						"static",
+						"no-gpu-headless",
+						"scroll-driven",
+						"hdr-only",
+						"audio-only",
+						"not-applicable"
+					]
+				},
+				"evidence": { "type": "array", "items": { "type": "string" } },
+				"note": { "type": "string" }
+			}
+		},
+		"finding": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"id",
+				"axis",
+				"priority",
+				"title",
+				"evidence",
+				"verification",
+				"verification_cmd",
+				"frameworks",
+				"status",
+				"expected_benefit"
+			],
+			"properties": {
+				"id": { "type": "string", "pattern": "^[a-z0-9-]+-([0-9]{2}|A[1-8]-axis)$" },
+				"axis": { "enum": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"] },
+				"priority": { "enum": ["P0", "P1", "P2", "P3"] },
+				"title": { "type": "string", "minLength": 8 },
+				"detail": { "type": "string" },
+				"evidence": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+				"verification": { "enum": ["capture", "grep", "perf", "axe", "unit-test", "manual"] },
+				"verification_cmd": { "type": "string" },
+				"expected_benefit": { "type": "string" },
+				"frameworks": { "type": "array", "items": { "enum": ["svelte", "react", "vue"] } },
+				"status": {
+					"type": "string",
+					"pattern": "^(open|uncertain|wontfix|duplicate-of:[a-z0-9-]+)$"
+				},
+				"adversarial": { "enum": ["CONFIRMED", "DOWNGRADED", "REFUTED"] },
+				"adversarial_note": { "type": "string" },
+				"note": { "type": "string" }
+			}
+		}
+	}
+}

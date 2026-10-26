@@ -6,6 +6,7 @@
 node scripts/perf/measure.mjs all                      # everything, then the report
 node scripts/perf/measure.mjs sizes                    # one section
 node scripts/perf/measure.mjs effects --only react --reps 5
+node scripts/perf/measure.mjs effects --component matrix-rain --only react   # any slug, parity route
 node scripts/perf/measure.mjs lifecycle --wait-quiet off   # measure now, whatever the load
 PERF_OUT=~/perf-run-2 node scripts/perf/measure.mjs all
 ```
@@ -19,7 +20,7 @@ PERF_OUT=~/perf-run-2 node scripts/perf/measure.mjs all
 | `stamp`     | Backfills the run record of stored sections that predate it.                |
 | `report`    | Renders `BASELINE-<date>.md` from the JSON the other sections wrote.        |
 
-Options: `--out DIR` (or `PERF_OUT`, default `$TMPDIR/fancy-ui-perf`), `--reps N` (default 3, effects), `--cycles N` (default 50, lifecycle), `--only svelte|react|vue`, `--component NAME` (effects and lifecycle: one component only), `--port N` (default 5355; the second framework uses the next port, always `--strictPort`), `--date YYYY-MM-DD` (report title and file name), `--measured-commit` and `--tool-commit` (override the recorded commits; needed by `stamp`), `--wait-quiet on|off` (see below; `--no-wait-quiet` is the same as `off`), `--quiet-threshold N` (1-minute load per core, default 0.5) and `--quiet-timeout-min N` (default 10).
+Options: `--out DIR` (or `PERF_OUT`, default `$TMPDIR/fancy-ui-perf`), `--reps N` (default 3, effects), `--cycles N` (default 50, lifecycle), `--only svelte|react|vue`, `--component NAME` (effects and lifecycle: one component only; for `effects`, a slug outside the five measures it on the parity route, see section 3), `--base-svelte|--base-react|--base-vue URL` (stage servers for that, defaults `http://localhost:5291|5292|5293`), `--port N` (default 5355; the second framework uses the next port, always `--strictPort`), `--date YYYY-MM-DD` (report title and file name), `--measured-commit` and `--tool-commit` (override the recorded commits; needed by `stamp`), `--wait-quiet on|off` (see below; `--no-wait-quiet` is the same as `off`), `--quiet-threshold N` (1-minute load per core, default 0.5) and `--quiet-timeout-min N` (default 10).
 
 **Waiting for a quiet machine.** `effects` and `lifecycle` are timing and memory samples, so by default each framework group starts only when the 1-minute load average divided by the core count is under the threshold. The tool polls `os.loadavg()` every 5 s, after the group's harness is built (so it does not wait on its own build). After 10 minutes it gives up, measures anyway and labels the group `loaded`. The outcome (quiet or timed out, seconds waited, the load that ended the wait) is stored in the group's run record and printed in the report's "wait for quiet" column. `--wait-quiet on` turns the wait on for any section, `off` turns it off for all.
 
@@ -62,6 +63,13 @@ For each of `fluid-cursor`, `border-beam`, `displacement-text`, `mosaic-glow` an
 - `script ms/s`: the `ScriptDuration` part of it;
 - long tasks: count, total and longest duration from a `PerformanceObserver`.
 
+Two more 3 s windows follow, report-only:
+
+- `offscreen`: a 3000 px spacer is prepended to the body, so the component sits far below the 800 px viewport, and it is never scrolled into view. A component that keeps looping or painting here pays for pixels nobody sees.
+- `hidden`: `document.hidden` and `document.visibilityState` are overridden and a `visibilitychange` is dispatched. Headless Chromium has no real backgrounded or occluded state to request: `Emulation.setFocusEmulationEnabled` only fakes focus and `Page.setWebLifecycleState` `frozen` stops everything, which measures the browser, not the component. The window therefore measures what a component does once it is told the tab is hidden (pause on `visibilitychange`, or carry on). A component that polls `document.hidden` itself is covered too; one that relies on the browser throttling `requestAnimationFrame` is not, so a `hidden` raf/s near 120 means "does not pause itself", not "burns a hidden tab".
+
+**Any component, parity route.** `effects --component <slug>` with a slug outside the five skips the harness (and the need to run `sizes` first): it opens the parity stage of the slug (`/_parity/<slug>` on the Svelte docs server, `/?slug=<slug>` on the React and Vue parity apps, the servers `scripts/parity/capture.mjs` uses), waits for the demo to mount, and runs the same four windows with the stage as the box the pointer circles. Svelte only by default; `--only react|vue` measures that stage instead. The result is `<out>/effects-parity.json` (the baseline report does not read it) and the console summary. No `none` row: compare stages and frameworks with each other, or run the harness for an absolute number. These numbers are the demo, not the bare component.
+
 The table reports the median of `--reps` fresh pages. Subtract the `none` row to get the cost of the component. A separate 4 s window per component is traced with Chrome tracing (`browser.startTracing`) for the raw files; it is never used for the numbers because tracing slows the page.
 
 ### 4. Mount/unmount and instances (`lifecycle`)
@@ -80,7 +88,7 @@ On a fresh page per component, after one warm-up cycle and a forced garbage coll
 - Effect and lifecycle numbers are timing and memory samples. No noise figure is claimed. The first run measured the effects of both frameworks on a loaded machine (1-minute load 8.2 and 22.6 on 14 cores). `effects` and `lifecycle` were then remeasured with the wait for a quiet machine: every group started with the 1-minute load per core under 0.5 (5.0 to 6.8 on 14 cores, after waits of 0 to 95 s), but all four still end `loaded` (end loads 8.6 / 7.5, 8.4 / 9.7, 8.6 / 8.9 and 6.2 / 7.9 for 1 / 5 minutes), because the tool's own browser and builds raise the load during the run and the machine was not idle to begin with (about 3 to 5 before the first group, with desktop sessions open). The numbers in the baseline are therefore the best this machine gave, not a quiet-machine measurement, and the idle CPU ceilings and the ten-instance CPU ms/s header keep the word "provisional". Before relying on a CPU difference, remeasure on a machine with nothing else running, and rerun with more `--reps` before believing a small one.
 - Headless Chromium ticks animation frames at the display rate (120 Hz on the machine of the first run), so `raf/s` of a loop that runs every frame reads about 120, not 60. Compare runs on the same display.
 - A listener, interval, observer or context count that does not return to the baseline after unmount is a finding, whatever its size.
-- Vue is covered by sections 1 and 2 only; the harness has Svelte and React entries.
+- Vue is covered by sections 1 and 2, and by `effects --component <slug> --only vue` on the parity route; the harness has Svelte and React entries.
 
 ## Proposed initial budget
 
@@ -90,6 +98,7 @@ The report ends with ceilings derived from the baseline. They are a starting poi
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
 | Each consumer app, total gzip                                                                                                                                                                          | measured + 15 %, rounded up to 1 KB   |
 | Idle CPU of the worst effect, per framework                                                                                                                                                            | measured + 50 %, rounded up to 5 ms/s |
+| Offscreen and hidden CPU of the worst effect, per framework (report-only rows, same formula)                                                                                                           | measured + 50 %, rounded up to 5 ms/s |
 | Each probed component through the barrel, gzip                                                                                                                                                         | measured + 10 %, rounded up to 1 KB   |
 | Barrel/deep gzip ratio of the worst component, per package                                                                                                                                             | 1.05                                  |
 | Heap delta after the mount/unmount cycles, worst component, per framework                                                                                                                              | measured + 50 %, rounded up to 256 KB |
