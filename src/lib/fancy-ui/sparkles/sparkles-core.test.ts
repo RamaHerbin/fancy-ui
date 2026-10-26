@@ -250,4 +250,29 @@ describe("createSparkles", () => {
 			expect(y).toBeLessThanOrEqual(102.1);
 		}
 	});
+	it("reducedMotion paints one still frame without scheduling, and resumes when cleared", () => {
+		const fakeCtx = makeFakeCtx();
+		const { canvas, container } = makeElements(fakeCtx);
+		stubRect(container, 200, 100);
+		const engine = createSparkles(
+			{ canvas, container },
+			{ particleDensity: 4, reducedMotion: true },
+			() => 0.5
+		)!;
+
+		expect(frames.length).toBe(0);
+		expect(fakeCtx.fill).toHaveBeenCalledTimes(4);
+
+		// Resize repaints the idle frame.
+		engine.resize();
+		expect(fakeCtx.fill).toHaveBeenCalledTimes(8);
+		expect(frames.length).toBe(0);
+
+		engine.setOptions({ reducedMotion: false });
+		expect(frames.length).toBe(1);
+
+		engine.setOptions({ reducedMotion: true });
+		frames[0]?.(0);
+		expect(frames.length).toBe(1);
+	});
 });

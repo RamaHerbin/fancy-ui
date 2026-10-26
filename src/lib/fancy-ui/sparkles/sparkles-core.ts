@@ -22,6 +22,12 @@ export interface SparklesInitOptions {
 export interface SparklesLiveOptions {
 	/** Hex color (e.g. "#ffffff") or `currentColor` particles are filled with; re-read every frame. */
 	particleColor?: string;
+	/**
+	 * Reduced-motion preference, owned by the wrapper (the core never reads
+	 * `matchMedia`). When true the engine paints one still frame and idles; a
+	 * flip back to false resumes the drift.
+	 */
+	reducedMotion?: boolean;
 }
 
 export interface SparklesEngine {
@@ -102,6 +108,7 @@ export function createSparkles(
 	let particles: Particle[] = [];
 	let dpr = 1;
 	let rafId = 0;
+	let reducedMotion = options.reducedMotion ?? false;
 	let destroyed = false;
 
 	function resize(): void {
@@ -112,6 +119,9 @@ export function createSparkles(
 		canvas.height = rect.height * dpr;
 		ctx = canvas.getContext("2d");
 		if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		// Resizing wiped the bitmap; an idle (reduced-motion) engine has no
+		// scheduled frame to refill it.
+		if (reducedMotion && rafId === 0 && particles.length > 0) updateAndDraw();
 	}
 
 	function generateParticles(): void {
@@ -163,16 +173,33 @@ export function createSparkles(
 			ctx.fill();
 		}
 
+		// One still frame under reduced motion: paint, then idle until the
+		// preference flips back (setOptions wakes the loop).
+		if (reducedMotion) {
+			rafId = 0;
+			return;
+		}
 		rafId = requestAnimationFrame(updateAndDraw);
 	}
 
 	resize();
 	generateParticles();
-	rafId = requestAnimationFrame(updateAndDraw);
+	if (reducedMotion) updateAndDraw();
+	else rafId = requestAnimationFrame(updateAndDraw);
 
 	return {
 		setOptions(next) {
-			if (next.particleColor !== undefined) particleColor = next.particleColor;
+			if (destroyed) return;
+			const wasReduced = reducedMotion;
+			if (next.reducedMotion !== undefined) reducedMotion = next.reducedMotion;
+			if (next.particleColor !== undefined && next.particleColor !== particleColor) {
+				particleColor = next.particleColor;
+				// Idle engine: repaint the still frame in the new colour.
+				if (reducedMotion && rafId === 0) updateAndDraw();
+			}
+			if (wasReduced && !reducedMotion && rafId === 0) {
+				rafId = requestAnimationFrame(updateAndDraw);
+			}
 		},
 		resize,
 		destroy() {
