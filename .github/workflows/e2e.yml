@@ -65,7 +65,6 @@ jobs:
           tests/e2e/error-pages.spec.ts
           tests/e2e/routing.spec.ts
           tests/e2e/seo.spec.ts
-          tests/e2e/a11y-parity.spec.ts
 
       - name: Upload the HTML report
         if: failure()
@@ -81,6 +80,66 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # The accessibility gate runs axe over every finished component's parity stage in both
+  # themes (two tests per slug). That is too slow for the stable job's budget, so it is
+  # sharded: each shard starts its own dev server and takes a quarter of the tests.
+  a11y:
+    name: Accessibility gate (shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run the accessibility gate
+        run: pnpm exec playwright test tests/e2e/a11y-parity.spec.ts --shard=${{ matrix.shard }}/4
+
+      - name: Upload the HTML report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-a11y-${{ matrix.shard }}
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload the traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-a11y-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
           if-no-files-found: ignore
