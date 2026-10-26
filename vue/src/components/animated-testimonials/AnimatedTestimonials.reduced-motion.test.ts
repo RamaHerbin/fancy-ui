@@ -65,7 +65,20 @@ describe("AnimatedTestimonials reduced motion", () => {
 		const { getByLabelText, getByText } = render(AnimatedTestimonials, {
 			props: { testimonials },
 		});
+		// No timer advance: the swap happens in the same tick as the click.
 		await fireEvent.click(getByLabelText("Next testimonial"));
+		expect(getByText("Second quote")).toBeTruthy();
+		await fireEvent.click(getByLabelText("Previous testimonial"));
+		expect(getByText("First quote")).toBeTruthy();
+	});
+
+	it("keeps the 300 ms latch with no preference", async () => {
+		mockMatchMedia(false);
+		const { getByLabelText, getByText } = render(AnimatedTestimonials, {
+			props: { testimonials },
+		});
+		await fireEvent.click(getByLabelText("Next testimonial"));
+		expect(getByText("First quote")).toBeTruthy();
 		await vi.advanceTimersByTimeAsync(300);
 		expect(getByText("Second quote")).toBeTruthy();
 	});

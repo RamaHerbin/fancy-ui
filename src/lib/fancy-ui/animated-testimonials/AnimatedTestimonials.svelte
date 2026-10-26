@@ -65,12 +65,19 @@
 		if (isAnimating || testimonials.length === 0) return;
 		if (sound && fromUser && testimonials.length > 1) soundFx.play("select");
 		direction = dir;
+		const step = (i: number) =>
+			dir === "next"
+				? (i + 1) % testimonials.length
+				: (i - 1 + testimonials.length) % testimonials.length;
+		// Reduced motion: no slide to wait for, so the quote swaps in the same tick
+		// (no latch, no blank frame).
+		if (reduced.current) {
+			activeIndex = step(activeIndex);
+			return;
+		}
 		isAnimating = true;
 		navigateTimer = setTimeout(() => {
-			activeIndex =
-				dir === "next"
-					? (activeIndex + 1) % testimonials.length
-					: (activeIndex - 1 + testimonials.length) % testimonials.length;
+			activeIndex = step(activeIndex);
 			isAnimating = false;
 			navigateTimer = null;
 		}, TRANSITION_DURATION);

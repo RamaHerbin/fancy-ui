@@ -71,6 +71,9 @@ export function AnimatedTestimonials({
 	// callback and gets the live value for free; a React closure captures.
 	const testimonialCountRef = useLiveRef(testimonialCount);
 
+	// Read when a navigation starts, so `navigate` keeps a stable identity.
+	const reducedMotionRef = useLiveRef(reducedMotion);
+
 	const navigate = useCallback(
 		(dir: "next" | "prev", fromUser = false) => {
 			if (isAnimatingRef.current || testimonialCount === 0) return;
@@ -80,6 +83,16 @@ export function AnimatedTestimonials({
 			// so neither one plays.
 			if (fromUser && testimonialCount > 1) playCue("select");
 			setDirection(dir);
+			// Reduced motion: no slide to wait for, so the quote swaps in the same
+			// tick (no latch, no blank frame).
+			if (reducedMotionRef.current) {
+				setActiveIndex((current) =>
+					dir === "next"
+						? (current + 1) % testimonialCount
+						: (current - 1 + testimonialCount) % testimonialCount
+				);
+				return;
+			}
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 			navigateTimerRef.current = setTimeout(() => {
@@ -93,7 +106,7 @@ export function AnimatedTestimonials({
 				navigateTimerRef.current = null;
 			}, TRANSITION_DURATION);
 		},
-		[testimonialCount, testimonialCountRef, playCue]
+		[testimonialCount, testimonialCountRef, reducedMotionRef, playCue]
 	);
 
 	// Reactive autoplay: restarts whenever autoplay, interval, hover state, focus

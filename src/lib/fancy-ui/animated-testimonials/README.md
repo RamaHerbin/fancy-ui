@@ -56,4 +56,4 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set and
 
 ## Reduced motion
 
-With `prefers-reduced-motion: reduce` autoplay never starts and the slide, scale and fade transitions are dropped: the previous and next buttons still change the testimonial, instantly. The preference is read live, so autoplay resumes if it changes back.
+With `prefers-reduced-motion: reduce` autoplay never starts and the slide, scale and fade transitions are dropped: the previous and next buttons still change the testimonial, in the same tick as the press: no 300 ms wait and no blank quote in between (without a reduce preference the swap still waits for the slide). The preference is read live, so autoplay resumes if it changes back.

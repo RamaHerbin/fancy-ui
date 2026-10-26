@@ -72,6 +72,14 @@ function navigate(dir: "next" | "prev", fromUser = false) {
 	if (isAnimating.value || testimonials.length === 0) return;
 	if (sound && fromUser && testimonials.length > 1) playCue("select");
 	direction.value = dir;
+	// Reduced motion: no slide to wait for, so the quote swaps in the same tick
+	// (no latch, no blank frame).
+	if (reducedMotion.value) {
+		const n = testimonials.length;
+		activeIndex.value =
+			dir === "next" ? (activeIndex.value + 1) % n : (activeIndex.value - 1 + n) % n;
+		return;
+	}
 	isAnimating.value = true;
 	navigateTimer = setTimeout(() => {
 		// The list may have changed during the transition: read its live length
