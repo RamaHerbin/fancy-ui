@@ -38,6 +38,12 @@ Set `sound` to play the `press` cue on activation, through the shared sound cont
 
 It is opt-in and silent by default: nothing plays unless both `sound` is set on the button **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks a native click. The cue plays once per click alongside the ripple; the ripple's own removal timeout never triggers a second cue.
 
+## Accessibility
+
+- A native `<button>`: Enter and Space press it and start the ripple from the centre.
+- The hover glow and pulsing ring are a preview, not the only path: keyboard focus (`:focus-visible`) shows the same glow, centred, and the same tinted border. The hover version only runs where hover exists (`@media (hover: hover)`), so touch screens never get a stuck state.
+- Reduced motion keeps the glow and drops the pulsing ring, for hover and focus alike.
+
 ## Implementation notes
 
 - `onclick` is intercepted, not overwritten: the component's own `handleClick` always creates the ripple first, then calls the caller's `onclick` (if provided) with the original event — passing `onclick` works exactly as it would on a plain `<button>`.
