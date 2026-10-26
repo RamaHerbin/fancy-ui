@@ -139,7 +139,7 @@ export function AnimatedTestimonials({
 							<div
 								key={index}
 								className={cn(
-									"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all",
+									"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all motion-safe:duration-300",
 									index === activeIndex
 										? "z-20 translate-y-0 scale-100 rotate-0 opacity-100"
 										: "z-10 translate-y-4 scale-95 opacity-0",
@@ -149,7 +149,6 @@ export function AnimatedTestimonials({
 											? "translate-y-4"
 											: ""
 								)}
-								style={{ transitionDuration: `${TRANSITION_DURATION}ms` }}
 							>
 								<img
 									src={testimonial.src}
@@ -165,16 +164,13 @@ export function AnimatedTestimonials({
 					<div className="flex flex-col justify-between py-4">
 						<div
 							className={cn(
-								"ease-in-out",
+								"ease-in-out motion-safe:transition-[opacity,transform] motion-safe:duration-300",
 								isAnimating
 									? direction === "next"
 										? "translate-y-4 opacity-0"
 										: "-translate-y-4 opacity-0"
 									: "translate-y-0 opacity-100"
 							)}
-							style={{
-								transition: `opacity ${TRANSITION_DURATION}ms, transform ${TRANSITION_DURATION}ms`,
-							}}
 						>
 							<p className="text-lg text-gray-500 dark:text-neutral-300" aria-live="polite">
 								{activeTestimonial?.quote}

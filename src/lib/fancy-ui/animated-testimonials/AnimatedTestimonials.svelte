@@ -39,6 +39,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	let {
 		testimonials,
@@ -52,6 +53,11 @@
 	let direction = $state<"next" | "prev">("next");
 	let isAnimating = $state(false);
 	let isHovered = $state(false);
+	let isFocused = $state(false);
+
+	// Read live: the query is started from an effect, never at construction.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
 
 	let navigateTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -70,9 +76,12 @@
 		}, TRANSITION_DURATION);
 	}
 
-	// Reactive autoplay: restarts whenever autoplay, interval, or hover state changes
+	// Reactive autoplay: restarts whenever autoplay, interval, hover state, focus
+	// state or the motion preference changes. Pointer hover and keyboard focus
+	// both hold the rotation, so the auto-updating live region can be stopped
+	// without a pointer, and a reduced-motion preference keeps it from starting.
 	$effect(() => {
-		if (!autoplay || isHovered || testimonials.length === 0) return;
+		if (!autoplay || isHovered || isFocused || reduced.current || testimonials.length === 0) return;
 
 		const timer = setInterval(() => navigate("next"), interval);
 		return () => clearInterval(timer);
@@ -95,6 +104,8 @@
 	)}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
+	onfocusin={() => (isFocused = true)}
+	onfocusout={() => (isFocused = false)}
 	role="region"
 	aria-label="Testimonials"
 >
@@ -107,7 +118,7 @@
 				{#each testimonials as testimonial, index}
 					<div
 						class={cn(
-							"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all",
+							"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all motion-safe:duration-300",
 							index === activeIndex
 								? "z-20 translate-y-0 scale-100 rotate-0 opacity-100"
 								: "z-10 translate-y-4 scale-95 opacity-0",
@@ -117,7 +128,6 @@
 									? "translate-y-4"
 									: ""
 						)}
-						style="transition-duration: {TRANSITION_DURATION}ms"
 					>
 						<img
 							src={testimonial.src}
@@ -133,14 +143,13 @@
 			<div class="flex flex-col justify-between py-4">
 				<div
 					class={cn(
-						"ease-in-out",
+						"ease-in-out motion-safe:transition-[opacity,transform] motion-safe:duration-300",
 						isAnimating
 							? direction === "next"
 								? "translate-y-4 opacity-0"
 								: "-translate-y-4 opacity-0"
 							: "translate-y-0 opacity-100"
 					)}
-					style="transition: opacity {TRANSITION_DURATION}ms, transform {TRANSITION_DURATION}ms"
 				>
 					<p class="text-lg text-gray-500 dark:text-neutral-300" aria-live="polite">
 						{activeTestimonial?.quote}

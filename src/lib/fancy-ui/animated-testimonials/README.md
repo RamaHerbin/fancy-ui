@@ -50,6 +50,10 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set and
 - `navigate()` is guarded by an `isAnimating` flag so rapid clicks or a running autoplay timer can't overlap two transitions; a new navigation is dropped, not queued, while one is in flight.
 - Autoplay is a single `$effect` that starts a `setInterval` whenever `autoplay`, `interval`, or hover state changes, and returns its own cleanup — hovering the container (`onmouseenter`/`onmouseleave`) pauses it without a separate timer to manage.
 - The image stack renders every testimonial absolutely-positioned and stacked (`z-20`/`z-10`), swapping visibility and transform per index rather than mounting/unmounting nodes — this is what makes the slide-in-behind effect possible without a Svelte transition.
-- The image and text transition durations are both tied to the same `TRANSITION_DURATION` module constant (300ms); it isn't exposed as a prop, so it must be edited in the component source if a different pace is needed.
+- The `isAnimating` latch uses the `TRANSITION_DURATION` module constant (300ms), and the image and text transitions use the matching `motion-safe:duration-300` utility; it is not a prop, so both must be edited in the component source if a different pace is needed.
 - Renders a "No testimonials available." message instead of the carousel when `testimonials` is empty, rather than crashing on an out-of-bounds `activeIndex`.
-- No `prefers-reduced-motion` handling — the slide/scale/opacity transitions run regardless of user preference.
+- Autoplay also pauses while keyboard focus is inside the region (`focusin`/`focusout`), and the slide/fade transitions are gated by Tailwind `motion-safe:` variants; see Reduced motion.
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` autoplay never starts and the slide, scale and fade transitions are dropped: the previous and next buttons still change the testimonial, instantly. The preference is read live, so autoplay resumes if it changes back.
