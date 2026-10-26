@@ -27,13 +27,11 @@ describe("FlipWords", () => {
 		expect(inner?.className).toContain("my-custom");
 	});
 
-	it("has animation styles on word spans", () => {
+	it("staggers word spans through a custom property", () => {
 		const { container } = render(<FlipWords words={["Hello World"]} />);
 		const wordSpans = container.querySelectorAll(".flip-words-word");
 		wordSpans.forEach((span) => {
-			const style = (span as HTMLElement).getAttribute("style") ?? "";
-			expect(style).toContain("animation");
-			expect(style).toContain("flipFadeInWord");
+			expect((span as HTMLElement).style.getPropertyValue("--flip-words-word-delay")).toMatch(/s$/);
 		});
 	});
 
