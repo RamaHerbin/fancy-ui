@@ -13,8 +13,11 @@
 
 /* `.container-text-flip` is a port-added anchor: the source has no root class
    and relied on compiler scoping, while plain CSS is global. */
-.container-text-flip .text-flip-letter {
-	animation: text-flip-in ease-in-out forwards;
-	opacity: 0;
-	filter: blur(10px);
+/* Resting state is the ungated default: the letters are simply shown. */
+@media (prefers-reduced-motion: no-preference) {
+	.container-text-flip .text-flip-letter {
+		animation: text-flip-in ease-in-out forwards;
+		opacity: 0;
+		filter: blur(10px);
+	}
 }

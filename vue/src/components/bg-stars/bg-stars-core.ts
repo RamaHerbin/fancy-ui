@@ -25,6 +25,12 @@ export interface BgStarsLiveOptions {
 	stiffness?: number;
 	/** Spring damping for parallax (default: 20). */
 	damping?: number;
+	/**
+	 * Reduced-motion preference, owned by the wrapper (the core never reads
+	 * `matchMedia`). When true the parallax is parked at rest and the loop idles;
+	 * a flip back to false resumes it.
+	 */
+	reducedMotion?: boolean;
 }
 
 export interface BgStarsEngine {
@@ -44,7 +50,11 @@ const DEFAULT_DAMPING = 20;
  * needing a live engine (this component has no canvas/rAF drawing beyond
  * the parallax spring).
  */
-export function generateStars(count: number, color: string, random: () => number = Math.random): string {
+export function generateStars(
+	count: number,
+	color: string,
+	random: () => number = Math.random
+): string {
 	const shadows: string[] = [];
 	for (let i = 0; i < count; i++) {
 		const x = Math.floor(random() * 4000) - 2000;
@@ -65,7 +75,7 @@ export function createBgStars(
 	el: BgStarsElements,
 	options: BgStarsInitOptions & BgStarsLiveOptions,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	random: () => number = Math.random,
+	random: () => number = Math.random
 ): BgStarsEngine | null {
 	let factor = options.factor ?? DEFAULT_FACTOR;
 	let stiffness = options.stiffness ?? DEFAULT_STIFFNESS;
@@ -78,6 +88,7 @@ export function createBgStars(
 	let velocityX = 0;
 	let velocityY = 0;
 
+	let reducedMotion = options.reducedMotion ?? false;
 	let rafId: number | null = null;
 	let destroyed = false;
 
@@ -86,6 +97,15 @@ export function createBgStars(
 	}
 
 	function tick(): void {
+		// Reduced motion: no parallax travel. Snap the spring to rest, write it
+		// once, then idle until the preference flips back.
+		if (reducedMotion) {
+			springX = springY = targetX = targetY = velocityX = velocityY = 0;
+			applyTransform();
+			rafId = null;
+			return;
+		}
+
 		// Simple spring physics — mirrors the original inline implementation exactly.
 		const forceX = (targetX - springX) * (stiffness / 1000);
 		const forceY = (targetY - springY) * (stiffness / 1000);
@@ -102,6 +122,7 @@ export function createBgStars(
 	}
 
 	function handleMouseMove(e: MouseEvent): void {
+		if (reducedMotion) return;
 		const centerX = window.innerWidth / 2;
 		const centerY = window.innerHeight / 2;
 		targetX = -(e.clientX - centerX) * factor;
@@ -110,7 +131,7 @@ export function createBgStars(
 
 	el.host.addEventListener("mousemove", handleMouseMove);
 	applyTransform();
-	rafId = requestAnimationFrame(tick);
+	if (!reducedMotion) rafId = requestAnimationFrame(tick);
 
 	return {
 		setOptions(next) {
@@ -118,6 +139,19 @@ export function createBgStars(
 			if (next.factor !== undefined) factor = next.factor;
 			if (next.stiffness !== undefined) stiffness = next.stiffness;
 			if (next.damping !== undefined) damping = next.damping;
+			if (next.reducedMotion !== undefined && next.reducedMotion !== reducedMotion) {
+				reducedMotion = next.reducedMotion;
+				if (reducedMotion) {
+					// Settle immediately instead of waiting for the next frame.
+					if (rafId !== null) {
+						cancelAnimationFrame(rafId);
+						rafId = null;
+					}
+					tick();
+				} else if (rafId === null) {
+					rafId = requestAnimationFrame(tick);
+				}
+			}
 		},
 		resize() {
 			// No layout-dependent state to recompute; kept for contract symmetry.

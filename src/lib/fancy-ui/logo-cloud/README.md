@@ -67,6 +67,10 @@ Pass `wordmarks` instead of `logos` to render brand names as styled text rather 
 
 Each mark renders at `opacity: .85`. When `wordmarks` is provided, `logos` is ignored.
 
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the `AnimatedLogoCloud` strip stops scrolling, drops the repeated tracks and the edge fade, and lets the one set of logos wrap and centre so every logo is in view. Without a reduce preference it scrolls as before, and it pauses while focus is inside the strip.
+
 ## Implementation Notes
 
 - Images use `brightness-0 dark:invert` for monochrome display that adapts to theme

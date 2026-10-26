@@ -12,7 +12,9 @@
 </script>
 
 <script lang="ts">
+	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	let {
 		lines,
@@ -62,11 +64,30 @@
 		timeouts = [];
 	}
 
+	// The preference the running stream was started under: a later flip only
+	// matters while the stream has not finished (see the preference effect).
+	let streamedReduced = false;
+
+	function showAllLines() {
+		clearAllTimeouts();
+		displayedLines = [...lines];
+		done = true;
+		onComplete?.();
+	}
+
 	function streamLines() {
 		clearAllTimeouts();
 		displayedLines = [];
 		done = false;
 		glitchState = null;
+		streamedReduced = untrack(() => reduced.current);
+
+		// Reduced motion: no typing. One timeout at `delay` shows every line and
+		// completes, so `onComplete` still fires and the text is all there.
+		if (streamedReduced) {
+			scheduleTimeout(showAllLines, delay);
+			return;
+		}
 
 		let totalDelay = delay;
 
@@ -153,8 +174,15 @@
 		scheduleGlitch();
 	}
 
+	// Read live: the query is started from an effect, never at construction. A
+	// flip to reduce while streaming snaps to all lines; a flip once the stream
+	// is done changes nothing, so it never restarts or completes twice.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
 	$effect(() => {
-		// React only to lines/speed/delay — changing glitch won't restart the stream
+		// React only to lines/speed/delay — changing glitch or the preference
+		// won't restart the stream
 		void lines;
 		void speed;
 		void delay;
@@ -167,10 +195,20 @@
 	});
 
 	$effect(() => {
+		if (!reduced.current) return;
+		untrack(() => {
+			if (done || streamedReduced) return;
+			streamedReduced = true;
+			showAllLines();
+		});
+	});
+
+	$effect(() => {
 		// React to glitch changes without restarting the stream
 		void glitch;
 
-		if (glitch) {
+		// No glitch loop while reduced: it only adds movement.
+		if (glitch && !reduced.current) {
 			startGlitchLoop();
 		} else {
 			glitchState = null;
@@ -200,8 +238,11 @@
 </div>
 
 <style>
-	.cursor-blink {
-		animation: blink 1s step-end infinite;
+	/* The caret is a steady block first and a blinking one second. */
+	@media (prefers-reduced-motion: no-preference) {
+		.cursor-blink {
+			animation: blink 1s step-end infinite;
+		}
 	}
 
 	@keyframes blink {

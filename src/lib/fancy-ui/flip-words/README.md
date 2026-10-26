@@ -15,3 +15,7 @@ Cycling word animation. Cycles through an array of words with per-letter fade-in
 ```svelte
 <FlipWords words={["Better", "Faster", "Stronger", "Bolder"]} />
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the words stop cycling and the first word stays on screen, fully visible: no letter fade-in, no flip. The preference is read live, so the cycle starts again if it changes back.

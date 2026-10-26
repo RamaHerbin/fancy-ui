@@ -28,6 +28,12 @@ export interface MatrixRainLiveOptions {
 	glyphSize?: number;
 	/** Alpha of the per-frame fade-trail rectangle. Per-frame. */
 	fadeOpacity?: number;
+	/**
+	 * Reduced-motion preference, owned by the wrapper (the core stays free of
+	 * `matchMedia`). When true the engine paints one still frame and idles; a
+	 * flip back to false resumes the loop.
+	 */
+	reducedMotion?: boolean;
 }
 
 export interface MatrixRainEngine {
@@ -36,12 +42,20 @@ export interface MatrixRainEngine {
 	destroy(): void;
 }
 
+// Steps simulated (no rAF) before the single reduced-motion paint. One step
+// advances every column by a row, so ~80 steps is a few screen heights of drops:
+// every column has fallen, left its fade trail and (2.5% per step once below the
+// bottom) restarted, which is the dense wall the live loop settles into. The
+// stream is seeded by the injected `random`, so the still stays deterministic.
+const STILL_PRE_ROLL_STEPS = 80;
+
 const DEFAULTS: Required<MatrixRainLiveOptions> = {
 	color: "#00ff41",
 	speed: 1.0,
 	density: 1.0,
 	glyphSize: 16,
 	fadeOpacity: 0.05,
+	reducedMotion: false,
 };
 
 // Explicit key-by-key merge: an `undefined` value must fall back to the current
@@ -57,6 +71,7 @@ function merge(
 		density: next.density ?? base.density,
 		glyphSize: next.glyphSize ?? base.glyphSize,
 		fadeOpacity: next.fadeOpacity ?? base.fadeOpacity,
+		reducedMotion: next.reducedMotion ?? base.reducedMotion,
 	};
 }
 
@@ -108,11 +123,17 @@ export function createMatrixRain(
 		ctx.fillStyle = "black";
 		ctx.fillRect(0, 0, canvasW, canvasH);
 		initColumns(canvasW, canvasH);
+		// The repaint above wiped the canvas; an idle (reduced-motion) engine has
+		// no scheduled frame to refill it, so paint one now.
+		if (opts.reducedMotion && rafId === null) paintStill();
 	}
 
-	function draw() {
-		if (destroyed) return;
+	// Pre-rolls the simulation, then leaves the canvas holding one still frame.
+	function paintStill() {
+		for (let i = 0; i < STILL_PRE_ROLL_STEPS; i++) step();
+	}
 
+	function step() {
 		const w = canvasW;
 		const h = canvasH;
 
@@ -157,11 +178,23 @@ export function createMatrixRain(
 		}
 
 		ctx.shadowBlur = 0;
+	}
+
+	function draw() {
+		if (destroyed) return;
+		step();
+		// A frame still pending when the preference flips to reduce finishes, then
+		// idles (setOptions wakes the loop on the way back).
+		if (opts.reducedMotion) {
+			rafId = null;
+			return;
+		}
 		rafId = requestAnimationFrame(draw);
 	}
 
+	// resize() already paints the one still frame when reduced motion is on.
 	resize();
-	rafId = requestAnimationFrame(draw);
+	if (!opts.reducedMotion) rafId = requestAnimationFrame(draw);
 
 	return {
 		setOptions(next) {
@@ -173,6 +206,20 @@ export function createMatrixRain(
 			// re-randomisation) when — and only when — glyphSize or density changed.
 			if (opts.glyphSize !== prev.glyphSize || opts.density !== prev.density) {
 				resize();
+			} else if (
+				opts.reducedMotion &&
+				rafId === null &&
+				(opts.color !== prev.color || opts.fadeOpacity !== prev.fadeOpacity)
+			) {
+				// A colour or fade change is state, not motion: an idle still frame has
+				// no loop to pick it up, so lay the still out again with the new values.
+				ctx.fillStyle = "black";
+				ctx.fillRect(0, 0, canvasW, canvasH);
+				initColumns(canvasW, canvasH);
+				paintStill();
+			}
+			if (prev.reducedMotion && !opts.reducedMotion && rafId === null) {
+				rafId = requestAnimationFrame(draw);
 			}
 		},
 		resize,

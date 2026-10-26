@@ -30,6 +30,7 @@ export interface FlickeringGridProps {
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { createFlickeringGrid, type FlickeringGridEngine } from "./flickering-grid-core.js";
 
 defineOptions({ name: "FlickeringGrid", inheritAttrs: false });
@@ -51,6 +52,10 @@ let engine: FlickeringGridEngine | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let intersectionObserver: IntersectionObserver | null = null;
 
+// Live preference. Called before `onMounted` so its own mount hook (which starts the
+// media query) runs first and the first frame already knows.
+const reducedMotion = useReducedMotion();
+
 watch(
 	() => ({ squareSize, gridGap, flickerChance, color, maxOpacity, width, height }),
 	(next) => {
@@ -66,7 +71,16 @@ onMounted(() => {
 
 	engine = createFlickeringGrid(
 		{ container, canvas },
-		{ squareSize, gridGap, flickerChance, color, maxOpacity, width, height }
+		{
+			squareSize,
+			gridGap,
+			flickerChance,
+			color,
+			maxOpacity,
+			width,
+			height,
+			reducedMotion: reducedMotion.value,
+		}
 	);
 	if (!engine) return;
 
@@ -93,6 +107,15 @@ onBeforeUnmount(() => {
 	engine?.destroy();
 	engine = null;
 });
+
+// Reduced motion: one still frame; the loop wakes when the preference clears.
+watch(
+	reducedMotion,
+	(next) => {
+		engine?.setOptions({ reducedMotion: next });
+	},
+	{ flush: "post" }
+);
 </script>
 
 <template>

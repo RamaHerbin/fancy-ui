@@ -1,0 +1,10 @@
+/* `.text-reveal-settle` is slug-prefixed, so it needs no extra anchor. It was a
+   compiler-scoped rule in the Svelte source.
+   The 0.4s settle after the pointer leaves is travel (clip-path, left, rotate, opacity):
+   it only runs without a reduce preference, otherwise the reveal snaps back.
+   While hovering the class is off, so the layers follow the pointer without easing. */
+@media (prefers-reduced-motion: no-preference) {
+	.text-reveal-settle {
+		transition: all 0.4s ease-out;
+	}
+}

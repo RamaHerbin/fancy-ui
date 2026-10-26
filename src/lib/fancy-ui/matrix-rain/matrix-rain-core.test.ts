@@ -285,4 +285,72 @@ describe("createMatrixRain", () => {
 		// floor(0.42 * (15 / 1)) = 6 rows down => y = 0 with glyphSize 0.
 		expect(fillTexts.filter((t) => t.style === "#ffffff")).toHaveLength(300);
 	});
+	it("reducedMotion paints one still frame, schedules nothing, and resumes when cleared", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+		expect(frames).toHaveLength(0);
+		// 300 / 16 => 18 columns; one simulated step draws a head + body per column
+		// (36 glyphs). The still pre-rolls the seeded simulation before its single
+		// paint, so it holds many steps' worth of glyphs, not just the t=0 frame.
+		expect(fillTexts.length).toBeGreaterThan(36);
+
+		// Layout changes repaint a frame instead of leaving a blank canvas.
+		fillTexts.length = 0;
+		engine.setOptions({ glyphSize: 32 });
+		expect(frames).toHaveLength(0);
+		expect(fillTexts.length).toBeGreaterThan(0);
+
+		engine.setOptions({ reducedMotion: false });
+		expect(frames).toHaveLength(1);
+		tick();
+		expect(frames).toHaveLength(1);
+
+		// Flipping back to reduced lets the pending frame finish, then idles.
+		engine.setOptions({ reducedMotion: true });
+		tick();
+		expect(frames).toHaveLength(0);
+	});
+
+	it("reducedMotion pre-rolls the still into trails: a seeded rain is denser than the t=0 frame", () => {
+		const t0 = makeCanvas();
+		const t0Fake = attach(t0);
+		// Without reduced motion the first frame is the t=0 frame.
+		createMatrixRain({ canvas: t0 }, {}, () => 0.42)!;
+		tick();
+		const t0Count = t0Fake.fillTexts.length;
+		frames.length = 0;
+
+		const still = makeCanvas();
+		const stillFake = attach(still);
+		createMatrixRain({ canvas: still }, { reducedMotion: true }, () => 0.42)!;
+		expect(frames).toHaveLength(0);
+		expect(stillFake.fillTexts.length).toBeGreaterThan(t0Count);
+		// Every pre-roll step lays its own fade-trail rectangle over the last.
+		expect(stillFake.fillRects.filter((r) => r.style.startsWith("rgba")).length).toBeGreaterThan(1);
+	});
+
+	it("reducedMotion repaints the idle still when colour or fadeOpacity changes", () => {
+		const canvas = makeCanvas();
+		const { fillRects, fillTexts } = attach(canvas);
+		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+
+		fillRects.length = 0;
+		fillTexts.length = 0;
+		engine.setOptions({ color: "#ff0000" });
+		expect(frames).toHaveLength(0);
+		expect(fillRects[0]?.style).toBe("black");
+		expect(fillTexts.some((t) => t.style === "#ff0000")).toBe(true);
+
+		fillRects.length = 0;
+		engine.setOptions({ fadeOpacity: 0.2 });
+		expect(frames).toHaveLength(0);
+		expect(fillRects.some((r) => r.style === "rgba(0, 0, 0, 0.2)")).toBe(true);
+
+		// An unchanged value does not repaint.
+		fillRects.length = 0;
+		engine.setOptions({ color: "#ff0000", fadeOpacity: 0.2 });
+		expect(fillRects).toHaveLength(0);
+	});
 });

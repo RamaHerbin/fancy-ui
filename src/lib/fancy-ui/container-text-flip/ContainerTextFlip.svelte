@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { onMount } from "svelte";
+	import { untrack } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	interface Own {
@@ -26,10 +27,20 @@
 	let currentWord = $derived(words[currentWordIndex] ?? "");
 	let letters = $derived(currentWord.split(""));
 
-	onMount(() => {
-		const id = setInterval(() => {
-			currentWordIndex = (currentWordIndex + 1) % words.length;
-		}, interval);
+	// Read live: the query is started from an effect, never at construction.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
+	// Reduced motion keeps the current word: no interval is armed, and a flip
+	// back re-arms it. `interval` is read once at arm time, as before.
+	$effect(() => {
+		if (reduced.current) return;
+		const id = setInterval(
+			() => {
+				currentWordIndex = (currentWordIndex + 1) % words.length;
+			},
+			untrack(() => interval)
+		);
 
 		return () => clearInterval(id);
 	});
@@ -75,9 +86,12 @@
 		}
 	}
 
-	.text-flip-letter {
-		animation: text-flip-in ease-in-out forwards;
-		opacity: 0;
-		filter: blur(10px);
+	/* Resting state is the ungated default: the letters are simply shown. */
+	@media (prefers-reduced-motion: no-preference) {
+		.text-flip-letter {
+			animation: text-flip-in ease-in-out forwards;
+			opacity: 0;
+			filter: blur(10px);
+		}
 	}
 </style>
