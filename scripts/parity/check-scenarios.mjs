@@ -92,8 +92,23 @@ function selfTest() {
 }
 
 function main() {
-	if (process.argv.includes("--self-test")) selfTest();
-	const slugs = doneSlugs(readFileSync(join(repoRoot, "src/lib/fancy-ui/registry.ts"), "utf8"));
+	if (process.argv.includes("--self-test")) {
+		selfTest();
+		return;
+	}
+	const registrySrc = readFileSync(join(repoRoot, "src/lib/fancy-ui/registry.ts"), "utf8");
+	const slugs = doneSlugs(registrySrc);
+	// The parser keys on the registry's exact indentation. A format change must fail the
+	// gate loudly instead of silently shrinking the slug list it covers.
+	const rawDone = (registrySrc.match(/^\t\tstatus: "done",?$/gm) ?? []).length;
+	const expected = rawDone - NON_COMPONENT.size;
+	if (slugs.length === 0 || slugs.length !== expected) {
+		console.error(
+			`check-scenarios: parsed ${slugs.length} done slug(s) but registry.ts has ${rawDone} done entries ` +
+				`(${NON_COMPONENT.size} non-component) — the registry format changed; update doneSlugs()`
+		);
+		process.exit(1);
+	}
 	const skips = JSON.parse(
 		readFileSync(join(repoRoot, "scripts/parity/scenario-skips.json"), "utf8")
 	);
