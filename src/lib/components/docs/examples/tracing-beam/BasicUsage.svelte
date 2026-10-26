@@ -30,8 +30,8 @@
 
 		<div>
 			<span
-				data-demo
-				class="mb-2 block text-xs font-semibold tracking-wider text-blue-500 uppercase">v1.0</span
+				class="mb-2 block text-xs font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400"
+				>v1.0</span
 			>
 			<h2 class="mb-3 text-xl font-semibold">Launch Day</h2>
 			<p class="text-muted-foreground leading-relaxed">

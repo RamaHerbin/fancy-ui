@@ -148,9 +148,9 @@
 		{#snippet header()}
 			<div class="flex min-h-[5.5rem] flex-1 flex-col gap-1.5 p-2 {well}">
 				<div
-					class="flex items-center gap-2 rounded-md border border-black/[0.07] bg-white px-2.5 py-1.5 text-[12px] text-neutral-400 dark:border-white/[0.07] dark:bg-black/30 dark:text-neutral-500"
+					class="flex items-center gap-2 rounded-md border border-black/[0.07] bg-white px-2.5 py-1.5 text-[12px] text-neutral-500 dark:border-white/[0.07] dark:bg-black/30 dark:text-neutral-400"
 				>
-					<span data-demo>Search…</span>
+					<span>Search…</span>
 					<kbd
 						class="ml-auto rounded border border-black/[0.08] px-1 font-mono text-[10px] text-neutral-500 dark:border-white/[0.1] dark:text-neutral-400"
 						>⌘K</kbd

@@ -37,7 +37,7 @@
 			class="flex flex-col items-center gap-5 rounded-[14px] border border-black/[0.06] bg-[#fafafa] px-6 pt-20 pb-7 [--at-separator:#fafafa] dark:border-white/[0.06] dark:bg-[#141416] dark:[--at-separator:#141416]"
 		>
 			<AnimatedTooltip items={people} />
-			<p data-demo class="flex items-center gap-2 text-xs text-black/50 dark:text-white/45">
+			<p class="flex items-center gap-2 text-xs text-black/60 dark:text-white/45">
 				<span class="size-1.5 rounded-full bg-emerald-500/80" aria-hidden="true"></span>
 				4 people in this file
 			</p>
