@@ -30,9 +30,16 @@ export function TerminalText({
 	const [displayedLines, setDisplayedLines] = useState<string[]>([]);
 	const [done, setDone] = useState(false);
 
-	// Live preference. A flip while streaming restarts the stream, the way a
-	// `lines` change does.
+	// Live preference. A flip to reduce while streaming snaps to all lines; a
+	// flip once the stream is done changes nothing, so it never restarts or
+	// completes twice.
 	const reducedMotion = useReducedMotion();
+	// The stream reads the preference when it starts, not as a dependency.
+	const reducedMotionRef = useLiveRef(reducedMotion);
+	// Mirrors `done` for the preference effect, and records the preference the
+	// running stream was started under.
+	const doneRef = useRef(false);
+	const streamedReducedRef = useRef(false);
 
 	// Latest-value refs so timeout callbacks read current values, matching the
 	// Svelte closures over reactive props/state.
@@ -145,24 +152,31 @@ export function TerminalText({
 		scheduleGlitch();
 	}
 
-	// React only to lines/speed/delay — changing glitch won't restart the stream
+	function showAllLines() {
+		clearAllTimeouts();
+		const all = [...linesRef.current];
+		displayedLinesRef.current = all;
+		setDisplayedLines(all);
+		setDone(true);
+		doneRef.current = true;
+		onCompleteRef.current?.();
+	}
+
+	// React only to lines/speed/delay — changing glitch or the preference won't
+	// restart the stream
 	useEffect(() => {
 		clearAllTimeouts();
 		setDisplayedLines([]);
 		displayedLinesRef.current = [];
 		setDone(false);
+		doneRef.current = false;
 		glitchStateRef.current = null;
+		streamedReducedRef.current = reducedMotionRef.current;
 
 		// Reduced motion: no typing. One timeout at `delay` shows every line and
 		// completes, so `onComplete` still fires and the text is all there.
-		if (reducedMotion) {
-			scheduleTimeout(() => {
-				const all = [...linesRef.current];
-				displayedLinesRef.current = all;
-				setDisplayedLines(all);
-				setDone(true);
-				onCompleteRef.current?.();
-			}, delay);
+		if (streamedReducedRef.current) {
+			scheduleTimeout(showAllLines, delay);
 			return () => {
 				clearAllTimeouts();
 			};
@@ -199,6 +213,7 @@ export function TerminalText({
 		// Mark done
 		scheduleTimeout(() => {
 			setDone(true);
+			doneRef.current = true;
 			onCompleteRef.current?.();
 		}, totalDelay);
 
@@ -206,7 +221,15 @@ export function TerminalText({
 			clearAllTimeouts();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [linesKey, speed, delay, reducedMotion]);
+	}, [linesKey, speed, delay]);
+
+	// A flip to reduce while the stream is still running shows every line now.
+	useEffect(() => {
+		if (!reducedMotion || doneRef.current || streamedReducedRef.current) return;
+		streamedReducedRef.current = true;
+		showAllLines();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [reducedMotion]);
 
 	// React to glitch changes without restarting the stream
 	useEffect(() => {

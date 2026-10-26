@@ -37,8 +37,9 @@ const displayedLines = ref<string[]>([]);
 const done = ref(false);
 
 // Live preference; its query starts from its own `onMounted`, registered before
-// the first pass below, so the value is current when that runs. A flip while
-// streaming restarts the stream, the way a `lines` change does.
+// the first pass below, so the value is current when that runs. A flip to
+// reduce while streaming snaps to all lines; a flip once the stream is done
+// changes nothing, so it never restarts or completes twice.
 const reducedMotion = useReducedMotion();
 const glitchState = ref<{ lineIdx: number; charIdx: number; original: string } | null>(null);
 
@@ -73,20 +74,28 @@ function clearAllTimeouts() {
 	timeouts = [];
 }
 
+// The preference the running stream was started under: a later flip only
+// matters while the stream has not finished (see the preference watcher).
+let streamedReduced = false;
+
+function showAllLines() {
+	clearAllTimeouts();
+	displayedLines.value = [...lines];
+	done.value = true;
+	onComplete?.();
+}
+
 function streamLines() {
 	clearAllTimeouts();
 	displayedLines.value = [];
 	done.value = false;
 	glitchState.value = null;
+	streamedReduced = reducedMotion.value;
 
 	// Reduced motion: no typing. One timeout at `delay` shows every line and
 	// completes, so `onComplete` still fires and the text is all there.
-	if (reducedMotion.value) {
-		scheduleTimeout(() => {
-			displayedLines.value = [...lines];
-			done.value = true;
-			onComplete?.();
-		}, delay);
+	if (streamedReduced) {
+		scheduleTimeout(showAllLines, delay);
 		return;
 	}
 
@@ -202,11 +211,22 @@ onMounted(() => {
 // multi-source watcher element-wise, where a returned array is a fresh
 // identity every pass and would fire the callback unconditionally.
 watch(
-	[() => JSON.stringify(lines), () => speed, () => delay, () => reducedMotion.value],
+	[() => JSON.stringify(lines), () => speed, () => delay],
 	() => {
 		// The source's teardown (`clearAllTimeouts`) is the first thing
 		// `streamLines` does, so the re-run order is preserved.
 		streamLines();
+	},
+	{ flush: "post" }
+);
+
+// A flip to reduce while the stream is still running shows every line now.
+watch(
+	() => reducedMotion.value,
+	(value) => {
+		if (!value || done.value || streamedReduced) return;
+		streamedReduced = true;
+		showAllLines();
 	},
 	{ flush: "post" }
 );

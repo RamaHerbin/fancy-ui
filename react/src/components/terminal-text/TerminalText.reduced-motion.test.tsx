@@ -21,6 +21,40 @@ function mockMatchMedia(reduce: boolean) {
 	});
 }
 
+/** A matchMedia whose preference can be flipped after mount, firing `change`. */
+function controllableMatchMedia(initial: boolean) {
+	let reduce = initial;
+	const listeners = new Set<(event: { matches: boolean }) => void>();
+	const list = {
+		get matches() {
+			return reduce;
+		},
+		media: "(prefers-reduced-motion: reduce)",
+		onchange: null,
+		addEventListener: (_type: string, cb: (event: { matches: boolean }) => void) => {
+			listeners.add(cb);
+		},
+		removeEventListener: (_type: string, cb: (event: { matches: boolean }) => void) => {
+			listeners.delete(cb);
+		},
+		addListener: () => {},
+		removeListener: () => {},
+		dispatchEvent: () => false,
+	};
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		configurable: true,
+		value: (query: string) =>
+			query.includes("reduce") && !query.includes("no-preference")
+				? list
+				: { ...list, matches: false, media: query },
+	});
+	return (next: boolean) => {
+		reduce = next;
+		for (const cb of [...listeners]) cb({ matches: next });
+	};
+}
+
 /** Source text of the stylesheet(s) that ship with the component. */
 function stylesheet(): string {
 	return readFileSync(resolve(__dirname, "./terminal-text.css"), "utf8");
@@ -158,5 +192,61 @@ describe("TerminalText reduced motion", () => {
 				vi.useRealTimers();
 			}
 		});
+	});
+});
+
+describe("TerminalText preference flips", () => {
+	afterEach(cleanup);
+	const lines = ["hello", "world"];
+	const advance = (ms: number) =>
+		act(() => {
+			vi.advanceTimersByTime(ms);
+		});
+
+	it("calls onComplete once across reduce -> no-preference -> reduce flips", () => {
+		const setReduce = controllableMatchMedia(true);
+		vi.useFakeTimers();
+		try {
+			const onComplete = vi.fn();
+			const { container } = render(
+				<TerminalText lines={lines} delay={100} onComplete={onComplete} />
+			);
+			advance(100);
+			expect(container.textContent).toContain("world");
+			expect(onComplete).toHaveBeenCalledTimes(1);
+			const settled = container.textContent;
+
+			act(() => setReduce(false));
+			advance(1);
+			expect(container.textContent).toBe(settled);
+			advance(20000);
+			act(() => setReduce(true));
+			advance(20000);
+			expect(container.textContent).toBe(settled);
+			expect(onComplete).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("snaps to every line when reduce arrives mid-stream, then completes once", () => {
+		const setReduce = controllableMatchMedia(false);
+		vi.useFakeTimers();
+		try {
+			const onComplete = vi.fn();
+			const { container } = render(
+				<TerminalText lines={lines} delay={100} onComplete={onComplete} />
+			);
+			advance(150);
+			expect(container.textContent).not.toContain("world");
+			act(() => setReduce(true));
+			expect(container.textContent).toContain("hello");
+			expect(container.textContent).toContain("world");
+			expect(onComplete).toHaveBeenCalledTimes(1);
+			advance(20000);
+			expect(onComplete).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });
