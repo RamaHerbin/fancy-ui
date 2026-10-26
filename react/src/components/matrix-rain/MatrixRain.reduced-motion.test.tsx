@@ -21,18 +21,25 @@ function stubMotion(reduce: boolean) {
 }
 
 function stubCanvas() {
+	const fillRects: string[] = [];
+	const fillTexts: string[] = [];
 	const ctx = {
 		fillStyle: "",
 		font: "",
 		shadowBlur: 0,
 		shadowColor: "",
 		setTransform: () => {},
-		fillRect: () => {},
-		fillText: () => {},
+		fillRect: () => {
+			fillRects.push(String(ctx.fillStyle));
+		},
+		fillText: () => {
+			fillTexts.push(String(ctx.fillStyle));
+		},
 	};
 	vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(ctx as never);
 	vi.spyOn(HTMLCanvasElement.prototype, "clientWidth", "get").mockReturnValue(300);
 	vi.spyOn(HTMLCanvasElement.prototype, "clientHeight", "get").mockReturnValue(150);
+	return { fillRects, fillTexts };
 }
 
 describe("MatrixRain reduced motion", () => {
@@ -56,5 +63,35 @@ describe("MatrixRain reduced motion", () => {
 		const raf = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
 		render(<MatrixRain />);
 		expect(raf).toHaveBeenCalled();
+	});
+
+	it("paints a pre-rolled still, denser than one frame, under reduce", () => {
+		stubMotion(true);
+		const { fillTexts } = stubCanvas();
+		vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		render(<MatrixRain />);
+		// 300 / 16 => 18 columns, a head + body glyph each per step: one step is 36.
+		expect(fillTexts.length).toBeGreaterThan(36);
+	});
+
+	it("repaints the idle still when color or fadeOpacity changes", () => {
+		stubMotion(true);
+		const { fillRects, fillTexts } = stubCanvas();
+		vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		const { rerender } = render(<MatrixRain />);
+
+		fillRects.length = 0;
+		fillTexts.length = 0;
+		rerender(<MatrixRain color="#ff0000" />);
+		expect(fillRects[0]).toBe("black");
+		expect(fillTexts).toContain("#ff0000");
+
+		fillRects.length = 0;
+		rerender(<MatrixRain color="#ff0000" fadeOpacity={0.2} />);
+		expect(fillRects).toContain("rgba(0, 0, 0, 0.2)");
+
+		fillRects.length = 0;
+		rerender(<MatrixRain color="#ff0000" fadeOpacity={0.2} />);
+		expect(fillRects).toHaveLength(0);
 	});
 });

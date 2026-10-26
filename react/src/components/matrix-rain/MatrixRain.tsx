@@ -60,6 +60,13 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
+// Steps simulated (no rAF) before the single reduced-motion paint. One step
+// advances every column by a row, so ~80 steps is a few screen heights of drops:
+// every column has fallen, left its fade trail and (2.5% per step once below the
+// bottom) restarted, which is the dense wall the live loop settles into. The
+// stream is seeded, so the still stays deterministic.
+const STILL_PRE_ROLL_STEPS = 80;
+
 export function MatrixRain({
 	color = "#00ff41",
 	speed = 1.0,
@@ -88,6 +95,11 @@ export function MatrixRain({
 	// Reduced motion: one still frame instead of the rAF loop. A flip restarts the
 	// effect below; the same `seed` re-seeds the same columns.
 	const reducedMotion = useReducedMotion();
+
+	// Set by the effect below while it holds an idle still frame, so a colour or
+	// fade change can lay that still out again without tearing the effect down.
+	const repaintStillRef = useRef<(() => void) | null>(null);
+	const stillStyleRef = useRef({ color, fadeOpacity });
 
 	useEffect(() => {
 		if (!canvas) return;
@@ -126,7 +138,7 @@ export function MatrixRain({
 			columns = Array.from({ length: colCount }, () => Math.floor(random() * (h / safeGlyphSize)));
 		}
 
-		function draw() {
+		function step() {
 			const w = canvasW;
 			const h = canvasH;
 
@@ -175,12 +187,22 @@ export function MatrixRain({
 			}
 
 			ctx.shadowBlur = 0;
-			// One still frame under reduced motion: paint, then idle.
+		}
+
+		function draw() {
+			step();
+			// One frame under reduced motion only if the preference flipped while a
+			// frame was queued: paint it, then idle.
 			if (reducedMotion) {
 				rafId = 0;
 				return;
 			}
 			rafId = requestAnimationFrame(draw);
+		}
+
+		// Pre-rolls the simulation, then leaves the canvas holding one still frame.
+		function paintStill() {
+			for (let i = 0; i < STILL_PRE_ROLL_STEPS; i++) step();
 		}
 
 		// A queued frame is the loop's only "is it running" state, so `0` is the
@@ -210,11 +232,20 @@ export function MatrixRain({
 			init(canvasW, canvasH);
 			// The repaint above wiped the canvas; an idle (reduced-motion) loop has
 			// no queued frame to refill it, so paint the still frame now.
-			if (reducedMotion) draw();
+			if (reducedMotion) paintStill();
 		};
 
 		// Under reduced motion `resize()` paints the one still frame itself.
 		resize();
+
+		if (reducedMotion) {
+			repaintStillRef.current = () => {
+				ctx.fillStyle = "black";
+				ctx.fillRect(0, 0, canvasW, canvasH);
+				init(canvasW, canvasH);
+				paintStill();
+			};
+		}
 
 		const observer = new ResizeObserver(resize);
 		observer.observe(canvas);
@@ -244,11 +275,21 @@ export function MatrixRain({
 		});
 
 		return () => {
+			repaintStillRef.current = null;
 			stop();
 			inViewHandle.destroy();
 			observer.disconnect();
 		};
 	}, [canvas, glyphSize, density, seed, reducedMotion, colorRef, speedRef, fadeOpacityRef]);
+
+	// A colour or fade change is state, not motion: under reduce there is no loop
+	// to pick it up, so repaint the idle still frame with the new values.
+	useEffect(() => {
+		const prev = stillStyleRef.current;
+		if (prev.color === color && prev.fadeOpacity === fadeOpacity) return;
+		stillStyleRef.current = { color, fadeOpacity };
+		repaintStillRef.current?.();
+	}, [color, fadeOpacity]);
 
 	return <canvas ref={canvasRef} className={cn("block h-full w-full bg-black", className)} />;
 }

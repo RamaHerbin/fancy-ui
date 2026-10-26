@@ -42,4 +42,4 @@ The canvas fills its parent (`h-full w-full`) and paints its own black backgroun
 
 ## Reduced motion
 
-With `prefers-reduced-motion: reduce` the rain stops: the canvas paints one still frame of glyph columns and no animation frame is scheduled. The preference is read live, so clearing it resumes the rain from where it was.
+With `prefers-reduced-motion: reduce` the rain stops: the canvas paints one still frame and no animation frame is scheduled. The still is the seeded rain pre-rolled about 80 steps, so it shows dense columns with their fade trails rather than the sparse first frame; changing `color` or `fadeOpacity` repaints it. The preference is read live, so clearing it resumes the rain from where it was.
