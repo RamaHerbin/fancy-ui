@@ -1,6 +1,7 @@
 import { useEffect, useState, type HTMLAttributes } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import "./container-text-flip.css";
 
 export interface ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> {
@@ -30,18 +31,23 @@ export function ContainerTextFlip({
 	const wordsRef = useLiveRef(words);
 	const intervalRef = useLiveRef(interval);
 
-	// Mount-only, as the Svelte side starts its interval in `onMount`. Keying this
-	// on `words` would tear the timer down and re-arm it on every parent render
-	// that passes an inline array literal — a new reference each time — which
-	// resets the cadence forever and the word never flips.
+	// Reduced motion keeps the current word: no interval is armed, and a flip
+	// back re-arms it because the effect depends on the preference.
+	const reducedMotion = useReducedMotion();
+
+	// Keyed on the preference only, never on `words`: keying this on `words`
+	// would tear the timer down and re-arm it on every parent render that passes
+	// an inline array literal — a new reference each time — which resets the
+	// cadence forever and the word never flips.
 	useEffect(() => {
+		if (reducedMotion) return;
 		const id = setInterval(() => {
 			setCurrentWordIndex((index) => (index + 1) % wordsRef.current.length);
 		}, intervalRef.current);
 
 		return () => clearInterval(id);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [reducedMotion]);
 
 	return (
 		<p
