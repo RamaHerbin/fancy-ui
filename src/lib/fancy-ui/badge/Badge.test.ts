@@ -34,7 +34,7 @@ describe("Badge", () => {
 		["default", ["bg-primary", "text-primary-foreground"]],
 		["secondary", ["bg-secondary", "text-secondary-foreground"]],
 		["outline", ["border-border", "text-foreground"]],
-		["destructive", ["bg-destructive/10", "text-destructive"]],
+		["destructive", ["bg-destructive/10", "text-destructive-foreground-soft"]],
 		["success", ["bg-emerald-500/10"]],
 	] as const)("styles the %s variant", (variant, classes) => {
 		const { container } = render(Badge, { props: { variant, children: text("x") } });

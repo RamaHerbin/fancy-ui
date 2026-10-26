@@ -128,7 +128,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 	// Tailwind token, so it is a family-level CSS custom property instead.
 	accent: "ft-btn--accent",
 	destructive:
-		"border border-destructive/35 bg-destructive/10 text-destructive hover:bg-destructive/20",
+		"border border-destructive/35 bg-destructive/10 text-destructive-foreground-soft hover:bg-destructive/20",
 };
 
 const classes = computed(() =>

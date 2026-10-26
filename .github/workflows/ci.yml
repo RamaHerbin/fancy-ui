@@ -408,10 +408,11 @@ jobs:
       # Job-local, never committed: the checkout is thrown away with the runner.
       - name: Pin the workspace to the React 18 floor
         run: |
+          # The workspace file may already end with an `overrides:` block (keep it last):
+          # add the key only when it is missing, then append the floor pins under it.
+          grep -q '^overrides:' pnpm-workspace.yaml || printf '\noverrides:\n' >> pnpm-workspace.yaml
           cat >> pnpm-workspace.yaml <<'YAML'
-
-          # Added by the react-18 CI job. Not committed.
-          overrides:
+            # Added by the react-18 CI job. Not committed.
             react: ^18.3.1
             react-dom: ^18.3.1
             "@types/react": ^18.3.0
@@ -546,10 +547,11 @@ jobs:
       # Job-local, never committed: the checkout is thrown away with the runner.
       - name: Pin the workspace to the Vue 3.5 floor
         run: |
+          # The workspace file may already end with an `overrides:` block (keep it last):
+          # add the key only when it is missing, then append the floor pin under it.
+          grep -q '^overrides:' pnpm-workspace.yaml || printf '\noverrides:\n' >> pnpm-workspace.yaml
           cat >> pnpm-workspace.yaml <<'YAML'
-
-          # Added by the vue-3-5 CI job. Not committed.
-          overrides:
+            # Added by the vue-3-5 CI job. Not committed.
             vue: 3.5.2
           YAML
 

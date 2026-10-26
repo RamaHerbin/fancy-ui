@@ -3,7 +3,14 @@
 </script>
 
 <div class="relative h-[440px] w-full overflow-hidden rounded-lg border bg-[#fafafa]">
-	<div class="absolute inset-0 overflow-y-auto" style="scrollbar-width: none;">
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -- a scroll region has to be keyboard reachable -->
+	<div
+		class="absolute inset-0 overflow-y-auto"
+		style="scrollbar-width: none;"
+		tabindex="0"
+		role="region"
+		aria-label="Page preview"
+	>
 		<!-- Hero -->
 		<div class="flex min-h-[420px] flex-col items-center justify-center px-8 pt-24 text-center">
 			<span

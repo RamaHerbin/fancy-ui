@@ -5775,7 +5775,8 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "underline",
 				type: '"hover" | "always" | "none"',
 				default: '"hover"',
-				description: "When the underline shows",
+				description:
+					"When the underline shows: `hover` (the default) draws a thin resting underline on the default variant and the full one on hover/focus, and underlines the muted variant on hover/focus only; `always` underlines every variant; `none` never",
 			},
 			{
 				name: "target",

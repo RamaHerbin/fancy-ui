@@ -9,7 +9,9 @@ export interface LinkProps {
 	/** Marks the destination as off-site: appends an arrow glyph, defaults `target` to
 	 * `_blank`, and guarantees a safe `rel` */
 	external?: boolean;
-	/** When the underline shows: only on hover/focus (`hover`, the default), always, or never */
+	/** When the underline shows: `hover` (the default) draws a thin resting underline on the
+	 * default variant and the full one on hover/focus, and underlines the muted variant on
+	 * hover/focus only; `always` underlines every variant; `none` never */
 	underline?: "hover" | "always" | "none";
 	/** Anchor `target`. `external` fills this in as `_blank` when left unset */
 	target?: string;
@@ -90,6 +92,11 @@ const classes = computed(() =>
 		"ft-link inline-flex w-fit items-center gap-1 no-underline transition-colors focus-visible:outline-none",
 		variant === "default" ? "ft-link--default text-sm" : "text-muted-foreground text-[13px]",
 		underline === "always" && "underline underline-offset-[3px]",
+		// WCAG 1.4.1: in-text links must not rely on colour alone, so the default
+		// variant keeps a thin resting underline; the muted variant stays plain.
+		variant === "default" &&
+			underline === "hover" &&
+			"underline decoration-[0.08em] underline-offset-2",
 		underline === "hover" &&
 			"hover:underline focus-visible:underline hover:underline-offset-[3px] focus-visible:underline-offset-[3px]",
 		className

@@ -453,10 +453,10 @@
 			{:else if slug === "label"}
 				<Comp {...props}>Email address</Comp>
 			{:else if slug === "confetti"}
-				<Comp {...props}
-					><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
-						>Click for Confetti</button
-					></Comp
+				<Comp
+					{...props}
+					class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
+					>Click for Confetti</Comp
 				>
 			{:else if slug === "box-reveal"}
 				<Comp color="var(--primary)" duration={0.5}>
