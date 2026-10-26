@@ -93,6 +93,12 @@ Set `--ft-accent` higher up the tree to retint the purple end of every
 `Slider` beneath it; the cyan end (`--ft-slider-accent-end`, `#42cfff` in dark
 mode) is local to the component and not exposed as a variable to override.
 
+The value bubble's text colour is `--ft-slider-bubble-fg`, which defaults to
+your `--foreground` token (`currentColor` when it is not declared). Override it
+on the slider or any ancestor when the bubble sits on a surface that needs a
+different text colour; keep it at 4.5:1 against `--background`, the bubble's
+fill.
+
 ## Sound
 
 Set `sound` to play the `tick` cue through the shared sound controller (see

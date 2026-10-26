@@ -37,9 +37,10 @@ Every other attribute and listener of a `<span>` (`id`, `title`, `aria-*`,
   meaning must be in the words; colour only reinforces it.
 - Every variant, including the soft destructive pair, keeps its text at 4.5:1
   or better against its own tint in both themes.
-- When a badge is the only carrier of a status (an icon-only dot, a count), give
-  the surrounding control an accessible name that says it; a native `aria-label`
-  on the badge itself lands on the `<span>` as-is.
+- When a badge is the only carrier of a status (an icon-only dot, a count), put
+  the meaning in visible or `sr-only` text, or in the accessible name of the
+  surrounding control. An `aria-label` on the badge itself is not announced: it
+  sits on a role-less `<span>`, where most assistive tech ignores it.
 
 ## Notes
 
