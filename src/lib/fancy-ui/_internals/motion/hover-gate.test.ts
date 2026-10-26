@@ -13,6 +13,11 @@
  * components, the React `.css` files, and the Tailwind `hover:` / `group-hover:`
  * utilities in markup (each needs a `focus-visible` / `focus-within` twin).
  *
+ * Limitation: the twin check is per property across the whole component, not
+ * per element, so any focus rule that sets `opacity` satisfies every `opacity`
+ * hover rule in the same framework. It proves a keyboard path exists for each
+ * kind of motion, not that every individual element has one.
+ *
  * `EXEMPT` lists the rules that are decorative pointer effects with no meaning
  * to mirror on focus; each entry carries its reason.
  */
@@ -35,6 +40,9 @@ const SLUGS = [
 	"thread-list",
 	"marquee",
 	"book",
+	"glare-card",
+	"ripple-button",
+	"direction-aware-hover",
 ];
 
 /** Selector fragment -> reason it has no keyboard twin. */
@@ -153,7 +161,13 @@ describe("hover-gated motion with keyboard twins", () => {
 			const focusProps = new Set(
 				rules.filter((r) => /:focus-visible|:focus-within/.test(r.selector)).flatMap((r) => r.props)
 			);
-			const hoverMotion = rules.filter((r) => isHoverRule(r) && r.props.some((p) => MOTION.has(p)));
+			// Rules under `prefers-reduced-motion` reset motion (`animation: none`), they never add any.
+			const hoverMotion = rules.filter(
+				(r) =>
+					isHoverRule(r) &&
+					r.props.some((p) => MOTION.has(p)) &&
+					!r.stack.some((q) => /prefers-reduced-motion/.test(q))
+			);
 
 			it(`${slug} (${framework}): every motion :hover rule sits in (hover: hover)`, () => {
 				const ungated = hoverMotion
@@ -188,13 +202,13 @@ describe("hover-gated motion with keyboard twins", () => {
 					for (const m of markup.matchAll(/(?<![\w-])((?:group-|peer-)?hover):([^\s"'`}]+)/g)) {
 						const util = m[2] as string;
 						if (
-							!/^(-?scale|-?translate|opacity|-?rotate|blur|\[(transform|filter|opacity|clip))/.test(
+							!/^(-?scale|-?translate|opacity|-?rotate|blur|\[(transform|filter|opacity|clip)|\[--[a-z-]*(opacity|scale|translate|rotate|blur)[a-z-]*:)/.test(
 								util
 							)
 						)
 							continue;
 						const twin = new RegExp(
-							`(focus-visible|focus-within|group-focus-visible|group-focus-within|peer-focus-visible):${util.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`
+							`(focus-visible|focus-within|group-focus-visible|group-focus-within|peer-focus-visible|has-\\[:focus-visible\\]):${util.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`
 						);
 						if (!twin.test(markup)) missing.push(`${f.file}: ${m[0]}`);
 					}
