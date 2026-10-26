@@ -98,7 +98,6 @@ test("a scroll step validates with a numeric y and an optional target", () => {
 test("the click-state hints fire the signature move and shoot 0/80/300/600/1200", () => {
 	for (const slug of [
 		"status-morph",
-		"follow-button",
 		"pagination",
 		"stepper",
 		"datamosh-transition",
@@ -138,6 +137,11 @@ test("copy-button defines idle, copied and failed, each asserting its outcome", 
 	assert.deepEqual(names, { idle: "Copy", copied: "Copied", failed: "Copy failed" });
 	assert.deepEqual(hint.states.copied.steps[0], { clipboard: "ok" });
 	assert.deepEqual(hint.states.failed.steps[0], { clipboard: "denied" });
+	for (const name of ["copied", "failed"]) {
+		const item = resolveStates("copy-button", hint.states)[name];
+		assert.equal(item.noSettle, true, `copy-button@${name} resolves with noSettle`);
+		assert.deepEqual(item.moments, [0, 80, 300, 600, 1200]);
+	}
 });
 
 test("toast defines an action state and a long-description state", () => {

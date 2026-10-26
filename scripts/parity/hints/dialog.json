@@ -3,65 +3,18 @@
 	"click": [0.5, 0.5],
 	"states": {
 		"open": {
-			"steps": [
-				{
-					"click": {
-						"role": "button",
-						"name": "Invite member"
-					}
-				}
-			],
-			"expect": [
-				{
-					"role": "dialog",
-					"name": "Invite a member",
-					"in": "page"
-				}
-			]
+			"steps": [{ "click": { "role": "button", "name": "Invite member" } }],
+			"expect": [{ "role": "dialog", "name": "Invite a member", "in": "page" }]
 		},
 		"focus": {
-			"steps": [
-				{
-					"focus": {
-						"role": "button",
-						"name": "Invite member"
-					}
-				}
-			],
-			"expect": [
-				{
-					"role": "button",
-					"name": "Invite member",
-					"focusVisible": true
-				}
-			]
+			"steps": [{ "focus": { "role": "button", "name": "Invite member" } }],
+			"expect": [{ "role": "button", "name": "Invite member", "focusVisible": true }]
 		},
 		"long": {
 			"variant": "long",
-			"steps": [
-				{
-					"click": {
-						"role": "button",
-						"name": "Invite member"
-					}
-				}
-			],
-			"expect": [
-				{
-					"role": "dialog",
-					"in": "page",
-					"overflow": true
-				}
-			]
+			"steps": [{ "click": { "role": "button", "name": "Invite member" } }],
+			"expect": [{ "role": "dialog", "in": "page", "overflow": true }]
 		},
-		"close": {
-			"from": "open",
-			"expect": [
-				{
-					"role": "button",
-					"name": "Invite member"
-				}
-			]
-		}
+		"close": { "from": "open", "expect": [{ "role": "button", "name": "Invite member" }] }
 	}
 }

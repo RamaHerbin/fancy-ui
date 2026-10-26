@@ -52,6 +52,13 @@
  * 150 ms `fast` flip photographable) spent on the fake clock; moments of the
  * pointer pass count from the end of the gesture.
  *
+ * A state with "noSettle" (and every close state) is shot from its first frame.
+ * The browser starts the animations a click or Escape causes on its next real
+ * frame, so before the clock is pinned the capture waits at least 80 ms of real
+ * time, then polls every 16 ms (up to 600 ms in all) until document.getAnimations()
+ * reports one whose playState is "running", and only then syncs. A move that
+ * never creates an animation is shot after the bound, not hung on.
+ *
  * A failing item is recorded in the log and the run goes on. Interaction
  * states (open, focus, long content, copied, failed, action; scripts/parity/states.mjs) are stricter:
  * a missing scenario, an unreachable stage, a state that is never reached or a
@@ -85,6 +92,9 @@ const VIEWPORT = { width: 1000, height: 700 };
 const LAUNCH_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--font-render-hinting=none"];
 /** Fake-clock period of the animation sync loop, one 60 Hz frame. */
 const SYNC_MS = 16;
+// noSettle start: wait this long in real time, then poll up to the cap for a running animation.
+const NO_SETTLE_FLOOR_MS = 80;
+const NO_SETTLE_CAP_MS = 600;
 const READY_TIMEOUT = 30_000;
 const IDLE_TIMEOUT = 5_000;
 
@@ -381,7 +391,14 @@ async function captureItem(browser, args, item) {
 			// browser starts the exit's animations on its next real frame: wait
 			// for it, and pin whatever it created, before the first shot.
 			if (item.noSettle) {
-				await new Promise((r) => setTimeout(r, 80));
+				await new Promise((r) => setTimeout(r, NO_SETTLE_FLOOR_MS));
+				for (let waited = NO_SETTLE_FLOOR_MS; waited < NO_SETTLE_CAP_MS; waited += 16) {
+					const running = await page.evaluate(() =>
+						document.getAnimations().some((a) => a.playState === "running")
+					);
+					if (running) break;
+					await new Promise((r) => setTimeout(r, 16));
+				}
 				await page.evaluate(() => window.__paritySync());
 			} else await settle(page, slug, state);
 		}

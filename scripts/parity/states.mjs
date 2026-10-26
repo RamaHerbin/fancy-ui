@@ -59,16 +59,7 @@
  * <slug>@<state>.
  */
 
-export const STATE_NAMES = [
-	"open",
-	"close",
-	"focus",
-	"long",
-	"idle",
-	"copied",
-	"failed",
-	"action",
-];
+export const STATE_NAMES = ["open", "close", "focus", "long", "idle", "copied", "failed", "action"];
 export const DEFAULT_STATE_MOMENTS = [0];
 /** A close state is a start-phase capture of the exit. */
 export const CLOSE_MOMENTS = [0, 50, 100, 150];
@@ -304,8 +295,7 @@ export async function runSteps(page, stage, slug, state, steps) {
 			}, y);
 			// One frame on the fake clock: scroll-driven handlers and rAF loops run.
 			await page.clock.runFor(16);
-		}
-		else if (kind === "clipboard")
+		} else if (kind === "clipboard")
 			// Headless pages have no reliable clipboard permission: the write
 			// is replaced so the outcome is the same on every stage.
 			await page.evaluate((mode) => {
