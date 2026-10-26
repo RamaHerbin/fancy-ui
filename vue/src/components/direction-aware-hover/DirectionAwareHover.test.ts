@@ -88,7 +88,7 @@ describe("DirectionAwareHover", () => {
 	});
 
 	describe("keyboard path", () => {
-		const overlay = (c: HTMLElement) => c.querySelector(".bg-black\\/40");
+		const overlay = (c: Element) => c.querySelector(".bg-black\\/40");
 
 		it("makes the root focusable", () => {
 			const { container } = render(DirectionAwareHover, { props: { imageUrl: "/t.jpg" } });
