@@ -80,24 +80,29 @@ describe("light --muted-foreground", () => {
 
 describe("soft destructive pair (Badge, Button)", () => {
 	const dest = oklch(0.577, 0.245, 27.325);
-	const text = parseOklch(
-		/text-\[(oklch\([^\]]+\))\]/.exec(read("./Badge.svelte"))?.[1].replaceAll("_", " ") ?? ""
-	);
+	const decl =
+		/--destructive-foreground-soft:\s*light-dark\((oklch\([^)]+\)),\s*(oklch\([^)]+\))\)/.exec(
+			read("../tailwind.css")
+		);
+	const lightText = parseOklch(decl?.[1] ?? "");
+	const darkText = parseOklch(decl?.[2] ?? "");
 
 	it.each([0.1, 0.2])("light text holds 4.5:1 on destructive/%s over white", (a) => {
-		expect(ratio(text, over(dest, WHITE, a))).toBeGreaterThanOrEqual(4.5);
+		expect(ratio(lightText, over(dest, WHITE, a))).toBeGreaterThanOrEqual(4.5);
 	});
-	it("dark text (the destructive token) holds 4.5:1 on destructive/20 over the dark background", () => {
+	it.each([0.1, 0.2])("dark text holds 4.5:1 on destructive/%s over the dark background", (a) => {
 		const d = oklch(0.704, 0.191, 22.216);
-		expect(ratio(d, over(d, oklch(0.05, 0, 0), 0.2))).toBeGreaterThanOrEqual(4.5);
+		expect(ratio(darkText, over(d, oklch(0.05, 0, 0), a))).toBeGreaterThanOrEqual(4.5);
 	});
-	it("Button and Badge use the same light text colour", () => {
-		expect(read("../button/Button.svelte")).toContain(
-			"text-[oklch(0.48_0.21_27.325)] dark:text-destructive"
-		);
-		expect(read("./Badge.svelte")).toContain(
-			"text-[oklch(0.48_0.21_27.325)] dark:text-destructive"
-		);
+	it("is declared in all four token files", () => {
+		for (const f of ["../../../../react/tailwind.css", "../../../../vue/tailwind.css"]) {
+			expect(read(f)).toContain(decl?.[0] ?? "x");
+		}
+		expect(read("../../../routes/layout.css")).toContain("--destructive-foreground-soft");
+	});
+	it("Button and Badge use the same token class", () => {
+		expect(read("../button/Button.svelte")).toContain("text-destructive-foreground-soft");
+		expect(read("./Badge.svelte")).toContain("text-destructive-foreground-soft");
 	});
 });
 
@@ -132,7 +137,9 @@ describe("component-owned muted colours", () => {
 	it("Step description, SidebarGroup label and the CodeDiff gutter no longer dim their text", () => {
 		expect(read("../stepper/Step.svelte")).not.toContain("text-muted-foreground/80");
 		expect(read("../sidebar/SidebarGroup.svelte")).not.toContain("text-muted-foreground/70");
-		expect(read("../code-diff/CodeDiff.svelte")).toMatch(/\.ft-num \{[^}]*opacity: 0\.7;/);
+		const diff = read("../code-diff/CodeDiff.svelte");
+		expect(diff).toMatch(/\.ft-num \{[^}]*color: var\(--muted-foreground\);/);
+		expect(diff).toMatch(/\.ft-glyph \{[^}]*opacity: 0\.7;/);
 	});
 
 	it("Slider bubble reads its own foreground variable, not the fill gradient end", () => {
