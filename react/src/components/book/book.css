@@ -1,0 +1,7 @@
+/* The hover angle is the state; only the tween that turns the cover is motion,
+   so under reduced motion the cover lands on its angle at once. */
+@media (prefers-reduced-motion: no-preference) {
+	.book-cover {
+		transition: transform var(--book-duration, 1000ms) ease;
+	}
+}

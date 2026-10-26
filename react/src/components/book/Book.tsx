@@ -1,5 +1,6 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import "./book.css";
 import {
 	BOOK_RADIUS_MAP as radiusMap,
 	BOOK_SIZE_MAP as sizeMap,
@@ -44,9 +45,9 @@ export function Book({
 			{...rest}
 		>
 			<div
-				style={{ width: sizeMap[size].width, transition: `transform ${duration}ms ease` }}
+				style={{ width: sizeMap[size].width, "--book-duration": `${duration}ms` } as CSSProperties}
 				className={cn(
-					"relative aspect-[3/4] [transform-style:preserve-3d]",
+					"book-cover relative aspect-[3/4] [transform-style:preserve-3d]",
 					isStatic
 						? "[transform:rotateY(-30deg)]"
 						: "[transform:rotateY(0deg)] group-hover:[transform:rotateY(-30deg)]",
