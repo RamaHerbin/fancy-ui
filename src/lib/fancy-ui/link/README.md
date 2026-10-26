@@ -28,7 +28,7 @@ A plain-text anchor styled for prose and inline copy — a colored text link, no
 | `href`      | `string`                        | —           | Destination URL (required)                                                                     |
 | `variant`   | `"default" \| "muted"`          | `'default'` | `default` reads as inline copy; `muted` recedes into supporting text at a smaller size         |
 | `external`  | `boolean`                       | `false`     | Appends an arrow glyph, defaults `target` to `_blank`, and guarantees a safe `rel`             |
-| `underline` | `"hover" \| "always" \| "none"` | `'hover'`   | When the underline shows                                                                       |
+| `underline` | `"hover" \| "always" \| "none"` | `'hover'`   | When the underline shows: `hover` (the default) draws a thin resting underline on the default variant and the full one on hover/focus, and underlines the muted variant on hover/focus only; `always` underlines every variant; `none` never |
 | `target`    | `string`                        | `undefined` | Anchor `target`; `external` fills this in as `_blank` when left unset                          |
 | `rel`       | `string`                        | `undefined` | Anchor `rel`; merged with the safe tokens below whenever `target` opens a new browsing context |
 | `onclick`   | `(event: MouseEvent) => void`   | `undefined` | Native click handler                                                                           |
