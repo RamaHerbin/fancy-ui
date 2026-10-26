@@ -11,26 +11,51 @@
 	let { class: className = "", containerClass = "", children }: Props = $props();
 
 	let containerRef: HTMLDivElement;
-	let isMouseEntered = $state(false);
+	let pointerInside = $state(false);
+	let focusInside = $state(false);
+	const isMouseEntered = $derived(pointerInside || focusInside);
 
 	setContext("card3d:mouseEntered", () => isMouseEntered);
 
-	function handleMouseMove(e: MouseEvent) {
-		if (!containerRef) return;
+	// Touch and pen-less pointers never tilt: only a mouse or pen steers the card.
+	const steers = (e: PointerEvent) => e.pointerType !== "touch";
+
+	function handlePointerMove(e: PointerEvent) {
+		if (!containerRef || !steers(e)) return;
 		const { left, top, width, height } = containerRef.getBoundingClientRect();
 		const x = (e.clientX - left - width / 2) / 25;
 		const y = (e.clientY - top - height / 2) / 25;
 		containerRef.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
 	}
 
-	function handleMouseEnter() {
-		isMouseEntered = true;
+	function handlePointerEnter(e: PointerEvent) {
+		if (!steers(e)) return;
+		pointerInside = true;
 	}
 
-	function handleMouseLeave() {
-		if (!containerRef) return;
-		isMouseEntered = false;
+	function handlePointerLeave(e: PointerEvent) {
+		if (!containerRef || !steers(e)) return;
+		pointerInside = false;
 		containerRef.style.transform = `rotateY(0deg) rotateX(0deg)`;
+	}
+
+	// Keyboard focus presents the card: its layers lift, the tilt stays neutral.
+	function handleFocusIn(e: FocusEvent) {
+		const target = e.target as Element | null;
+		let visible = true;
+		try {
+			visible = !!target?.matches(":focus-visible");
+		} catch {
+			/* selector unsupported: treat as visible */
+		}
+		if (!visible) return;
+		focusInside = true;
+		if (containerRef) containerRef.style.transform = `rotateY(0deg) rotateX(0deg)`;
+	}
+
+	function handleFocusOut(e: FocusEvent) {
+		if (containerRef?.contains(e.relatedTarget as Node | null)) return;
+		focusInside = false;
 	}
 </script>
 
@@ -44,9 +69,11 @@
 			className
 		)}
 		style="transform-style: preserve-3d"
-		onmouseenter={handleMouseEnter}
-		onmousemove={handleMouseMove}
-		onmouseleave={handleMouseLeave}
+		onpointerenter={handlePointerEnter}
+		onpointermove={handlePointerMove}
+		onpointerleave={handlePointerLeave}
+		onfocusin={handleFocusIn}
+		onfocusout={handleFocusOut}
 	>
 		{#if children}
 			{@render children()}
