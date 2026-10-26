@@ -8,6 +8,9 @@
 	<ScrollProgress target={box} position="inline" class="text-primary rounded-full" />
 	<div
 		bind:this={box}
+		tabindex="0"
+		role="region"
+		aria-label="Release notes"
 		class="border-border bg-card h-56 overflow-y-auto rounded-lg border p-4 text-sm leading-relaxed"
 	>
 		<p class="text-foreground text-xs font-semibold tracking-wide uppercase">0.9.0</p>

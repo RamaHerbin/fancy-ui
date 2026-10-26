@@ -56,7 +56,7 @@
 				What people say
 			</p>
 			<span
-				class="rounded-full border border-black/[.08] px-2.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:border-white/[.08]"
+				class="rounded-full border border-black/[.08] px-2.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:border-white/[.08] dark:text-zinc-400"
 			>
 				hover to brake
 			</span>
