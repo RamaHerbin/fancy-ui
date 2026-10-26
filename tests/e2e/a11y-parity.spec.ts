@@ -48,11 +48,7 @@ async function settle(page: Page) {
 }
 
 async function scan(page: Page, slug: string) {
-	const builder = new AxeBuilder({
-		page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]["page"],
-	})
-		.withTags(TAGS)
-		.exclude("[data-demo]");
+	const builder = new AxeBuilder({ page }).withTags(TAGS).exclude("[data-demo]");
 	builder.include("[data-parity-stage]");
 	for (const sel of POPUPS) {
 		if (await page.locator(sel).count()) builder.include(sel);
