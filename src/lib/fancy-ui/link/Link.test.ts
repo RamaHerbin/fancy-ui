@@ -147,8 +147,18 @@ describe("Link", () => {
 	});
 
 	describe("underline", () => {
-		it("shows the underline only on hover/focus by default", () => {
+		it("renders a resting underline on the default variant (WCAG 1.4.1)", () => {
 			render(Link, { props: { href: "/docs" } });
+			const tokens = screen.getByRole("link").className.split(" ");
+
+			expect(tokens).toContain("underline");
+			expect(tokens).toContain("decoration-[0.08em]");
+			expect(tokens).toContain("hover:underline");
+			expect(tokens).not.toContain("no-underline");
+		});
+
+		it("keeps the underline hover/focus-only on the muted variant", () => {
+			render(Link, { props: { href: "/docs", variant: "muted" } });
 			const tokens = screen.getByRole("link").className.split(" ");
 
 			expect(tokens).toContain("no-underline");

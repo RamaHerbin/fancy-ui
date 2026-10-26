@@ -90,6 +90,11 @@ const classes = computed(() =>
 		"ft-link inline-flex w-fit items-center gap-1 no-underline transition-colors focus-visible:outline-none",
 		variant === "default" ? "ft-link--default text-sm" : "text-muted-foreground text-[13px]",
 		underline === "always" && "underline underline-offset-[3px]",
+		// WCAG 1.4.1: in-text links must not rely on colour alone, so the default
+		// variant keeps a thin resting underline; the muted variant stays plain.
+		variant === "default" &&
+			underline === "hover" &&
+			"underline decoration-[0.08em] underline-offset-2",
 		underline === "hover" &&
 			"hover:underline focus-visible:underline hover:underline-offset-[3px] focus-visible:underline-offset-[3px]",
 		className
