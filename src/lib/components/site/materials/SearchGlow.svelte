@@ -18,6 +18,12 @@
 		placeholder?: string;
 		autofocus?: boolean;
 		seed?: number;
+		/**
+		 * Ask the gallery to read the sentence as filters (`ask=1`): it turns
+		 * "a button that glows on hover" into Hover · Glow · Button when the
+		 * interpreter is configured, and searches the words otherwise.
+		 */
+		interpret?: boolean;
 		class?: string;
 	}
 
@@ -26,6 +32,7 @@
 		placeholder = "Describe an interaction…",
 		autofocus = false,
 		seed = 0,
+		interpret = false,
 		class: className = "",
 	}: Props = $props();
 
@@ -40,7 +47,8 @@
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
 		const q = value.trim();
-		goto(q ? `/inspiration?q=${encodeURIComponent(q)}` : "/inspiration");
+		if (!q) return void goto("/inspiration");
+		goto(`/inspiration?q=${encodeURIComponent(q)}${interpret ? "&ask=1" : ""}`);
 	}
 </script>
 
@@ -56,6 +64,7 @@
 	}}
 >
 	<label for="sg-{uid}" class="sr-only">Search inspiration</label>
+	{#if interpret}<input type="hidden" name="ask" value="1" />{/if}
 	<svg class="sg-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
 		<circle cx="9" cy="9" r="5.75" fill="none" stroke="currentColor" stroke-width="1.5" />
 		<path d="m13.5 13.5 3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
