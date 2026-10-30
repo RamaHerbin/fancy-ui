@@ -17,6 +17,11 @@ function firePointer(
 	el.dispatchEvent(event);
 }
 
+/** Keyboard focus as the browser reports it: the card matches `:focus-visible`. */
+function asKeyboardFocus(card: HTMLElement) {
+	card.matches = ((selector: string) => selector === ":focus-visible") as typeof card.matches;
+}
+
 describe("TextRevealCard", () => {
 	afterEach(cleanup);
 
@@ -86,7 +91,7 @@ describe("TextRevealCard", () => {
 			const { container } = render(TextRevealCard);
 			const card = container.firstElementChild as HTMLElement;
 			const layer = container.querySelector(".z-20") as HTMLElement;
-			card.matches = ((selector: string) => selector === ":focus-visible") as typeof card.matches;
+			asKeyboardFocus(card);
 			firePointer(card, "pointerenter");
 			await fireEvent.focusIn(card);
 			firePointer(card, "pointerleave");
@@ -94,6 +99,30 @@ describe("TextRevealCard", () => {
 			await nextTick();
 			expect(layer.style.opacity).toBe("1");
 			await fireEvent.focusOut(card);
+			expect(layer.style.opacity).toBe("0");
+		});
+
+		it("keyboard focus under a resting pointer reveals the full text at once", async () => {
+			const { container } = render(TextRevealCard);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
+			firePointer(card, "pointerenter");
+			await fireEvent.focusIn(card);
+			expect(layer.style.opacity).toBe("1");
+			expect(layer.style.clipPath).toContain("inset(0 0%");
+		});
+
+		it("a tap's focus does not lock the reveal open", async () => {
+			const { container } = render(TextRevealCard);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			card.matches = (() => false) as typeof card.matches;
+			await fireEvent.touchStart(card);
+			await fireEvent.touchEnd(card);
+			await fireEvent.focusIn(card);
+			await new Promise((resolve) => setTimeout(resolve, 150));
+			await nextTick();
 			expect(layer.style.opacity).toBe("0");
 		});
 
@@ -106,6 +135,7 @@ describe("TextRevealCard", () => {
 			const { container } = render(TextRevealCard);
 			const card = container.firstElementChild as HTMLElement;
 			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
 			await fireEvent.focusIn(card);
 			expect(layer.style.opacity).toBe("1");
 			expect(layer.style.clipPath).toContain("inset(0 0%");
@@ -117,7 +147,9 @@ describe("TextRevealCard", () => {
 			const { container } = render(TextRevealCard);
 			const card = container.firstElementChild as HTMLElement;
 			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
 			await fireEvent.focusIn(card);
+			expect(layer.style.opacity).toBe("1");
 			await fireEvent.focusOut(card);
 			expect(layer.style.opacity).toBe("0");
 		});
