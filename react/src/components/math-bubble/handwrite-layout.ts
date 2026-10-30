@@ -30,6 +30,8 @@ interface Ctx {
 	table: GlyphTable;
 	glyph: number;
 	pendingSpace: boolean;
+	/** Per-call cache of subtree extents, keyed by node then scale (see `measure`). */
+	measured: WeakMap<MathNode, Map<number, { ascent: number; descent: number }>>;
 }
 
 const AXIS = 0.25;
@@ -139,6 +141,26 @@ function stretchy(ctx: Ctx, ch: string, ascent: number, descent: number, s: numb
 	return placeGlyph(ctx, glyph, sx, sy, dy, s);
 }
 
+/**
+ * Ascent/descent of a subtree, laid out once on a throwaway context and cached: the extents depend
+ * only on the node and the scale, and re-measuring a nested fence or radical at every level would
+ * double the work per nesting level.
+ */
+function measure(ctx: Ctx, node: MathNode, s: number): { ascent: number; descent: number } {
+	let byScale = ctx.measured.get(node);
+	if (byScale === undefined) {
+		byScale = new Map();
+		ctx.measured.set(node, byScale);
+	}
+	let m = byScale.get(s);
+	if (m === undefined) {
+		const probe = layoutNode({ table: ctx.table, glyph: 0, pendingSpace: false, measured: ctx.measured }, node, s);
+		m = { ascent: probe.ascent, descent: probe.descent };
+		byScale.set(s, m);
+	}
+	return m;
+}
+
 function layoutScripts(ctx: Ctx, node: Extract<MathNode, { type: "scripts" }>, s: number): Box {
 	const base = node.base === null ? emptyBox(0, s) : layoutNode(ctx, node.base, s);
 	const ss = s * SCRIPT;
@@ -214,7 +236,7 @@ function layoutSqrt(ctx: Ctx, node: Extract<MathNode, { type: "sqrt" }>, s: numb
 	const glyph = lookupGlyph(ctx.table, "√") as Glyph;
 	// The radical is written first; its size depends on the radicand, so measure the radicand on
 	// a throwaway context, then lay everything out in writing order.
-	const probe = layoutNode({ table: ctx.table, glyph: 0, pendingSpace: false }, node.body, s);
+	const probe = measure(ctx, node.body, s);
 	const top = probe.ascent + 0.12 * s;
 	const bottom = probe.descent + 0.02 * s;
 	const bb = glyphBBox(glyph);
@@ -260,7 +282,7 @@ function layoutNode(ctx: Ctx, node: MathNode, s: number): Box {
 			return layoutSqrt(ctx, node, s);
 		case "fenced": {
 			// Measure the content first so the opening delimiter is sized before it is written.
-			const probe = layoutNode({ table: ctx.table, glyph: 0, pendingSpace: false }, node.body, s);
+			const probe = measure(ctx, node.body, s);
 			const a = Math.max(probe.ascent, 0.6 * s);
 			const d = Math.max(probe.descent, 0.15 * s);
 			const parts: Box[] = [];
@@ -274,7 +296,7 @@ function layoutNode(ctx: Ctx, node: MathNode, s: number): Box {
 
 /** Lays out a parsed formula with the given glyph table. */
 export function layoutFormula(ast: MathNode, table: GlyphTable): Layout {
-	const ctx: Ctx = { table, glyph: 0, pendingSpace: false };
+	const ctx: Ctx = { table, glyph: 0, pendingSpace: false, measured: new WeakMap() };
 	const box = layoutNode(ctx, ast, 1);
 	const bbox = emptyBBox();
 	growBBox(bbox, [

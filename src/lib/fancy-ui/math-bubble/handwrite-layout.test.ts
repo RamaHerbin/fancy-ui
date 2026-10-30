@@ -85,6 +85,18 @@ describe("layoutFormula", () => {
 		expect(strokes.slice(0, 3).every((s) => s.glyph === strokes[0].glyph)).toBe(true);
 		expect(strokes[3].glyph).not.toBe(strokes[0].glyph);
 	});
+
+	it("lays out deeply nested fences and radicals without re-measuring each level", () => {
+		// Measuring every nested body with a full layout used to double the work per level, so
+		// depth 40 would never finish; with cached measurements it is linear-ish in the depth.
+		for (const [open, close] of [["(", ")"], ["\\sqrt{", "}"]]) {
+			const src = open.repeat(40) + "x" + close.repeat(40);
+			const t0 = performance.now();
+			const { strokes } = layoutFormula(parseFormula(src), glyphs);
+			expect(performance.now() - t0).toBeLessThan(1000);
+			expect(strokes.length).toBeGreaterThan(40);
+		}
+	});
 });
 
 describe("prng and hand", () => {

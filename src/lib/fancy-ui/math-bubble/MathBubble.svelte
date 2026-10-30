@@ -34,6 +34,20 @@
 		onComplete,
 	}: MathBubbleProps = $props();
 
+	const START_RATIO = 0.6;
+
+	/**
+	 * Whether an observer entry shows the bubble 60% in view (or filling 60% of a viewport too short
+	 * for it). The observer also reports a bare overlap below the threshold, on observe() and when
+	 * the bubble first enters the viewport, so `isIntersecting` alone would start it offscreen.
+	 */
+	function mostlyInView(entry: IntersectionObserverEntry): boolean {
+		return (
+			entry.intersectionRatio >= START_RATIO ||
+			(entry.rootBounds != null && entry.intersectionRect.height >= START_RATIO * entry.rootBounds.height)
+		);
+	}
+
 	const reduced = createReducedMotion();
 
 	const formulas = $derived(Array.isArray(formula) ? (formula.length ? formula : [""]) : [formula]);
@@ -160,11 +174,17 @@
 			untrack(play);
 			return;
 		}
-		const action = inView(root, {
-			threshold: 0.6,
-			once: true,
-			onChange: (visible) => {
-				if (visible) untrack(play);
+		// One-shot by hand rather than `once: true`, which would be consumed by a sub-threshold entry.
+		let fired = false;
+		let action: ReturnType<typeof inView> | undefined;
+		action = inView(root, {
+			threshold: START_RATIO,
+			once: false,
+			onChange: (visible, entry) => {
+				if (fired || !visible || (entry !== undefined && !mostlyInView(entry))) return;
+				fired = true;
+				action?.destroy?.();
+				untrack(play);
 			},
 		});
 		return () => action?.destroy?.();

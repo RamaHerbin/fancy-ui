@@ -18,6 +18,20 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 
 export type { MathBubbleHandle, MathBubbleProps } from "./types.js";
 
+const START_RATIO = 0.6;
+
+/**
+ * Whether an observer entry shows the bubble 60% in view (or filling 60% of a viewport too short
+ * for it). The observer also reports a bare overlap below the threshold, on observe() and when
+ * the bubble first enters the viewport, so `isIntersecting` alone would start it offscreen.
+ */
+function mostlyInView(entry: IntersectionObserverEntry): boolean {
+	return (
+		entry.intersectionRatio >= START_RATIO ||
+		(entry.rootBounds != null && entry.intersectionRect.height >= START_RATIO * entry.rootBounds.height)
+	);
+}
+
 export const MathBubble = forwardRef<MathBubbleHandle, MathBubbleProps>(function MathBubble(
 	{
 		formula,
@@ -189,14 +203,20 @@ export const MathBubble = forwardRef<MathBubbleHandle, MathBubbleProps>(function
 			api.current.play();
 			return;
 		}
-		const action = observeInView(root, {
-			threshold: 0.6,
-			once: true,
-			onChange: (visible) => {
-				if (visible) api.current.play();
+		// One-shot by hand rather than `once: true`, which would be consumed by a sub-threshold entry.
+		let fired = false;
+		let action: ReturnType<typeof observeInView> | undefined;
+		action = observeInView(root, {
+			threshold: START_RATIO,
+			once: false,
+			onChange: (visible, entry) => {
+				if (fired || !visible || (entry !== undefined && !mostlyInView(entry))) return;
+				fired = true;
+				action?.destroy();
+				api.current.play();
 			},
 		});
-		return () => action.destroy();
+		return () => action?.destroy();
 	}, [t, trigger, api]);
 
 	// A still at `t`: one frame, no animation loop.

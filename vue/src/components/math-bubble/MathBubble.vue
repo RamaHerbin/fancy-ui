@@ -62,6 +62,20 @@ import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 
 defineOptions({ name: "MathBubble", inheritAttrs: false });
 
+const START_RATIO = 0.6;
+
+/**
+ * Whether an observer entry shows the bubble 60% in view (or filling 60% of a viewport too short
+ * for it). The observer also reports a bare overlap below the threshold, on observe() and when
+ * the bubble first enters the viewport, so `isIntersecting` alone would start it offscreen.
+ */
+function mostlyInView(entry: IntersectionObserverEntry): boolean {
+	return (
+		entry.intersectionRatio >= START_RATIO ||
+		(entry.rootBounds != null && entry.intersectionRect.height >= START_RATIO * entry.rootBounds.height)
+	);
+}
+
 const {
 	formula,
 	bubble = "speech",
@@ -217,11 +231,17 @@ watch(
 			play();
 			return;
 		}
-		const action = inView(el, {
-			threshold: 0.6,
-			once: true,
-			onChange: (visible) => {
-				if (visible) play();
+		// One-shot by hand rather than `once: true`, which would be consumed by a sub-threshold entry.
+		let fired = false;
+		let action: ReturnType<typeof inView> | undefined;
+		action = inView(el, {
+			threshold: START_RATIO,
+			once: false,
+			onChange: (visible, entry) => {
+				if (fired || !visible || (entry !== undefined && !mostlyInView(entry))) return;
+				fired = true;
+				action?.destroy?.();
+				play();
 			},
 		});
 		onCleanup(() => action?.destroy?.());

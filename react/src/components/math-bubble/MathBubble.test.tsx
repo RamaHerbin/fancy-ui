@@ -108,8 +108,14 @@ describe("MathBubble", () => {
 		const { container } = render(<MathBubble formula="x" />);
 		expect(options?.threshold).toBe(0.6);
 		expect(container.querySelector("canvas")).toBeNull();
+		// The initial notification reports any overlap, even below the threshold: not yet.
 		act(() => {
-			fire([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+			fire([{ isIntersecting: true, intersectionRatio: 0.2 } as IntersectionObserverEntry], {} as IntersectionObserver);
+		});
+		expect(container.querySelector("canvas")).toBeNull();
+		expect(container.querySelector("[data-slot=math-bubble]")?.getAttribute("data-state")).toBe("still");
+		act(() => {
+			fire([{ isIntersecting: true, intersectionRatio: 0.7 } as IntersectionObserverEntry], {} as IntersectionObserver);
 		});
 		expect(container.querySelector("canvas")).not.toBeNull();
 	});
