@@ -133,19 +133,37 @@
 	let understood = $state<Understood | null>(null);
 	let interpreting = $state(false);
 	let interpretController: AbortController | undefined;
+	/** Bumped by every cancellation, so a late reply knows it is out of date. */
+	let interpretSeq = 0;
+
+	/**
+	 * `applied`: the reading became filters. `fallback`: no usable reading
+	 * (timeout, error, empty), search the words. `stale`: the visitor moved on
+	 * (another action, a navigation, leaving the page), do nothing.
+	 */
+	type Interpretation = "applied" | "fallback" | "stale";
 
 	const wantsInterpretation = (text: string) => searchTerms(text).length >= INTERPRET_MIN_TERMS;
+
+	function cancelInterpretation() {
+		interpretSeq++;
+		interpretController?.abort();
+		interpretController = undefined;
+		interpreting = false;
+	}
 
 	async function interpret(
 		sentence: string,
 		base: Filters,
 		replaceState: boolean
-	): Promise<boolean> {
-		interpretController?.abort();
+	): Promise<Interpretation> {
+		cancelInterpretation();
+		const seq = interpretSeq;
 		const controller = new AbortController();
 		interpretController = controller;
 		const timer = setTimeout(() => controller.abort(), INTERPRET_TIMEOUT_MS);
 		interpreting = true;
+		const stale = () => seq !== interpretSeq;
 		try {
 			const response = await fetch("/api/inspiration/understand", {
 				method: "POST",
@@ -153,10 +171,12 @@
 				body: JSON.stringify({ query: sentence }),
 				signal: controller.signal,
 			});
-			if (!response.ok) return false;
+			if (stale()) return "stale";
+			if (!response.ok) return "fallback";
 			const body = (await response.json()) as { understanding?: Understanding };
+			if (stale()) return "stale";
 			const reading = body.understanding;
-			if (!reading || reading.chips.length === 0) return false;
+			if (!reading || reading.chips.length === 0) return "fallback";
 			const next: Filters = {
 				...base,
 				interaction: [...new Set([...base.interaction, ...reading.interaction])].sort(),
@@ -166,12 +186,13 @@
 			understood = { sentence, chips: reading.chips, before: base };
 			query = next.q;
 			navigate(next, replaceState);
-			return true;
+			return "applied";
 		} catch {
-			return false;
+			// A cancellation bumped the sequence; only the timeout or an error falls back.
+			return stale() ? "stale" : "fallback";
 		} finally {
 			clearTimeout(timer);
-			if (interpretController === controller) {
+			if (!stale()) {
 				interpreting = false;
 				interpretController = undefined;
 			}
@@ -180,17 +201,19 @@
 
 	async function submitQuery() {
 		cancelSearch();
-		understood = null;
+		forgetUnderstanding();
 		const sentence = query.trim();
-		if (wantsInterpretation(sentence) && (await interpret(sentence, filters, false))) return;
-		commitQuery();
+		const result = wantsInterpretation(sentence)
+			? await interpret(sentence, filters, false)
+			: "fallback";
+		if (result === "fallback") commitQuery();
 	}
 
 	/** Back to the words as typed, without the facets the interpreter added. */
 	function useExactWords() {
 		if (!understood) return;
 		const { sentence, before } = understood;
-		understood = null;
+		forgetUnderstanding();
 		query = sentence;
 		navigate({ ...before, q: sentence }, true);
 	}
@@ -205,8 +228,12 @@
 		const sentence = filters.q;
 		const base = filters;
 		void (async () => {
-			if (wantsInterpretation(sentence) && (await interpret(sentence, base, true))) return;
-			goto(`/inspiration${serializeFilters(base)}`, {
+			const result = wantsInterpretation(sentence)
+				? await interpret(sentence, base, true)
+				: "fallback";
+			// A newer navigation already dropped the flag: leave the visitor's state alone.
+			if (result !== "fallback") return;
+			goto(`/inspiration${serializeFilters(filters)}`, {
 				replaceState: true,
 				keepFocus: true,
 				noScroll: true,
@@ -214,12 +241,14 @@
 		})();
 	});
 
-	// Any change the visitor makes afterwards is theirs, not the interpreter's.
+	// Any change the visitor makes afterwards is theirs, not the interpreter's:
+	// a reading still pending is dropped, never applied over it.
 	function forgetUnderstanding() {
 		understood = null;
+		cancelInterpretation();
 	}
 
-	$effect(() => () => interpretController?.abort());
+	$effect(() => () => cancelInterpretation());
 
 	function onQueryInput() {
 		forgetUnderstanding();
@@ -229,9 +258,12 @@
 
 	$effect(() => cancelSearch);
 
-	// Leaving (a card, the header, Back): a search still pending must not
-	// pull the visitor back to the gallery.
-	beforeNavigate(cancelSearch);
+	// Leaving (a card, the header, Back): a search or a reading still pending
+	// must not pull the visitor back to the gallery.
+	beforeNavigate(() => {
+		cancelSearch();
+		cancelInterpretation();
+	});
 
 	// The URL changed under the field (Back/Forward, the home search, the
 	// header link): show its query. Our own writes are skipped, so typing is
@@ -250,6 +282,7 @@
 	}
 
 	function onSort(sort: Sort) {
+		forgetUnderstanding();
 		navigate({ ...filters, sort, q: query });
 	}
 
@@ -269,6 +302,7 @@
 		const index = activeChips(filters).findIndex(
 			(other) => other.facet === chip.facet && other.value === chip.value
 		);
+		forgetUnderstanding();
 		let done: Promise<void>;
 		if (chip.facet === "q") {
 			query = "";

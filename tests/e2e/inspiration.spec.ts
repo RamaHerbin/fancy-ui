@@ -368,6 +368,56 @@ test.describe("describe an interaction", () => {
 		await expect(page.locator("p.understood")).not.toContainText("Understood as");
 	});
 
+	/** Holds the interpreter's reply until `release()`, so the test can act while it is pending. */
+	async function holdReading(page: Page) {
+		let release!: () => void;
+		const gate = new Promise<void>((resolve) => (release = resolve));
+		await page.route("**/api/inspiration/understand", async (route) => {
+			await gate;
+			// The page may have aborted the request in the meantime.
+			await route.fulfill({ json: READING }).catch(() => {});
+		});
+		return release;
+	}
+
+	test("a facet toggled while the reading is pending wins over the late reply", async ({
+		page,
+	}) => {
+		const release = await holdReading(page);
+		await open(page, "/inspiration");
+		const field = page.getByRole("searchbox", { name: "Search inspiration" });
+		await field.fill(SENTENCE);
+		await field.press("Enter");
+		const understood = page.locator("p.understood");
+		await expect(understood).toContainText("Reading your request");
+		await page.locator('[data-facet-value="press"]').click();
+		await expect(page).toHaveURL(/[?&]interaction=press$/);
+		const toggled = page.url();
+		release();
+		await page.waitForTimeout(300);
+		expect(page.url()).toBe(toggled);
+		await expect(page).not.toHaveURL(/style=glow/);
+		await expect(field).toHaveValue(SENTENCE);
+		await expect(understood).not.toContainText("Understood as");
+		await expect(understood).not.toContainText("Reading your request");
+	});
+
+	test("opening a card while the reading is pending stays on the card", async ({ page }) => {
+		const release = await holdReading(page);
+		await open(page, "/inspiration");
+		const field = page.getByRole("searchbox", { name: "Search inspiration" });
+		await field.fill(SENTENCE);
+		await field.press("Enter");
+		await expect(page.locator("p.understood")).toContainText("Reading your request");
+		const card = cards(page).first();
+		const slug = (await card.getAttribute("data-slug"))!;
+		await card.locator("h3 a").click();
+		await expect(page).toHaveURL(new RegExp(`/inspiration/${slug}$`));
+		release();
+		await page.waitForTimeout(300);
+		await expect(page).toHaveURL(new RegExp(`/inspiration/${slug}$`));
+	});
+
 	test("a sentence from the home search is read once, then the URL is a plain filter link", async ({
 		page,
 	}) => {
