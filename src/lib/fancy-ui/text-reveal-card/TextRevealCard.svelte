@@ -28,7 +28,9 @@
 
 	let rotateDeg = $derived((widthPercentage - 50) * 0.1);
 
-	function mouseMoveHandler(event: MouseEvent) {
+	// Hover scrub is for a mouse or pen: a touch pointer is the touch handlers' job.
+	function pointerMoveHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
 		event.preventDefault();
 		if (cardRef) {
 			const rect = cardRef.getBoundingClientRect();
@@ -37,17 +39,59 @@
 		}
 	}
 
+	// Keyboard path: focus shows the fully revealed text (no partial scrub);
+	// Escape or blur returns to rest. Nothing extra is announced: the text is in the DOM.
+	let focusRevealed = false;
+
+	function focusInHandler() {
+		// A click or tap focuses the card too, while the pointer or finger drives the scrub:
+		// only keyboard-style focus reveals, even under a resting pointer.
+		let visible: boolean;
+		try {
+			visible = cardRef?.matches(":focus-visible") ?? false;
+		} catch {
+			// `:focus-visible` unsupported: focus with no pointer over the card is keyboard focus
+			visible = !isMouseOver;
+		}
+		if (!visible) return;
+		focusRevealed = true;
+		widthPercentage = 100;
+	}
+
+	function focusOutHandler(event: FocusEvent) {
+		if (event.relatedTarget instanceof Node && cardRef?.contains(event.relatedTarget)) return;
+		if (!focusRevealed) return;
+		focusRevealed = false;
+		widthPercentage = 0;
+	}
+
+	function keyDownHandler(event: KeyboardEvent) {
+		if (event.key !== "Escape" || !focusRevealed) return;
+		focusRevealed = false;
+		widthPercentage = 0;
+	}
+
 	function mouseLeaveHandler() {
 		isMouseOver = false;
 		setTimeout(() => {
 			if (!isMouseOver) {
-				widthPercentage = 0;
+				widthPercentage = focusRevealed ? 100 : 0;
 			}
 		}, 100);
 	}
 
 	function mouseEnterHandler() {
 		isMouseOver = true;
+	}
+
+	function pointerEnterHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
+		mouseEnterHandler();
+	}
+
+	function pointerLeaveHandler(event: PointerEvent) {
+		if (event.pointerType === "touch") return;
+		mouseLeaveHandler();
 	}
 
 	function touchMoveHandler(event: TouchEvent) {
@@ -59,16 +103,22 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	bind:this={cardRef}
 	class={cn(
 		"relative w-full max-w-[40rem] touch-pan-y touch-pinch-zoom overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8",
 		className
 	)}
-	role="presentation"
-	onmouseenter={mouseEnterHandler}
-	onmouseleave={mouseLeaveHandler}
-	onmousemove={mouseMoveHandler}
+	role="group"
+	tabindex="0"
+	onfocusin={focusInHandler}
+	onfocusout={focusOutHandler}
+	onkeydown={keyDownHandler}
+	onpointerenter={pointerEnterHandler}
+	onpointerleave={pointerLeaveHandler}
+	onpointermove={pointerMoveHandler}
 	ontouchstart={mouseEnterHandler}
 	ontouchend={mouseLeaveHandler}
 	ontouchmove={touchMoveHandler}

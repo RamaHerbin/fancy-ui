@@ -172,9 +172,16 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--slide:is(:hover, :focus-visible)::before {
+	.link-hover--slide:focus-visible::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--slide:hover::before {
+			transform-origin: 0% 50%;
+			transform: scale3d(1, 1, 1);
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -189,9 +196,16 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--double:is(:hover, :focus-visible)::before {
+	.link-hover--double:focus-visible::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--double:hover::before {
+			transform-origin: 0% 50%;
+			transform: scale3d(1, 1, 1);
+		}
 	}
 
 	.link-hover--double::after {
@@ -201,9 +215,16 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--double:is(:hover, :focus-visible)::after {
+	.link-hover--double:focus-visible::after {
 		transform-origin: 100% 50%;
 		transform: scale3d(1, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--double:hover::after {
+			transform-origin: 100% 50%;
+			transform: scale3d(1, 1, 1);
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -224,9 +245,16 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--grow:is(:hover, :focus-visible)::before {
+	.link-hover--grow:focus-visible::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 2, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--grow:hover::before {
+			transform-origin: 0% 50%;
+			transform: scale3d(1, 2, 1);
+		}
 	}
 
 	.link-hover--grow::after {
@@ -236,9 +264,16 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--grow:is(:hover, :focus-visible)::after {
+	.link-hover--grow:focus-visible::after {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--grow:hover::after {
+			transform-origin: 0% 50%;
+			transform: scale3d(1, 1, 1);
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -268,17 +303,30 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--strike:is(:hover, :focus-visible)::before {
+	.link-hover--strike:focus-visible::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--strike:hover::before {
+			transform-origin: 0% 50%;
+			transform: scale3d(1, 1, 1);
+		}
 	}
 
 	.link-hover--strike span {
 		display: inline-block;
 	}
 
-	.link-hover--strike:is(:hover, :focus-visible) span {
+	.link-hover--strike:focus-visible span {
 		transform: scale3d(1.1, 1.1, 1.1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--strike:hover span {
+			transform: scale3d(1.1, 1.1, 1.1);
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -296,10 +344,18 @@
 		transform: translate3d(0, 3px, 0);
 	}
 
-	.link-hover--fade:is(:hover, :focus-visible)::before,
-	.link-hover--fade:is(:hover, :focus-visible)::after {
+	.link-hover--fade:focus-visible::before,
+	.link-hover--fade:focus-visible::after {
 		opacity: 1;
 		transform: translate3d(0, 0, 0);
+	}
+
+	@media (hover: hover) {
+		.link-hover--fade:hover::before,
+		.link-hover--fade:hover::after {
+			opacity: 1;
+			transform: translate3d(0, 0, 0);
+		}
 	}
 
 	.link-hover--fade::after {
@@ -325,12 +381,24 @@
 		/* The stagger: the two lines swap which of them leads, so the pair reads
 		   as a gesture rather than as one line drawn twice. */
 		.link-hover--fade::before,
-		.link-hover--fade:is(:hover, :focus-visible)::after {
+		.link-hover--fade:focus-visible::after {
 			transition-delay: 0.1s;
 		}
 
-		.link-hover--fade:is(:hover, :focus-visible)::before {
+		@media (hover: hover) {
+			.link-hover--fade:hover::after {
+				transition-delay: 0.1s;
+			}
+		}
+
+		.link-hover--fade:focus-visible::before {
 			transition-delay: 0s;
+		}
+
+		@media (hover: hover) {
+			.link-hover--fade:hover::before {
+				transition-delay: 0s;
+			}
 		}
 	}
 
@@ -348,13 +416,25 @@
 	 * with no transform of its own, so dropping the animation leaves a
 	 * correctly-sized bar that simply appears. Nothing goes invisible.
 	 */
-	.link-hover--pulse:is(:hover, :focus-visible)::before {
+	.link-hover--pulse:focus-visible::before {
 		opacity: 1;
 	}
 
+	@media (hover: hover) {
+		.link-hover--pulse:hover::before {
+			opacity: 1;
+		}
+	}
+
 	@media (prefers-reduced-motion: no-preference) {
-		.link-hover--pulse:is(:hover, :focus-visible)::before {
+		.link-hover--pulse:focus-visible::before {
 			animation: lineUp 0.3s ease forwards;
+		}
+
+		@media (hover: hover) {
+			.link-hover--pulse:hover::before {
+				animation: lineUp 0.3s ease forwards;
+			}
 		}
 	}
 
@@ -382,8 +462,14 @@
 		opacity: 0;
 	}
 
-	.link-hover--pulse:is(:hover, :focus-visible)::after {
+	.link-hover--pulse:focus-visible::after {
 		opacity: 1;
+	}
+
+	@media (hover: hover) {
+		.link-hover--pulse:hover::after {
+			opacity: 1;
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -392,8 +478,14 @@
 			transition-delay: 0s;
 		}
 
-		.link-hover--pulse:is(:hover, :focus-visible)::after {
+		.link-hover--pulse:focus-visible::after {
 			transition-delay: 0.3s;
+		}
+
+		@media (hover: hover) {
+			.link-hover--pulse:hover::after {
+				transition-delay: 0.3s;
+			}
 		}
 	}
 
@@ -403,8 +495,14 @@
 		transform: scale3d(0, 1, 1);
 	}
 
-	.link-hover--swap:is(:hover, :focus-visible)::before {
+	.link-hover--swap:focus-visible::before {
 		transform: scale3d(1, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--swap:hover::before {
+			transform: scale3d(1, 1, 1);
+		}
 	}
 
 	.link-hover--swap::after {
@@ -413,8 +511,14 @@
 		transform-origin: 100% 50%;
 	}
 
-	.link-hover--swap:is(:hover, :focus-visible)::after {
+	.link-hover--swap:focus-visible::after {
 		transform: scale3d(0, 1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--swap:hover::after {
+			transform: scale3d(0, 1, 1);
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -437,13 +541,25 @@
 	 * stay outside the guard. The base rule is a full-height, full-width cover
 	 * with no transform, so without the animation it simply appears.
 	 */
-	.link-hover--sweep:is(:hover, :focus-visible)::before {
+	.link-hover--sweep:focus-visible::before {
 		opacity: 1;
 	}
 
+	@media (hover: hover) {
+		.link-hover--sweep:hover::before {
+			opacity: 1;
+		}
+	}
+
 	@media (prefers-reduced-motion: no-preference) {
-		.link-hover--sweep:is(:hover, :focus-visible)::before {
+		.link-hover--sweep:focus-visible::before {
 			animation: coverUp 0.3s ease forwards;
+		}
+
+		@media (hover: hover) {
+			.link-hover--sweep:hover::before {
+				animation: coverUp 0.3s ease forwards;
+			}
 		}
 	}
 
@@ -470,8 +586,14 @@
 		content: "";
 	}
 
-	.link-hover--sweep:is(:hover, :focus-visible)::after {
+	.link-hover--sweep:focus-visible::after {
 		opacity: 0;
+	}
+
+	@media (hover: hover) {
+		.link-hover--sweep:hover::after {
+			opacity: 0;
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -487,9 +609,16 @@
 		transform: scale3d(1, 1, 1);
 	}
 
-	.link-hover--bounce:is(:hover, :focus-visible)::before {
+	.link-hover--bounce:focus-visible::before {
 		opacity: 1;
 		transform: scale3d(1.2, 0.1, 1);
+	}
+
+	@media (hover: hover) {
+		.link-hover--bounce:hover::before {
+			opacity: 1;
+			transform: scale3d(1.2, 0.1, 1);
+		}
 	}
 
 	.link-hover--bounce span {
@@ -497,8 +626,14 @@
 		display: inline-block;
 	}
 
-	.link-hover--bounce:is(:hover, :focus-visible) span {
+	.link-hover--bounce:focus-visible span {
 		transform: translate3d(0, 0, 0);
+	}
+
+	@media (hover: hover) {
+		.link-hover--bounce:hover span {
+			transform: translate3d(0, 0, 0);
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -519,8 +654,14 @@
 			transition-duration: 0.4s;
 		}
 
-		.link-hover--bounce:is(:hover, :focus-visible) span {
+		.link-hover--bounce:focus-visible span {
 			transition-delay: 0s;
+		}
+
+		@media (hover: hover) {
+			.link-hover--bounce:hover span {
+				transition-delay: 0s;
+			}
 		}
 	}
 
@@ -540,8 +681,14 @@
 		stroke-dashoffset: 1;
 	}
 
-	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--stroke :global(path) {
+	.link-hover:focus-visible .link-hover__graphic--stroke :global(path) {
 		stroke-dashoffset: 0;
+	}
+
+	@media (hover: hover) {
+		.link-hover:hover .link-hover__graphic--stroke :global(path) {
+			stroke-dashoffset: 0;
+		}
 	}
 
 	/* Arc */

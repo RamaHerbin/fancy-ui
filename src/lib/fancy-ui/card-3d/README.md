@@ -50,3 +50,9 @@ Interactive 3D perspective card that tilts based on mouse position, with child e
   </CardBody>
 </CardContainer>
 ```
+
+## Accessibility
+
+- The tilt is decorative and pointer-driven: only mouse and pen pointers steer it, touch pointers are ignored, and the content stays fully usable without it.
+- Keyboard focus inside the card presents it: the `CardItem` layers lift to their `translateZ` depth while the card itself stays flat (no tilt), and release when focus leaves. Only `:focus-visible` focus counts, so a mouse click does not trigger it.
+- Under `prefers-reduced-motion` the container and the items skip their transitions.

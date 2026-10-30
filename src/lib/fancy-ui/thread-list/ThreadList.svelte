@@ -327,9 +327,14 @@
 	 * Hidden until wanted, but never *removed*: it stays in the tab order, and
 	 * tabbing to it lights it up through `:focus-within` on the row.
 	 */
-	.ft-threadlist-row:hover .ft-threadlist-delete,
 	.ft-threadlist-row:focus-within .ft-threadlist-delete {
 		opacity: 1;
+	}
+
+	@media (hover: hover) {
+		.ft-threadlist-row:hover .ft-threadlist-delete {
+			opacity: 1;
+		}
 	}
 
 	/* Nothing hovers on a touch screen, so there the button is simply always on. */

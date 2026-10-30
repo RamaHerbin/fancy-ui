@@ -1,6 +1,20 @@
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { TextRevealCard } from "./TextRevealCard.js";
+
+/** jsdom ships no PointerEvent: a mouse event of the pointer type carries `pointerType`.
+    React derives enter/leave from over/out, so those are the types dispatched. */
+function firePointer(
+	el: Element,
+	type: string,
+	init: { clientX?: number; pointerType?: string } = {}
+) {
+	const event = new MouseEvent(type, { bubbles: true, clientX: init.clientX });
+	Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
+	act(() => {
+		el.dispatchEvent(event);
+	});
+}
 
 /* Counts cn() evaluations so a pointer scrub can be asserted to re-render the card
    alone, never the star field behind it. */
@@ -16,6 +30,11 @@ vi.mock("../../utils.js", async () => {
 		},
 	};
 });
+
+/** Keyboard focus as the browser reports it: the card matches `:focus-visible`. */
+function asKeyboardFocus(card: HTMLElement) {
+	card.matches = ((selector: string) => selector === ":focus-visible") as typeof card.matches;
+}
 
 describe("TextRevealCard", () => {
 	afterEach(cleanup);
@@ -54,7 +73,7 @@ describe("TextRevealCard", () => {
 
 		cnCalls.count = 0;
 		for (const clientX of [20, 40, 60, 80, 100]) {
-			fireEvent.mouseMove(card, { clientX });
+			firePointer(card, "pointermove", { clientX });
 		}
 		const revealLayer = container.querySelector(".z-20") as HTMLElement;
 		expect(revealLayer.style.clipPath).toBe("inset(0 50% 0 0)");
@@ -77,5 +96,91 @@ describe("TextRevealCard", () => {
 		Object.assign(ev, { touches: [{ clientX: 10, clientY: 10 }] });
 		card.dispatchEvent(ev);
 		expect(ev.defaultPrevented).toBe(false);
+	});
+
+	it("a touch pointer does not scrub, a mouse pointer does", () => {
+		const { container } = render(<TextRevealCard />);
+		const card = container.firstElementChild as HTMLElement;
+		const layer = container.querySelector(".z-20") as HTMLElement;
+		card.getBoundingClientRect = () => ({ left: 0, width: 200 }) as DOMRect;
+		firePointer(card, "pointerover", { pointerType: "touch" });
+		firePointer(card, "pointermove", { clientX: 100, pointerType: "touch" });
+		expect(layer.style.opacity).toBe("0");
+		expect(layer.classList.contains("text-reveal-settle")).toBe(true);
+		firePointer(card, "pointerover", { pointerType: "mouse" });
+		firePointer(card, "pointermove", { clientX: 100, pointerType: "mouse" });
+		expect(layer.style.opacity).toBe("1");
+		expect(layer.style.clipPath).toBe("inset(0 50% 0 0)");
+	});
+
+	describe("keyboard path", () => {
+		it("stays revealed after the pointer leaves when keyboard focus arrived under it", async () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
+			firePointer(card, "pointerover");
+			act(() => card.focus());
+			firePointer(card, "pointerout");
+			await act(async () => {
+				await new Promise((resolve) => setTimeout(resolve, 150));
+			});
+			expect(layer.style.opacity).toBe("1");
+			act(() => card.blur());
+			expect(layer.style.opacity).toBe("0");
+		});
+
+		it("keyboard focus under a resting pointer reveals the full text at once", () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
+			firePointer(card, "pointerover");
+			act(() => card.focus());
+			expect(layer.style.opacity).toBe("1");
+			expect(layer.style.clipPath).toContain("inset(0 0%");
+		});
+
+		it("a tap's focus does not lock the reveal open", async () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			card.matches = (() => false) as typeof card.matches;
+			fireEvent.touchStart(card);
+			fireEvent.touchEnd(card);
+			act(() => card.focus());
+			await act(async () => {
+				await new Promise((resolve) => setTimeout(resolve, 150));
+			});
+			expect(layer.style.opacity).toBe("0");
+		});
+
+		it("is focusable", () => {
+			const { container } = render(<TextRevealCard />);
+			expect(container.firstElementChild).toHaveAttribute("tabindex", "0");
+		});
+
+		it("focus reveals the full text, Escape returns to rest", () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
+			act(() => card.focus());
+			expect(layer.style.opacity).toBe("1");
+			expect(layer.style.clipPath).toContain("inset(0 0%");
+			fireEvent.keyDown(card, { key: "Escape" });
+			expect(layer.style.opacity).toBe("0");
+		});
+
+		it("blur returns to rest", () => {
+			const { container } = render(<TextRevealCard />);
+			const card = container.firstElementChild as HTMLElement;
+			const layer = container.querySelector(".z-20") as HTMLElement;
+			asKeyboardFocus(card);
+			act(() => card.focus());
+			expect(layer.style.opacity).toBe("1");
+			act(() => card.blur());
+			expect(layer.style.opacity).toBe("0");
+		});
 	});
 });

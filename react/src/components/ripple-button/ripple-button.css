@@ -30,16 +30,31 @@
 	transform: scale(0.2);
 }
 
-.ripple-button:hover .ripple-hover {
+/* Keyboard focus gets the same glow and ring, centred; hover only where it exists. */
+.ripple-button:focus-visible .ripple-hover {
 	opacity: 1;
 }
 
-.ripple-button:hover .ripple-hover::after {
+.ripple-button:focus-visible .ripple-hover::after {
 	animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 }
 
-.ripple-button:hover {
+.ripple-button:focus-visible {
 	border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+}
+
+@media (hover: hover) {
+	.ripple-button:hover .ripple-hover {
+		opacity: 1;
+	}
+
+	.ripple-button:hover .ripple-hover::after {
+		animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+	}
+
+	.ripple-button:hover {
+		border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+	}
 }
 
 @keyframes ripple-idle {
@@ -114,7 +129,8 @@
 
 /* Reduced motion: no expansion, just a brief glow where you pressed. */
 @media (prefers-reduced-motion: reduce) {
-	.ripple-button:hover .ripple-hover::after {
+	.ripple-button:hover .ripple-hover::after,
+	.ripple-button:focus-visible .ripple-hover::after {
 		animation: none;
 	}
 

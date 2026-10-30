@@ -1,10 +1,27 @@
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 
 import { CardContainer, Card3DProvider } from "./CardContainer.js";
 import { CardBody } from "./CardBody.js";
 import { CardItem } from "./CardItem.js";
+
+/** jsdom ships no PointerEvent: a mouse event of the pointer type carries `pointerType`. */
+function firePointer(
+	el: Element,
+	type: string,
+	init: { clientX?: number; clientY?: number; pointerType?: string } = {}
+) {
+	const event = new MouseEvent(type, {
+		bubbles: true,
+		clientX: init.clientX,
+		clientY: init.clientY,
+	});
+	Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
+	act(() => {
+		el.dispatchEvent(event);
+	});
+}
 
 describe("CardContainer", () => {
 	afterEach(cleanup);
@@ -40,14 +57,46 @@ describe("CardContainer", () => {
 
 		// jsdom's getBoundingClientRect() is all zeros, so rotateY = clientX / 25
 		// and rotateX = clientY / 25 for this component's handler.
-		fireEvent.mouseMove(inner, { clientX: 50, clientY: 25 });
+		firePointer(inner, "pointermove", { clientX: 50, clientY: 25, pointerType: "mouse" });
 		expect(inner.style.transform).toBe("rotateY(2deg) rotateX(1deg)");
 
-		// React derives onMouseLeave from the native `mouseout` event, so that is
-		// what the test has to dispatch — a bare `mouseleave` does not bubble to
-		// React's root listener and would never reach the handler.
-		fireEvent.mouseOut(inner);
+		// React derives onPointerLeave from the native `pointerout` event, so that
+		// is what the test has to dispatch — a bare `pointerleave` does not bubble
+		// to React's root listener and would never reach the handler.
+		firePointer(inner, "pointerout", { pointerType: "mouse" });
 		expect(inner.style.transform).toBe("rotateY(0deg) rotateX(0deg)");
+	});
+
+	it("ignores touch pointers", () => {
+		const { container } = render(<CardContainer />);
+		const inner = (container.firstElementChild as HTMLElement).firstElementChild as HTMLElement;
+		firePointer(inner, "pointermove", { clientX: 50, clientY: 25, pointerType: "touch" });
+		expect(inner.style.transform).toBe("");
+	});
+
+	it("presents the card with a neutral tilt when focus moves inside", () => {
+		const { container, getByTestId } = render(
+			<CardContainer>
+				<button data-testid="inside">go</button>
+			</CardContainer>
+		);
+		const inner = (container.firstElementChild as HTMLElement).firstElementChild as HTMLElement;
+		firePointer(inner, "pointermove", { clientX: 50, clientY: 25, pointerType: "mouse" });
+		expect(inner.style.transform).toBe("rotateY(2deg) rotateX(1deg)");
+		// jsdom never reports :focus-visible for scripted focus; a keyboard user would.
+		const original = Element.prototype.matches;
+		const spy = vi.spyOn(Element.prototype, "matches").mockImplementation(function (
+			this: Element,
+			sel: string
+		) {
+			return sel === ":focus-visible" ? true : original.call(this, sel);
+		});
+		try {
+			act(() => getByTestId("inside").focus());
+			expect(inner.style.transform).toBe("rotateY(0deg) rotateX(0deg)");
+		} finally {
+			spy.mockRestore();
+		}
 	});
 });
 

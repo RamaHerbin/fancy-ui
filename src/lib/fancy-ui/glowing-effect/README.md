@@ -27,3 +27,7 @@ Place inside a relatively positioned container with `rounded-*` classes:
   <p>Content here</p>
 </div>
 ```
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.

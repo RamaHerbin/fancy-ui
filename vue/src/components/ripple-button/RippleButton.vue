@@ -98,6 +98,15 @@ function handlePointerMove(event: PointerEvent) {
 	el.style.setProperty("--ripple-y", `${event.clientY - rect.top}px`);
 }
 
+// Leaving drops the pointer position, so the keyboard-focus glow is centred
+// again (the CSS fallback) instead of parked where the pointer last was. A
+// consumer `@pointerleave` (in `attrs`) runs after this one.
+function handlePointerLeave(event: PointerEvent) {
+	const el = event.currentTarget as HTMLButtonElement;
+	el.style.removeProperty("--ripple-x");
+	el.style.removeProperty("--ripple-y");
+}
+
 function createRipple(event: MouseEvent) {
 	const button = buttonRef.value;
 	if (!button) return;
@@ -136,6 +145,7 @@ function createRipple(event: MouseEvent) {
 		:disabled="disabled"
 		@click="handleClick"
 		@pointermove="handlePointerMove"
+		@pointerleave="handlePointerLeave"
 		v-bind="attrs"
 	>
 		<div class="relative z-10">
@@ -189,16 +199,31 @@ function createRipple(event: MouseEvent) {
 	transform: scale(0.2);
 }
 
-.ripple-button:hover .ripple-hover {
+/* Keyboard focus gets the same glow and ring, centred; hover only where it exists. */
+.ripple-button:focus-visible .ripple-hover {
 	opacity: 1;
 }
 
-.ripple-button:hover .ripple-hover::after {
+.ripple-button:focus-visible .ripple-hover::after {
 	animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 }
 
-.ripple-button:hover {
+.ripple-button:focus-visible {
 	border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+}
+
+@media (hover: hover) {
+	.ripple-button:hover .ripple-hover {
+		opacity: 1;
+	}
+
+	.ripple-button:hover .ripple-hover::after {
+		animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+	}
+
+	.ripple-button:hover {
+		border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+	}
 }
 
 @keyframes ripple-idle {
@@ -273,7 +298,8 @@ function createRipple(event: MouseEvent) {
 
 /* Reduced motion: no expansion, just a brief glow where you pressed. */
 @media (prefers-reduced-motion: reduce) {
-	.ripple-button:hover .ripple-hover::after {
+	.ripple-button:hover .ripple-hover::after,
+	.ripple-button:focus-visible .ripple-hover::after {
 		animation: none;
 	}
 

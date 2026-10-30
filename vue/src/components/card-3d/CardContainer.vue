@@ -10,7 +10,7 @@ export interface CardContainerProps {
 </script>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 
 import { cn } from "../../utils.js";
 import { CARD3D_CONTEXT } from "./context.js";
@@ -22,28 +22,54 @@ const { class: className = "", containerClass = "" } = defineProps<CardContainer
 defineSlots<{ default?(): unknown }>();
 
 const containerRef = useTemplateRef<HTMLDivElement>("containerRef");
-const isMouseEntered = ref(false);
+const pointerInside = ref(false);
+const focusInside = ref(false);
+const isMouseEntered = computed(() => pointerInside.value || focusInside.value);
 
 CARD3D_CONTEXT.provide(() => isMouseEntered.value);
 
-function handleMouseMove(e: MouseEvent) {
+// Touch pointers never tilt: only a mouse or pen steers the card.
+const steers = (e: PointerEvent) => e.pointerType !== "touch";
+
+function handlePointerMove(e: PointerEvent) {
 	const el = containerRef.value;
-	if (!el) return;
+	if (!el || !steers(e)) return;
 	const { left, top, width, height } = el.getBoundingClientRect();
 	const x = (e.clientX - left - width / 2) / 25;
 	const y = (e.clientY - top - height / 2) / 25;
 	el.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
 }
 
-function handleMouseEnter() {
-	isMouseEntered.value = true;
+function handlePointerEnter(e: PointerEvent) {
+	if (!steers(e)) return;
+	pointerInside.value = true;
 }
 
-function handleMouseLeave() {
+function handlePointerLeave(e: PointerEvent) {
 	const el = containerRef.value;
-	if (!el) return;
-	isMouseEntered.value = false;
+	if (!el || !steers(e)) return;
+	pointerInside.value = false;
 	el.style.transform = `rotateY(0deg) rotateX(0deg)`;
+}
+
+// Keyboard focus presents the card: its layers lift, the tilt stays neutral.
+function handleFocusIn(e: FocusEvent) {
+	const target = e.target as Element | null;
+	let visible = true;
+	try {
+		visible = !!target?.matches(":focus-visible");
+	} catch {
+		/* selector unsupported: treat as visible */
+	}
+	if (!visible) return;
+	focusInside.value = true;
+	const el = containerRef.value;
+	if (el) el.style.transform = `rotateY(0deg) rotateX(0deg)`;
+}
+
+function handleFocusOut(e: FocusEvent) {
+	if (containerRef.value?.contains(e.relatedTarget as Node | null)) return;
+	focusInside.value = false;
 }
 </script>
 
@@ -61,9 +87,11 @@ function handleMouseLeave() {
 				)
 			"
 			style="transform-style: preserve-3d"
-			@mouseenter="handleMouseEnter"
-			@mousemove="handleMouseMove"
-			@mouseleave="handleMouseLeave"
+			@pointerenter="handlePointerEnter"
+			@pointermove="handlePointerMove"
+			@pointerleave="handlePointerLeave"
+			@focusin="handleFocusIn"
+			@focusout="handleFocusOut"
 		>
 			<slot />
 		</div>

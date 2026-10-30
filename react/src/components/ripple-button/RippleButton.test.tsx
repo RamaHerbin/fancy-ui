@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { act, render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { RippleButton, rippleGeometry } from "./RippleButton.js";
@@ -51,6 +53,21 @@ describe("RippleButton", () => {
 		} finally {
 			vi.useRealTimers();
 		}
+	});
+
+	it("drops the pointer position on leave so the focus glow is centred again", () => {
+		const onPointerLeave = vi.fn();
+		render(<RippleButton onPointerLeave={onPointerLeave} />);
+		const button = screen.getByRole("button");
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		pointerMove(button, 60, 30);
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("50px");
+		act(() => {
+			button.dispatchEvent(new MouseEvent("pointerout", { bubbles: true }));
+		});
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("");
+		expect(button.style.getPropertyValue("--ripple-y")).toBe("");
+		expect(onPointerLeave).toHaveBeenCalledTimes(1);
 	});
 
 	it("tracks the pointer for the hover glow and forwards a consumer onPointerMove", () => {
@@ -280,5 +297,22 @@ describe("RippleButton", () => {
 				vi.useRealTimers();
 			}
 		});
+	});
+});
+
+describe("RippleButton hover and focus", () => {
+	/** The component stylesheet, whatever the framework keeps it in. */
+	const css = readFileSync(resolve(__dirname, "./ripple-button.css"), "utf8");
+
+	it("gives the hover glow a keyboard-focus twin outside any media gate", () => {
+		const ungated = css.replace(/@media \(hover: hover\) \{[\s\S]*?\n\t?\}\n/g, "");
+		expect(ungated).toMatch(/\.ripple-button:focus-visible \.ripple-hover \{\s*opacity: 1;/);
+	});
+
+	it("keeps :hover motion inside (hover: hover)", () => {
+		const gated = css.match(/@media \(hover: hover\) \{([\s\S]*?)\n\t?\}\n/)?.[1] ?? "";
+		expect(gated).toContain(".ripple-button:hover .ripple-hover {");
+		const ungated = css.replace(/@media \(hover: hover\) \{[\s\S]*?\n\t?\}\n/g, "");
+		expect(ungated).not.toMatch(/\.ripple-button:hover \.ripple-hover \{\s*opacity: 1/);
 	});
 });

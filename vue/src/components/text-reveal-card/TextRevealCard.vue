@@ -43,7 +43,9 @@ const isMouseOver = ref(false);
 
 const rotateDeg = computed(() => (widthPercentage.value - 50) * 0.1);
 
-function mouseMoveHandler(event: MouseEvent) {
+// Hover scrub is for a mouse or pen: a touch pointer is the touch handlers' job.
+function pointerMoveHandler(event: PointerEvent) {
+	if (event.pointerType === "touch") return;
 	event.preventDefault();
 	const card = cardRef.value;
 	if (card) {
@@ -53,17 +55,59 @@ function mouseMoveHandler(event: MouseEvent) {
 	}
 }
 
+// Keyboard path: focus shows the fully revealed text (no partial scrub);
+// Escape or blur returns to rest. Nothing extra is announced: the text is in the DOM.
+let focusRevealed = false;
+
+function focusInHandler() {
+	// A click or tap focuses the card too, while the pointer or finger drives the scrub:
+	// only keyboard-style focus reveals, even under a resting pointer.
+	let visible: boolean;
+	try {
+		visible = cardRef.value?.matches(":focus-visible") ?? false;
+	} catch {
+		// `:focus-visible` unsupported: focus with no pointer over the card is keyboard focus
+		visible = !isMouseOver.value;
+	}
+	if (!visible) return;
+	focusRevealed = true;
+	widthPercentage.value = 100;
+}
+
+function focusOutHandler(event: FocusEvent) {
+	if (event.relatedTarget instanceof Node && cardRef.value?.contains(event.relatedTarget)) return;
+	if (!focusRevealed) return;
+	focusRevealed = false;
+	widthPercentage.value = 0;
+}
+
+function keyDownHandler(event: KeyboardEvent) {
+	if (event.key !== "Escape" || !focusRevealed) return;
+	focusRevealed = false;
+	widthPercentage.value = 0;
+}
+
 function mouseLeaveHandler() {
 	isMouseOver.value = false;
 	setTimeout(() => {
 		if (!isMouseOver.value) {
-			widthPercentage.value = 0;
+			widthPercentage.value = focusRevealed ? 100 : 0;
 		}
 	}, 100);
 }
 
 function mouseEnterHandler() {
 	isMouseOver.value = true;
+}
+
+function pointerEnterHandler(event: PointerEvent) {
+	if (event.pointerType === "touch") return;
+	mouseEnterHandler();
+}
+
+function pointerLeaveHandler(event: PointerEvent) {
+	if (event.pointerType === "touch") return;
+	mouseLeaveHandler();
 }
 
 function touchMoveHandler(event: TouchEvent) {
@@ -85,10 +129,14 @@ function touchMoveHandler(event: TouchEvent) {
 				className
 			)
 		"
-		role="presentation"
-		@mouseenter="mouseEnterHandler"
-		@mouseleave="mouseLeaveHandler"
-		@mousemove="mouseMoveHandler"
+		role="group"
+		tabindex="0"
+		@focusin="focusInHandler"
+		@focusout="focusOutHandler"
+		@keydown="keyDownHandler"
+		@pointerenter="pointerEnterHandler"
+		@pointerleave="pointerLeaveHandler"
+		@pointermove="pointerMoveHandler"
 		@touchstart="mouseEnterHandler"
 		@touchend="mouseLeaveHandler"
 		@touchmove="touchMoveHandler"

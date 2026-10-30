@@ -56,6 +56,7 @@
 		children,
 		onclick,
 		onpointermove,
+		onpointerleave,
 		sound = false,
 		...restProps
 	}: RippleButtonProps = $props();
@@ -89,6 +90,15 @@
 		onpointermove?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 
+	// Leaving drops the pointer position, so the keyboard-focus glow is centred
+	// again (the CSS fallback) instead of parked where the pointer last was.
+	function handlePointerLeave(event: PointerEvent) {
+		const el = event.currentTarget as HTMLButtonElement;
+		el.style.removeProperty("--ripple-x");
+		el.style.removeProperty("--ripple-y");
+		onpointerleave?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
+
 	function createRipple(event: MouseEvent) {
 		if (!buttonRef) return;
 
@@ -118,6 +128,7 @@
 	data-rippling={ripples.length > 0 ? "" : undefined}
 	onclick={handleClick}
 	onpointermove={handlePointerMove}
+	onpointerleave={handlePointerLeave}
 	{...restProps}
 >
 	<div class="relative z-10">
@@ -170,16 +181,31 @@
 		transform: scale(0.2);
 	}
 
-	.ripple-button:hover .ripple-hover {
+	/* Keyboard focus gets the same glow and ring, centred; hover only where it exists. */
+	.ripple-button:focus-visible .ripple-hover {
 		opacity: 1;
 	}
 
-	.ripple-button:hover .ripple-hover::after {
+	.ripple-button:focus-visible .ripple-hover::after {
 		animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 	}
 
-	.ripple-button:hover {
+	.ripple-button:focus-visible {
 		border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+	}
+
+	@media (hover: hover) {
+		.ripple-button:hover .ripple-hover {
+			opacity: 1;
+		}
+
+		.ripple-button:hover .ripple-hover::after {
+			animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+		}
+
+		.ripple-button:hover {
+			border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+		}
 	}
 
 	@keyframes ripple-idle {
@@ -254,7 +280,8 @@
 
 	/* Reduced motion: no expansion, just a brief glow where you pressed. */
 	@media (prefers-reduced-motion: reduce) {
-		.ripple-button:hover .ripple-hover::after {
+		.ripple-button:hover .ripple-hover::after,
+		.ripple-button:focus-visible .ripple-hover::after {
 			animation: none;
 		}
 
