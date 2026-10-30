@@ -10780,6 +10780,103 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	"math-bubble": {
+		name: "MathBubble",
+		slug: "math-bubble",
+		description:
+			"A comic bubble that draws itself, then a formula written inside it by hand, stroke by stroke, from a small TeX subset — an original hand-drawn alphabet, static SVG before it starts",
+		category: "text",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"handwriting",
+			"math",
+			"formula",
+			"comic",
+			"speech-bubble",
+			"svg",
+			"canvas",
+			"animation",
+		],
+		props: [
+			{
+				name: "formula",
+				type: "string | string[]",
+				description:
+					"Formula in a small TeX subset (^, _, \\frac, \\sqrt, Greek letters, big operators); an array is written one formula after the other",
+				required: true,
+			},
+			{
+				name: "bubble",
+				type: '"speech" | "thought" | "shout" | "none"',
+				default: '"speech"',
+				description: "Outline drawn around the formula",
+			},
+			{
+				name: "tail",
+				type: '"left" | "right" | "bottom" | "top"',
+				default: '"bottom"',
+				description: "Side the tail points to",
+			},
+			{
+				name: "tailOffset",
+				type: "number",
+				default: "0.25",
+				description: "Where the tail leaves its side, 0..1",
+			},
+			{ name: "speed", type: "number", default: "5", description: "Writing speed, em per second" },
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed of the hand; the same seed always draws the same strokes",
+			},
+			{ name: "size", type: "number", default: "32", description: "Pixels per em" },
+			{ name: "strokeWidth", type: "number", default: "2.2", description: "Base pen width in px" },
+			{
+				name: "ink",
+				type: "string",
+				default: '"currentColor"',
+				description: "Ink colour, resolved when each frame is drawn so it follows the theme",
+			},
+			{
+				name: "trigger",
+				type: '"inView" | "mount" | "manual"',
+				default: '"inView"',
+				description: "Start when 60% visible (once), on mount, or only through play()",
+			},
+			{
+				name: "loop",
+				type: "boolean",
+				default: "false",
+				description: "Start again after the last formula",
+			},
+			{
+				name: "hold",
+				type: "number",
+				default: "1800",
+				description: "Rest on a finished formula before the next one, in ms",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				description: "Accessible name of the image; defaults to the formula text",
+			},
+			{
+				name: "t",
+				type: "number",
+				description: "Renders one still at this time (ms) with no animation loop, for screenshots",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "onComplete",
+				type: "() => void",
+				description:
+					"Called when the last formula is written (once per pass when looping); still called under reduced motion",
+			},
+		],
+	},
 };
 
 // =============================================================================

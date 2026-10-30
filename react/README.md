@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-155-8B5CF6)
+![Components](https://img.shields.io/badge/Components-156-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **155 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **156 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 155 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 156 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -399,6 +399,10 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **liquid-text**: The WebGL teardown deliberately diverges: the port does not call `WEBGL_lose_context.loseContext()` on a normal unmount (only on a failed init), because React re-runs the mount effect on the same `<canvas>` under StrictMode and Fast Refresh and a lost context is never re-acquired. Every GL object is still deleted explicitly and the context is reclaimed with the canvas.
 - **logo-cloud**: Svelte compiler-scoped .logo-cloud-scroll/.logo-cloud-mask/keyframes are unscoped in plain CSS; both classes already existed as public identifiers in the Svelte markup/JS API so no anchor class was added (rule 4 exception doesn't apply — these already had public identity).
 - **logo-cloud**: `class` prop renamed to `className` per PORTING.md contract (Svelte source used `class`) — purely mechanical, no behavior change.
+- **math-bubble**: `play()` / `reset()` are the Svelte component's exported functions; here they are reached through a ref (`forwardRef` + `useImperativeHandle`, typed `MathBubbleHandle`).
+- **math-bubble**: `class` → `className` (PORTING.md).
+- **math-bubble**: The engine (`handwrite-*.ts`, `glyphs/`) is the shared framework-free core, byte-identical to the Svelte copy; the component only memoises the drawings, keeps the shown formula and the still/canvas mode in React state, and runs the rAF loop from refs.
+- **math-bubble**: The `t` still paints in a layout effect once its canvas is in the DOM, where the Svelte effect re-runs when the bound canvas appears.
 - **matrix-rain**: New prop `seed?: number` (default 1), absent on the Svelte side: both `Math.random()` call sites (column initialisation in `init()` and glyph picking in `randomGlyph()`) are driven by a seeded mulberry32 stream, per PORTING.md's seed-prop rule. Same uniform distribution, so no visual change; two `<MatrixRain />` with no seed now start out alike where two Svelte instances did not.
 - **matrix-rain**: The PRNG stream restarts when the effect re-runs (a `glyphSize`, `density` or `seed` change), whereas the Svelte source draws from the process-global `Math.random()` stream continuously across re-inits. Not observable — the distribution is identical either way.
 - **mosaic-glow**: SSR markup: React serialises the host's inline style as `style="background-color:#0a0a0a"` (no space after the colon) where Svelte emits `background-color: #0a0a0a`. Same declaration, different byte string — the SSR test asserts the React form and carries a comment saying so.

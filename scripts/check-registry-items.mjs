@@ -83,8 +83,8 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
-/** Vue files over all 160 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 533;
+/** Vue files over all 161 items; the generator's real-tree test reports the same. */
+const VUE_EXPECTED_FILES = 557;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
@@ -98,7 +98,7 @@ const STACKS = {
 		id: "react",
 		dir: PAGES_R,
 		urlPath: "/r",
-		expectedCount: 161,
+		expectedCount: 162,
 		targetPrefix: "@ui/fancy/",
 		pathPrefix: "react/src/",
 		excluded: EXCLUDED,
@@ -113,9 +113,9 @@ const STACKS = {
 		id: "svelte",
 		dir: join(PAGES_R, "svelte"),
 		urlPath: "/r/svelte",
-		expectedCount: 158,
+		expectedCount: 159,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 504,
+		expectedFiles: 528,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
@@ -132,7 +132,7 @@ const STACKS = {
 		id: "vue",
 		dir: join(PAGES_R, "vue"),
 		urlPath: "/r/vue",
-		expectedCount: 160,
+		expectedCount: 161,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
 		expectedFiles: VUE_EXPECTED_FILES,
 		/** No `target`: the Vue CLI places a file from its `path` (see the header). */
