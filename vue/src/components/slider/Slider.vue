@@ -177,7 +177,7 @@ function handleChange(event: Event) {
 			<span
 				v-if="showValue"
 				class="ft-slider-bubble border-input bg-background pointer-events-none absolute -top-1 -translate-x-1/2 -translate-y-full rounded-md border px-2 py-0.5 font-mono text-[11px] whitespace-nowrap"
-				:style="{ left: `${fraction * 100}%`, color: 'var(--ft-slider-accent-end)' }"
+				:style="{ left: `${fraction * 100}%`, color: 'var(--ft-slider-accent)' }"
 				aria-hidden="true"
 			>
 				{{ clampedValue }}
@@ -226,59 +226,64 @@ function handleChange(event: Event) {
 /*
  * Declared on the wrapper, not on `.ft-slider` itself, so the value bubble
  * — a sibling `<span>`, not a descendant of the input — can inherit the
- * same two custom properties for its text colour instead of duplicating
- * the values. Custom properties inherit down the whole subtree (including
- * into the input's own vendor thumb/track pseudo-elements below), just
- * not sideways between siblings, which is what forced this up a level.
+ * same custom property for its text colour instead of duplicating the
+ * value. Custom properties inherit down the whole subtree (including into
+ * the input's own vendor thumb/track pseudo-elements below), just not
+ * sideways between siblings, which is what forced this up a level.
+ *
+ * One colour, not a two-stop gradient: the fill reads as a single beam of
+ * light running along the rail — it starts from nothing at the left edge
+ * and brightens into a warm-white head under the thumb. Light mode takes a
+ * near-black ink instead, so the head keeps its contrast on a pale surface.
  */
 .ft-slider-wrap {
-	--ft-slider-accent: var(
-		--ft-accent,
-		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
-	);
-	/*
-	 * The fill's cool end has no semantic token either — declared the same
-	 * shape as the accent above, just a second stop for the purple-to-cyan
-	 * gradient the mockup shows tracking the current value.
-	 * Precomputed: #42cfff = oklch(0.8001 0.1345 225.49). Its darker
-	 * light-mode partner is derived the same way the accent pair's is —
-	 * lightness and chroma scaled by the accent pair's own light:dark
-	 * ratios (≈0.899 and ≈0.970), hue shifted by the same ≈-1.53° — giving
-	 * oklch(0.7196 0.1305 223.96). Light mode takes the darker end.
-	 */
-	--ft-slider-accent-end: light-dark(oklch(0.7196 0.1305 223.96), oklch(0.8001 0.1345 225.49));
+	--ft-slider-accent: var(--ft-accent, light-dark(oklch(0.27 0.012 80), oklch(0.96 0.016 85)));
+	--ft-slider-rail: var(--color-input, color-mix(in oklab, currentColor 12%, transparent));
 }
 
 /*
  * A native range input has no cross-browser "filled portion" of its own.
- * WebKit lets the track's background do double duty: a hard-stop gradient
- * paints the accent up to --ft-slider-fill and the resting track colour
- * after it. Firefox has no equivalent hook on ::-moz-range-track, so its
- * filled portion is drawn as the separate ::-moz-range-progress layer
- * below instead.
+ * WebKit lets the track's background do double duty: a gradient paints the
+ * beam's tail up to --ft-slider-fill — transparent at the start, a faint
+ * glow halfway, the full accent at the head — and the resting rail after
+ * it. Firefox has no equivalent hook on ::-moz-range-track, so its filled
+ * portion is drawn as the separate ::-moz-range-progress layer below.
  */
 .ft-slider::-webkit-slider-runnable-track {
-	height: 4px;
+	height: 2px;
+	border-radius: 999px;
+	background:
+		linear-gradient(
+			to right,
+			transparent 0,
+			color-mix(in oklab, var(--ft-slider-accent) 35%, transparent)
+				calc(var(--ft-slider-fill, 0%) * 0.55),
+			var(--ft-slider-accent) var(--ft-slider-fill, 0%),
+			transparent var(--ft-slider-fill, 0%)
+		),
+		var(--ft-slider-rail);
+}
+.ft-slider::-moz-range-track {
+	height: 2px;
+	border-radius: 999px;
+	background: var(--ft-slider-rail);
+}
+.ft-slider::-moz-range-progress {
+	height: 2px;
 	border-radius: 999px;
 	background: linear-gradient(
 		to right,
-		var(--ft-slider-accent),
-		var(--ft-slider-accent-end) var(--ft-slider-fill, 0%),
-		var(--color-input, color-mix(in oklab, currentColor 12%, transparent)) var(--ft-slider-fill, 0%)
+		transparent 0,
+		color-mix(in oklab, var(--ft-slider-accent) 35%, transparent) 55%,
+		var(--ft-slider-accent)
 	);
-}
-.ft-slider::-moz-range-track {
-	height: 4px;
-	border-radius: 999px;
-	background: var(--color-input, color-mix(in oklab, currentColor 12%, transparent));
-}
-.ft-slider::-moz-range-progress {
-	height: 4px;
-	border-radius: 999px;
-	background: linear-gradient(to right, var(--ft-slider-accent), var(--ft-slider-accent-end));
 }
 
 /*
+ * The thumb is the beam's head: a solid disc of the accent with a soft,
+ * two-layer bloom around it instead of a hard ring. Keyboard focus adds a
+ * crisp ring on top so the focus state never relies on the glow alone.
+ *
  * Vendor pseudo-elements for the thumb cannot be combined into one
  * selector list — a selector list is invalid in its entirety the moment
  * one part of it is unrecognised, so folding ::-webkit-slider-thumb and
@@ -289,21 +294,53 @@ function handleChange(event: Event) {
  */
 .ft-slider::-webkit-slider-thumb {
 	appearance: none;
-	width: 14px;
-	height: 14px;
-	margin-top: -5px; /* centers a 14px thumb on the 4px track */
+	width: 12px;
+	height: 12px;
+	margin-top: -5px; /* centers a 12px thumb on the 2px track */
+	border: none;
 	border-radius: 50%;
-	background: var(--color-background, #0f0f13);
-	border: 2px solid var(--ft-slider-accent);
-	box-shadow: 0 0 0 4px color-mix(in oklab, var(--ft-slider-accent) 25%, transparent);
+	background: var(--ft-slider-accent);
+	box-shadow:
+		0 0 6px 1px color-mix(in oklab, var(--ft-slider-accent) 55%, transparent),
+		0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
+	transition: box-shadow 150ms ease-out;
 }
 .ft-slider::-moz-range-thumb {
-	width: 14px;
-	height: 14px;
+	width: 12px;
+	height: 12px;
+	border: none;
 	border-radius: 50%;
-	background: var(--color-background, #0f0f13);
-	border: 2px solid var(--ft-slider-accent);
-	box-shadow: 0 0 0 4px color-mix(in oklab, var(--ft-slider-accent) 25%, transparent);
+	background: var(--ft-slider-accent);
+	box-shadow:
+		0 0 6px 1px color-mix(in oklab, var(--ft-slider-accent) 55%, transparent),
+		0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
+	transition: box-shadow 150ms ease-out;
+}
+
+.ft-slider:not(:disabled):hover::-webkit-slider-thumb,
+.ft-slider:not(:disabled):active::-webkit-slider-thumb {
+	box-shadow:
+		0 0 8px 2px color-mix(in oklab, var(--ft-slider-accent) 65%, transparent),
+		0 0 26px 7px color-mix(in oklab, var(--ft-slider-accent) 28%, transparent);
+}
+.ft-slider:not(:disabled):hover::-moz-range-thumb,
+.ft-slider:not(:disabled):active::-moz-range-thumb {
+	box-shadow:
+		0 0 8px 2px color-mix(in oklab, var(--ft-slider-accent) 65%, transparent),
+		0 0 26px 7px color-mix(in oklab, var(--ft-slider-accent) 28%, transparent);
+}
+
+.ft-slider:focus-visible::-webkit-slider-thumb {
+	box-shadow:
+		0 0 0 2px var(--color-background, #0f0f13),
+		0 0 0 4px var(--ft-slider-accent),
+		0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
+}
+.ft-slider:focus-visible::-moz-range-thumb {
+	box-shadow:
+		0 0 0 2px var(--color-background, #0f0f13),
+		0 0 0 4px var(--ft-slider-accent),
+		0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
 }
 
 .ft-slider:disabled::-webkit-slider-thumb {
@@ -311,5 +348,14 @@ function handleChange(event: Event) {
 }
 .ft-slider:disabled::-moz-range-thumb {
 	box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ft-slider::-webkit-slider-thumb {
+		transition: none;
+	}
+	.ft-slider::-moz-range-thumb {
+		transition: none;
+	}
 }
 </style>
