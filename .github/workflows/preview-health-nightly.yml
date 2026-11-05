@@ -29,7 +29,7 @@ concurrency:
 jobs:
   no-gpu:
     name: No GPU (develop build)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Until every WebGL demo has a fallback: GPU_ONLY failures are expected here today.
     continue-on-error: true
     timeout-minutes: 45
@@ -91,7 +91,7 @@ jobs:
 
   production:
     name: Production site
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       # Sweep the deployed site: no build, no local server.
