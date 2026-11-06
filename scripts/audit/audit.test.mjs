@@ -229,6 +229,16 @@ test("A2 static: ungated transform motion scores 0, a gate or a blanket reduce o
 		0
 	);
 	assert.equal(fixtureRepo("<style>.a { transition: 150ms ease; }</style>").axes.A2.score, 0);
+	// a duration longhand with no property list transitions `all`
+	const durationOnly = fixtureRepo(
+		"<style>.a { transition-duration: 150ms; } .a:hover { transform: scale(1.1); }</style>"
+	);
+	assert.notEqual(durationOnly.fields.motion_class, "static");
+	assert.equal(durationOnly.axes.A2.score, 0);
+	// whitespace before the colon is still a declaration
+	const spaced = fixtureRepo("<style>.a { transition : transform 150ms ease; }</style>");
+	assert.notEqual(spaced.fields.motion_class, "static");
+	assert.equal(spaced.axes.A2.score, 0);
 	const gated = fixtureRepo(
 		"<style>@media (prefers-reduced-motion: no-preference) { .a { transition: transform 150ms ease; } }</style>"
 	);

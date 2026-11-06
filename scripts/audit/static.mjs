@@ -863,8 +863,17 @@ export function analyse(item) {
 				for (const k of named(n)) infiniteKf.add(k);
 		});
 	}
-	for (const d of allDecls) {
-		if (isKeyframes(d.anc)) continue;
+	// Rules that name their transition properties: a `transition-duration` in any
+	// other rule transitions `all` (the CSS default), transform and opacity included.
+	const rulesNamingTransition = new Set(
+		allDecls.filter((d) => /^transition(-property)?$/.test(d.prop)).map(ruleKey)
+	);
+	for (const decl of allDecls) {
+		if (isKeyframes(decl.anc)) continue;
+		const d =
+			decl.prop === "transition-duration" && !rulesNamingTransition.has(ruleKey(decl))
+				? { ...decl, prop: "transition-property", value: "all" }
+				: decl;
 		const g = gateOf(d.anc);
 		if (d.prop === "will-change") {
 			add(`${d.file}:${d.line}: will-change: ${d.value} [${g}]`, "willchange");
@@ -1311,8 +1320,8 @@ export function analyse(item) {
 	const rubricSignal = files.some((f) =>
 		f.code.some((l, i) =>
 			f.region[i] !== "style"
-				? /transition(-property|-duration)?:|animation(-name|-duration)?:|animate\(/.test(l)
-				: /transition(-property|-duration)?:|animation(-name|-duration)?:|@keyframes/.test(l)
+				? /transition(-property|-duration)?\s*:|animation(-name|-duration)?\s*:|animate\(/.test(l)
+				: /transition(-property|-duration)?\s*:|animation(-name|-duration)?\s*:|@keyframes/.test(l)
 		)
 	);
 	const anyMotionSignal =
