@@ -181,9 +181,33 @@ export function blankAmbientTimes(text) {
 			out.slice(from, to).replace(/\d*\.?\d+(ms|s)\b/g, (m) => " ".repeat(m.length)) +
 			out.slice(to);
 	};
-	for (const m of text.matchAll(/animation(?:-name)?\s*[:=]\s*[^;}]*/g))
-		if (/\binfinite\b/.test(m[0])) blank(m.index, m.index + m[0].length);
-	for (const m of text.matchAll(/animation-iteration-count\s*:\s*infinite/g)) {
+	// `[start, end)` of each top-level comma segment of a list value
+	const segments = (v) => {
+		const out = [];
+		let depth = 0;
+		let from = 0;
+		for (let i = 0; i <= v.length; i++) {
+			const ch = v[i];
+			if (ch === "(") depth++;
+			else if (ch === ")") depth--;
+			if ((ch === "," && depth === 0) || i === v.length) {
+				out.push([from, i]);
+				from = i + 1;
+			}
+		}
+		return out;
+	};
+	// shorthand: only the animations whose own segment says `infinite`
+	for (const m of text.matchAll(/animation(?:-name)?\s*[:=]\s*([^;}]*)/g)) {
+		const v = m[1];
+		const at = m.index + m[0].length - v.length;
+		for (const [s, e] of segments(v)) if (/\binfinite\b/.test(v.slice(s, e))) blank(at + s, at + e);
+	}
+	// longhands: `animation-duration` paired with `animation-iteration-count` by
+	// position in the same rule (the count list repeats, as CSS does)
+	for (const m of text.matchAll(/animation-iteration-count\s*:\s*([^;}]*)/g)) {
+		const counts = segments(m[1]).map(([s, e]) => m[1].slice(s, e));
+		if (!counts.some((c) => /\binfinite\b/.test(c))) continue;
 		// the enclosing rule: back to its `{`, forward to the matching `}`
 		let depth = 0;
 		let start = -1;
@@ -199,8 +223,13 @@ export function blankAmbientTimes(text) {
 		}
 		if (start === -1) continue;
 		const block = text.slice(start, closeBrace(text, start));
-		for (const d of block.matchAll(/animation-duration\s*:\s*[^;}]*/g))
-			blank(start + d.index, start + d.index + d[0].length);
+		for (const d of block.matchAll(/animation-duration\s*:\s*([^;}]*)/g)) {
+			const v = d[1];
+			const at = start + d.index + d[0].length - v.length;
+			segments(v).forEach(([s, e], i) => {
+				if (/\binfinite\b/.test(counts[i % counts.length] ?? "")) blank(at + s, at + e);
+			});
+		}
 	}
 	return out;
 }
@@ -570,6 +599,21 @@ export function selfTest() {
 		scan("a{animation-duration: 2s; animation-iteration-count: infinite}").off.length,
 		0,
 		"longhand ambient loop"
+	);
+	eq(
+		scan("a{animation: enter 250ms ease, spin 2s linear infinite}").off.length,
+		1,
+		"only the infinite animation of a shorthand list is exempt"
+	);
+	eq(
+		scan("a{animation-duration: 250ms, 2s; animation-iteration-count: 1, infinite}").off.length,
+		1,
+		"longhand lists pair durations with iteration counts by position"
+	);
+	eq(
+		scan("a{animation-duration: 250ms, 2s; animation-iteration-count: infinite}").off.length,
+		0,
+		"a single infinite count repeats over the duration list"
 	);
 	eq(scan("a{animation-duration: 0.01ms}").off.length, 0, "reduced-motion override skipped");
 	eq(scan("a{width: 151ms}").off.length, 0, "not a transition declaration");
