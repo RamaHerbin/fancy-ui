@@ -11,10 +11,11 @@
  * keeps only the second pass, because staggered timer-driven reveals cannot be
  * finished through the animation API.
  *
- * Components with an `open` state in `scripts/parity/hints/<slug>.json` (or the
- * built-in rules for the context menu, tooltip and hover card) are scanned again
- * with the popup open, and overlays get a keyboard check: opens, focus moves
- * inside, Escape closes, focus returns.
+ * Components with an `open` state in `scripts/parity/hints/<slug>.json`, and every
+ * overlay in `OVERLAYS` (opened through the built-in fallbacks: right-click for the
+ * context menu, focus for the tooltip and hover card, the first trigger otherwise),
+ * are scanned again with the popup open, and overlays get a keyboard check: opens,
+ * focus moves inside, Escape closes, focus returns.
  *
  * Nodes the demo harness supplies rather than the component are tagged
  * `demo: true` and kept out of the component score (they stay in `axe.json`
@@ -31,7 +32,9 @@
  *                  rule `rule` in component `slug` whose node HTML matches the
  *                  regular expression `re` is tagged as demo chrome, with `why`.
  *
- * Writes components/<slug>/evidence/axe.json.
+ * Writes components/<slug>/evidence/axe.json and components/<slug>/partial-S6.json
+ * (axis A8 through `scoreA8`, one P1 finding `<slug>-60` per sweep when the
+ * component owns a serious or critical hit).
  *
  * What this does NOT catch: anything axe cannot see (focus order sense, label
  * wording, motion), colour contrast on content that only appears in a state the
@@ -41,7 +44,7 @@
 
 import fs from "node:fs";
 import { join } from "node:path";
-import { isMain, loadInventory, parseArgs, parseList, resolvePaths } from "./lib.mjs";
+import { isMain, loadInventory, parseArgs, parseList, resolvePaths, scoreA8 } from "./lib.mjs";
 
 export const AXE_VERSION = "4.10.2";
 export const AXE_URL = `https://cdnjs.cloudflare.com/ajax/libs/axe-core/${AXE_VERSION}/axe.min.js`;
@@ -192,6 +195,47 @@ export function countSeriousCritical(result, theme) {
 	);
 }
 
+/**
+ * The S6 partial for one sweep result: axis A8 and, when the component owns a
+ * serious or critical hit, the P1 finding `<slug>-60` rule R2 asks for.
+ */
+export function s6Partial(slug, res) {
+	const a8 = scoreA8(res);
+	const evidence = [`components/${slug}/evidence/axe.json`];
+	const axis = { score: a8.score, evidence, note: a8.note };
+	if (a8.score === null) axis.na_reason = a8.na_reason;
+	const partial = {
+		slug,
+		agent: "S6",
+		axes: { A8: axis },
+		fields: {},
+		findings: [],
+		uncertain_flags: [],
+	};
+	if (a8.hits.length) {
+		const rules = [...new Set(a8.hits.map((v) => v.id))];
+		partial.findings.push({
+			id: `${slug}-60`,
+			axis: "A8",
+			priority: "P1",
+			title: `axe serious/critical: ${rules.join(", ")}`.slice(0, 120),
+			detail: a8.hits
+				.map((v) => `${v.impact} ${v.id} x${v.nodes}: ${v.summary ?? v.help ?? ""}`.trim())
+				.join(" | ")
+				.slice(0, 1200),
+			evidence,
+			verification: "axe",
+			verification_cmd: `node scripts/audit/axe-sweep.mjs --only ${slug}`,
+			expected_benefit: "0 serious or critical axe hits owned by the component in both themes.",
+			frameworks: ["svelte"],
+			status: "open",
+		});
+	}
+	if (a8.score === null) partial.uncertain_flags.push(`A8 not scored: ${a8.note}`);
+	if (res?.errors?.length) partial.uncertain_flags.push(...res.errors.map((e) => `axe: ${e}`));
+	return partial;
+}
+
 /** Read a slug's parity hint (`{ states: { open: { steps } } }`), or `{}`. */
 export function readHint(repo, slug) {
 	const p = join(repo, "scripts", "parity", "hints", `${slug}.json`);
@@ -309,7 +353,8 @@ async function one(ctx, slug) {
 			const r = split(await runAxe(page, ["[data-parity-stage]"], slug, curated));
 			t.rest = r.comp;
 			r.demo.forEach((d) => out.demo_hits.push({ theme, state: "rest", ...d }));
-			if (hint.states?.open) {
+			// An `open` hint, or any overlay `openState()` knows how to open on its own.
+			if (hint.states?.open || OVERLAYS.has(slug)) {
 				try {
 					await openState(page, slug, hint);
 					await page.waitForTimeout(500);
@@ -335,6 +380,10 @@ async function one(ctx, slug) {
 	const dir = join(paths.out, "components", slug, "evidence");
 	fs.mkdirSync(dir, { recursive: true });
 	fs.writeFileSync(join(dir, "axe.json"), JSON.stringify(out, null, 1));
+	fs.writeFileSync(
+		join(paths.out, "components", slug, "partial-S6.json"),
+		JSON.stringify(s6Partial(slug, out), null, 2) + "\n"
+	);
 	return out;
 }
 

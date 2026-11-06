@@ -7,6 +7,9 @@
 						"role": "button",
 						"name": "Save changes"
 					}
+				},
+				{
+					"wait": 1200
 				}
 			],
 			"expect": [

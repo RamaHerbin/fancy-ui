@@ -30,7 +30,9 @@
  *                    :hover rule join the default selection. Without it the
  *                    selection is core components, buttons, cards and navigation.
  *
- * Writes components/<slug>/evidence/micro-{rest,hover,focus,press}-<fw>.png and
+ * Writes components/<slug>/partial-S4.json (axis A3 through `scoreA3Dynamic`, the
+ * P0 finding `<slug>-40` when hover has no focus twin),
+ * components/<slug>/evidence/micro-{rest,hover,focus,press}-<fw>.png and
  * logs/micro-results.json (merged into an existing file, per slug and framework).
  *
  * What this does NOT catch: hover content that needs a second target (a menu
@@ -51,6 +53,7 @@ import {
 	parseArgs,
 	parseList,
 	resolvePaths,
+	scoreA3Dynamic,
 	stageUrl,
 } from "./lib.mjs";
 
@@ -260,6 +263,62 @@ async function job(ctxOpts, slug, fw) {
 	return res;
 }
 
+/**
+ * The S4 partial for one slug: the A3 dynamic half from every framework's signal,
+ * plus the P0 finding `<slug>-40` when hover changes the stage and keyboard focus
+ * does not. `jobs` = `{ [fw]: { status, ratio?, signal?, error? } }`.
+ */
+export function s4Partial(slug, jobs) {
+	const signals = Object.fromEntries(
+		Object.entries(jobs).map(([fw, r]) => [fw, r.status === "ok" ? (r.signal ?? null) : null])
+	);
+	const a3 = scoreA3Dynamic(signals);
+	const ok = Object.entries(jobs)
+		.filter(([, r]) => r.status === "ok")
+		.map(([fw]) => fw);
+	const shots = (fws, states) =>
+		fws.flatMap((fw) => states.map((s) => `components/${slug}/evidence/micro-${s}-${fw}.png`));
+	const evidence = shots(ok, ["rest", "hover", "focus"]);
+	const axis = { score: a3.score, evidence, note: a3.note };
+	if (a3.score === null) axis.na_reason = a3.na_reason;
+	const partial = {
+		slug,
+		agent: "S4",
+		axes: { A3: axis },
+		fields: {},
+		findings: [],
+		uncertain_flags: [],
+		ratios: Object.fromEntries(Object.entries(jobs).map(([fw, r]) => [fw, r.ratio ?? null])),
+	};
+	if (a3.score === 0) {
+		const bad = Object.entries(signals)
+			.filter(([, s]) => s?.hoverOnly)
+			.map(([fw]) => fw);
+		const ratio = (fw, k) => Number(jobs[fw].ratio?.[k] ?? 0).toFixed(4);
+		partial.findings.push({
+			id: `${slug}-40`,
+			axis: "A3",
+			priority: "P0",
+			title: "Hover changes the stage, keyboard focus does not",
+			detail: `${a3.note}. Ratios against rest: ${bad
+				.map((fw) => `${fw} hover=${ratio(fw, "rest_hover")} focus=${ratio(fw, "rest_focus")}`)
+				.join("; ")}.`,
+			evidence: shots(bad, ["rest", "hover", "focus"]),
+			verification: "capture",
+			verification_cmd: `node scripts/audit/micro-capture.mjs --only ${slug}`,
+			expected_benefit:
+				"Keyboard and touch users get the same state change as pointer users (CONTRACTS section 4).",
+			frameworks: bad,
+			status: "open",
+		});
+	}
+	for (const [fw, r] of Object.entries(jobs))
+		if (r.status !== "ok")
+			partial.uncertain_flags.push(`${fw}: ${r.status}${r.error ? " - " + r.error : ""}`);
+	if (a3.score === null) partial.uncertain_flags.push(`A3 dynamic not scored: ${a3.note}`);
+	return partial;
+}
+
 export function selfTest() {
 	const fail = (m) => {
 		console.error(`micro-capture self-test FAILED: ${m}`);
@@ -344,6 +403,12 @@ async function main() {
 	for (const r of results) (prev[r.slug] ??= {})[r.fw] = r;
 	mkdirSync(join(paths.out, "logs"), { recursive: true });
 	writeFileSync(outPath, JSON.stringify(prev, null, 1));
+	// one partial-S4.json per slug touched by this run, from every framework's signal
+	for (const slug of new Set(results.map((r) => r.slug)))
+		writeFileSync(
+			join(paths.out, "components", slug, "partial-S4.json"),
+			JSON.stringify(s4Partial(slug, prev[slug]), null, 2) + "\n"
+		);
 	const n = (st) => results.filter((r) => r.status === st).length;
 	console.log(
 		`done ${results.length} jobs in ${((Date.now() - t0) / 1000).toFixed(0)}s; ok=${n("ok")} missing=${n("missing")} error=${n("error")}`

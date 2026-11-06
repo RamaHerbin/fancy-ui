@@ -568,8 +568,9 @@ export function analyse(item) {
 	const offTokens = []; // {kind,raw,file,line,evLine,justified}
 	const onTokenCount = { curves: 0, durations: 0 };
 	const noteJustified = (f, lineNo) => {
-		// comment on same line or up to 2 lines before, with a rationale keyword
-		for (let k = lineNo - 1; k >= Math.max(0, lineNo - 3); k--) {
+		// comment on the same line (`lineNo` is a 0-based index) or up to 2 lines
+		// before, with a rationale keyword
+		for (let k = lineNo; k >= Math.max(0, lineNo - 2); k--) {
 			const raw = f.lines[k] ?? "";
 			if (
 				/(\/\*|\/\/|<!--)/.test(raw) &&

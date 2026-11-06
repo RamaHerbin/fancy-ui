@@ -28,7 +28,9 @@
  *   node scripts/audit/sheet.mjs [--repo <dir>] [--out <dir>] [--inventory <file>]
  *            [--parity <dir>] [--only slug,slug] [--no-sheets] [--self-test]
  *
- * Writes components/<slug>/partial-S2.json and logs/S2-results.json.
+ * Writes components/<slug>/partial-S2.json, components/<slug>/partial-S9.json
+ * (axis A5 through `scoreA5`, finding `<slug>-90` on port drift) and
+ * logs/S2-results.json.
  *
  * What this does NOT catch: a loop whose period is longer than the capture window
  * (4 s; timer-driven swaps every 3 to 5 s need a real-clock capture), a loop too
@@ -50,9 +52,56 @@ import {
 	parseArgs,
 	parseList,
 	resolvePaths,
+	scoreA5,
 } from "./lib.mjs";
 
 export const MOMENTS = [0, 150, 300, 600, 1200, 2000, 4000];
+
+/**
+ * The S9 partial for one slug: axis A5 from the parity scores (`scoreA5`), a P1
+ * finding `<slug>-90` when a port drifts at settle, P2 when only at an
+ * intermediate moment (README, "Frozen clock versus compositor").
+ */
+export function s9Partial(slug, scoresEntry) {
+	const a5 = scoreA5(scoresEntry);
+	const evidence = [
+		`components/${slug}/evidence/parity.json`,
+		`components/${slug}/evidence/sheet-light.png`,
+		`components/${slug}/evidence/sheet-dark.png`,
+	];
+	const axis = { score: a5.score, evidence, note: a5.note };
+	if (a5.score === null) axis.na_reason = a5.na_reason;
+	const partial = {
+		slug,
+		agent: "S9",
+		axes: { A5: axis },
+		fields: {},
+		findings: [],
+		uncertain_flags: [],
+	};
+	if (a5.score !== null && a5.score <= 2) {
+		const settle = a5.score <= 1;
+		partial.findings.push({
+			id: `${slug}-90`,
+			axis: "A5",
+			priority: settle ? "P1" : "P2",
+			title: settle
+				? "A port differs from the Svelte reference at settle"
+				: "A port differs from the Svelte reference at an intermediate moment (timing drift)",
+			detail: a5.note,
+			evidence,
+			verification: "capture",
+			verification_cmd: `pnpm parity:capture --only ${slug} && pnpm parity:diff --only ${slug}`,
+			expected_benefit: "Every react and vue ratio under 0.01 in both themes.",
+			frameworks: ["react", "vue"],
+			status: "open",
+		});
+	}
+	if (a5.missing?.length)
+		partial.uncertain_flags.push(`A5: no parity ratio for ${a5.missing.join(", ")}`);
+	if (a5.score === null) partial.uncertain_flags.push(`A5 not scored: ${a5.note}`);
+	return partial;
+}
 
 /** Components whose loop runs without any input (timer, rAF or `infinite` keyframes). */
 export const AMBIENT = new Set([
@@ -392,6 +441,11 @@ async function main() {
 		writeFileSync(
 			join(paths.out, "components", slug, "partial-S2.json"),
 			JSON.stringify(partial, null, 2)
+		);
+		// S9: framework parity (A5) from the same scores.json slice
+		writeFileSync(
+			join(paths.out, "components", slug, "partial-S9.json"),
+			JSON.stringify(s9Partial(slug, scores[slug] ?? null), null, 2) + "\n"
 		);
 		results[slug] = {
 			capturable,

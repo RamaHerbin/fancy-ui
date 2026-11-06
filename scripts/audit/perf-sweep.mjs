@@ -40,7 +40,47 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { isMain, loadInventory, parseArgs, parseList, resolvePaths } from "./lib.mjs";
+import { isMain, loadInventory, parseArgs, parseList, resolvePaths, scoreA4 } from "./lib.mjs";
+
+/**
+ * The S5 partial for one slug: axis A4 from the perf record (`scoreA4`), the P1
+ * finding `<slug>-50` when the score is 1 or lower, and the loaded-machine flag.
+ */
+export function s5Partial(slug, rec) {
+	const a4 = scoreA4(rec);
+	const evidence = [`components/${slug}/evidence/perf.json`];
+	const axis = { score: a4.score, evidence, note: a4.note };
+	if (a4.score === null) axis.na_reason = a4.na_reason;
+	const partial = {
+		slug,
+		agent: "S5",
+		axes: { A4: axis },
+		fields: {},
+		findings: [],
+		uncertain_flags: [],
+	};
+	if (a4.score !== null && a4.score <= 1)
+		partial.findings.push({
+			id: `${slug}-50`,
+			axis: "A4",
+			priority: "P1",
+			title: "Idle perf footprint above the A4 ceilings",
+			detail: a4.note,
+			evidence,
+			verification: "perf",
+			verification_cmd: `node scripts/audit/perf-sweep.mjs --only ${slug}`,
+			expected_benefit:
+				"Idle CPU within the ceilings, 0 long tasks and 0 listeners retained across reloads.",
+			frameworks: ["svelte"],
+			status: a4.loaded ? "uncertain" : "open",
+			...(a4.loaded
+				? { note: "Measured on a loaded machine: indicative only, re-run on a quiet one." }
+				: {}),
+		});
+	if (a4.loaded) partial.uncertain_flags.push("A4 measured on loaded machine (indicative only)");
+	if (a4.score === null) partial.uncertain_flags.push(`A4 not scored: ${a4.note}`);
+	return partial;
+}
 
 const SW_GL = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"];
 
@@ -313,11 +353,21 @@ async function main() {
 			const dir = join(paths.out, "components", slug, "evidence");
 			mkdirSync(dir, { recursive: true });
 			writeFileSync(join(dir, "perf.json"), JSON.stringify(rec, null, 2) + "\n");
+			writeFileSync(
+				join(paths.out, "components", slug, "partial-S5.json"),
+				JSON.stringify(s5Partial(slug, rec), null, 2) + "\n"
+			);
 			console.log(
 				`${slug}: idle ${rec.idle.cpuMsPerSec} ms/s raf ${rec.idle.rafPerSec} lt ${rec.idle.longTasks} | ${((Date.now() - t) / 1000).toFixed(0)}s`
 			);
 		} catch (e) {
 			results[slug] = { slug, error: String(e).slice(0, 300) };
+			const dir = join(paths.out, "components", slug);
+			mkdirSync(dir, { recursive: true });
+			writeFileSync(
+				join(dir, "partial-S5.json"),
+				JSON.stringify(s5Partial(slug, results[slug]), null, 2) + "\n"
+			);
 			console.log(`${slug}: ERROR ${String(e).slice(0, 120)}`);
 		}
 	}

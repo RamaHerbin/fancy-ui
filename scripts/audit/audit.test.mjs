@@ -15,8 +15,15 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { assertRecords, axisCell, deltaCell, driversCell, renderMatrix } from "./build-matrix.mjs";
-import { split as axeSplit, countSeriousCritical } from "./axe-sweep.mjs";
+import {
+	assertRecords,
+	axisCell,
+	deltaCell,
+	driversCell,
+	renderMatrix,
+	validateAll,
+} from "./build-matrix.mjs";
+import { split as axeSplit, countSeriousCritical, s6Partial } from "./axe-sweep.mjs";
 import { buildInventory, creditSources, entryBlocks, field, tagList } from "./inventory.mjs";
 import {
 	AXES,
@@ -31,6 +38,10 @@ import {
 	regionRatios,
 	resolvePaths,
 	scoreA1,
+	scoreA3Dynamic,
+	scoreA4,
+	scoreA5,
+	scoreA8,
 	scoreRmDynamic,
 	scoreTotal,
 	stageUrl,
@@ -38,10 +49,24 @@ import {
 	validateRecord,
 } from "./lib.mjs";
 import { mergeA2, mergeRecord, rateAxis, syntheticPriority } from "./merge-records.mjs";
-import { selectSlugs, microSignal } from "./micro-capture.mjs";
-import { agg, median, p95FrameMs, parseShard, pickTargets, rates } from "./perf-sweep.mjs";
+import { selectSlugs, microSignal, s4Partial } from "./micro-capture.mjs";
+import {
+	agg,
+	median,
+	p95FrameMs,
+	parseShard,
+	pickTargets,
+	rates,
+	s5Partial,
+} from "./perf-sweep.mjs";
 import { rmEntry, summariseSlug } from "./rm-check.mjs";
-import { AMBIENT, classifyCapturable, isAmbientCandidate, missingPorts } from "./sheet.mjs";
+import {
+	AMBIENT,
+	classifyCapturable,
+	isAmbientCandidate,
+	missingPorts,
+	s9Partial,
+} from "./sheet.mjs";
 import {
 	analyse,
 	configure,
@@ -146,6 +171,10 @@ test("A1 counts uncommented off-token curves and accepts a justified one", () =>
 		"<style>/* off-token: matches the sibling card */\n.a { transition: opacity 150ms cubic-bezier(0.1, 0.2, 0.3, 0.4); }</style>"
 	);
 	assert.equal(ok.axes.A1.score, 3);
+	const sameLine = fixtureRepo(
+		"<style>.a { transition: opacity 150ms cubic-bezier(0.1, 0.2, 0.3, 0.4); } /* off-token: tuned */</style>"
+	);
+	assert.equal(sameLine.axes.A1.score, 3);
 	const onToken = fixtureRepo(
 		"<style>.a { transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1); }</style>"
 	);
@@ -445,6 +474,91 @@ test("micro-capture: default selection and the hover-only signal", () => {
 	);
 });
 
+test("S4: A3 dynamic scores the hover-only defect and writes the P0 finding", () => {
+	const hoverOnly = microSignal({ rest_hover: 0.05, rest_focus: 0, rest_press: 0, noise: 0.001 });
+	const twin = microSignal({ rest_hover: 0.05, rest_focus: 0.05, rest_press: 0, noise: 0.001 });
+	assert.equal(scoreA3Dynamic({ svelte: twin, react: hoverOnly }).score, 0);
+	assert.equal(scoreA3Dynamic({ svelte: twin }).score, 3);
+	assert.equal(scoreA3Dynamic({ svelte: null }).score, null);
+	const p = s4Partial("x", {
+		svelte: { status: "ok", ratio: { rest_hover: 0.05, rest_focus: 0 }, signal: hoverOnly },
+		react: { status: "error", error: "boom" },
+	});
+	assert.equal(p.agent, "S4");
+	assert.equal(p.axes.A3.score, 0);
+	assert.equal(p.findings[0].id, "x-40");
+	assert.equal(p.findings[0].priority, "P0");
+	assert.deepEqual(p.findings[0].frameworks, ["svelte"]);
+	assert.ok(p.uncertain_flags.some((f) => /react: error - boom/.test(f)));
+	assert.equal(s4Partial("y", { svelte: { status: "ok", signal: twin } }).findings.length, 0);
+});
+
+test("S5: A4 bands on idle CPU, caps on long tasks and leaks, load clamp", () => {
+	const rec = (over = {}) => ({
+		idle: { cpuMsPerSec: 10, rafPerSec: 0, longTasks: 0 },
+		lifecycle: { listenersDelta: 0, nodesDelta: 0, heapDeltaKB: 0 },
+		loadAvgAtStart: [1],
+		cores: 8,
+		...over,
+	});
+	assert.equal(scoreA4(rec()).score, 3);
+	assert.equal(scoreA4(rec({ idle: { cpuMsPerSec: 100, rafPerSec: 60, longTasks: 0 } })).score, 2);
+	assert.equal(scoreA4(rec({ idle: { cpuMsPerSec: 10, rafPerSec: 0, longTasks: 1 } })).score, 2);
+	assert.equal(scoreA4(rec({ idle: { cpuMsPerSec: 10, rafPerSec: 0, longTasks: 3 } })).score, 1);
+	assert.equal(scoreA4(rec({ lifecycle: { listenersDelta: 30 } })).score, 1);
+	assert.equal(scoreA4(rec({ idle: { cpuMsPerSec: 500, rafPerSec: 60, longTasks: 0 } })).score, 0);
+	const loaded = scoreA4(rec({ idle: { cpuMsPerSec: 500, longTasks: 0 }, loadAvgAtStart: [20] }));
+	assert.equal(loaded.score, 1);
+	assert.ok(loaded.loaded);
+	assert.match(loaded.note, /LOADED machine/);
+	assert.equal(scoreA4({ slug: "x", error: "crashed" }).score, null);
+	const p = s5Partial("x", rec({ idle: { cpuMsPerSec: 500, longTasks: 0 } }));
+	assert.equal(p.findings[0].id, "x-50");
+	assert.equal(p.findings[0].priority, "P1");
+	assert.equal(s5Partial("x", rec()).findings.length, 0);
+});
+
+test("S6: A8 from serious, critical and moderate hits and the keyboard check", () => {
+	const state = (sc = [], moderate = []) => ({ seriousCritical: sc, moderate, minor: 0 });
+	const serious = { id: "color-contrast", impact: "serious", nodes: 1, summary: "s" };
+	const critical = { id: "button-name", impact: "critical", nodes: 1, summary: "c" };
+	const res = (dark, light = state(), keyboard = null, errors = []) => ({
+		themes: { dark: { rest: dark, open: null }, light: { rest: light, open: null } },
+		keyboard,
+		errors,
+	});
+	assert.equal(scoreA8(res(state())).score, 3);
+	assert.equal(scoreA8(res(state([], [{ id: "region" }]))).score, 2);
+	assert.equal(scoreA8(res(state([serious]))).score, 1);
+	assert.equal(scoreA8(res(state(), state([critical]))).score, 0);
+	assert.equal(scoreA8(res(state(), state(), { pass: false })).score, 0);
+	assert.equal(scoreA8({ themes: {}, errors: ["dark: timeout"] }).score, null);
+	const p = s6Partial("x", res(state([serious])));
+	assert.equal(p.axes.A8.score, 1);
+	assert.equal(p.findings[0].id, "x-60");
+	assert.equal(p.findings[0].priority, "P1");
+	assert.match(p.findings[0].title, /color-contrast/);
+	assert.equal(s6Partial("x", res(state())).findings.length, 0);
+});
+
+test("S9: A5 from the parity ratios, settle drift ranks above intermediate drift", () => {
+	const entry = (mid, settle) => ({
+		dark: { 0: { react: 0, vue: 0 }, 600: { react: mid, vue: 0 }, 2000: { react: settle, vue: 0 } },
+		light: { 0: { react: 0, vue: 0 }, 2000: { react: 0, vue: 0 } },
+	});
+	assert.equal(scoreA5(entry(0, 0)).score, 3);
+	assert.equal(scoreA5(entry(0.02, 0)).score, 2);
+	assert.equal(scoreA5(entry(0, 0.02)).score, 1);
+	assert.equal(scoreA5(entry(0, 0.2)).score, 0);
+	assert.equal(scoreA5(null).score, null);
+	assert.deepEqual(scoreA5({ dark: { 0: { react: 0, vue: null } } }).missing, ["vue"]);
+	const p = s9Partial("x", entry(0, 0.02));
+	assert.equal(p.findings[0].id, "x-90");
+	assert.equal(p.findings[0].priority, "P1");
+	assert.equal(s9Partial("x", entry(0.02, 0)).findings[0].priority, "P2");
+	assert.equal(s9Partial("x", entry(0, 0)).findings.length, 0);
+});
+
 test("perf-sweep: medians, rates, frame p95, shards", () => {
 	assert.equal(median([5, 1, 3]), 3);
 	assert.equal(median([1, 2, 3, 4]), 2.5);
@@ -632,6 +746,19 @@ test("matrix: assertions catch a stale priority and a finding without evidence",
 	assert.ok(assertRecords([rec], () => false).some((v) => /no existing evidence/.test(v)));
 	const stale = { rel: rec.rel, r: { ...r, priority: "P2" } };
 	assert.ok(assertRecords([stale], () => true).some((v) => /priority P2 != recomputed P0/.test(v)));
+	// the completion gate also validates the schema, which the cross-record rules skip
+	assert.deepEqual(
+		validateAll([rec], () => true),
+		[]
+	);
+	const bad = { rel: rec.rel, r: { ...r, axes: { ...r.axes, A1: axisOk(99) } } };
+	assert.deepEqual(
+		assertRecords([bad], () => true),
+		[]
+	);
+	assert.ok(
+		validateAll([bad], () => true).some((v) => /A1: score must be null or an integer 0-3/.test(v))
+	);
 	assert.equal(driversCell(r), "A2=0");
 	assert.equal(axisCell(r, "A2"), "0");
 	assert.equal(deltaCell(r, { x: { priority: "P2", axes: { A2: 2 } } }), "new P0");

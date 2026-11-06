@@ -24,11 +24,15 @@ without a browser or a dev server.
 |---|---|---|---|
 | `inventory.mjs` | | | slug, name, category, group, credits and tags from `registry.ts` into `<out>/inventory.json`. Every other script reads it. |
 | `static.mjs` | `S1` | A1, A2 (static half) | Literal census against `tokens.ts` (curves, durations, inline `style=` motion), reduced-motion gating, blanket override rule R9, teardown and offscreen heuristics, `motion_class` and `render` fields. Writes `evidence/static.txt`. |
-| `sheet.mjs` | `S2` | capture triage | Contact sheets (rows svelte / react / vue, columns the seven moments), capture-log and parity slices, ambient-loop invariant, `capturable`. |
+| `sheet.mjs` | `S2`, `S9` | capture triage, A5 | Contact sheets (rows svelte / react / vue, columns the seven moments), capture-log and parity slices, ambient-loop invariant, `capturable`; the parity ratios score A5 (`scoreA5`). |
 | `rm-check.mjs` | `S3` | A2 (dynamic half) | Settle-aware reduced-motion comparison of two capture sets. Writes `sheet-rm-<theme>.png` and `rm-ratios.json`. |
-| `micro-capture.mjs` | `S4` | A3 (dynamic) | Rest, hover, press and keyboard-focus shots of the first interactive element, with a noise floor. |
-| `perf-sweep.mjs` | `S5` | A4 | CDP task time, rAF rate, long tasks, p95 frame, heap, and a reload lifecycle probe; records `loadAvgAtStart`. |
-| `axe-sweep.mjs` | `S6` | A8 | axe-core in both themes, settled, rest and open states, keyboard check for overlays, demo-chrome tagging. This is the local both-themes sweep; CI does not run it. |
+| `micro-capture.mjs` | `S4` | A3 (dynamic) | Rest, hover, press and keyboard-focus shots of the first interactive element, with a noise floor; the signals score A3 (`scoreA3Dynamic`). |
+| `perf-sweep.mjs` | `S5` | A4 | CDP task time, rAF rate, long tasks, p95 frame, heap, and a reload lifecycle probe; records `loadAvgAtStart`; the idle window scores A4 (`scoreA4`). |
+| `axe-sweep.mjs` | `S6` | A8 | axe-core in both themes, settled, rest and open states, keyboard check for overlays, demo-chrome tagging; the hits score A8 (`scoreA8`). This is the local both-themes sweep; CI does not run it. |
+
+Every instrument writes its own `partial-S<n>.json` next to its evidence, so the
+merge never has to read a screenshot: a missing partial means the instrument did
+not run on that slug, and the axis is recorded as not applicable with that note.
 | `merge-records.mjs` | | | Partials into one `record.json` per slug (rules below). |
 | `build-matrix.mjs` | | | Records into `COMPONENT_IMPROVEMENT_MATRIX.md`, `findings-all.json`, `findings-p0p1.json`, after asserting the cross-record rules. |
 
@@ -46,6 +50,10 @@ may not rise above `scripts/motion-tokens-pins.json`.
 | still ratio | 0.004 | two frames under this share of changed pixels are identical |
 | end ratio | 0.01 | reduced-motion end state versus the settled no-preference state |
 | region ratio | 0.01 | per 50x50 tile, ambient-loop check (a whole-stage ratio hides small loops) |
+| micro signal | noise + 0.004 | a hover, press or focus shot counts as a change above the rest-vs-rest noise floor (A3: hover visible with no focus twin = 0) |
+| A4 idle CPU | 60 / 150 / 300 ms/s | ceilings for 3 / 2 / 1; long tasks cap at 2 (1-2) and 1 (3+), listeners retained across the reloads cap at 2 (> 0) and 1 (> 20); a page error is 0; a loaded machine clamps to [1, 2] |
+| A5 parity | 0.01 | every react and vue ratio under it = 3; drift at an intermediate moment only = 2, at the settle moment = 1, 0.1 or more at settle = 0 |
+| A8 axe | serious / critical | none = 3, moderate only = 2, serious = 1 (plus the P1 finding, R2), critical or a failed overlay keyboard check = 0 |
 
 ## Rubric: eight axes, each 0 to 3
 

@@ -331,6 +331,170 @@ export function ambientVerdict(maxRegionRatios, min = REGION_RATIO_MIN) {
 	return { differing, pass: differing >= 2 };
 }
 
+// --- instrument scoring (S4, S5, S6, S9) ---------------------------------------
+
+/** A4 idle ceilings (README "Thresholds"): CPU ms/s for 3, 2 and 1; long tasks and retained listeners that cap the score at 2 and at 1. */
+export const A4_CEILINGS = {
+	cpuMsPerSec: [60, 150, 300],
+	longTasks: [0, 2],
+	listenersDelta: [0, 20],
+};
+
+/**
+ * A3 dynamic score from the micro-capture signals of every framework.
+ * `signals` = `{ [fw]: ReturnType<microSignal> | null }` (null = capture failed).
+ * A hover that changes the stage with no focus twin in any framework is 0
+ * (CONTRACTS section 4 broken); otherwise 3. Nothing usable = null.
+ */
+export function scoreA3Dynamic(signals) {
+	const rows = Object.entries(signals).filter(([, s]) => s && s.hover !== null);
+	if (!rows.length)
+		return { score: null, na_reason: "no-gpu-headless", note: "no usable micro capture" };
+	const hoverOnly = rows.filter(([, s]) => s.hoverOnly).map(([fw]) => fw);
+	const hover = rows.filter(([, s]) => s.hover).map(([fw]) => fw);
+	if (hoverOnly.length)
+		return {
+			score: 0,
+			note: `hover changes the stage with no focus twin: ${hoverOnly.join(", ")}`,
+		};
+	if (hover.length)
+		return { score: 3, note: `hover and focus both change the stage: ${hover.join(", ")}` };
+	return { score: 3, note: "no hover-only state (hover leaves the stage as at rest)" };
+}
+
+/**
+ * A4 score from one perf-sweep record (idle window plus the reload lifecycle).
+ * Idle CPU: <= 60 ms/s = 3, <= 150 = 2, <= 300 = 1, else 0. Long tasks cap the
+ * score (1-2 at 2, 3 or more at 1), so do listeners retained across the reloads
+ * (> 0 at 2, > 20 at 1); a page error is 0. A loaded machine (1-minute load above
+ * the core count) clamps to [1, 2]: indicative only, never a 0 (README).
+ */
+export function scoreA4(rec) {
+	if (!rec || rec.error || !rec.idle)
+		return {
+			score: null,
+			na_reason: "not-applicable",
+			note: rec?.error ? `perf sweep failed: ${rec.error}` : "no perf record",
+			loaded: false,
+		};
+	const f = (x) => Number(x ?? 0).toFixed(2);
+	const idle = rec.idle;
+	const [c3, c2, c1] = A4_CEILINGS.cpuMsPerSec;
+	let score =
+		idle.cpuMsPerSec <= c3 ? 3 : idle.cpuMsPerSec <= c2 ? 2 : idle.cpuMsPerSec <= c1 ? 1 : 0;
+	const parts = [
+		`idle ${f(idle.cpuMsPerSec)} ms/s, ${f(idle.rafPerSec)} raf/s, ${idle.longTasks ?? 0} LT`,
+	];
+	const lt = idle.longTasks ?? 0;
+	if (lt > A4_CEILINGS.longTasks[1]) score = Math.min(score, 1);
+	else if (lt > A4_CEILINGS.longTasks[0]) score = Math.min(score, 2);
+	const life = rec.lifecycle ?? {};
+	const leak = life.listenersDelta ?? 0;
+	if (leak > A4_CEILINGS.listenersDelta[1]) score = Math.min(score, 1);
+	else if (leak > A4_CEILINGS.listenersDelta[0]) score = Math.min(score, 2);
+	parts.push(
+		`reload delta listeners ${leak}/nodes ${life.nodesDelta ?? 0}/heap ${life.heapDeltaKB ?? 0} KB`
+	);
+	if (rec.pageErrors?.length) {
+		score = 0;
+		parts.push(`page errors: ${rec.pageErrors.join("; ")}`);
+	}
+	const load = rec.loadAvgAtStart?.[0] ?? 0;
+	const loaded = !!rec.cores && load > rec.cores;
+	if (loaded) {
+		const raw = score;
+		score = Math.max(1, Math.min(2, score));
+		parts.push(`LOADED machine (load ${load} on ${rec.cores} cores): raw ${raw}, clamped to [1,2]`);
+	}
+	return { score, note: parts.join(" | "), loaded };
+}
+
+/**
+ * A8 score from one axe-sweep result (both themes, rest and open states, demo
+ * nodes already removed). No serious or critical hit = 3; moderate hits only = 2;
+ * serious hits = 1 (R2 adds the P1 finding); any critical hit, or a failed overlay
+ * keyboard check, = 0. No readable state = null.
+ */
+export function scoreA8(res) {
+	const themes = Object.values(res?.themes ?? {});
+	const states = themes.flatMap((t) => [t?.rest, t?.open]).filter((s) => s && !s.error);
+	if (!states.length)
+		return {
+			score: null,
+			na_reason: "not-applicable",
+			note: `axe did not run: ${(res?.errors ?? []).join("; ") || "no readable state"}`,
+			hits: [],
+		};
+	const hits = states.flatMap((s) => s.seriousCritical ?? []);
+	const moderate = states.reduce((n, s) => n + (s.moderate?.length ?? 0), 0);
+	const critical = hits.filter((v) => v.impact === "critical").length;
+	let score = critical ? 0 : hits.length ? 1 : moderate ? 2 : 3;
+	const open = themes.some((t) => t?.open && !t.open.error);
+	const parts = [
+		`${hits.length} serious/critical (both themes, rest${open ? " and open" : ""}, settled)`,
+	];
+	if (hits.length) parts.push([...new Set(hits.map((v) => v.id))].join(", "));
+	if (moderate) parts.push(`${moderate} moderate`);
+	const kb = res.keyboard;
+	if (!kb) parts.push("keyboard n/a");
+	else if (kb.pass === false) {
+		score = 0;
+		parts.push("keyboard: overlay check failed (open, focus inside, Escape, focus back)");
+	} else parts.push("keyboard ok");
+	return { score, note: parts.join(" | "), hits };
+}
+
+/**
+ * A5 score from one slug's parity scores
+ * (`{ [theme]: { "<ms>[-hover]": { react, vue } } }`, ratios against Svelte).
+ * Every ratio under END_RATIO = 3. Drift at intermediate moments only = 2 (P2
+ * timing drift, README); drift at the settle moment (the largest ms of a series)
+ * = 1, 0 when it reaches 0.1. No ratios = null.
+ */
+export function scoreA5(entry) {
+	if (!entry || typeof entry !== "object")
+		return { score: null, na_reason: "not-applicable", note: "no parity scores for this slug" };
+	let worst = 0;
+	let worstSettle = 0;
+	let n = 0;
+	const missing = new Set();
+	const split = (key) => ({
+		hover: key.endsWith("-hover"),
+		ms: Number(key.replace(/-hover$/, "")),
+	});
+	for (const moments of Object.values(entry)) {
+		const settle = {};
+		for (const key of Object.keys(moments ?? {})) {
+			const { hover, ms } = split(key);
+			settle[hover] = Math.max(settle[hover] ?? -1, ms);
+		}
+		for (const [key, byFw] of Object.entries(moments ?? {})) {
+			const { hover, ms } = split(key);
+			for (const fw of ["react", "vue"]) {
+				const v = byFw?.[fw];
+				if (v === null || v === undefined) {
+					missing.add(fw);
+					continue;
+				}
+				n++;
+				worst = Math.max(worst, v);
+				if (ms === settle[hover]) worstSettle = Math.max(worstSettle, v);
+			}
+		}
+	}
+	if (!n)
+		return {
+			score: null,
+			na_reason: "not-applicable",
+			note: "parity scores hold no react/vue ratios",
+		};
+	const score = worstSettle >= 0.1 ? 0 : worstSettle >= END_RATIO ? 1 : worst >= END_RATIO ? 2 : 3;
+	const note =
+		`worst ${worst.toFixed(4)}, settle ${worstSettle.toFixed(4)} (gate ${END_RATIO})` +
+		(missing.size ? ` | missing ${[...missing].join(", ")}` : "");
+	return { score, note, worst, worstSettle, missing: [...missing] };
+}
+
 // --- record validation -------------------------------------------------------
 
 export const NA_REASONS = ["static", "no-gpu-headless", "scroll-driven", "hdr-only", "audio-only"];

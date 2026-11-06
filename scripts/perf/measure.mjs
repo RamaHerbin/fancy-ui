@@ -923,19 +923,6 @@ function runReport() {
 	);
 
 	md.push("## 2. Barrel vs deep import (JS only, KB, minified, one component per probe)", "");
-	for (const g of effects) {
-		for (const window of ["offscreen", "hidden"]) {
-			const rows = g.rows.filter((r) => r.name !== "none" && r[window]);
-			if (!rows.length) continue;
-			const worst = Math.max(...rows.map((r) => r[window].cpuMsPerSec));
-			const provisional = groupVerdict(g) !== "quiet";
-			budgetRows.push([
-				`${g.framework} ${window} CPU, worst effect (report-only)`,
-				`${f1(worst)} ms/s`,
-				`${proposeBudget(worst, 0.5, 5)} ms/s${provisional ? " (provisional: measured on a loaded machine)" : ""}`,
-			]);
-		}
-	}
 	for (const g of imports) {
 		const base = g.rows.find((r) => r.case === "baseline").js;
 		md.push(`### ${g.pkg} (${g.consumer})`, "");
@@ -1151,6 +1138,17 @@ function runReport() {
 			`${f1(worst)} ms/s`,
 			`${proposeBudget(worst, 0.5, 5)} ms/s${provisional ? " (provisional: measured on a loaded machine)" : ""}`,
 		]);
+		// Offscreen and hidden windows exist only in results from the current harness.
+		for (const window of ["offscreen", "hidden"]) {
+			const rows = g.rows.filter((r) => r.name !== "none" && r[window]);
+			if (!rows.length) continue;
+			const worstWindow = Math.max(...rows.map((r) => r[window].cpuMsPerSec));
+			budgetRows.push([
+				`${g.framework} ${window} CPU, worst effect (report-only)`,
+				`${f1(worstWindow)} ms/s`,
+				`${proposeBudget(worstWindow, 0.5, 5)} ms/s${provisional ? " (provisional: measured on a loaded machine)" : ""}`,
+			]);
+		}
 	}
 	for (const g of imports) {
 		const base = g.rows.find((r) => r.case === "baseline").js;

@@ -142,7 +142,10 @@ function closeParen(s, open) {
 	return -1;
 }
 
-/** `var(...)` expressions are blanked (same length) so literal scans skip their fallbacks. */
+/**
+ * `var(...)` expressions are blanked (same length, newlines kept) so literal scans
+ * skip their fallbacks, including a fallback that wraps onto the next line.
+ */
 export function stripVars(s) {
 	let out = s;
 	for (;;) {
@@ -150,7 +153,7 @@ export function stripVars(s) {
 		if (i === -1) return out;
 		const end = closeParen(out, i + 3);
 		const stop = end === -1 ? out.length : end;
-		out = out.slice(0, i) + " ".repeat(stop - i) + out.slice(stop);
+		out = out.slice(0, i) + out.slice(i, stop).replace(/[^\n]/g, " ") + out.slice(stop);
 	}
 }
 
@@ -246,9 +249,12 @@ export function scanText(text, tokens) {
 	}
 	const excused = (i) =>
 		/off-token:/.test(original[i] ?? "") || /off-token:/.test(original[i - 1] ?? "");
+	// rules 2 and 3 run per line, on text whose var() expressions were blanked as a
+	// whole: a fallback that wraps onto the next line must not surface as a literal
+	const noVars = stripVars(clean).split("\n");
 	let open = false; // inside a multi-line transition / animation value
 	for (let i = 0; i < lines.length; i++) {
-		const line = stripVars(lines[i]);
+		const line = noVars[i];
 		const starts = DECL.test(line);
 		const inDecl = starts || open;
 		if (starts)
@@ -459,6 +465,16 @@ export function selfTest() {
 		"off-token curve and duration"
 	);
 	eq(scan("a{transition: x var(--d, 151ms)}").off.length, 0, "var fallback is not a literal");
+	eq(
+		scan("a{transition: opacity var(--ft-duration-fast,\n\t\t150ms) ease}").bare.length,
+		0,
+		"a fallback wrapped onto the next line is not a literal"
+	);
+	eq(
+		scan("a{transition: opacity var(--ft-duration-fast,\n\t\t150ms) ease,\n x 151ms}").off[0]?.line,
+		3,
+		"line numbers survive the whole-text var() blanking"
+	);
 	eq(
 		scan("a{animation: spin 1.6s linear infinite}").off.length,
 		0,

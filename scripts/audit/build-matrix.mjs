@@ -46,6 +46,7 @@ import {
 	resolvePaths,
 	axisPriority,
 	stripLineRef,
+	validateRecord,
 } from "./lib.mjs";
 
 const isDup = (f) => String(f.status).startsWith("duplicate-of:");
@@ -70,6 +71,18 @@ export function assertRecords(recs, exists) {
 		}
 	}
 	return viol;
+}
+
+/**
+ * The completion gate: every record validates against the schema (`validateRecord`)
+ * and the cross-record rules hold (`assertRecords`). Returns violation strings.
+ */
+export function validateAll(recs, exists) {
+	const viol = new Set();
+	for (const { rel, r } of recs)
+		for (const e of validateRecord(r, { exists })) viol.add(`${rel}: ${e}`);
+	for (const v of assertRecords(recs, exists)) viol.add(v);
+	return [...viol];
 }
 
 /** Cell text for one axis. */
@@ -317,6 +330,16 @@ export function selfTest() {
 	};
 	const good = mk("x", [3, 0, 3, 3, 3, 3, 3, 3], [finding], "P0");
 	if (assertRecords([good], () => true).length) fail("a coherent record passes");
+	// the gate also runs the schema validator: a score outside 0-3 is a violation
+	const outOfRange = mk("v", [99, 3, 3, 3, 3, 3, 3, 3], [], "none");
+	if (assertRecords([outOfRange], () => true).length)
+		fail("cross-record rules alone miss a bad score");
+	if (
+		!validateAll([outOfRange], () => true).some((v) =>
+			/A1: score must be null or an integer 0-3/.test(v)
+		)
+	)
+		fail("validateAll rejects a bad score");
 	const wrongPriority = mk("y", [3, 3, 3, 3, 3, 3, 3, 3], [], "P1");
 	if (!/priority P1 != recomputed none/.test(assertRecords([wrongPriority], () => true).join()))
 		fail("priority mismatch");
@@ -366,7 +389,7 @@ function main() {
 		recs.push({ rel, r: JSON.parse(fs.readFileSync(join(paths.out, rel), "utf8")) });
 	}
 	const exists = (q) => fs.existsSync(join(paths.out, q)) || fs.existsSync(join(paths.repo, q));
-	const viol = assertRecords(recs, exists);
+	const viol = validateAll(recs, exists);
 	if (viol.length) {
 		console.error(viol.join("\n"));
 		fail(`ASSERT FAIL: ${viol.length} violations`);
