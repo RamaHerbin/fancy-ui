@@ -211,6 +211,53 @@
 	}
 
 	/*
+	 * The glint: a short comet of light that travels along the filled tail
+	 * towards the thumb while the control is engaged (hover, keyboard focus,
+	 * drag). Two registered properties drive it so they can be animated and
+	 * transitioned: --ft-slider-sweep is the comet's progress along the fill
+	 * (0 → 1), --ft-slider-glint its overall strength (fades in and out with
+	 * engagement). Both are set on the input and inherit into its track
+	 * pseudo-elements. At rest the animation is paused, not removed, so the
+	 * comet fades out where it is instead of snapping back to the start, and
+	 * no frames are produced while nothing changes.
+	 */
+	@property --ft-slider-sweep {
+		syntax: "<number>";
+		inherits: true;
+		initial-value: 0;
+	}
+	@property --ft-slider-glint {
+		syntax: "<number>";
+		inherits: true;
+		initial-value: 0;
+	}
+	@keyframes ft-slider-sweep {
+		from {
+			--ft-slider-sweep: 0;
+		}
+		to {
+			--ft-slider-sweep: 1;
+		}
+	}
+	.ft-slider {
+		--ft-slider-glint-at: calc(var(--ft-slider-fill, 0%) * var(--ft-slider-sweep));
+		/* Ramps in over the first fifth of each pass so the comet never pops
+		   into view at the start of the rail when the loop restarts. */
+		--ft-slider-glint-color: color-mix(
+			in oklab,
+			var(--ft-slider-accent)
+				calc(var(--ft-slider-glint) * min(1, var(--ft-slider-sweep) * 5) * 90%),
+			transparent
+		);
+		animation: ft-slider-sweep 1.6s cubic-bezier(0.45, 0, 0.25, 1) infinite paused;
+		transition: --ft-slider-glint 260ms ease-out;
+	}
+	.ft-slider:not(:disabled):is(:hover, :focus-visible, :active) {
+		--ft-slider-glint: 1;
+		animation-play-state: running;
+	}
+
+	/*
 	 * A native range input has no cross-browser "filled portion" of its own.
 	 * WebKit lets the track's background do double duty: a gradient paints the
 	 * beam's tail up to --ft-slider-fill — transparent at the start, a faint
@@ -222,6 +269,12 @@
 		height: 2px;
 		border-radius: 999px;
 		background:
+			linear-gradient(
+				to right,
+				transparent calc(var(--ft-slider-glint-at) - 36px),
+				var(--ft-slider-glint-color) var(--ft-slider-glint-at),
+				transparent calc(var(--ft-slider-glint-at) + 2px)
+			),
 			linear-gradient(
 				to right,
 				transparent 0,
@@ -240,12 +293,21 @@
 	.ft-slider::-moz-range-progress {
 		height: 2px;
 		border-radius: 999px;
-		background: linear-gradient(
-			to right,
-			transparent 0,
-			color-mix(in oklab, var(--ft-slider-accent) 35%, transparent) 55%,
-			var(--ft-slider-accent)
-		);
+		/* The progress box is the fill itself, so the glint's position is a
+		   plain fraction of it here rather than of the whole rail. */
+		background:
+			linear-gradient(
+				to right,
+				transparent calc(var(--ft-slider-sweep) * 100% - 36px),
+				var(--ft-slider-glint-color) calc(var(--ft-slider-sweep) * 100%),
+				transparent calc(var(--ft-slider-sweep) * 100% + 2px)
+			),
+			linear-gradient(
+				to right,
+				transparent 0,
+				color-mix(in oklab, var(--ft-slider-accent) 35%, transparent) 55%,
+				var(--ft-slider-accent)
+			);
 	}
 
 	/*
@@ -272,7 +334,9 @@
 		box-shadow:
 			0 0 6px 1px color-mix(in oklab, var(--ft-slider-accent) 55%, transparent),
 			0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
-		transition: box-shadow 150ms ease-out;
+		transition:
+			transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+			box-shadow 200ms ease-out;
 	}
 	.ft-slider::-moz-range-thumb {
 		width: 12px;
@@ -283,20 +347,41 @@
 		box-shadow:
 			0 0 6px 1px color-mix(in oklab, var(--ft-slider-accent) 55%, transparent),
 			0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
-		transition: box-shadow 150ms ease-out;
+		transition:
+			transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+			box-shadow 200ms ease-out;
 	}
 
 	.ft-slider:not(:disabled):hover::-webkit-slider-thumb,
 	.ft-slider:not(:disabled):active::-webkit-slider-thumb {
+		transform: scale(1.15);
 		box-shadow:
 			0 0 8px 2px color-mix(in oklab, var(--ft-slider-accent) 65%, transparent),
 			0 0 26px 7px color-mix(in oklab, var(--ft-slider-accent) 28%, transparent);
 	}
 	.ft-slider:not(:disabled):hover::-moz-range-thumb,
 	.ft-slider:not(:disabled):active::-moz-range-thumb {
+		transform: scale(1.15);
 		box-shadow:
 			0 0 8px 2px color-mix(in oklab, var(--ft-slider-accent) 65%, transparent),
 			0 0 26px 7px color-mix(in oklab, var(--ft-slider-accent) 28%, transparent);
+	}
+
+	/* Grabbing the thumb presses it out further than hover: the spring easing
+	   above gives it a small overshoot, so the grab reads as physical. */
+	.ft-slider:not(:disabled):active::-webkit-slider-thumb {
+		transform: scale(1.3);
+	}
+	.ft-slider:not(:disabled):active::-moz-range-thumb {
+		transform: scale(1.3);
+	}
+
+	/* The value bubble lifts a little while the thumb is held. */
+	.ft-slider-bubble {
+		transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+	.ft-slider-wrap:has(.ft-slider:not(:disabled):active) .ft-slider-bubble {
+		transform: translateY(-4px) scale(1.06);
 	}
 
 	.ft-slider:focus-visible::-webkit-slider-thumb {
@@ -320,11 +405,31 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+		.ft-slider {
+			animation: none;
+			transition: none;
+			--ft-slider-glint: 0;
+		}
+		.ft-slider:not(:disabled):is(:hover, :focus-visible, :active) {
+			--ft-slider-glint: 0;
+		}
 		.ft-slider::-webkit-slider-thumb {
 			transition: none;
 		}
 		.ft-slider::-moz-range-thumb {
 			transition: none;
+		}
+		.ft-slider:not(:disabled):is(:hover, :active)::-webkit-slider-thumb {
+			transform: none;
+		}
+		.ft-slider:not(:disabled):is(:hover, :active)::-moz-range-thumb {
+			transform: none;
+		}
+		.ft-slider-bubble {
+			transition: none;
+		}
+		.ft-slider-wrap:has(.ft-slider:not(:disabled):active) .ft-slider-bubble {
+			transform: none;
 		}
 	}
 </style>
