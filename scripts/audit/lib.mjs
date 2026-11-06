@@ -623,7 +623,10 @@ export function validateRecord(r, ctx = {}) {
 			if (!Array.isArray(f.evidence) || !f.evidence.length) e(`${w}: evidence must be non-empty`);
 			if (!["capture", "grep", "perf", "axe", "unit-test", "manual"].includes(f.verification))
 				e(`${w}: bad verification`);
-			if (!/^(open|uncertain|wontfix|duplicate-of:[a-z0-9-]+)$/.test(String(f.status)))
+			// a duplicate may point at a synthetic finding (`<slug>-A<n>-axis`)
+			if (
+				!/^(open|uncertain|wontfix|duplicate-of:[a-z0-9-]+(-A[1-8]-axis)?)$/.test(String(f.status))
+			)
 				e(`${w}: bad status`);
 			if (f.status === "uncertain" && !String(f.note ?? "").trim())
 				e(`${w}: uncertain without note`);

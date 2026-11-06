@@ -59,11 +59,11 @@ const shot = (root, fw, slug, theme, t, suffix = "") =>
 	join(root, "shots", fw, slug, `${theme}-${t}${suffix}.png`);
 const b64 = (p) => (existsSync(p) ? readFileSync(p).toString("base64") : null);
 
-/** The moments (ms) a capture produced for one framework x theme, from the shot files. */
-function momentsIn(root, fw, slug, theme) {
+/** The moments (ms) a capture produced for one framework x theme (and pass), from the shot files. */
+function momentsIn(root, fw, slug, theme, suffix = "") {
 	const dir = join(root, "shots", fw, slug);
 	if (!existsSync(dir)) return [];
-	const re = new RegExp(`^${theme}-(\\d+)\\.png$`);
+	const re = new RegExp(`^${theme}-(\\d+)${suffix}\\.png$`);
 	return readdirSync(dir)
 		.map((f) => re.exec(f))
 		.filter(Boolean)
@@ -88,6 +88,22 @@ export function pickMoments(available) {
 	const mid = rest.find((n) => n < late) ?? null;
 	const later = rest.filter((n) => n > late).at(-1) ?? null;
 	return { first, mid, late, later };
+}
+
+/** A pointer-pass frame this far in is past the open delays of hover-driven content (tooltip: 500 ms). */
+export const HOVER_SETTLED_MS = 600;
+
+/**
+ * The two pointer-pass frames compared for stillness: the last two hover
+ * moments, provided the earlier one is at least HOVER_SETTLED_MS in. Earlier
+ * pairs cannot tell content that mounts after a delay from motion, so the pass
+ * is not compared (null) rather than scored.
+ */
+export function pickHoverPair(available) {
+	const ms = [...new Set(available)].filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+	if (ms.length < 2) return null;
+	const [a, b] = ms.slice(-2);
+	return a >= HOVER_SETTLED_MS ? { a, b } : null;
 }
 
 /**
@@ -403,13 +419,14 @@ async function main() {
 				const n2 = ref?.prev != null ? shot(paths.parity, fw, slug, theme, ref.prev) : null;
 				const p300 = rm.mid != null ? rmShot(rm.mid) : null;
 				const p3000 = rm.later != null ? rmShot(rm.later) : null;
-				const h0 = rmShot(rm.first, "-hover");
-				const h1 = rmShot(rm.late, "-hover");
+				const hp = pickHoverPair(momentsIn(paths.parityRm, fw, slug, theme, "-hover"));
+				const h0 = hp ? rmShot(hp.a, "-hover") : null;
+				const h1 = hp ? rmShot(hp.b, "-hover") : null;
 				const raw = {
 					still: await R(b64(p0), b64(p1)),
 					settle: n2 && n4 && existsSync(n2) && existsSync(n4) ? await R(b64(n2), b64(n4)) : null,
 					end: n4 && existsSync(n4) ? await R(b64(p1), b64(n4)) : null,
-					hover: existsSync(h0) && existsSync(h1) ? await R(b64(h0), b64(h1)) : null,
+					hover: h0 && h1 && existsSync(h0) && existsSync(h1) ? await R(b64(h0), b64(h1)) : null,
 				};
 				if (p300 && existsSync(p300)) {
 					raw.r300_1500 = await R(b64(p300), b64(p1));
@@ -418,7 +435,7 @@ async function main() {
 				}
 				info.fw[`${fw}-${theme}`] = {
 					...rmEntry(raw),
-					moments: { rm, ref },
+					moments: { rm, ref, hover: hp },
 					rm0: rel(p0),
 					rm1500: rel(p1),
 					ref: n4 ? rel(n4) : null,

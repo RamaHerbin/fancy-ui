@@ -130,7 +130,7 @@
 				"frameworks": { "type": "array", "items": { "enum": ["svelte", "react", "vue"] } },
 				"status": {
 					"type": "string",
-					"pattern": "^(open|uncertain|wontfix|duplicate-of:[a-z0-9-]+)$"
+					"pattern": "^(open|uncertain|wontfix|duplicate-of:[a-z0-9-]+(-A[1-8]-axis)?)$"
 				},
 				"adversarial": { "enum": ["CONFIRMED", "DOWNGRADED", "REFUTED"] },
 				"adversarial_note": { "type": "string" },

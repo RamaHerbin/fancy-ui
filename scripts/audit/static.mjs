@@ -281,6 +281,25 @@ export function parseCss(f) {
 	// register keyframes with no decls too
 	return out;
 }
+/**
+ * One stable two-digit id per static finding type (`<slug>-NN`), so a re-scan
+ * that adds or drops a defect never moves a verdict or a `wontfix` carried by
+ * id onto an unrelated finding. 20-99 belong to the other instruments.
+ */
+export const STATIC_FINDING_IDS = {
+	"raf-no-pause": "01",
+	"raf-hidden-only": "02",
+	"raf-no-cancel": "03",
+	"io-no-disconnect": "04",
+	"ro-no-disconnect": "05",
+	"interval-no-clear": "06",
+	"listeners-unbalanced": "07",
+	"will-change": "08",
+	"layout-keyframes": "09",
+	"layout-transition": "10",
+	"filter-shadow-animated": "11",
+};
+
 const TIMING_RE = /^(ease(-in|-out|-in-out)?|linear|step-start|step-end|steps\(|cubic-bezier\()/;
 
 /**
@@ -1404,12 +1423,9 @@ export function analyse(item) {
 
 	// ---------- A4 static findings ----------
 	const findings = [];
-	let seq = 0;
-	const fid = () => `${slug}-${String(++seq).padStart(2, "0")}`;
-	const pushF = (priority, title, detail, evidence, cmd, benefit) => {
-		if (seq >= 19) return;
+	const pushF = (key, priority, title, detail, evidence, cmd, benefit) => {
 		findings.push({
-			id: fid(),
+			id: `${slug}-${STATIC_FINDING_IDS[key]}`,
 			axis: "A4",
 			priority,
 			title,
@@ -1427,6 +1443,7 @@ export function analyse(item) {
 	if (flags.raf > 0 && flags.io === 0 && flags.vis === 0) {
 		const loopy = flags.rafLoop > 0;
 		pushF(
+			"raf-no-pause",
 			loopy ? "P1" : "P2",
 			`requestAnimationFrame ${loopy ? "loop" : "usage"} with no offscreen or hidden-tab pause`,
 			`${flags.raf} requestAnimationFrame call(s)${loopy ? `, ${flags.rafLoop} self-rescheduling` : ""}; no IntersectionObserver / in-view helper / visibilitychange anywhere in the dir. Loop keeps running while scrolled out of view.${loopy ? "" : " (not proven to be a continuous loop; verify)"}`,
@@ -1436,6 +1453,7 @@ export function analyse(item) {
 		);
 	} else if (flags.raf > 0 && flags.io === 0 && flags.vis > 0) {
 		pushF(
+			"raf-hidden-only",
 			"P2",
 			"rAF loop pauses on tab hidden but not when scrolled offscreen",
 			"visibilitychange/document.hidden is checked but no IntersectionObserver / in-view helper gates the loop.",
@@ -1446,6 +1464,7 @@ export function analyse(item) {
 	}
 	if (flags.raf > 0 && flags.caf === 0) {
 		pushF(
+			"raf-no-cancel",
 			"P1",
 			"requestAnimationFrame without any cancelAnimationFrame (missing teardown)",
 			`${flags.raf} rAF call(s), 0 cancelAnimationFrame in the dir. Pending frame / loop survives destroy unless a helper cancels it.`,
@@ -1456,6 +1475,7 @@ export function analyse(item) {
 	}
 	if (flags.io > 0 && flags.ioDisconnect === 0 && !usesInViewHelper) {
 		pushF(
+			"io-no-disconnect",
 			"P2",
 			"IntersectionObserver without a disconnect() in the dir",
 			"`new IntersectionObserver` present, no `.disconnect()`; observer may outlive the component.",
@@ -1466,6 +1486,7 @@ export function analyse(item) {
 	}
 	if (flags.ro > 0 && flags.ioDisconnect === 0) {
 		pushF(
+			"ro-no-disconnect",
 			"P2",
 			"ResizeObserver without a disconnect() in the dir",
 			"`new ResizeObserver` present, no `.disconnect()`.",
@@ -1476,6 +1497,7 @@ export function analyse(item) {
 	}
 	if (flags.interval > 0 && flags.clearInterval === 0) {
 		pushF(
+			"interval-no-clear",
 			"P1",
 			"setInterval without clearInterval (missing teardown)",
 			`${flags.interval} setInterval call(s), 0 clearInterval in the dir.`,
@@ -1489,6 +1511,7 @@ export function analyse(item) {
 	}
 	if (flags.addL > flags.removeL && flags.abortSignal === 0 && flags.addL > 0) {
 		pushF(
+			"listeners-unbalanced",
 			"P2",
 			`addEventListener (${flags.addL}) outnumbers removeEventListener (${flags.removeL}) with no AbortController signal`,
 			"Imbalance is a heuristic: listeners may be removed through a helper or attached to the component's own node (auto-collected).",
@@ -1503,6 +1526,7 @@ export function analyse(item) {
 	}
 	if (refs.willchange) {
 		pushF(
+			"will-change",
 			"P2",
 			"will-change declared (permanent compositor layer)",
 			`${refs.willchange.length} will-change declaration(s); static will-change keeps a layer alive for the element's whole lifetime.`,
@@ -1516,6 +1540,7 @@ export function analyse(item) {
 	if (layoutKf.length) {
 		const inf = layoutKf.filter((a) => a.inf);
 		pushF(
+			"layout-keyframes",
 			inf.length ? "P1" : "P2",
 			`layout property animated in @keyframes (${[...new Set(layoutKf.map((a) => a.p))].join(", ")})${inf.length ? ", infinite" : ""}`,
 			"Animating layout properties triggers layout per frame; transform-based equivalents avoid it.",
@@ -1526,6 +1551,7 @@ export function analyse(item) {
 	}
 	if (layoutTr.length) {
 		pushF(
+			"layout-transition",
 			"P2",
 			"layout property listed in a CSS transition (width/height/top/left/margin/padding/…)",
 			"Transition on a layout property triggers layout on every frame of the transition.",
@@ -1537,6 +1563,7 @@ export function analyse(item) {
 	if (filterAnim.length) {
 		const infF = filterAnim.filter((a) => a.inf);
 		pushF(
+			"filter-shadow-animated",
 			infF.length ? "P1" : "P2",
 			`animated ${[...new Set(filterAnim.map((a) => a.p))].join(" / ")} ${infF.length ? "in an infinite @keyframes" : "(transition or finite keyframes)"}`,
 			"Animated filter/box-shadow repaints per frame; blur and large shadows are the costliest.",

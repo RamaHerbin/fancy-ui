@@ -59,7 +59,7 @@ import {
 	rates,
 	s5Partial,
 } from "./perf-sweep.mjs";
-import { pickMoments, pickReference, rmEntry, summariseSlug } from "./rm-check.mjs";
+import { pickHoverPair, pickMoments, pickReference, rmEntry, summariseSlug } from "./rm-check.mjs";
 import {
 	AMBIENT,
 	classifyCapturable,
@@ -68,6 +68,7 @@ import {
 	s9Partial,
 } from "./sheet.mjs";
 import {
+	STATIC_FINDING_IDS,
 	analyse,
 	configure,
 	gateOf,
@@ -388,6 +389,20 @@ function goodRecord(over = {}) {
 
 test("validateRecord accepts a coherent record and names each defect", () => {
 	assert.deepEqual(validateRecord(goodRecord()), []);
+	// a duplicate may point at a synthetic finding id
+	const dupOfSynthetic = {
+		id: "x-01",
+		axis: "A2",
+		priority: "P2",
+		title: "duplicate of the synthetic finding",
+		evidence: ["components/x/evidence/static.txt"],
+		verification: "grep",
+		verification_cmd: "grep x",
+		expected_benefit: "b",
+		frameworks: ["svelte"],
+		status: "duplicate-of:x-A2-axis",
+	};
+	assert.deepEqual(validateRecord(goodRecord({ findings: [dupOfSynthetic], priority: "P2" })), []);
 	assert.match(validateRecord(goodRecord({ slug: "Bad_Slug" })).join(), /bad slug/);
 	assert.match(validateRecord(goodRecord({ extra: 1 })).join(), /unknown key extra/);
 	const noReason = goodRecord();
@@ -499,6 +514,24 @@ test("rm-check: the compared moments follow what the capture produced", () => {
 	// no witness from one second on: the end state cannot be called settled
 	assert.deepEqual(pickReference([0, 800]), { ref: 800, prev: null });
 	assert.equal(pickReference([]), null);
+	// the pointer pass compares two frames past the open delays, or nothing
+	assert.deepEqual(pickHoverPair([0, 300, 1500, 3000]), { a: 1500, b: 3000 });
+	assert.equal(pickHoverPair([0, 800]), null);
+	assert.equal(pickHoverPair([0, 1500]), null);
+});
+
+test("static findings carry a stable id per defect type across scans", () => {
+	const interval = fixtureRepo("<script>\n\tsetInterval(() => {}, 100);\n</script>");
+	const idsA = interval.findings.map((f) => f.id);
+	assert.ok(idsA.includes("widget-06"), idsA.join());
+	const both = fixtureRepo(
+		"<script>\n\tsetInterval(() => {}, 100);\n\trequestAnimationFrame(() => {});\n</script>"
+	);
+	const idsB = both.findings.map((f) => f.id);
+	assert.ok(idsB.includes("widget-06") && idsB.includes("widget-03"), idsB.join());
+	const ids = Object.values(STATIC_FINDING_IDS);
+	assert.equal(new Set(ids).size, ids.length);
+	assert.ok(ids.every((n) => /^[01][0-9]$/.test(n)));
 });
 
 test("micro-capture: default selection and the hover-only signal", () => {

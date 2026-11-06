@@ -55,7 +55,26 @@ import {
 	scoreA5,
 } from "./lib.mjs";
 
+/** The documented default capture moments; a sheet's columns follow the files a capture actually produced. */
 export const MOMENTS = [0, 150, 300, 600, 1200, 2000, 4000];
+
+/**
+ * The moments (ms) a capture produced for one slug, theme and pass, read from
+ * the shot files (union over `fws`); a hint may have replaced the defaults.
+ */
+export function capturedMoments(parityDir, slug, theme, hover, fws = FRAMEWORKS) {
+	const set = new Set();
+	const re = new RegExp(`^${theme}-(\\d+)${hover ? "-hover" : ""}\\.png$`);
+	for (const fw of fws) {
+		const dir = join(parityDir, "shots", fw, slug);
+		if (!existsSync(dir)) continue;
+		for (const f of readdirSync(dir)) {
+			const m = re.exec(f);
+			if (m) set.add(Number(m[1]));
+		}
+	}
+	return [...set].sort((x, y) => x - y);
+}
 
 /**
  * The S9 partial for one slug: axis A5 from the parity scores (`scoreA5`), a P1
@@ -361,8 +380,10 @@ async function main() {
 		if (!noSheets) {
 			for (const theme of THEMES) {
 				for (const hover of [false, true]) {
+					const moments = capturedMoments(paths.parity, slug, theme, hover);
+					if (!moments.length) continue;
 					const cells = FRAMEWORKS.map((fw) =>
-						MOMENTS.map((t) => ({ fw, t, data: b64(shot(fw, slug, theme, t, hover)) }))
+						moments.map((t) => ({ fw, t, data: b64(shot(fw, slug, theme, t, hover)) }))
 					);
 					if (!cells.some((row) => row.some((c) => c.data))) continue;
 					if (hover) hasHover = true;
@@ -383,11 +404,13 @@ async function main() {
 		let ambient = null;
 		const category = inventory.find((i) => i.slug === slug)?.category;
 		if (isAmbientCandidate(slug, category)) {
-			ambient = { checked: true, regionRatioMin: REGION_RATIO_MIN, byTheme: {} };
+			ambient = { checked: true, regionRatioMin: REGION_RATIO_MIN, byTheme: {}, laterFrames: 0 };
 			let best = 0;
 			for (const theme of THEMES) {
-				const frames = MOMENTS.map((t) => b64(shot("svelte", slug, theme, t, false)));
+				const moments = capturedMoments(paths.parity, slug, theme, false, ["svelte"]);
+				const frames = moments.map((t) => b64(shot("svelte", slug, theme, t, false)));
 				if (frames.every((f) => !f)) continue;
+				ambient.laterFrames = Math.max(ambient.laterFrames, frames.length - 1);
 				const maxRatios = await page.evaluate((i) => window.__ambient(i), {
 					frames,
 					threshold: PIXEL_THRESHOLD,
@@ -424,7 +447,7 @@ async function main() {
 				axis: "A6",
 				priority: "P2",
 				title: `${slug} loop not visible / frozen in capture`,
-				detail: `Ambient candidate: only ${ambient.differing} of ${MOMENTS.length - 1} Svelte frames differ from frame 0 in any 50x50 tile by more than ${REGION_RATIO_MIN} (threshold ${PIXEL_THRESHOLD}). Either the loop is dead, the capture pins it, its period is longer than the window, or it renders nothing headless.`,
+				detail: `Ambient candidate: only ${ambient.differing} of ${ambient.laterFrames} Svelte frames differ from frame 0 in any 50x50 tile by more than ${REGION_RATIO_MIN} (threshold ${PIXEL_THRESHOLD}). Either the loop is dead, the capture pins it, its period is longer than the window, or it renders nothing headless.`,
 				evidence: [
 					`components/${slug}/evidence/sheet-light.png`,
 					`components/${slug}/evidence/sheet-dark.png`,
