@@ -10,8 +10,8 @@ test.describe("Home", () => {
 		await page.setViewportSize({ width: 1440, height: 900 });
 		await page.goto("/");
 		const posters = page.locator("[data-preview-card] img");
-		await expect(posters).toHaveCount(6);
-		for (let i = 0; i < 3; i++) {
+		await expect(posters).toHaveCount(11);
+		for (let i = 0; i < 4; i++) {
 			const box = await posters.nth(i).boundingBox();
 			expect(box).not.toBeNull();
 			expect(box!.y + box!.height).toBeLessThanOrEqual(900);

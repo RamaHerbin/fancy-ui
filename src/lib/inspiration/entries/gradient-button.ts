@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"colors[] → gradient stops",
 		],
 	},
-	curatedRank: 5,
+	curatedRank: 14,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "gradient-button", relation: "exact" }],
 	demo: {

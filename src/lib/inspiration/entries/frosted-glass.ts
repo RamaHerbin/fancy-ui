@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"Safari blur fallback",
 		],
 	},
-	curatedRank: 17,
+	curatedRank: 25,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "frosted-glass", relation: "exact" }],
 	demo: {

@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"off under reduced motion",
 		],
 	},
-	curatedRank: 16,
+	curatedRank: 24,
 	collections: ["micro-interactions"],
 	components: [{ slug: "magnetic", relation: "exact" }],
 	demo: {

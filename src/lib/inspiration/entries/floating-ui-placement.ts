@@ -32,7 +32,7 @@ const entry: ExternalReference = {
 			"autoUpdate on scroll and resize",
 		],
 	},
-	curatedRank: 39,
+	curatedRank: 46,
 	components: [
 		{
 			slug: "popover",

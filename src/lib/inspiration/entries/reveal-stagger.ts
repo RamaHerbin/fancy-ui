@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Everything shows at once under reduced motion. Keep the ladder short — long staggers delay reading. Hidden-until-visible content can be missed by tools that never scroll.",
 		clues: ["IntersectionObserver", "stagger ladder", "from first / centre / last"],
 	},
-	curatedRank: 30,
+	curatedRank: 37,
 	collections: ["micro-interactions"],
 	components: [{ slug: "reveal", relation: "exact" }],
 	demo: {

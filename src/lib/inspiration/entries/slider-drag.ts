@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"A native range input underneath, so keyboard and screen readers work out of the box. The tick sound is opt-in and silent until the visitor enables sound.",
 		clues: ["native range", "CSS var fill", "tabular value", "sound tick"],
 	},
-	curatedRank: 31,
+	curatedRank: 38,
 	collections: ["micro-interactions"],
 	components: [{ slug: "slider", relation: "exact" }],
 	demo: {

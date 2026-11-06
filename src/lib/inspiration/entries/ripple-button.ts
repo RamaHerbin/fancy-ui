@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Reduced motion is honoured in CSS. The ripple colour must contrast with the button face, or it is invisible. Each ripple cleans itself up on `animationend`.",
 		clues: ["clientX/Y → origin", "scale keyframe", "cleanup on animationend", "keyboard = centre"],
 	},
-	curatedRank: 24,
+	curatedRank: 31,
 	collections: ["micro-interactions"],
 	components: [{ slug: "ripple-button", relation: "exact" }],
 	demo: {

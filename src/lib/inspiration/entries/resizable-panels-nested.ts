@@ -32,7 +32,7 @@ const entry: ExternalReference = {
 			"min and max per panel",
 		],
 	},
-	curatedRank: 38,
+	curatedRank: 45,
 	components: [
 		{
 			slug: "sidebar",

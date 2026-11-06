@@ -27,6 +27,10 @@
 		"width": 720,
 		"height": 450
 	},
+	"fireworks": {
+		"width": 720,
+		"height": 450
+	},
 	"flip-card": {
 		"width": 720,
 		"height": 450
@@ -55,6 +59,10 @@
 		"width": 720,
 		"height": 450
 	},
+	"image-trail-cursor": {
+		"width": 720,
+		"height": 450
+	},
 	"liquid-glass": {
 		"width": 720,
 		"height": 450
@@ -80,6 +88,10 @@
 		"height": 450
 	},
 	"password-strength": {
+		"width": 720,
+		"height": 450
+	},
+	"pixel-scene": {
 		"width": 720,
 		"height": 450
 	},
@@ -119,11 +131,19 @@
 		"width": 720,
 		"height": 450
 	},
+	"smooth-cursor": {
+		"width": 720,
+		"height": 450
+	},
 	"status-morph": {
 		"width": 720,
 		"height": 450
 	},
 	"streaming-text": {
+		"width": 720,
+		"height": 450
+	},
+	"sun-switch": {
 		"width": 720,
 		"height": 450
 	},
@@ -140,6 +160,10 @@
 		"height": 450
 	},
 	"thinking-indicator": {
+		"width": 720,
+		"height": 450
+	},
+	"tick-nav": {
 		"width": 720,
 		"height": 450
 	}

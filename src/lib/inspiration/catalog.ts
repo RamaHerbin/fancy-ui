@@ -97,7 +97,7 @@ export function collections(entries: readonly Reference[] = PUBLISHED): Collecti
 	}).filter((summary) => summary.count > 0);
 }
 
-/** The homepage selection: the six lowest `curatedRank`s among published entries. */
+/** The homepage selection: the `count` lowest `curatedRank`s among published entries. */
 export function featured(count = 6, entries: readonly Reference[] = PUBLISHED): Reference[] {
 	return [...entries]
 		.filter((entry) => entry.curatedRank !== undefined)

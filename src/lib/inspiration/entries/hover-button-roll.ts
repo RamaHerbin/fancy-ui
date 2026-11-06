@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"On touch the second label is never seen, so the first must carry the meaning. The roll lives under `no-preference`.",
 		clues: ["overflow clip", "translateY 70%", "blur on exit", "one transition-delay ladder"],
 	},
-	curatedRank: 19,
+	curatedRank: 27,
 	collections: ["micro-interactions"],
 	components: [{ slug: "interactive-hover-button", relation: "exact" }],
 	demo: {

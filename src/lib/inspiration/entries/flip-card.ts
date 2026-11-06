@@ -29,7 +29,7 @@ const entry: FancyUIReference = {
 			"enter side sets direction",
 		],
 	},
-	curatedRank: 10,
+	curatedRank: 19,
 	collections: ["micro-interactions"],
 	components: [{ slug: "flip-card", relation: "exact" }],
 	demo: {

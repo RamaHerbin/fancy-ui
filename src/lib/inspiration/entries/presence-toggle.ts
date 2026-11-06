@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Exiting content is inert, so it cannot take focus while it leaves. Reduced motion collapses the durations.",
 		clues: ["enter / exit durations", "preset transforms", "inert during exit"],
 	},
-	curatedRank: 28,
+	curatedRank: 35,
 	collections: ["micro-interactions"],
 	components: [{ slug: "presence", relation: "exact" }],
 	demo: {

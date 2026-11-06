@@ -27,7 +27,7 @@ const entry: FancyUIReference = {
 			"face inset by --cut over the sheen",
 		],
 	},
-	curatedRank: 12,
+	curatedRank: 21,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "shimmer-button", relation: "exact" }],
 	demo: {
