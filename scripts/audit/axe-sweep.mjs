@@ -273,8 +273,16 @@ async function openState(page, slug, hint) {
 		.first();
 	if (slug === "tooltip" || slug === "hover-card") await trig.focus();
 	else await trig.click({ timeout: 4000 });
+	if (slug === "autocomplete") {
+		// The panel only opens on a matching query (minLength 1): seed one.
+		await page.keyboard.type(SEED_QUERY);
+		return "first-trigger+type";
+	}
 	return "first-trigger";
 }
+
+/** Typed into a query-driven widget (autocomplete) so its popup has something to show. */
+const SEED_QUERY = "a";
 
 /**
  * Open an overlay the way a keyboard user would: focus its trigger, then press
@@ -300,6 +308,12 @@ async function openByKeyboard(page, slug, hint) {
 			.catch(() => false);
 	await page.waitForTimeout(600);
 	if (await visible()) return "focus";
+	if (slug === "autocomplete") {
+		// A query-driven popup: typing is the keyboard way to open it.
+		await page.keyboard.type(SEED_QUERY);
+		await page.waitForTimeout(500);
+		if (await visible()) return "type";
+	}
 	const keys =
 		slug === "tooltip" || slug === "hover-card"
 			? []

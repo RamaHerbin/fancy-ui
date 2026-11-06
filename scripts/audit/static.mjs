@@ -1191,11 +1191,13 @@ export function analyse(item) {
 	// svg is only recorded in schema enum as "svg": keep as-is
 
 	// ---------- classification ----------
+	// Shorthands and the longhands that carry motion on their own
+	// (`transition-property` / `-duration`, `animation-name` / `-duration`).
 	const rubricSignal = files.some((f) =>
 		f.code.some((l, i) =>
 			f.region[i] !== "style"
-				? /transition:|animation:|animate\(/.test(l)
-				: /transition:|animation:|@keyframes/.test(l)
+				? /transition(-property|-duration)?:|animation(-name|-duration)?:|animate\(/.test(l)
+				: /transition(-property|-duration)?:|animation(-name|-duration)?:|@keyframes/.test(l)
 		)
 	);
 	const anyMotionSignal =

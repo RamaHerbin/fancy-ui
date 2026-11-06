@@ -196,6 +196,12 @@ test("A1 counts uncommented off-token curves and accepts a justified one", () =>
 test("A2 static: ungated transform motion scores 0, a gate or a blanket reduce override scores 3 (R9)", () => {
 	const ungated = fixtureRepo("<style>.a { transition: transform 150ms ease; }</style>");
 	assert.equal(ungated.axes.A2.score, 0);
+	// longhands carry the same motion as the shorthand: not static, same A2
+	const longhand = fixtureRepo(
+		"<style>.a { transition-property: opacity; transition-duration: 150ms; transition-timing-function: ease; }</style>"
+	);
+	assert.notEqual(longhand.fields.motion_class, "static");
+	assert.equal(longhand.axes.A2.score, 0);
 	const gated = fixtureRepo(
 		"<style>@media (prefers-reduced-motion: no-preference) { .a { transition: transform 150ms ease; } }</style>"
 	);

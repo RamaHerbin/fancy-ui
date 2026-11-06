@@ -62,6 +62,17 @@ export function assertRecords(recs, exists) {
 	for (const { r } of recs) {
 		const want = recordPriority(scoresOf(r), r.findings);
 		if (want !== r.priority) viol.push(`${r.slug}: priority ${r.priority} != recomputed ${want}`);
+		// R1: every axis that drives the priority keeps a live P0/P1 finding on it;
+		// a refuted (wontfix) synthetic finding must take the score with it.
+		for (const d of priorityDrivers(scoresOf(r)))
+			if (
+				!r.findings.some(
+					(f) => f.axis === d.axis && live(f) && (f.priority === "P0" || f.priority === "P1")
+				)
+			)
+				viol.push(
+					`${r.slug}: ${d.axis}=${r.axes[d.axis]?.score} drives ${d.priority} with no live P0/P1 finding on it (R1)`
+				);
 		for (const f of r.findings) {
 			if (!live(f) || !(f.priority === "P0" || f.priority === "P1")) continue;
 			if (!f.evidence?.some((p) => exists(stripLineRef(p))))
@@ -340,6 +351,19 @@ export function selfTest() {
 		)
 	)
 		fail("validateAll rejects a bad score");
+	// R1: a refuted synthetic finding leaves the axis score with no live driver
+	const refuted = mk(
+		"u",
+		[3, 0, 3, 3, 3, 3, 3, 3],
+		[{ ...finding, id: "u-A2-axis", status: "wontfix" }],
+		"P0"
+	);
+	if (
+		!assertRecords([refuted], () => true).some((v) =>
+			/A2=0 drives P0 with no live P0\/P1 finding/.test(v)
+		)
+	)
+		fail("R1 live driver");
 	const wrongPriority = mk("y", [3, 3, 3, 3, 3, 3, 3, 3], [], "P1");
 	if (!/priority P1 != recomputed none/.test(assertRecords([wrongPriority], () => true).join()))
 		fail("priority mismatch");
