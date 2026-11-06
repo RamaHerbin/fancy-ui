@@ -30,7 +30,7 @@ export function SidebarGroup({ label, children, className }: SidebarGroupProps) 
 			<span
 				id={headingId}
 				className={cn(
-					"text-muted-foreground/70 px-2 py-1 text-[10px] font-semibold tracking-[0.08em] uppercase",
+					"text-muted-foreground px-2 py-1 text-[11px] font-semibold tracking-[0.08em] uppercase",
 					collapsed && "sr-only"
 				)}
 			>

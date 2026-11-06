@@ -62,6 +62,7 @@ const Harness = defineComponent({
 		onOpenChange: { type: Function as PropType<(open: boolean) => void>, default: undefined },
 		onSelect: { type: Function as PropType<(label: string) => void>, default: undefined },
 		triggerDisabled: { type: Boolean, default: false },
+		triggerFocusable: { type: Boolean, default: false },
 		withSubmenu: { type: Boolean, default: false },
 		subItems: { type: Array as PropType<ItemSpec[]>, default: () => [] },
 		sound: { type: Boolean, default: false },
@@ -108,7 +109,7 @@ const Harness = defineComponent({
 				default: () => [
 					h(
 						ContextMenuTrigger,
-						{ disabled: props.triggerDisabled },
+						{ disabled: props.triggerDisabled, focusable: props.triggerFocusable },
 						{ default: () => h("div", { "data-testid": "region" }, "Right-click me") }
 					),
 					h(ContextMenuContent, null, { default: () => rows }),
@@ -450,6 +451,31 @@ describe("ContextMenu", () => {
 
 		await fireEvent.keyDown(menu()!, { key: "Tab" });
 		await waitFor(() => expect(menu()).toBeNull());
+	});
+
+	it("the focusable trigger is a tab stop and opens from the Menu key", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS, triggerFocusable: true } });
+		const el = region(container);
+		expect(el.getAttribute("tabindex")).toBe("0");
+		expect(el.getAttribute("aria-description")).toContain("Menu key");
+
+		el.focus();
+		expect(document.activeElement).toBe(el);
+
+		// The Menu key and Shift+F10 dispatch `contextmenu` at the focused element
+		// with `button: 0`, never the right mouse button's `2`.
+		await fireEvent.contextMenu(document.activeElement as HTMLElement, {
+			button: 0,
+			clientX: 0,
+			clientY: 0,
+		});
+		expect(menu()).not.toBeNull();
+	});
+
+	it("the trigger is not a tab stop unless asked to be", () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		expect(region(container).hasAttribute("tabindex")).toBe(false);
+		expect(region(container).hasAttribute("aria-description")).toBe(false);
 	});
 
 	it("a disabled trigger leaves the native menu alone and never opens", async () => {

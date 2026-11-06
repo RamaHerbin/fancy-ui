@@ -31,6 +31,17 @@ Every other attribute and listener of a `<span>` (`id`, `title`, `aria-*`,
 `data-*`, `onclick`, ...) is passed to the root. `data-variant` and
 `data-size` are the component's own and win over a value you pass.
 
+## Accessibility
+
+- A plain `<span>`: no role, no focus stop. A badge is static text, so its
+  meaning must be in the words; colour only reinforces it.
+- Every variant, including the soft destructive pair, keeps its text at 4.5:1
+  or better against its own tint in both themes.
+- When a badge is the only carrier of a status (an icon-only dot, a count), put
+  the meaning in visible or `sr-only` text, or in the accessible name of the
+  surrounding control. An `aria-label` on the badge itself is not announced: it
+  sits on a role-less `<span>`, where most assistive tech ignores it.
+
 ## Notes
 
 - **A badge is text, not a widget.** It carries no role and no live region. When a

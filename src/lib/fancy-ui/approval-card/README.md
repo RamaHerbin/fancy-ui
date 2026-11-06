@@ -106,6 +106,22 @@ Every colour is read at the point of use, so a value you set wins without having
 | `--ft-approval-approved`      | `--ft-status-done`         | The "Approved" line                  |
 | `--ft-approval-denied`        | `currentColor` at 65%      | The "Denied" line                    |
 
+## Accessibility
+
+- A `role="group"` named by `title`. Pressing a button resolves the gate once;
+  re-entry is refused inside the handler, not by a native attribute.
+- `busy` is `aria-busy` on the card and on both buttons, never `disabled`: focus
+  stays on the button that was pressed, the press is ignored, and the dimmed
+  look is driven by `aria-busy`. A disabled button would drop out of the tab
+  order and drop focus to the document body.
+- The verdict is announced by a static `role="status"` region that is mounted
+  from the first render, so it exists before its text changes. The footer that
+  swaps buttons for the verdict is not live.
+- Once the buttons are gone, focus moves to the verdict line (`tabindex="-1"`)
+  so keyboard users are not dropped back at the top of the page.
+- Destructive gates are not signalled by colour alone: the shield picks up an
+  alert mark and the title names the action.
+
 ## Sound
 
 Set `sound` to play a `select` cue the moment the gate resolves, off by default and silent until the user has enabled sound in their own preferences:

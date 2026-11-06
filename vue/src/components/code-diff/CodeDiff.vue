@@ -426,7 +426,7 @@ const views = computed<FileView[]>(() =>
 	min-width: 4ch;
 	padding-inline: 0.5rem 0;
 	text-align: right;
-	opacity: 0.45;
+	color: var(--muted-foreground);
 	font-variant-numeric: tabular-nums;
 }
 

@@ -28,7 +28,7 @@ A plain-text anchor styled for prose and inline copy — a colored text link, no
 | `href`      | `string`                        | —           | Destination URL (required)                                                                     |
 | `variant`   | `"default" \| "muted"`          | `'default'` | `default` reads as inline copy; `muted` recedes into supporting text at a smaller size         |
 | `external`  | `boolean`                       | `false`     | Appends an arrow glyph, defaults `target` to `_blank`, and guarantees a safe `rel`             |
-| `underline` | `"hover" \| "always" \| "none"` | `'hover'`   | When the underline shows                                                                       |
+| `underline` | `"hover" \| "always" \| "none"` | `'hover'`   | When the underline shows: `hover` (the default) draws a thin resting underline on the default variant and the full one on hover/focus, and underlines the muted variant on hover/focus only; `always` underlines every variant; `none` never |
 | `target`    | `string`                        | `undefined` | Anchor `target`; `external` fills this in as `_blank` when left unset                          |
 | `rel`       | `string`                        | `undefined` | Anchor `rel`; merged with the safe tokens below whenever `target` opens a new browsing context |
 | `onclick`   | `(event: MouseEvent) => void`   | `undefined` | Native click handler                                                                           |
@@ -37,6 +37,20 @@ A plain-text anchor styled for prose and inline copy — a colored text link, no
 | `sound`     | `boolean`                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound                           |
 
 Any other native anchor attribute or listener (`id`, `download`, `hreflang`, `aria-*`, `data-*`, `onkeydown`, ...) goes to the inner `<a>`.
+
+## Accessibility
+
+- A native `<a>`, so it is in the tab order and activates with Enter.
+- The default variant is underlined at rest, so a link inside running text is
+  not distinguished by colour alone (WCAG 1.4.1). `underline="hover"` (the
+  default value) keeps that resting underline and nudges its offset on hover and
+  keyboard focus; `underline="always"` is the heavier form; `underline="none"`
+  opts out, and is only safe when something else marks the link. The muted
+  variant is for supporting copy and underlines on hover and focus only.
+- Focus draws a visible ring, and the external arrow follows keyboard focus as
+  well as hover.
+- `external` adds a visually hidden "(opens in a new tab)" and the
+  `noopener noreferrer` tokens.
 
 ## Implementation Notes
 

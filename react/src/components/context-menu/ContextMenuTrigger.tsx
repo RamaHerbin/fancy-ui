@@ -8,11 +8,20 @@ import { useContextMenuRoot } from "./types.js";
 export interface ContextMenuTriggerProps {
 	/** Disables the region: `contextmenu` is left alone and the browser's native menu shows instead. */
 	disabled?: boolean;
+	/**
+	 * Opt-in keyboard reach: makes the region a tab stop (`tabindex="0"`) so the
+	 * Menu key and Shift+F10 can open the menu from the keyboard. Off by default,
+	 * because most regions wrap content that already holds a focusable control.
+	 */
+	focusable?: boolean;
 	/** The wrapped region's content. */
 	children?: ReactNode;
 	/** Additional CSS classes, merged onto the wrapping element. */
 	className?: string;
 }
+
+/** Read out with the focused region, so a keyboard user learns how to open the menu. */
+const FOCUSABLE_HINT = "Press the Menu key or Shift+F10 to open the context menu";
 
 /**
  * The region a right-click opens the menu over.
@@ -31,7 +40,10 @@ export interface ContextMenuTriggerProps {
  * this wrapping element isn't one.
  */
 export const ContextMenuTrigger = forwardRef<HTMLDivElement, ContextMenuTriggerProps>(
-	function ContextMenuTrigger({ disabled = false, children, className }, forwardedRef) {
+	function ContextMenuTrigger(
+		{ disabled = false, focusable = false, children, className },
+		forwardedRef
+	) {
 		// `ContextMenu` only ever mounts this alongside `ContextMenuContent`
 		// under its own context, so there is no standalone-usage fallback to
 		// design for.
@@ -71,7 +83,14 @@ export const ContextMenuTrigger = forwardRef<HTMLDivElement, ContextMenuTriggerP
 		return (
 			<div
 				ref={ref}
-				className={cn("ft-context-menu-trigger", className)}
+				className={cn(
+					"ft-context-menu-trigger",
+					focusable &&
+						"focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none",
+					className
+				)}
+				tabIndex={focusable ? 0 : undefined}
+				aria-description={focusable ? FOCUSABLE_HINT : undefined}
 				onContextMenu={handleContextMenu}
 			>
 				{children}

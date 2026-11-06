@@ -10,7 +10,7 @@
 			background: "oklch(1 0 0)",
 			foreground: "oklch(0.129 0.042 264.695)",
 			card: "oklch(1 0 0)",
-			mutedForeground: "oklch(0.554 0.046 257.417)",
+			mutedForeground: "oklch(0.5 0.046 257.417)",
 			border: "oklch(0.929 0.013 255.508)",
 		},
 		dark: {

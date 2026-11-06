@@ -96,6 +96,15 @@ What is **not** shared, because it is genuinely different:
   isn't one — there's no ARIA role for "right-clickable region", and
   borrowing `role="button"` would claim an Enter/Space activation model this
   element doesn't actually offer.
+- **Keyboard reach is opt-in: `focusable`.** A plain wrapping `<div>` is not a
+  tab stop, so a keyboard-only user can only reach the menu when the region
+  already contains a focusable control (the Menu key and Shift+F10 fire
+  `contextmenu` at whatever holds focus). Set `focusable` on
+  `ContextMenuTrigger` to give the region `tabindex="0"`, a visible focus ring
+  and an `aria-description` ("Press the Menu key or Shift+F10 to open the
+  context menu") so the shortcut is announced with the region. The region still
+  carries no role. Leave it off when the wrapped content is already focusable,
+  to avoid a redundant tab stop.
 - **How the keyboard path is distinguished from a real right-click, with one
   handler for both**: the Menu key and Shift+F10 both dispatch a `contextmenu`
   event — the same event a real right-click dispatches, so one `oncontextmenu`
@@ -161,6 +170,7 @@ What is **not** shared, because it is genuinely different:
 | Prop       | Type                     | Default | Description                                                                   |
 | ---------- | ------------------------ | ------- | ----------------------------------------------------------------------------- |
 | `disabled` | `boolean`                | `false` | Leaves `contextmenu` alone entirely — the browser's native menu shows instead |
+| `focusable` | `boolean`                | `false` | Makes the region a tab stop (`tabindex="0"` + `aria-description`) so the Menu key and Shift+F10 can open the menu |
 | `children` | `Snippet`                | —       | The wrapped region's content                                                  |
 | `class`    | `string`                 | —       | Additional CSS classes, merged onto the wrapping element                      |
 | `ref`      | `HTMLDivElement \| null` | `null`  | Bindable reference to the wrapping element                                    |
@@ -206,8 +216,8 @@ stays silent.
 
 This family declares no `--ft-nav-accent` of its own: unlike
 `DropdownMenuTrigger`, `ContextMenuTrigger` is a plain wrapping element with
-no focus-visible ring (right-click has no keyboard focus state of its own
-to ring), so there is nothing here that reads the accent token. The shared
+no focus-visible ring of its own accent (it only rings, with the neutral
+`ring` token, when `focusable` is set), so there is nothing here that reads the accent token. The shared
 item components (`ContextMenuItem`/`Separator`/`Label`/`Sub`/`SubTrigger`/
 `SubContent`) don't read it either — `--ft-nav-accent` is read in exactly
 one place in the whole `dropdown-menu` folder, `DropdownMenuTrigger`'s own

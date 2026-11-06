@@ -22,6 +22,7 @@
 	 * oklch(0.7196 0.1305 223.96). Light mode takes the darker end.
 	 */
 	--ft-slider-accent-end: light-dark(oklch(0.7196 0.1305 223.96), oklch(0.8001 0.1345 225.49));
+	--ft-slider-bubble-fg: var(--foreground, currentColor);
 }
 
 /*
@@ -39,8 +40,7 @@
 		to right,
 		var(--ft-slider-accent),
 		var(--ft-slider-accent-end) var(--ft-slider-fill, 0%),
-		var(--color-input, color-mix(in oklab, currentColor 12%, transparent))
-			var(--ft-slider-fill, 0%)
+		var(--color-input, color-mix(in oklab, currentColor 12%, transparent)) var(--ft-slider-fill, 0%)
 	);
 }
 .ft-slider::-moz-range-track {

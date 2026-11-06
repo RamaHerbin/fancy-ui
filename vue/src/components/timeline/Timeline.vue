@@ -247,7 +247,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 	--_tl-hair: rgba(0, 0, 0, 0.12);
 	--_tl-ring: rgba(0, 0, 0, 0.2);
 	--_tl-surface: var(--background, #fafafa);
-	--_tl-muted: rgba(0, 0, 0, 0.42);
+	--_tl-muted: rgba(0, 0, 0, 0.6);
 	--_tl-glow-a: 38%;
 	--_tl-ease: cubic-bezier(0.16, 1, 0.3, 1);
 	--_tl-x: 2rem;
@@ -262,7 +262,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 	--_tl-core: var(--_tl-hot);
 	--_tl-hair: rgba(255, 255, 255, 0.12);
 	--_tl-ring: rgba(255, 255, 255, 0.2);
-	--_tl-muted: rgba(255, 255, 255, 0.38);
+	--_tl-muted: rgba(255, 255, 255, 0.55);
 	--_tl-glow-a: 60%;
 }
 
