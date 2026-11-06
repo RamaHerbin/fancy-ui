@@ -38,7 +38,7 @@
  * reader or a real compositor behaves.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import {
 	END_RATIO,
@@ -58,6 +58,50 @@ import {
 const shot = (root, fw, slug, theme, t, suffix = "") =>
 	join(root, "shots", fw, slug, `${theme}-${t}${suffix}.png`);
 const b64 = (p) => (existsSync(p) ? readFileSync(p).toString("base64") : null);
+
+/** The moments (ms) a capture produced for one framework x theme, from the shot files. */
+function momentsIn(root, fw, slug, theme) {
+	const dir = join(root, "shots", fw, slug);
+	if (!existsSync(dir)) return [];
+	const re = new RegExp(`^${theme}-(\\d+)\\.png$`);
+	return readdirSync(dir)
+		.map((f) => re.exec(f))
+		.filter(Boolean)
+		.map((m) => Number(m[1]));
+}
+
+/**
+ * Which reduced-motion frames to compare, from the moments a capture actually
+ * produced (a hint's `moments` overrides the documented 0,300,1500,3000): `first`
+ * = the earliest, `late` = the moment nearest 1500 after it (the frame that must
+ * be still), `mid` = the first moment strictly between them (pre-paint window),
+ * `later` = the last moment after `late`. Null with fewer than two moments.
+ */
+export function pickMoments(available) {
+	const ms = [...new Set(available)].filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+	if (ms.length < 2) return null;
+	const [first, ...rest] = ms;
+	const late = rest.reduce(
+		(best, n) => (Math.abs(n - 1500) < Math.abs(best - 1500) ? n : best),
+		rest[0]
+	);
+	const mid = rest.find((n) => n < late) ?? null;
+	const later = rest.filter((n) => n > late).at(-1) ?? null;
+	return { first, mid, late, later };
+}
+
+/**
+ * The no-preference reference frames: `ref` = the last moment (the settled
+ * picture), `prev` = the latest moment from one second on before it, which
+ * proves the reference is settled; null when no such witness exists.
+ */
+export function pickReference(available) {
+	const ms = [...new Set(available)].filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+	if (!ms.length) return null;
+	const ref = ms.at(-1);
+	const prev = ms.filter((n) => n >= 1000 && n < ref).at(-1) ?? null;
+	return { ref, prev };
+}
 
 /**
  * One framework x theme entry from the raw ratios. Pure.
@@ -146,7 +190,7 @@ export function summariseSlug(slug, entries, motionClass) {
 			? `pre-paint at t0 only (t300==t1500==t3000) on ${pre.length}/${list.length} captures, not motion`
 			: "",
 		noRef.length
-			? `end-state not compared on ${noRef.length}/${list.length} captures: no-reference (no-pref t2000 frame missing)`
+			? `end-state not compared on ${noRef.length}/${list.length} captures: no-reference (no-pref t2000 frame missing, or no settled witness from one second on)`
 			: "",
 		unsettled.length
 			? `end-state not compared on ${unsettled.length}/${list.length} captures: ambient-or-unsettled (no-pref t2000 vs t4000 >= ${STILL_RATIO})`
@@ -172,7 +216,7 @@ export function summariseSlug(slug, entries, motionClass) {
 		finding = {
 			priority: "P0",
 			title: "motion plays under prefers-reduced-motion: reduce",
-			detail: `With reduce, frame(${e.ratio_rm300_rm1500 != null ? "300" : "0"}) vs frame(1500${e.ratio_rm1500_rm3000 != null ? "/3000" : ""}) differ by ratio ${e.motion_ratio.toFixed(4)}${e.hover_still_ratio != null ? ` (pointer pass ${e.hover_still_ratio.toFixed(4)})` : ""} on ${k} (threshold ${PIXEL_THRESHOLD}, limit ${STILL_RATIO}).`,
+			detail: `With reduce, frame(${e.ratio_rm300_rm1500 != null ? (e.moments?.rm.mid ?? 300) : (e.moments?.rm.first ?? 0)}) vs frame(${e.moments?.rm.late ?? 1500}${e.ratio_rm1500_rm3000 != null ? `/${e.moments?.rm.later ?? 3000}` : ""}) differ by ratio ${e.motion_ratio.toFixed(4)}${e.hover_still_ratio != null ? ` (pointer pass ${e.hover_still_ratio.toFixed(4)})` : ""} on ${k} (threshold ${PIXEL_THRESHOLD}, limit ${STILL_RATIO}).`,
 			fws: [...new Set(bad.map(([k2]) => k2.split("-")[0]))],
 			worst: k,
 		};
@@ -181,7 +225,7 @@ export function summariseSlug(slug, entries, motionClass) {
 		finding = {
 			priority: "P1",
 			title: "reduced motion skips the end state",
-			detail: `With reduce, frame(1500) vs no-preference t4000 (settled) differ by ratio ${e.end_ratio.toFixed(4)} on ${k} (limit ${END_RATIO}): the final visual state is not reached or differs.`,
+			detail: `With reduce, frame(${e.moments?.rm.late ?? 1500}) vs no-preference t${e.moments?.ref?.ref ?? 4000} (settled) differ by ratio ${e.end_ratio.toFixed(4)} on ${k} (limit ${END_RATIO}): the final visual state is not reached or differs.`,
 			fws: [...new Set(noEnd.map(([k2]) => k2.split("-")[0]))],
 			worst: k,
 		};
@@ -270,7 +314,7 @@ export function selfTest() {
 	if (noRef.end_check !== "no-reference") fail("missing t2000 is no-reference");
 	const noRefNote = summariseSlug("x", { "svelte-dark": noRef }, "micro").axis.note;
 	if (
-		!noRefNote.includes("no-reference (no-pref t2000 frame missing)") ||
+		!noRefNote.includes("no-reference (no-pref t2000 frame missing") ||
 		noRefNote.includes("ambient")
 	)
 		fail("no-reference note");
@@ -315,12 +359,33 @@ async function main() {
 		const ev = join(paths.out, "components", slug, "evidence");
 		mkdirSync(ev, { recursive: true });
 		const info = { fw: {} };
+		// The moments come from the files a capture produced, per framework and
+		// theme: a hint may have replaced the documented 0,300,1500,3000.
+		const plan = {};
+		for (const fw of FRAMEWORKS)
+			for (const theme of THEMES)
+				plan[`${fw}-${theme}`] = {
+					rm: pickMoments(momentsIn(paths.parityRm, fw, slug, theme)),
+					ref: pickReference(momentsIn(paths.parity, fw, slug, theme)),
+				};
 		for (const theme of THEMES) {
-			const cells = FRAMEWORKS.map((fw) => [
-				{ label: `${fw} rm 0`, data: b64(shot(paths.parityRm, fw, slug, theme, 0)) },
-				{ label: `${fw} rm 1500`, data: b64(shot(paths.parityRm, fw, slug, theme, 1500)) },
-				{ label: `${fw} no-pref 4000`, data: b64(shot(paths.parity, fw, slug, theme, 4000)) },
-			]);
+			const cells = FRAMEWORKS.map((fw) => {
+				const { rm, ref } = plan[`${fw}-${theme}`];
+				return [
+					{
+						label: `${fw} rm ${rm?.first ?? 0}`,
+						data: rm ? b64(shot(paths.parityRm, fw, slug, theme, rm.first)) : null,
+					},
+					{
+						label: `${fw} rm ${rm?.late ?? 1500}`,
+						data: rm ? b64(shot(paths.parityRm, fw, slug, theme, rm.late)) : null,
+					},
+					{
+						label: `${fw} no-pref ${ref?.ref ?? 4000}`,
+						data: ref ? b64(shot(paths.parity, fw, slug, theme, ref.ref)) : null,
+					},
+				];
+			});
 			if (cells.some((r) => r.some((c) => c.data))) {
 				const png = await page.evaluate((i) => window.__rmSheet(i), { slug, theme, cells });
 				writeFileSync(join(ev, `sheet-rm-${theme}.png`), Buffer.from(png, "base64"));
@@ -328,31 +393,35 @@ async function main() {
 		}
 		for (const fw of FRAMEWORKS)
 			for (const theme of THEMES) {
-				const p0 = shot(paths.parityRm, fw, slug, theme, 0);
-				const p1 = shot(paths.parityRm, fw, slug, theme, 1500);
+				const { rm, ref } = plan[`${fw}-${theme}`];
+				if (!rm) continue;
+				const rmShot = (t, suffix) => shot(paths.parityRm, fw, slug, theme, t, suffix);
+				const p0 = rmShot(rm.first);
+				const p1 = rmShot(rm.late);
 				if (!existsSync(p0) || !existsSync(p1)) continue;
-				const n4 = shot(paths.parity, fw, slug, theme, 4000);
-				const n2 = shot(paths.parity, fw, slug, theme, 2000);
-				const p300 = shot(paths.parityRm, fw, slug, theme, 300);
-				const p3000 = shot(paths.parityRm, fw, slug, theme, 3000);
-				const h0 = shot(paths.parityRm, fw, slug, theme, 0, "-hover");
-				const h1 = shot(paths.parityRm, fw, slug, theme, 1500, "-hover");
+				const n4 = ref ? shot(paths.parity, fw, slug, theme, ref.ref) : null;
+				const n2 = ref?.prev != null ? shot(paths.parity, fw, slug, theme, ref.prev) : null;
+				const p300 = rm.mid != null ? rmShot(rm.mid) : null;
+				const p3000 = rm.later != null ? rmShot(rm.later) : null;
+				const h0 = rmShot(rm.first, "-hover");
+				const h1 = rmShot(rm.late, "-hover");
 				const raw = {
 					still: await R(b64(p0), b64(p1)),
-					settle: existsSync(n2) && existsSync(n4) ? await R(b64(n2), b64(n4)) : null,
-					end: existsSync(n4) ? await R(b64(p1), b64(n4)) : null,
+					settle: n2 && n4 && existsSync(n2) && existsSync(n4) ? await R(b64(n2), b64(n4)) : null,
+					end: n4 && existsSync(n4) ? await R(b64(p1), b64(n4)) : null,
 					hover: existsSync(h0) && existsSync(h1) ? await R(b64(h0), b64(h1)) : null,
 				};
-				if (existsSync(p300)) {
+				if (p300 && existsSync(p300)) {
 					raw.r300_1500 = await R(b64(p300), b64(p1));
 					raw.r0_300 = await R(b64(p0), b64(p300));
-					if (existsSync(p3000)) raw.r1500_3000 = await R(b64(p1), b64(p3000));
+					if (p3000 && existsSync(p3000)) raw.r1500_3000 = await R(b64(p1), b64(p3000));
 				}
 				info.fw[`${fw}-${theme}`] = {
 					...rmEntry(raw),
+					moments: { rm, ref },
 					rm0: rel(p0),
 					rm1500: rel(p1),
-					ref: rel(n4),
+					ref: n4 ? rel(n4) : null,
 				};
 			}
 		out.slugs[slug] = info;

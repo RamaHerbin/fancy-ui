@@ -53,7 +53,7 @@ may not rise above `scripts/motion-tokens-pins.json`.
 | micro signal | noise + 0.004 | a hover, press or focus shot counts as a change above the rest-vs-rest noise floor (A3: hover visible with no focus twin = 0) |
 | A4 idle CPU | 60 / 150 / 300 ms/s | ceilings for 3 / 2 / 1; long tasks cap at 2 (1-2) and 1 (3+), listeners retained across the reloads cap at 2 (> 0) and 1 (> 20); a page error is 0; a loaded machine clamps to [1, 2] |
 | A5 parity | 0.01 | every react and vue ratio under it = 3; drift at an intermediate moment only = 2, at the settle moment = 1, 0.1 or more at settle = 0 |
-| A8 axe | serious / critical | none = 3, moderate only = 2, serious = 1 (plus the P1 finding, R2), critical or a failed overlay keyboard check = 0 |
+| A8 axe | serious / critical | none = 3, moderate only = 2, serious = 1 (plus the P1 finding, R2), critical = 0; overlays: opens from the keyboard, focus moves inside, Escape closes, focus returns, else 0; an overlay that only opens from the pointer caps at 1 |
 
 ## Rubric: eight axes, each 0 to 3
 

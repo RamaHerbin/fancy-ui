@@ -596,6 +596,16 @@ export function analyse(item) {
 		if (status === "on-token") onTokenCount[kind === "curve" ? "curves" : "durations"]++;
 	};
 	const handledLines = new Set();
+	// An animation only counts as an ambient loop when it runs forever: `infinite`
+	// in the shorthand, or an `animation-iteration-count: infinite` longhand in the
+	// same rule. A long finite entrance is an ordinary (off-token) duration.
+	const ruleKey = (d) => `${d.file}|${d.anc.join(" > ")}`;
+	const infiniteRules = new Set(
+		allDecls
+			.filter((d) => d.prop === "animation-iteration-count" && /\binfinite\b/.test(d.value))
+			.map(ruleKey)
+	);
+	const loopsForever = (d) => /\binfinite\b/.test(d.value) || infiniteRules.has(ruleKey(d));
 	for (const d of allDecls) {
 		const g = gateOf(d.anc);
 		const isAnim = /^animation/.test(d.prop);
@@ -632,7 +642,7 @@ export function analyse(item) {
 			if (d.prop === "transition-property") continue;
 			for (const t of timeLiterals(seg)) {
 				if (t.ms <= 1) continue; // 0ms / 0.01ms reduced-motion style overrides
-				if (isAnim && t.ms >= 1000 && !/animation-delay/.test(d.prop)) {
+				if (isAnim && t.ms >= 1000 && !/animation-delay/.test(d.prop) && loopsForever(d)) {
 					lit("duration", t.raw, d.file, d.line, "ambient-loop, excluded");
 					anyHandled = true;
 					continue;

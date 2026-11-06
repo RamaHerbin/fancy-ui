@@ -237,10 +237,6 @@ export function s6Partial(slug, res) {
 		});
 	}
 	if (a8.score === null) partial.uncertain_flags.push(`A8 not scored: ${a8.note}`);
-	if (res?.keyboard && res.keyboard.keyboardOpen === false)
-		partial.uncertain_flags.push(
-			"keyboard: the overlay did not open from the keyboard (focus/Escape checked through the pointer fallback)"
-		);
 	if (res?.errors?.length) partial.uncertain_flags.push(...res.errors.map((e) => `axe: ${e}`));
 	return partial;
 }
@@ -370,7 +366,10 @@ async function keyboard(page, base, slug, hint) {
 			"time-picker",
 		].includes(slug);
 		if (comboLike && fi.role === "combobox") k.focusMovedInside = "focus-stays-on-combobox";
-		k.pass = k.opened && k.focusMovedInside !== false && k.closed && k.focusReturned;
+		// `pointerPass` = the focus and Escape checks regardless of how it opened;
+		// the probe only passes when the overlay also opened from the keyboard.
+		k.pointerPass = k.opened && k.focusMovedInside !== false && k.closed && k.focusReturned;
+		k.pass = k.keyboardOpen && k.pointerPass;
 	} catch (e) {
 		k.error = String(e.message).split("\n")[0];
 		k.pass = false;

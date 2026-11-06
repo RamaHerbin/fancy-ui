@@ -59,7 +59,7 @@ import {
 	rates,
 	s5Partial,
 } from "./perf-sweep.mjs";
-import { rmEntry, summariseSlug } from "./rm-check.mjs";
+import { pickMoments, pickReference, rmEntry, summariseSlug } from "./rm-check.mjs";
 import {
 	AMBIENT,
 	classifyCapturable,
@@ -179,6 +179,18 @@ test("A1 counts uncommented off-token curves and accepts a justified one", () =>
 		"<style>.a { transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1); }</style>"
 	);
 	assert.equal(onToken.axes.A1.score, 3);
+	// only an animation that runs forever is an ambient loop; a long finite
+	// entrance keeps its (off-token) duration in the census
+	const longEntrance = fixtureRepo("<style>.a { animation: enter 1200ms ease both; }</style>");
+	assert.equal(longEntrance.axes.A1.score, 2);
+	const shorthandLoop = fixtureRepo(
+		"<style>.a { animation: spin 1200ms linear infinite; }</style>"
+	);
+	assert.equal(shorthandLoop.axes.A1.score, 3);
+	const longhandLoop = fixtureRepo(
+		"<style>.a { animation: spin 1200ms linear; animation-iteration-count: infinite; }</style>"
+	);
+	assert.equal(longhandLoop.axes.A1.score, 3);
 });
 
 test("A2 static: ungated transform motion scores 0, a gate or a blanket reduce override scores 3 (R9)", () => {
@@ -450,6 +462,28 @@ test("rm-check: pre-paint is not motion, ambient references are not compared", (
 	assert.equal(summariseSlug("x", { a: moving }, "static").axis.na_reason, "static");
 });
 
+test("rm-check: the compared moments follow what the capture produced", () => {
+	assert.deepEqual(pickMoments([0, 300, 1500, 3000]), {
+		first: 0,
+		mid: 300,
+		late: 1500,
+		later: 3000,
+	});
+	// a hint such as tooltip's `[0, 800]` still yields a still-frame comparison
+	assert.deepEqual(pickMoments([800, 0]), { first: 0, mid: null, late: 800, later: null });
+	assert.deepEqual(pickMoments([0, 600, 1500, 2000, 4000]), {
+		first: 0,
+		mid: 600,
+		late: 1500,
+		later: 4000,
+	});
+	assert.equal(pickMoments([0]), null);
+	assert.deepEqual(pickReference([0, 150, 300, 600, 1200, 2000, 4000]), { ref: 4000, prev: 2000 });
+	// no witness from one second on: the end state cannot be called settled
+	assert.deepEqual(pickReference([0, 800]), { ref: 800, prev: null });
+	assert.equal(pickReference([]), null);
+});
+
 test("micro-capture: default selection and the hover-only signal", () => {
 	const inv = [
 		{ slug: "core-a", group: "core", category: "actions" },
@@ -536,9 +570,14 @@ test("S6: A8 from serious, critical and moderate hits and the keyboard check", (
 	// portalled panels that carry no role are popup roots too
 	for (const sel of [".ft-hover-card-panel", ".ft-date-picker-panel", ".ft-popover-content"])
 		assert.ok(POPUP.split(",").includes(sel), sel);
-	const fallback = s6Partial("x", res(state(), state(), { pass: true, keyboardOpen: false }));
-	assert.equal(fallback.axes.A8.score, 3);
-	assert.ok(fallback.uncertain_flags.some((f) => /did not open from the keyboard/.test(f)));
+	// opens only from the pointer: capped at 1; opens but traps focus: 0
+	const pointerOnly = { pass: false, keyboardOpen: false, pointerPass: true };
+	assert.equal(scoreA8(res(state(), state(), pointerOnly)).score, 1);
+	assert.match(scoreA8(res(state(), state(), pointerOnly)).note, /does not open from the keyboard/);
+	assert.equal(
+		scoreA8(res(state(), state(), { pass: false, keyboardOpen: true, pointerPass: false })).score,
+		0
+	);
 	const p = s6Partial("x", res(state([serious])));
 	assert.equal(p.axes.A8.score, 1);
 	assert.equal(p.findings[0].id, "x-60");

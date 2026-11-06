@@ -412,8 +412,9 @@ export function scoreA4(rec) {
 /**
  * A8 score from one axe-sweep result (both themes, rest and open states, demo
  * nodes already removed). No serious or critical hit = 3; moderate hits only = 2;
- * serious hits = 1 (R2 adds the P1 finding); any critical hit, or a failed overlay
- * keyboard check, = 0. No readable state = null.
+ * serious hits = 1 (R2 adds the P1 finding); any critical hit, or an overlay that
+ * traps focus or ignores Escape once open, = 0; an overlay that only opens from
+ * the pointer caps at 1. No readable state = null.
  */
 export function scoreA8(res) {
 	const themes = Object.values(res?.themes ?? {});
@@ -438,8 +439,16 @@ export function scoreA8(res) {
 	const kb = res.keyboard;
 	if (!kb) parts.push("keyboard n/a");
 	else if (kb.pass === false) {
-		score = 0;
-		parts.push("keyboard: overlay check failed (open, focus inside, Escape, focus back)");
+		if (kb.keyboardOpen === false && kb.pointerPass) {
+			// Opens only from the pointer: a contract gap (section 4), not a trap.
+			score = Math.min(score, 1);
+			parts.push(
+				"keyboard: the overlay does not open from the keyboard (focus and Escape hold once open)"
+			);
+		} else {
+			score = 0;
+			parts.push("keyboard: overlay check failed (open, focus inside, Escape, focus back)");
+		}
 	} else parts.push("keyboard ok");
 	return { score, note: parts.join(" | "), hits };
 }

@@ -163,7 +163,9 @@ export function stripVars(s) {
  */
 export function tokenVars(s) {
 	const found = [];
-	for (const m of s.matchAll(/var\(\s*--ft-(duration|ease|stagger)-([a-zA-Z0-9]+)\s*,/g)) {
+	// The name takes the whole custom-property identifier (hyphens included), so a
+	// hyphenated misspelling is reported as unknown instead of slipping past the gate.
+	for (const m of s.matchAll(/var\(\s*--ft-(duration|ease|stagger)-([a-zA-Z0-9-]+)\s*,/g)) {
 		const open = m.index + 3;
 		const end = closeParen(s, open);
 		if (end === -1) continue;
@@ -436,6 +438,11 @@ export function selfTest() {
 		"nested token var is checked"
 	);
 	eq(scan("/* var(--ft-duration-fast, 1ms) */ a{}").mismatches, [], "comments are not scanned");
+	eq(
+		scan("a{transition: x var(--ft-duration-fast-extra, 150ms)}").mismatches.map((m) => m.unknown),
+		[true],
+		"a hyphenated unknown name is still validated"
+	);
 	eq(
 		scan("a{x:\n var(--ft-duration-base,\n 301ms)}").mismatches[0]?.line,
 		2,
