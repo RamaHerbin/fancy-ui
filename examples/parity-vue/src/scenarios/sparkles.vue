@@ -1,9 +1,16 @@
 <script setup lang="ts">
-// Mirrors src/lib/components/docs/DemoRenderer.svelte, slug "sparkles":
-// <Sparkles background="transparent" particleColor="#ffffff" particleDensity={60} />.
+// Mirrors src/lib/components/docs/DemoRenderer.svelte, slug "sparkles": the `defaultProps`
+// (dark backdrop, currentColor particles, density 160, text-white) inside the `previewBox` stage.
 import { Sparkles } from "fancy-ui-vue";
 </script>
 
 <template>
-	<Sparkles background="transparent" particle-color="#ffffff" :particle-density="60" />
+	<div data-demo-stage class="relative flex h-[300px] w-full items-center justify-center">
+		<Sparkles
+			background="#0b1020"
+			particle-color="currentColor"
+			:particle-density="160"
+			class="text-white"
+		/>
+	</div>
 </template>
