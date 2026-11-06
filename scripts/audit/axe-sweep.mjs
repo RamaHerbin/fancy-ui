@@ -55,8 +55,13 @@ export const OVERLAYS = new Set(
 		" "
 	)
 );
-const POPUP =
-	"[role=dialog],[role=alertdialog],[role=listbox],[role=menu],[role=tooltip],[popover]";
+/**
+ * Popup roots: the ARIA popup roles plus the portalled panels that carry no role
+ * on purpose (hover card, date picker, popover) and would otherwise sit outside
+ * `[data-parity-stage]` unseen by the open-state scan and the keyboard probe.
+ */
+export const POPUP =
+	"[role=dialog],[role=alertdialog],[role=listbox],[role=menu],[role=tooltip],[popover],.ft-hover-card-panel,.ft-date-picker-panel,.ft-popover-content";
 const INCLUDE_OPEN = ["[data-parity-stage]", ...POPUP.split(",")];
 
 // Runs in the page: settle, then axe, then classify every node as demo chrome or component.
@@ -232,6 +237,10 @@ export function s6Partial(slug, res) {
 		});
 	}
 	if (a8.score === null) partial.uncertain_flags.push(`A8 not scored: ${a8.note}`);
+	if (res?.keyboard && res.keyboard.keyboardOpen === false)
+		partial.uncertain_flags.push(
+			"keyboard: the overlay did not open from the keyboard (focus/Escape checked through the pointer fallback)"
+		);
 	if (res?.errors?.length) partial.uncertain_flags.push(...res.errors.map((e) => `axe: ${e}`));
 	return partial;
 }
@@ -253,6 +262,7 @@ async function openState(page, slug, hint) {
 			else if (s.focus) await loc(page, s.focus).focus({ timeout: 4000 });
 			else if (s.press) await page.keyboard.press(s.press);
 			else if (s.type) await page.keyboard.type(s.type);
+			else if (s.wait) await page.waitForTimeout(s.wait);
 		}
 		return "hint";
 	}
@@ -268,6 +278,44 @@ async function openState(page, slug, hint) {
 	if (slug === "tooltip" || slug === "hover-card") await trig.focus();
 	else await trig.click({ timeout: 4000 });
 	return "first-trigger";
+}
+
+/**
+ * Open an overlay the way a keyboard user would: focus its trigger, then press
+ * the opening key for that kind of widget (focus alone for the tooltip and the
+ * hover card, Shift+F10 for the context menu, Enter / Space / ArrowDown for the
+ * rest). The pointer steps of an `open` hint only tell us which trigger to focus.
+ * Returns how it opened, or null when no popup appeared.
+ */
+async function openByKeyboard(page, slug, hint) {
+	const first = (hint.states?.open?.steps ?? []).find((s) => s.click || s.hover || s.focus);
+	const trig = first
+		? loc(page, first.click ?? first.hover ?? first.focus)
+		: page
+				.locator("[data-parity-stage]")
+				.locator('button, [role=combobox], input, [aria-haspopup], [tabindex="0"]')
+				.first();
+	await trig.focus({ timeout: 4000 });
+	const visible = () =>
+		page
+			.locator(POPUP)
+			.first()
+			.isVisible()
+			.catch(() => false);
+	await page.waitForTimeout(600);
+	if (await visible()) return "focus";
+	const keys =
+		slug === "tooltip" || slug === "hover-card"
+			? []
+			: slug === "context-menu"
+				? ["Shift+F10", "ContextMenu"]
+				: ["Enter", "Space", "ArrowDown"];
+	for (const key of keys) {
+		await page.keyboard.press(key);
+		await page.waitForTimeout(500);
+		if (await visible()) return key;
+	}
+	return null;
 }
 
 const activeInfo = (page) =>
@@ -287,7 +335,11 @@ async function keyboard(page, base, slug, hint) {
 	try {
 		await page.goto(`${base}/_parity/${slug}?theme=dark`, { waitUntil: "networkidle" });
 		await page.waitForSelector("[data-parity-stage]");
-		k.via = await openState(page, slug, hint);
+		// Keyboard first; when the overlay only opens from the pointer, open it that
+		// way so the focus and Escape checks still run, and say so (`keyboardOpen`).
+		k.via = await openByKeyboard(page, slug, hint);
+		k.keyboardOpen = k.via !== null;
+		if (!k.keyboardOpen) k.via = `pointer-fallback:${await openState(page, slug, hint)}`;
 		await page.waitForTimeout(500);
 		k.opened = await page
 			.locator(POPUP)

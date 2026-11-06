@@ -458,18 +458,20 @@ export function scoreA5(entry) {
 	let worstSettle = 0;
 	let n = 0;
 	const missing = new Set();
-	const split = (key) => ({
-		hover: key.endsWith("-hover"),
-		ms: Number(key.replace(/-hover$/, "")),
-	});
+	// `<ms>`, `<ms>-hover` (hover pass) or `<ms>@<state>` (interaction state, see
+	// scripts/parity/states.mjs): each series settles at its own largest moment.
+	const parse = (key) => {
+		const m = /^(\d+)(-hover)?(?:@([\w-]+))?$/.exec(key);
+		return m ? { ms: Number(m[1]), series: `${m[3] ?? "rest"}${m[2] ? "/hover" : ""}` } : null;
+	};
 	for (const moments of Object.values(entry)) {
+		const parsed = Object.keys(moments ?? {})
+			.map((key) => [key, parse(key)])
+			.filter(([, p]) => p);
 		const settle = {};
-		for (const key of Object.keys(moments ?? {})) {
-			const { hover, ms } = split(key);
-			settle[hover] = Math.max(settle[hover] ?? -1, ms);
-		}
-		for (const [key, byFw] of Object.entries(moments ?? {})) {
-			const { hover, ms } = split(key);
+		for (const [, p] of parsed) settle[p.series] = Math.max(settle[p.series] ?? -1, p.ms);
+		for (const [key, p] of parsed) {
+			const byFw = moments[key];
 			for (const fw of ["react", "vue"]) {
 				const v = byFw?.[fw];
 				if (v === null || v === undefined) {
@@ -478,7 +480,7 @@ export function scoreA5(entry) {
 				}
 				n++;
 				worst = Math.max(worst, v);
-				if (ms === settle[hover]) worstSettle = Math.max(worstSettle, v);
+				if (p.ms === settle[p.series]) worstSettle = Math.max(worstSettle, v);
 			}
 		}
 	}

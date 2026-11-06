@@ -214,14 +214,29 @@ async function windowRun(page, cdp, ms, sweep) {
 	};
 }
 
+/**
+ * Navigate and require a ready parity stage. An error page (the parity route
+ * answers 404 on a production build) or a page without a stage must fail the
+ * measurement, not be measured as a quiet component.
+ */
+async function gotoStage(page, url) {
+	const resp = await page.goto(url, { waitUntil: "load" });
+	if (resp && !resp.ok()) throw new Error(`HTTP ${resp.status()} for ${url}`);
+	await page.waitForSelector("[data-parity-stage]", { timeout: 15000 });
+}
+
 async function open(browser, base, slug) {
 	const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 	const page = await ctx.newPage();
 	await page.addInitScript(PROBE);
 	const errors = [];
 	page.on("pageerror", (e) => errors.push(String(e).slice(0, 120)));
-	await page.goto(`${base}/_parity/${slug}?theme=dark`, { waitUntil: "load" });
-	await page.waitForSelector("[data-parity-stage]", { timeout: 15000 }).catch(() => {});
+	try {
+		await gotoStage(page, `${base}/_parity/${slug}?theme=dark`);
+	} catch (e) {
+		await ctx.close();
+		throw e;
+	}
 	const cdp = await ctx.newCDPSession(page);
 	await cdp.send("Performance.enable");
 	await cdp.send("HeapProfiler.enable");
@@ -245,8 +260,9 @@ async function measure(browser, base, slug, REPS, RELOADS) {
 	const samples = [];
 	for (let i = 1; i <= RELOADS; i++) {
 		if (i > 1) {
-			await page.reload({ waitUntil: "load" });
-			await page.waitForSelector("[data-parity-stage]", { timeout: 15000 }).catch(() => {});
+			const resp = await page.reload({ waitUntil: "load" });
+			if (resp && !resp.ok()) throw new Error(`HTTP ${resp.status()} on reload ${i}`);
+			await page.waitForSelector("[data-parity-stage]", { timeout: 15000 });
 		}
 		await sleep(400);
 		if (i === 1 || i === 5 || i === 10 || i === 15 || i === RELOADS) {

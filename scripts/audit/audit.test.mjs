@@ -23,7 +23,7 @@ import {
 	renderMatrix,
 	validateAll,
 } from "./build-matrix.mjs";
-import { split as axeSplit, countSeriousCritical, s6Partial } from "./axe-sweep.mjs";
+import { POPUP, split as axeSplit, countSeriousCritical, s6Partial } from "./axe-sweep.mjs";
 import { buildInventory, creditSources, entryBlocks, field, tagList } from "./inventory.mjs";
 import {
 	AXES,
@@ -533,6 +533,12 @@ test("S6: A8 from serious, critical and moderate hits and the keyboard check", (
 	assert.equal(scoreA8(res(state(), state([critical]))).score, 0);
 	assert.equal(scoreA8(res(state(), state(), { pass: false })).score, 0);
 	assert.equal(scoreA8({ themes: {}, errors: ["dark: timeout"] }).score, null);
+	// portalled panels that carry no role are popup roots too
+	for (const sel of [".ft-hover-card-panel", ".ft-date-picker-panel", ".ft-popover-content"])
+		assert.ok(POPUP.split(",").includes(sel), sel);
+	const fallback = s6Partial("x", res(state(), state(), { pass: true, keyboardOpen: false }));
+	assert.equal(fallback.axes.A8.score, 3);
+	assert.ok(fallback.uncertain_flags.some((f) => /did not open from the keyboard/.test(f)));
 	const p = s6Partial("x", res(state([serious])));
 	assert.equal(p.axes.A8.score, 1);
 	assert.equal(p.findings[0].id, "x-60");
@@ -552,6 +558,20 @@ test("S9: A5 from the parity ratios, settle drift ranks above intermediate drift
 	assert.equal(scoreA5(entry(0, 0.2)).score, 0);
 	assert.equal(scoreA5(null).score, null);
 	assert.deepEqual(scoreA5({ dark: { 0: { react: 0, vue: null } } }).missing, ["vue"]);
+	// interaction-state keys (`<ms>@<state>`) form their own series: they neither
+	// poison the rest settle moment nor hide a settled regression
+	const withState = (restSettle, stateMid) => ({
+		dark: {
+			0: { react: 0, vue: 0 },
+			4000: { react: restSettle, vue: 0 },
+			"0@open": { react: stateMid, vue: 0 },
+			"150@open": { react: 0, vue: 0 },
+		},
+	});
+	assert.equal(scoreA5(withState(0.2, 0)).score, 0);
+	assert.equal(scoreA5(withState(0, 0.02)).score, 2);
+	assert.equal(scoreA5({ dark: { "150@open": { react: 0.02, vue: 0 } } }).score, 1);
+	assert.equal(scoreA5({ dark: { junk: { react: 0.5, vue: 0.5 } } }).score, null);
 	const p = s9Partial("x", entry(0, 0.02));
 	assert.equal(p.findings[0].id, "x-90");
 	assert.equal(p.findings[0].priority, "P1");

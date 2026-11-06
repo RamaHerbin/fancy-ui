@@ -203,6 +203,7 @@ One component (replace `<slug>`; every step accepts `--only`):
 node scripts/audit/inventory.mjs
 node scripts/audit/static.mjs --only <slug>
 node scripts/parity/capture.mjs --only <slug> --moments 0,150,300,600,1200,2000,4000
+node scripts/parity/diff.mjs --only <slug>          # writes .parity/scores.json, the A5 input sheet.mjs reads
 node scripts/parity/capture.mjs --only <slug> --reduced-motion reduce --moments 0,300,1500,3000 --out .parity-rm
 node scripts/audit/sheet.mjs --only <slug>
 node scripts/audit/rm-check.mjs --only <slug>
