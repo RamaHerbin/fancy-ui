@@ -101,7 +101,7 @@
 	{...rest}
 	bind:this={ref}
 	id={context?.contentId ?? rest.id}
-	class="ft-collapsible-content ease-[var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))] grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--ft-collapsible-duration,240ms)] data-[state=open]:grid-rows-[1fr] motion-reduce:transition-none"
+	class="ft-collapsible-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--ft-collapsible-duration,240ms)] ease-[var(--ft-ease-out,cubic-bezier(0.16,1,0.3,1))] data-[state=open]:grid-rows-[1fr] motion-reduce:transition-none"
 	data-state={open ? "open" : "closed"}
 	inert={open ? undefined : true}
 	style:visibility={hidden ? "hidden" : undefined}

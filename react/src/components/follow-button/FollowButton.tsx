@@ -14,6 +14,7 @@ import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
+import { DURATIONS } from "../../internals/motion/tokens.js";
 import { Button, type ButtonProps } from "../button/Button.js";
 import type { ButtonVariant, ButtonSize } from "../button/types.js";
 import { StatusMorph } from "../status-morph/StatusMorph.js";
@@ -88,7 +89,11 @@ export interface FollowButtonProps extends Omit<
 }
 
 /** How long the outgoing label stays on screen, in milliseconds. */
-const LEAVE_MS = 80;
+// The outgoing layer is torn down on its animation's `animationend`, so a
+// consumer who retimes `--ft-duration-micro` keeps the script in step with
+// the stylesheet; the timer is only a safety net for an animation that never
+// runs (an ancestor hidden mid-swap).
+const LEAVE_FALLBACK_MS = DURATIONS.entrance;
 
 /**
  * The inline `style` rides StatusMorph's rest props and lands as an attribute,
@@ -315,9 +320,10 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 			if (swap.leaving === null) return;
 			const timer = setTimeout(() => {
 				setSwap((current) => ({ ...current, leaving: null }));
-			}, LEAVE_MS);
+			}, LEAVE_FALLBACK_MS);
 			return () => clearTimeout(timer);
 		}, [swap.leaving]);
+		const endLeave = () => setSwap((current) => ({ ...current, leaving: null }));
 
 		/*
 		 * The glyph is driven, not bound: `state` comes from the machine, so the
@@ -379,7 +385,7 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 							{errorLabel}
 						</span>
 						{swap.leaving !== null && (
-							<span className="ft-follow__leave" aria-hidden="true">
+							<span className="ft-follow__leave" aria-hidden="true" onAnimationEnd={endLeave}>
 								{swap.leaving}
 							</span>
 						)}

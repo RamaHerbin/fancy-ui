@@ -13,6 +13,7 @@ import { useConstant } from "../../internals/dom/ssr.js";
 import { useCopy } from "../../internals/use-copy.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
+import { DURATIONS } from "../../internals/motion/tokens.js";
 import { Button, type ButtonProps } from "../button/Button.js";
 import type { ButtonVariant, ButtonSize } from "../button/types.js";
 import { StatusMorph, type StatusMorphState } from "../status-morph/StatusMorph.js";
@@ -61,7 +62,11 @@ export interface CopyButtonProps extends Omit<
 }
 
 /** How long the outgoing label stays on screen, in milliseconds. */
-const LEAVE_MS = 80;
+// The outgoing layer is torn down on its animation's `animationend`, so a
+// consumer who retimes `--ft-duration-micro` keeps the script in step with
+// the stylesheet; the timer is only a safety net for an animation that never
+// runs (an ancestor hidden mid-swap).
+const LEAVE_FALLBACK_MS = DURATIONS.entrance;
 
 /**
  * The copy glyph handed to StatusMorph's `idle` slot. A module-scope constant
@@ -251,9 +256,10 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			if (swap.leaving === null) return;
 			const timer = setTimeout(() => {
 				setSwap((current) => ({ ...current, leaving: null }));
-			}, LEAVE_MS);
+			}, LEAVE_FALLBACK_MS);
 			return () => clearTimeout(timer);
 		}, [swap.leaving]);
+		const endLeave = () => setSwap((current) => ({ ...current, leaving: null }));
 
 		// StatusMorph's `resetAfter` is what normally walks `morphState` back to
 		// "idle", and custom `children` replace the whole icon slot — so in that
@@ -343,7 +349,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 							{errorLabel}
 						</span>
 						{swap.leaving !== null && (
-							<span className="ft-copybtn__leave" aria-hidden="true">
+							<span className="ft-copybtn__leave" aria-hidden="true" onAnimationEnd={endLeave}>
 								{swap.leaving}
 							</span>
 						)}

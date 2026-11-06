@@ -122,9 +122,9 @@ defineSlots<{
 	opacity: 0;
 	transform: translate3d(0, 40%, 0);
 	transition:
-		/* off-token: the sheen's own pacing, longer than a state flip */
+		/* off-token: sheen pacing of its own, longer than a state flip */
 		opacity 500ms var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
-		transform 700ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* EASINGS.out */ /* off-token: the sheen's own pacing, longer than a state flip */
+		transform 700ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* EASINGS.out */ /* off-token: sheen pacing of its own, longer than a state flip */
 }
 
 /* The bottom edge catches the light as the glow arrives. */
@@ -144,7 +144,7 @@ defineSlots<{
 		transparent
 	);
 	opacity: 0;
-	transition: opacity 500ms var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* off-token: the sheen's own pacing, longer than a state flip */
+	transition: opacity 500ms var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* off-token: sheen pacing of its own, longer than a state flip */
 }
 
 .bento-tile:hover,
@@ -174,7 +174,7 @@ defineSlots<{
 
 /* Content lift. */
 .bento-tile :deep(.bento-lift) {
-	transition: transform 500ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* off-token: the sheen's own pacing, longer than a state flip */
+	transition: transform 500ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* off-token: sheen pacing of its own, longer than a state flip */
 }
 
 /* The icon sits in a small inset tile: darker well, inset hairline. */
@@ -227,7 +227,7 @@ defineSlots<{
 	transform: translate3d(-8px, 0, 0);
 	transition:
 		opacity var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
-		/* off-token: the sheen's own pacing, longer than a state flip */ transform 500ms
+		/* off-token: sheen pacing of its own, longer than a state flip */ transform 500ms
 			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
 		color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 }

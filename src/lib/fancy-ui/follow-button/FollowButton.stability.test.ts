@@ -52,7 +52,7 @@ describe("FollowButton width stability and text swap", () => {
 		expect(live(container).hasAttribute("aria-hidden")).toBe(false);
 	});
 
-	it("shows the outgoing label for 80 ms while the new one arrives", async () => {
+	it("shows the outgoing label until its exit animation ends", async () => {
 		const { container } = render(FollowButton, { props: {} });
 		expect(leaving(container)).toBeNull();
 		expect(live(container).hasAttribute("data-swapped")).toBe(false);
@@ -66,6 +66,26 @@ describe("FollowButton width stability and text swap", () => {
 		expect(leaving(container)?.getAttribute("aria-hidden")).toBe("true");
 
 		await vi.advanceTimersByTimeAsync(79);
+		expect(leaving(container)).not.toBeNull();
+		leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		await flush();
+		expect(leaving(container)).toBeNull();
+	});
+
+	it("tears the outgoing label down on a safety timer when its animation never ends", async () => {
+		const { container } = render(FollowButton, { props: {} });
+		expect(leaving(container)).toBeNull();
+		expect(live(container).hasAttribute("data-swapped")).toBe(false);
+
+		await fireEvent.click(button(container));
+		await flush();
+
+		expect(text(container)).toBe("Following");
+		expect(live(container).hasAttribute("data-swapped")).toBe(true);
+		expect(leaving(container)?.textContent).toBe("Follow");
+		expect(leaving(container)?.getAttribute("aria-hidden")).toBe("true");
+
+		await vi.advanceTimersByTimeAsync(599);
 		expect(leaving(container)).not.toBeNull();
 		await vi.advanceTimersByTimeAsync(2);
 		expect(leaving(container)).toBeNull();
@@ -88,6 +108,9 @@ describe("FollowButton width stability and text swap", () => {
 		const { container } = render(FollowButton, { props: { onToggle, resetMs: 5000 } });
 		await fireEvent.click(button(container));
 		await flush();
+		// the first swap's outgoing layer has finished leaving
+		leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		await flush();
 		await vi.advanceTimersByTimeAsync(300);
 		expect(text(container)).toBe("Try again");
 		expect(leaving(container)).toBeNull();
@@ -95,7 +118,8 @@ describe("FollowButton width stability and text swap", () => {
 		await flush();
 		expect(text(container)).toBe("Following");
 		expect(leaving(container)?.textContent).toBe("Try again");
-		await vi.advanceTimersByTimeAsync(100);
+		leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		await flush();
 		expect(leaving(container)).toBeNull();
 	});
 

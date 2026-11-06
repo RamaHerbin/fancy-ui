@@ -61,6 +61,7 @@
 	import { createCopy } from "../_internals/clipboard.svelte.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 
 	let {
 		value,
@@ -176,7 +177,11 @@
 	// `prefersReducedMotion()` is read once per swap, on purpose: a one-shot
 	// answer is all a 80 ms beat needs. Under reduced motion there is no
 	// outgoing layer at all: the text snaps.
-	const LEAVE_MS = 80;
+	// The outgoing layer is torn down on its animation's `animationend`, so a
+	// consumer who retimes `--ft-duration-micro` keeps the script in step with
+	// the stylesheet; the timer is only a safety net for an animation that never
+	// runs (an ancestor hidden mid-swap).
+	const LEAVE_FALLBACK_MS = DURATIONS.entrance;
 	let swapped = $state(false);
 	let leaving = $state<string | null>(null);
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -201,8 +206,13 @@
 		leaving = previous;
 		leaveTimer = setTimeout(() => {
 			leaving = null;
-		}, LEAVE_MS);
+		}, LEAVE_FALLBACK_MS);
 	});
+
+	function endLeave() {
+		clearTimeout(leaveTimer);
+		leaving = null;
+	}
 
 	$effect(() => () => clearTimeout(leaveTimer));
 
@@ -319,7 +329,8 @@
 			<span class="ft-copybtn__ghost" aria-hidden="true">{copiedLabel}</span>
 			<span class="ft-copybtn__ghost" aria-hidden="true">{errorLabel}</span>
 			{#if leaving !== null}
-				<span class="ft-copybtn__leave" aria-hidden="true">{leaving}</span>
+				<span class="ft-copybtn__leave" aria-hidden="true" onanimationend={endLeave}>{leaving}</span
+				>
 			{/if}
 			{#key currentLabel}
 				<span class="ft-copybtn__live" data-swapped={swapped ? "" : undefined}>{currentLabel}</span>

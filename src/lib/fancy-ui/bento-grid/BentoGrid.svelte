@@ -128,7 +128,7 @@
 			transition:
 				opacity var(--ft-duration-entrance, 600ms)
 					var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
-				/* off-token: the sheen's own pacing, longer than a state flip */ transform 800ms
+				/* off-token: sheen pacing of its own, longer than a state flip */ transform 800ms
 					var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
 				border-color var(--ft-duration-base, 300ms)
 					var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* DURATIONS.entrance, EASINGS.out */

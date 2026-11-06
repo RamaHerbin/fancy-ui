@@ -7,7 +7,7 @@
  * traversal, and a file is rewritten only when its content changes.
  *
  * A1: every `cubic-bezier()` / duration literal in `src/lib/fancy-ui/<slug>/` is
- * classified against `_internals/motion/tokens.ts` as on-token, justified (a
+ * classified against `_internals/motion/token-values.ts` as on-token, justified (a
  * nearby comment names why), ambient-loop (an `infinite` animation of a second
  * or more is excluded) or OFF-TOKEN. Inline `style=` / `style:` motion in markup
  * is read too, not only `<style>` blocks.
@@ -49,12 +49,12 @@ let SRC = "";
 let TOKEN_CURVES = new Set();
 const TOKEN_MS = new Set([80, 150, 300, 200, 600, 15, 20, 40, 50]); // DURATIONS + STAGGERS + STAGGER_CAP floor/ceil (token-values.ts)
 
-/** Point the census at a checkout and read its token curves from tokens.ts. */
+/** Point the census at a checkout and read its token curves from token-values.ts. */
 export function configure(repo, tokensSrc) {
 	REPO = repo;
 	SRC = path.join(repo, "src", "lib", "fancy-ui");
 	const text =
-		tokensSrc ?? fs.readFileSync(path.join(SRC, "_internals", "motion", "tokens.ts"), "utf8");
+		tokensSrc ?? fs.readFileSync(path.join(SRC, "_internals", "motion", "token-values.ts"), "utf8");
 	TOKEN_CURVES = new Set(
 		[...text.matchAll(/cubic-bezier\(([^)]*)\)/g)].map((m) => normCurve(m[1]))
 	);
