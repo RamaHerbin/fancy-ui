@@ -1068,6 +1068,10 @@ export function analyse(item) {
 				(reg === "script" && /\.animate\(/.test(l))
 			)
 				add(`${f.rel}:${i + 1}: ${l.trim().slice(0, 140)} [animate() call]`, "animatecall");
+			// a GSAP tween or timeline is JS motion like animate(): it classifies the
+			// component and must read the reduced-motion helpers too
+			if (reg === "script" && /\bgsap\.(to|from|fromTo|timeline|set)\s*\(/.test(l))
+				add(`${f.rel}:${i + 1}: ${l.trim().slice(0, 140)} [gsap tween]`, "animatecall");
 			if (reg === "script" && /\banimate\(/.test(l) && /(import|from)/.test(l))
 				add(`${f.rel}:${i + 1}: ${l.trim().slice(0, 140)} [animate import]`);
 		}

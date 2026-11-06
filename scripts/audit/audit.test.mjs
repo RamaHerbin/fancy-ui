@@ -241,6 +241,10 @@ test("A2 static: ungated transform motion scores 0, a gate or a blanket reduce o
 	);
 	assert.equal(gsapTween.axes.A1.score, 2);
 	assert.match(gsapTween.axes.A1.note, /duration:0\.4s/);
+	// and the tween is JS motion: not static, and the A2 static half scores it as
+	// JS motion with no reduced-motion read (1, like animate() without a helper)
+	assert.notEqual(gsapTween.fields.motion_class, "static");
+	assert.equal(gsapTween.axes.A2.score, 1);
 	assert.equal(
 		fixtureRepo("<script>\nanimate(node, { duration: 150 });\n</script>").axes.A1.score,
 		3
