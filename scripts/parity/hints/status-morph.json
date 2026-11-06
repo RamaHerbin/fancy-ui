@@ -1,0 +1,24 @@
+{
+	"states": {
+		"action": {
+			"steps": [
+				{
+					"click": {
+						"role": "button",
+						"name": "Save changes"
+					}
+				},
+				{
+					"wait": 1200
+				}
+			],
+			"expect": [
+				{
+					"css": "button"
+				}
+			],
+			"moments": [0, 80, 300, 600, 1200],
+			"noSettle": true
+		}
+	}
+}

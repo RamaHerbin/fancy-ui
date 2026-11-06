@@ -138,7 +138,7 @@ export function MatrixRain({
 			columns = Array.from({ length: colCount }, () => Math.floor(random() * (h / safeGlyphSize)));
 		}
 
-		function step() {
+		function step(advanceNow = false) {
 			const w = canvasW;
 			const h = canvasH;
 
@@ -159,7 +159,9 @@ export function MatrixRain({
 
 			// Only advance every N frames to control speed below 1x
 			const shouldAdvance =
-				currentSpeed >= 1 || frameCountRef.current % Math.round(1 / currentSpeed) === 0;
+				advanceNow ||
+				currentSpeed >= 1 ||
+				frameCountRef.current % Math.round(1 / currentSpeed) === 0;
 
 			if (shouldAdvance) {
 				for (let i = 0; i < columns.length; i++) {
@@ -201,8 +203,11 @@ export function MatrixRain({
 		}
 
 		// Pre-rolls the simulation, then leaves the canvas holding one still frame.
+		// Every pre-roll step advances the rain: the live frame-skip cadence that
+		// slows sub-1x speeds would otherwise skip all of them (speed 0.01 advances
+		// once per 100 frames) and leave the still black.
 		function paintStill() {
-			for (let i = 0; i < STILL_PRE_ROLL_STEPS; i++) step();
+			for (let i = 0; i < STILL_PRE_ROLL_STEPS; i++) step(true);
 		}
 
 		// A queued frame is the loop's only "is it running" state, so `0` is the

@@ -325,4 +325,37 @@ describe("createFlickeringGrid", () => {
 		tick(48);
 		expect(pending.size).toBe(0);
 	});
+
+	it("repaints the idle still frame when the document theme class flips (currentColor)", async () => {
+		const flushObservers = () => new Promise<void>((r) => setTimeout(r, 0));
+		const { container, canvas, draws } = makeElements();
+		const engine = createFlickeringGrid({ container, canvas }, { reducedMotion: true })!;
+		engine.setInView(true);
+		tick(16);
+		expect(draws.clearRectCalls).toBe(1);
+
+		try {
+			document.documentElement.classList.add("dark");
+			await flushObservers();
+			expect(draws.clearRectCalls).toBe(2);
+			expect(pending.size).toBe(0);
+
+			// A hex colour has nothing to re-read: the flip is ignored.
+			engine.setOptions({ color: "#ff0000" });
+			expect(draws.clearRectCalls).toBe(3);
+			document.documentElement.classList.remove("dark");
+			await flushObservers();
+			expect(draws.clearRectCalls).toBe(3);
+
+			// Nothing after destroy.
+			engine.setOptions({ color: "currentColor" });
+			expect(draws.clearRectCalls).toBe(4);
+			engine.destroy();
+			document.documentElement.classList.add("dark");
+			await flushObservers();
+			expect(draws.clearRectCalls).toBe(4);
+		} finally {
+			document.documentElement.classList.remove("dark");
+		}
+	});
 });

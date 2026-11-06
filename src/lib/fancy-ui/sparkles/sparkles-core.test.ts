@@ -275,4 +275,41 @@ describe("createSparkles", () => {
 		frames[0]?.(0);
 		expect(frames.length).toBe(1);
 	});
+
+	it("repaints the idle still frame when the document theme class flips (currentColor)", async () => {
+		const flushObservers = () => new Promise<void>((r) => setTimeout(r, 0));
+		const fakeCtx = makeFakeCtx();
+		const { canvas, container } = makeElements(fakeCtx);
+		stubRect(container, 200, 100);
+		const engine = createSparkles(
+			{ canvas, container },
+			{ particleDensity: 4, particleColor: "currentColor", reducedMotion: true },
+			() => 0.5
+		)!;
+		expect(fakeCtx.fill).toHaveBeenCalledTimes(4);
+
+		try {
+			document.documentElement.classList.add("dark");
+			await flushObservers();
+			expect(fakeCtx.fill).toHaveBeenCalledTimes(8);
+			expect(frames.length).toBe(0);
+
+			// A hex colour has nothing to re-read: the flip is ignored.
+			engine.setOptions({ particleColor: "#ff0000" });
+			expect(fakeCtx.fill).toHaveBeenCalledTimes(12);
+			document.documentElement.classList.remove("dark");
+			await flushObservers();
+			expect(fakeCtx.fill).toHaveBeenCalledTimes(12);
+
+			// Nothing after destroy.
+			engine.setOptions({ particleColor: "currentColor" });
+			expect(fakeCtx.fill).toHaveBeenCalledTimes(16);
+			engine.destroy();
+			document.documentElement.classList.add("dark");
+			await flushObservers();
+			expect(fakeCtx.fill).toHaveBeenCalledTimes(16);
+		} finally {
+			document.documentElement.classList.remove("dark");
+		}
+	});
 });

@@ -1,0 +1,8 @@
+{
+	"ignore": [
+		{
+			"path": "src/lib/fancy-ui/sound/",
+			"reason": "audio envelope milliseconds (attack, decay, release), not visual motion"
+		}
+	]
+}

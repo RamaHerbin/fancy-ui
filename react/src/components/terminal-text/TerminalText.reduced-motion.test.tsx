@@ -229,6 +229,39 @@ describe("TerminalText preference flips", () => {
 		}
 	});
 
+	it("puts the original character back when reduce arrives mid-glitch", async () => {
+		const setReduce = controllableMatchMedia(false);
+		vi.useFakeTimers();
+		// Pinned random: a 2000 ms interval, line 0, character 0, first glyph.
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const advanceAsync = (ms: number) =>
+			act(async () => {
+				await vi.advanceTimersByTimeAsync(ms);
+			});
+		try {
+			const { container } = render(<TerminalText lines={["hello"]} speed={1} glitch />);
+			// push@0, five characters, done@8. A separate act so the stream's
+			// updates render before the glitch reads the displayed lines.
+			await advanceAsync(8);
+			expect(container.textContent).toContain("hello");
+			// t=2000: the first glitch swap lands.
+			await advanceAsync(1992);
+			expect(container.textContent).toContain("アello");
+
+			// Inside the 100 ms glitch window: stopping the loop must restore the text.
+			act(() => setReduce(true));
+			await advanceAsync(1);
+			expect(container.textContent).toContain("hello");
+			expect(container.textContent).not.toContain("ア");
+			await advanceAsync(20000);
+			expect(container.textContent).toContain("hello");
+			expect(container.textContent).not.toContain("ア");
+		} finally {
+			vi.useRealTimers();
+			vi.restoreAllMocks();
+		}
+	});
+
 	it("snaps to every line when reduce arrives mid-stream, then completes once", () => {
 		const setReduce = controllableMatchMedia(false);
 		vi.useFakeTimers();

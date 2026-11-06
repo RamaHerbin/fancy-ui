@@ -94,4 +94,14 @@ describe("MatrixRain reduced motion", () => {
 		rerender(<MatrixRain color="#ff0000" fadeOpacity={0.2} />);
 		expect(fillRects).toHaveLength(0);
 	});
+
+	it("pre-rolls the still at a sub-1x speed instead of leaving it black", () => {
+		stubMotion(true);
+		const { fillTexts } = stubCanvas();
+		vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		// The live cadence advances once every 100 frames at this speed; the
+		// pre-roll must not depend on it.
+		render(<MatrixRain speed={0.01} />);
+		expect(fillTexts.length).toBeGreaterThan(36);
+	});
 });
