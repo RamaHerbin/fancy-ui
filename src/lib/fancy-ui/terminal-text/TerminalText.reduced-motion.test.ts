@@ -234,4 +234,30 @@ describe("TerminalText preference flips", () => {
 			vi.useRealTimers();
 		}
 	});
+
+	it("puts the original character back when reduce arrives mid-glitch", async () => {
+		const setReduce = controllableMatchMedia(false);
+		vi.useFakeTimers();
+		// Pinned random: a 2000 ms interval, line 0, character 0, first glyph.
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		try {
+			const { container } = render(TerminalText, {
+				props: { lines: ["hello"], speed: 1, glitch: true },
+			});
+			await vi.advanceTimersByTimeAsync(2000);
+			expect(container.textContent).toContain("アello");
+
+			// Inside the 100 ms glitch window: stopping the loop must restore the text.
+			setReduce(true);
+			await vi.advanceTimersByTimeAsync(1);
+			expect(container.textContent).toContain("hello");
+			expect(container.textContent).not.toContain("ア");
+			await vi.advanceTimersByTimeAsync(20000);
+			expect(container.textContent).toContain("hello");
+			expect(container.textContent).not.toContain("ア");
+		} finally {
+			vi.useRealTimers();
+			vi.restoreAllMocks();
+		}
+	});
 });

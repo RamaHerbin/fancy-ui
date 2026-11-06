@@ -299,8 +299,24 @@ export function FlickeringGrid({
 		resizeObserver.observe(containerEl);
 		intersectionObserver.observe(canvasEl);
 
+		// Under reduced motion no frame re-reads `currentColor`, so a theme switch
+		// (a class flip on <html>, the way dark mode is usually toggled) would leave
+		// the still frame in the old colour. Repaint the idle frame when that
+		// happens; the live loop already picks the new colour up on its next frame.
+		const themeObserver =
+			typeof MutationObserver !== "undefined"
+				? new MutationObserver(() => {
+						if (CURRENT_COLOR.test(colorRef.current)) repaintIdle();
+					})
+				: null;
+		themeObserver?.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["class"],
+		});
+
 		return () => {
 			repaintRef.current = null;
+			themeObserver?.disconnect();
 			if (animationFrameId) cancelAnimationFrame(animationFrameId);
 			resizeObserver.disconnect();
 			intersectionObserver.disconnect();

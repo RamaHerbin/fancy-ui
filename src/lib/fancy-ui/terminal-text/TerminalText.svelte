@@ -53,6 +53,20 @@
 		}
 	}
 
+	// Puts the original character back when a glitch is live. The loop is
+	// stopped by a `glitch` or preference flip, which also cancels the pending
+	// 100 ms restore — without this the swapped glyph would stay in the
+	// transcript for good.
+	function restoreGlitch() {
+		const live = glitchState;
+		if (!live) return;
+		const { lineIdx, charIdx, original } = live;
+		displayedLines = displayedLines.map((line, idx) =>
+			idx === lineIdx ? line.slice(0, charIdx) + original + line.slice(charIdx + 1) : line
+		);
+		glitchState = null;
+	}
+
 	function scheduleTimeout(fn: () => void, ms: number) {
 		const id = setTimeout(fn, ms);
 		timeouts.push(id);
@@ -211,7 +225,9 @@
 		if (glitch && !reduced.current) {
 			startGlitchLoop();
 		} else {
-			glitchState = null;
+			// Untracked: the restore reads `displayedLines`, which must not make
+			// every streamed character re-run this effect.
+			untrack(restoreGlitch);
 		}
 
 		return () => {

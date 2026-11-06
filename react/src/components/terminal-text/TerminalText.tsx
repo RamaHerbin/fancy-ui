@@ -131,6 +131,21 @@ export function TerminalText({
 		}, 100);
 	}
 
+	// Puts the original character back when a glitch is live. The loop is
+	// stopped by a `glitch` or preference flip; the pending 100 ms restore then
+	// finds no matching state and would leave the swapped glyph in place.
+	function restoreGlitch() {
+		const live = glitchStateRef.current;
+		if (!live) return;
+		glitchStateRef.current = null;
+		const { lineIdx, charIdx, original } = live;
+		setDisplayedLines((prev) =>
+			prev.map((line, idx) =>
+				idx === lineIdx ? line.slice(0, charIdx) + original + line.slice(charIdx + 1) : line
+			)
+		);
+	}
+
 	// The chain owns its own pending id and a cancelled flag, so its teardown
 	// stops exactly the chain it started. Keeping it out of the stream's pool
 	// means a lines/speed/delay restart no longer kills the loop, and a glitch
@@ -235,7 +250,7 @@ export function TerminalText({
 	useEffect(() => {
 		// No glitch loop while reduced: it only adds movement.
 		if (!glitch || reducedMotion) {
-			glitchStateRef.current = null;
+			restoreGlitch();
 			return;
 		}
 

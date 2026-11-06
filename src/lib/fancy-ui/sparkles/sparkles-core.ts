@@ -187,6 +187,21 @@ export function createSparkles(
 	if (reducedMotion) updateAndDraw();
 	else rafId = requestAnimationFrame(updateAndDraw);
 
+	// Under reduced motion no frame re-reads `currentColor`, so a theme switch
+	// (a class flip on <html>, the way dark mode is usually toggled) would leave
+	// the still frame in the old colour. Repaint the idle frame when that
+	// happens; the live loop already picks the new colour up on its next frame.
+	const themeObserver =
+		typeof MutationObserver !== "undefined"
+			? new MutationObserver(() => {
+					if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(particleColor)) updateAndDraw();
+				})
+			: null;
+	themeObserver?.observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["class"],
+	});
+
 	return {
 		setOptions(next) {
 			if (destroyed) return;
@@ -205,6 +220,7 @@ export function createSparkles(
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
+			themeObserver?.disconnect();
 			cancelAnimationFrame(rafId);
 		},
 	};

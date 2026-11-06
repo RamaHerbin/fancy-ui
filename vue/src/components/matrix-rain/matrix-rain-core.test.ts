@@ -353,4 +353,15 @@ describe("createMatrixRain", () => {
 		engine.setOptions({ color: "#ff0000", fadeOpacity: 0.2 });
 		expect(fillRects).toHaveLength(0);
 	});
+
+	it("reducedMotion pre-rolls the still at a sub-1x speed instead of leaving it black", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+		// The live cadence advances once every 100 frames at this speed; the
+		// pre-roll must not depend on it.
+		createMatrixRain({ canvas }, { speed: 0.01, reducedMotion: true }, () => 0.42);
+		expect(frames).toHaveLength(0);
+		// 300 / 16 => 18 columns, a head + body glyph each per advanced step.
+		expect(fillTexts.length).toBeGreaterThan(36);
+	});
 });
