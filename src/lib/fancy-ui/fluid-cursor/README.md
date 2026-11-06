@@ -153,3 +153,7 @@ Notes:
   quantization step; at the default `0.15` dots stay sparse. A click's extra
   brightness is capped independently of `colorIntensity`, so raising it does not
   make clicks pool into a solid disc.
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.

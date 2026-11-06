@@ -66,6 +66,8 @@ export function GlareCard({ className = "", children }: GlareCardProps) {
 	}
 
 	function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+		// Touch never drives the foil: it would stick where the finger lifted.
+		if (event.pointerType === "touch") return;
 		const rotateFactor = 0.4;
 		const rect = refElement.current?.getBoundingClientRect();
 		if (rect) {
@@ -91,7 +93,8 @@ export function GlareCard({ className = "", children }: GlareCardProps) {
 		}
 	}
 
-	function handlePointerEnter() {
+	function handlePointerEnter(event: PointerEvent<HTMLDivElement>) {
+		if (event.pointerType === "touch") return;
 		isPointerInside.current = true;
 		if (timeoutId.current) clearTimeout(timeoutId.current);
 		timeoutId.current = setTimeout(() => {
@@ -107,6 +110,7 @@ export function GlareCard({ className = "", children }: GlareCardProps) {
 		if (refElement.current) {
 			refElement.current.style.removeProperty("--duration");
 			rotate.current = { x: 0, y: 0 };
+			glare.current = { x: 50, y: 50 };
 			writeVars();
 		}
 	}
@@ -120,7 +124,7 @@ export function GlareCard({ className = "", children }: GlareCardProps) {
 			onPointerEnter={handlePointerEnter}
 			onPointerLeave={handlePointerLeave}
 		>
-			<div className="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] motion-safe:transition-transform">
+			<div className="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] has-[:focus-visible]:[--opacity:0.6] motion-safe:transition-transform">
 				<div className="grid size-full mix-blend-soft-light [clip-path:inset(0_0_0_0_round_var(--radius))] [grid-area:1/1]">
 					<div className={cn("size-full bg-slate-950", className)}>{children}</div>
 				</div>

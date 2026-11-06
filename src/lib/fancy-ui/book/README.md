@@ -38,3 +38,8 @@ Native attributes and listeners (`id`, `aria-*`, `data-*`, `onclick`...) go to e
 ## Reduced motion
 
 With `prefers-reduced-motion: reduce` the cover still opens on hover (or sits open when `isStatic` is set) but lands on its angle at once instead of turning over `duration`. The state is unchanged, only the tween is dropped.
+
+## Accessibility
+
+- The cover opens on hover and on keyboard focus: `:focus-visible` on the book itself, or on a link or button inside it, turns the cover the same way.
+- Unless `isStatic` is set, the `Book` root is a tab stop so the cover can be reached without a pointer. If the book wraps its own link or button and you do not want the extra stop, pass `tabindex="-1"` (attributes are spread after the built-in one, so yours wins); focus on the inner control still opens the cover.

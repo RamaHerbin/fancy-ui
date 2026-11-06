@@ -42,6 +42,8 @@ const cssVars = computed(() => ({
 }));
 
 function handlePointerMove(event: PointerEvent) {
+	// Touch never drives the foil: it would stick where the finger lifted.
+	if (event.pointerType === "touch") return;
 	const rotateFactor = 0.4;
 	const rect = refElement.value?.getBoundingClientRect();
 	if (rect) {
@@ -66,7 +68,8 @@ function handlePointerMove(event: PointerEvent) {
 	}
 }
 
-function handlePointerEnter() {
+function handlePointerEnter(event: PointerEvent) {
+	if (event.pointerType === "touch") return;
 	isPointerInside = true;
 	if (timeoutId) clearTimeout(timeoutId);
 	timeoutId = setTimeout(() => {
@@ -83,6 +86,8 @@ function handlePointerLeave() {
 		refElement.value.style.removeProperty("--duration");
 		rotate.x = 0;
 		rotate.y = 0;
+		glare.x = 50;
+		glare.y = 50;
 	}
 }
 </script>
@@ -97,7 +102,7 @@ function handlePointerLeave() {
 		@pointerleave="handlePointerLeave"
 	>
 		<div
-			class="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] motion-safe:transition-transform"
+			class="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] has-[:focus-visible]:[--opacity:0.6] motion-safe:transition-transform"
 		>
 			<div
 				class="grid size-full mix-blend-soft-light [clip-path:inset(0_0_0_0_round_var(--radius))] [grid-area:1/1]"

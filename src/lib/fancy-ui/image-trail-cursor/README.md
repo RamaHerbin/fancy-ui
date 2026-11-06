@@ -53,3 +53,7 @@ The preference is tracked live. Turning it on mid-session destroys the running v
 - Properly typed `variantMap` as `Record<VariantType, ...>` instead of `{ [key: string]: any }`.
 - The Svelte component resets inline styles before re-initializing on variant switch to prevent GSAP style residue — this also clears `pixelated`'s inline border/`image-rendering` when switching away from it.
 - `pixelated` uses `gsap.timeline().set(...)` calls (duration 0) instead of `.to()`/`.fromTo()` tweens, so there is no easing curve on either the pop-in or the pop-out; the two `.set()` calls are positioned `HOLD` seconds apart on the timeline to create the hold before the hard snap-out. The border and `image-rendering: pixelated` are applied once, directly on `img.DOM.el`, in the variant's constructor — they are static styling, not animated properties.
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.

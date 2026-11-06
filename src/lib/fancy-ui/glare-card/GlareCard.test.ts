@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import GlareCard from "./GlareCard.svelte";
 
@@ -43,5 +43,41 @@ describe("GlareCard", () => {
 		const { container } = render(GlareCard);
 		const foil = container.querySelector(".glare-foil");
 		expect(foil).toBeInTheDocument();
+	});
+});
+
+describe("GlareCard pointer type and focus", () => {
+	afterEach(cleanup);
+
+	it("follows a mouse pointer", async () => {
+		const { container } = render(GlareCard);
+		const wrapper = container.querySelector(".glare-container") as HTMLElement;
+		await fireEvent.pointerMove(wrapper, { clientX: 100, clientY: 100, pointerType: "mouse" });
+		expect(wrapper.getAttribute("style") ?? "").not.toMatch(/--m-x:\s*50%[;"]/);
+	});
+
+	it("ignores touch pointers", async () => {
+		const { container } = render(GlareCard);
+		const wrapper = container.querySelector(".glare-container") as HTMLElement;
+		await fireEvent.pointerMove(wrapper, { clientX: 100, clientY: 100, pointerType: "touch" });
+		expect(wrapper.getAttribute("style") ?? "").toMatch(/--m-x:\s*50%/);
+	});
+
+	it("recentres the foil when the pointer leaves", async () => {
+		const { container } = render(GlareCard);
+		const wrapper = container.querySelector(".glare-container") as HTMLElement;
+		await fireEvent.pointerMove(wrapper, { clientX: 100, clientY: 100, pointerType: "mouse" });
+		expect(wrapper.getAttribute("style") ?? "").not.toMatch(/--m-x:\s*50%[;"]/);
+		await fireEvent.pointerLeave(wrapper, { pointerType: "mouse" });
+		const style = wrapper.getAttribute("style") ?? "";
+		expect(style).toMatch(/--m-x:\s*50%[;"]/);
+		expect(style).toMatch(/--m-y:\s*50%[;"]/);
+	});
+
+	it("lights the foil when focus lands inside, same as hover", () => {
+		const { container } = render(GlareCard);
+		const panel = container.querySelector(".glare-container > div") as HTMLElement;
+		expect(panel.className).toContain("has-[:focus-visible]:[--opacity:0.6]");
+		expect(panel.className).toContain("hover:[--opacity:0.6]");
 	});
 });
