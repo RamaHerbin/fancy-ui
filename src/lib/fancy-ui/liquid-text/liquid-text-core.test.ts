@@ -324,6 +324,19 @@ describe("liquid-text-core", () => {
 			engine?.destroy();
 		});
 
+		it("caps the backing-store scale at a pixel ratio of 2", () => {
+			vi.stubGlobal("devicePixelRatio", 3);
+			try {
+				const engine = createLiquidText({ host, canvas }, { ...BASE_OPTIONS, fontSize: 50 });
+				// 300 x round(50 * 1.2) CSS px at the capped ratio of 2
+				expect(canvas.width).toBe(600);
+				expect(canvas.height).toBe(120);
+				engine?.destroy();
+			} finally {
+				vi.unstubAllGlobals();
+			}
+		});
+
 		it("reports the auto-fitted metrics through onMetrics", () => {
 			const onMetrics = vi.fn();
 			const engine = createLiquidText(

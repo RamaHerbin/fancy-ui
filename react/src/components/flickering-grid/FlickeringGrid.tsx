@@ -195,7 +195,7 @@ export function FlickeringGrid({
 			const gridGap = gridGapRef.current;
 			const maxOpacity = maxOpacityRef.current;
 
-			dpr = window.devicePixelRatio || 1;
+			dpr = Math.min(2, window.devicePixelRatio || 1);
 			canvasEl.width = w * dpr;
 			canvasEl.height = h * dpr;
 			canvasEl.style.width = `${w}px`;
@@ -289,8 +289,15 @@ export function FlickeringGrid({
 				if (!entry) return;
 
 				isInView = entry.isIntersecting;
+				// One loop at a time; leaving the viewport cancels the pending frame
+				// so re-entry always restarts it.
 				if (isInView) {
-					animationFrameId = requestAnimationFrame(animate);
+					if (animationFrameId === undefined) {
+						animationFrameId = requestAnimationFrame(animate);
+					}
+				} else if (animationFrameId !== undefined) {
+					cancelAnimationFrame(animationFrameId);
+					animationFrameId = undefined;
 				}
 			},
 			{ threshold: 0 }

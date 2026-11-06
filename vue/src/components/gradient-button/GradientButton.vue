@@ -54,6 +54,7 @@ import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "GradientButton", inheritAttrs: false });
 
@@ -71,6 +72,7 @@ const {
 	disabled = false,
 } = defineProps<GradientButtonProps>();
 const el = useTemplateRef<HTMLButtonElement>("el");
+useOffscreenPause(el);
 
 // Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 // off (and never the default click → press, which `handleClick` already plays).
@@ -95,7 +97,10 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	callListener(onClick ?? onclick, event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	callListener(
+		onClick ?? onclick,
+		event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	);
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds
@@ -153,6 +158,11 @@ function handleClick(event: MouseEvent) {
 .gradient-button:disabled {
 	cursor: not-allowed;
 	opacity: 0.5;
+	animation-play-state: paused;
+}
+
+/* Out of view: freeze the beam. */
+.gradient-button[data-ft-offscreen] {
 	animation-play-state: paused;
 }
 

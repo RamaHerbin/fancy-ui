@@ -38,3 +38,7 @@ A card that reveals text as the user drags their mouse horizontally. Features an
 ## Reduced motion
 
 With `prefers-reduced-motion: reduce` the star field behind the hidden text stays still: each star rests where it was placed, at its own brightness, instead of drifting and fading. The pointer reveal is unchanged.
+
+## Performance
+
+The drifting stars pause while the card is out of view.

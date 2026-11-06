@@ -62,8 +62,9 @@ export function neonBeams(color1: string, color2: string, arc: number, core = fa
 </script>
 
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
+import { computed, ref, useAttrs } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "NeonBorder", inheritAttrs: false });
 
@@ -76,6 +77,9 @@ const {
 } = defineProps<NeonBorderProps>();
 
 const attrs = useAttrs();
+
+const root = ref<HTMLElement | null>(null);
+useOffscreenPause(root);
 
 defineSlots<{ default?(): unknown }>();
 
@@ -109,6 +113,7 @@ const styleVars = computed(() => ({
 
 <template>
 	<div
+		ref="root"
 		v-bind="attrs"
 		:class="
 			cn(
@@ -228,6 +233,13 @@ const styleVars = computed(() => ({
 	/* …then hums: a slow breathing of the glow. */
 	.neon-glow {
 		animation: neon-hum 2.8s ease-in-out 0.9s infinite alternate;
+	}
+
+	/* Out of view: freeze every loop (the attribute sits on the root). */
+	.neon-animated[data-ft-offscreen],
+	[data-ft-offscreen] .neon-light,
+	[data-ft-offscreen] .neon-glow {
+		animation-play-state: paused;
 	}
 }
 

@@ -3,6 +3,7 @@ import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { subscribe, type TickerSubscription } from "../../internals/motion/ticker.js";
 
 /**
  * Sparkles - canvas-based floating particle sparkle effect
@@ -128,7 +129,11 @@ export function Sparkles({
 	const reducedMotion = useReducedMotion();
 	// Set by the effect while the loop is idle, so a colour change can repaint it.
 	const repaintRef = useRef<(() => void) | null>(null);
+	// Colour resolved lazily: `getComputedStyle` stays out of the per-frame path.
+	// The effect below owns the cache; this hook only asks it to drop and repaint.
+	const invalidateFillRef = useRef<(() => void) | null>(null);
 	useEffect(() => {
+		invalidateFillRef.current?.();
 		repaintRef.current?.();
 	}, [particleColor]);
 
@@ -139,7 +144,10 @@ export function Sparkles({
 
 		let ctx: CanvasRenderingContext2D | null = null;
 		let particles: Particle[] = [];
-		let rafId = 0;
+		// Created lazily so a reduced-motion mount never requests a frame; parked,
+		// not removed, while the still frame is shown.
+		let sub: TickerSubscription | null = null;
+		let fill: string | null = null;
 		// Kept alongside the backing store because the context transform below
 		// puts the draw calls in CSS-pixel space while `canvas.width` counts
 		// device pixels; the draw site divides by it to stay in the same space.
@@ -147,7 +155,7 @@ export function Sparkles({
 
 		function resizeCanvas() {
 			if (!canvas || !container) return;
-			dpr = window.devicePixelRatio || 1;
+			dpr = Math.min(2, window.devicePixelRatio || 1);
 			const rect = container.getBoundingClientRect();
 			canvas.width = rect.width * dpr;
 			canvas.height = rect.height * dpr;
@@ -155,7 +163,7 @@ export function Sparkles({
 			if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			// Resizing wiped the bitmap; an idle (reduced-motion) loop has no queued
 			// frame to refill it.
-			if (reducedMotion && particles.length > 0) updateAndDraw();
+			if (reducedMotion && particles.length > 0) paint(0);
 		}
 
 		function generateParticles() {
@@ -176,23 +184,26 @@ export function Sparkles({
 			}
 		}
 
-		function updateAndDraw() {
+		// Per-60 Hz-frame constants scaled by `dt * 60`: the same look at 60 Hz,
+		// the same speed at any other refresh rate.
+		function paint(dt: number) {
 			// Local alias, because `ctx` is reassigned by `resizeCanvas` and
 			// TypeScript will not carry a null check on an outer `let` into the
 			// draw calls below. Same value, same guard as the source.
 			const context = ctx;
 			if (!context || !canvas) return;
 			context.clearRect(0, 0, canvas.width, canvas.height);
-			const fill = resolveCurrentColor(particleColorRef.current, canvas);
+			fill ??= resolveCurrentColor(particleColorRef.current, canvas);
+			const k = dt * 60;
 
 			for (const p of particles) {
-				p.x += p.vx;
-				p.y += p.vy;
+				p.x += p.vx * k;
+				p.y += p.vy * k;
 				if (p.x < -2) p.x = 102;
 				if (p.x > 102) p.x = -2;
 				if (p.y < -2) p.y = 102;
 				if (p.y > 102) p.y = -2;
-				p.phase = (p.phase + p.phaseSpeed) % (Math.PI * 2);
+				p.phase = (p.phase + p.phaseSpeed * k) % (Math.PI * 2);
 				const opacity = 0.3 + (Math.sin(p.phase) * 0.3 + 0.3);
 
 				context.beginPath();
@@ -208,23 +219,28 @@ export function Sparkles({
 					.padStart(2, "0")}`;
 				context.fill();
 			}
+		}
 
-			// One still frame under reduced motion: paint, then idle.
-			if (reducedMotion) {
-				rafId = 0;
-				return;
-			}
-			rafId = requestAnimationFrame(updateAndDraw);
+		function onFrame(dt: number) {
+			// dt is 0 on the first frame and on every resume: the page may have
+			// changed theme while the loop was parked.
+			if (dt === 0) fill = null;
+			paint(dt);
+			// One still frame under reduced motion: paint, then park.
+			if (reducedMotion) sub?.setPaused(true);
 		}
 
 		ctx = canvas.getContext("2d");
 		resizeCanvas();
 		generateParticles();
+		invalidateFillRef.current = () => {
+			fill = null;
+		};
 		if (reducedMotion) {
-			updateAndDraw();
-			repaintRef.current = updateAndDraw;
+			paint(0);
+			repaintRef.current = () => paint(0);
 		} else {
-			rafId = requestAnimationFrame(updateAndDraw);
+			sub = subscribe({ el: canvas, onFrame });
 		}
 
 		const resizeObserver = new ResizeObserver(resizeCanvas);
@@ -237,9 +253,9 @@ export function Sparkles({
 		const themeObserver =
 			typeof MutationObserver !== "undefined"
 				? new MutationObserver(() => {
-						if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(particleColorRef.current)) {
-							updateAndDraw();
-						}
+						if (!CURRENT_COLOR.test(particleColorRef.current)) return;
+						fill = null;
+						if (reducedMotion) paint(0);
 					})
 				: null;
 		themeObserver?.observe(document.documentElement, {
@@ -249,8 +265,9 @@ export function Sparkles({
 
 		return () => {
 			repaintRef.current = null;
+			invalidateFillRef.current = null;
 			themeObserver?.disconnect();
-			cancelAnimationFrame(rafId);
+			sub?.unsubscribe();
 			resizeObserver.disconnect();
 		};
 	}, [

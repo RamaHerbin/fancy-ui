@@ -98,6 +98,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	let {
 		class: className,
@@ -145,6 +146,7 @@
 	data-direction={reverse ? "reverse" : "forward"}
 	aria-hidden="true"
 	{style}
+	use:offscreenPause
 >
 	<!-- faint light falling just inside the edge, clipped to the container -->
 	<div class="bb-spill-clip">
@@ -420,6 +422,11 @@
 
 		.border-beam[data-direction="reverse"] .bb-ride {
 			animation-direction: reverse;
+		}
+
+		/* Out of view: freeze every rider. */
+		.border-beam:global([data-ft-offscreen]) .bb-ride {
+			animation-play-state: paused;
 		}
 	}
 

@@ -1,9 +1,10 @@
-import { forwardRef } from "react";
+import { forwardRef, useCallback, useState } from "react";
 import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./gradient-button.css";
 
 type BaseProps = {
@@ -78,7 +79,10 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 			on: sound ? { pointerenter: "hover" } : {},
 			disabled: restProps.disabled,
 		});
-		const composedRef = useComposedRefs(ref, soundRef);
+		const [node, setNode] = useState<HTMLElement | null>(null);
+		const trackNode = useCallback((el: HTMLElement | null) => setNode(el), []);
+		useOffscreenPause(node);
+		const composedRef = useComposedRefs(ref, soundRef, trackNode);
 
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (!restProps.disabled) playCue("press");

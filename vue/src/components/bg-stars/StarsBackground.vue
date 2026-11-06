@@ -45,6 +45,7 @@ export interface StarsBackgroundProps {
 import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 
 defineOptions({ name: "StarsBackground", inheritAttrs: false });
@@ -108,7 +109,7 @@ onMounted(() => {
 	if (!host || !parallax) return;
 
 	engine = createBgStars(
-		{ host, parallax },
+		{ host, parallax, subscribe },
 		{ factor, stiffness, damping, reducedMotion: reducedMotion.value }
 	);
 });

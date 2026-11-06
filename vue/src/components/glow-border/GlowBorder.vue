@@ -122,8 +122,9 @@ export function glintArc(p: Palette): string {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "GlowBorder", inheritAttrs: false });
 
@@ -136,6 +137,9 @@ const {
 	preset = "chromatic",
 	strength = 0.8,
 } = defineProps<GlowBorderProps>();
+
+const root = ref<HTMLElement | null>(null);
+useOffscreenPause(root);
 
 const palettes = computed(() =>
 	color !== undefined
@@ -165,6 +169,7 @@ const styles = computed(() => ({
 
 <template>
 	<div
+		ref="root"
 		:class="
 			cn(
 				'glow-border animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit]',
@@ -271,6 +276,11 @@ const styles = computed(() => ({
 		gb-flow-1 var(--glow-duration) linear infinite,
 		gb-flow-2 calc(var(--glow-duration) * 1.7) linear infinite reverse,
 		gb-glint calc(var(--glow-duration) * 0.4) linear infinite;
+}
+
+/* Out of view: freeze all three loops. */
+.animate-glow[data-ft-offscreen] {
+	animation-play-state: paused;
 }
 
 @keyframes gb-flow-1 {

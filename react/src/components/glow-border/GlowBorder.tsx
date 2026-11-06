@@ -1,5 +1,6 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./glow-border.css";
 
 export type GlowBorderPreset = "chromatic" | "silver" | "gold";
@@ -130,6 +131,8 @@ export function GlowBorder({
 	preset = "chromatic",
 	strength = 0.8,
 }: GlowBorderProps) {
+	const [node, setNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(node);
 	const palettes =
 		color !== undefined
 			? { dark: customPalette(color, "dark"), light: customPalette(color, "light") }
@@ -155,6 +158,7 @@ export function GlowBorder({
 
 	return (
 		<div
+			ref={setNode}
 			className={cn(
 				"glow-border animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit]",
 				className

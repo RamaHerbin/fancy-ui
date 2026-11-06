@@ -34,6 +34,7 @@ export interface DisplacementTextProps {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import {
 	DEFAULT_MAX_DPR,
 	STATIC_LAYER_STYLE,
@@ -94,7 +95,7 @@ onMounted(() => {
 
 	controller = safely(() =>
 		mountDisplacementText(
-			{ container },
+			{ container, subscribe },
 			{
 				text,
 				fontSize,

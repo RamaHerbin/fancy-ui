@@ -100,6 +100,7 @@ import { callListener } from "../../internals/call-listener.js";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "Compare", inheritAttrs: false });
 
@@ -139,6 +140,7 @@ defineSlots<{
 const reducedMotion = createReducedMotion();
 
 const sliderRef = useTemplateRef<HTMLDivElement>("sliderRef");
+useOffscreenPause(sliderRef);
 const sliderXPercent = ref(initialSliderPercentage);
 const isDragging = ref(false);
 const isMouseOver = ref(false);
@@ -632,6 +634,11 @@ onMounted(() => {
 	}
 	.compare[data-active] .compare-handle__ring {
 		animation-duration: 1.4s;
+	}
+	/* Out of view: freeze the seam pulses and the handle ring. */
+	.compare[data-ft-offscreen] .compare-beam__pulse,
+	.compare[data-ft-offscreen] .compare-handle__ring {
+		animation-play-state: paused;
 	}
 }
 

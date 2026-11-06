@@ -75,8 +75,9 @@ export function meteorField(count: number, seed = 1): Meteor[] {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, shallowRef } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "Meteors", inheritAttrs: false });
 
@@ -90,6 +91,14 @@ const {
 } = defineProps<MeteorsProps>();
 
 const meteors = computed(() => meteorField(count, seed));
+
+// Fragment component: no root of its own, so the first meteor watches the
+// container they all sit in.
+const first = shallowRef<Element | null>(null);
+function bindFirst(el: unknown) {
+	first.value = (el as Element | null) ?? null;
+}
+useOffscreenPause(computed(() => first.value?.parentElement ?? null));
 const speedC = computed(() => (Number.isFinite(speed) && speed > 0 ? speed : 1));
 const angleC = computed(() => (Number.isFinite(angle) ? angle : 215));
 
@@ -117,6 +126,7 @@ function styleFor(m: Meteor): Record<string, string> {
 	<span
 		v-for="(meteor, i) in meteors"
 		:key="i"
+		:ref="i === 0 ? bindFirst : undefined"
 		:class="
 			cn(
 				'meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0',
@@ -186,6 +196,11 @@ function styleFor(m: Meteor): Record<string, string> {
 /* A flare: the meteor swells and brightens just before it burns out. */
 .meteor--flare {
 	animation-name: meteor-fall-flare;
+}
+
+/* Out of view: freeze every meteor. The attribute sits on the container the meteors live in. */
+[data-ft-offscreen] .meteor {
+	animation-play-state: paused;
 }
 
 @keyframes meteor-fall-flare {

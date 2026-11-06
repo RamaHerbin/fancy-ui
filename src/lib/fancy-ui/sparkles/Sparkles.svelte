@@ -2,6 +2,7 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { subscribe } from "../_internals/motion/ticker.js";
 	import { createSparkles, type SparklesEngine } from "./sparkles-core.js";
 
 	interface Props {
@@ -34,7 +35,7 @@
 
 	onMount(() => {
 		engine = createSparkles(
-			{ canvas: canvasRef, container: containerRef },
+			{ canvas: canvasRef, container: containerRef, subscribe },
 			{ minSize, maxSize, speed, particleDensity, particleColor, reducedMotion: reduced.current }
 		);
 

@@ -56,6 +56,7 @@ const DEFAULT_FONT_FAMILY =
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import { createEditorialEngine } from "./engine.js";
 
 defineOptions({ name: "EditorialEngine", inheritAttrs: false });
@@ -83,7 +84,7 @@ let generation = 0;
 function start() {
 	const layer = layerRef.value;
 	if (!layer) return;
-	const options = { headline, body, pullquotes, fontFamily };
+	const options = { headline, body, pullquotes, fontFamily, subscribe };
 	const token = ++generation;
 
 	// Text is measured against the canvas font engine — fonts must be loaded

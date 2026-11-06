@@ -185,11 +185,8 @@ onBeforeUnmount(() => clearTimeout(fadeTimer));
 // --- shared animation loop ----------------------------------------------------
 
 let unregister: (() => void) | null = null;
-let io: IntersectionObserver | undefined;
 
 function teardownLoop() {
-	io?.disconnect();
-	io = undefined;
 	unregister?.();
 	unregister = null;
 }
@@ -211,16 +208,8 @@ watch(
 		if (!isRunning || reduced) return;
 
 		const handle = registerPulse(host, config, hue);
+		// The shared ticker owns the viewport gate (256px margin) and the pause.
 		unregister = handle.unregister;
-		if (typeof IntersectionObserver !== "undefined") {
-			io = new IntersectionObserver(
-				([entry]) => {
-					if (entry) handle.setPaused(!entry.isIntersecting);
-				},
-				{ rootMargin: "256px" }
-			);
-			io.observe(host);
-		}
 		onCleanup(() => teardownLoop());
 	},
 	{ flush: "post", immediate: true }

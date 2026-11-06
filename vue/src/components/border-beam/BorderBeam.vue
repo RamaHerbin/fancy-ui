@@ -98,8 +98,9 @@ export function beamPhase(
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "BorderBeam", inheritAttrs: false });
 
@@ -116,6 +117,9 @@ const {
 	glow = 0.6,
 	reverse = false,
 } = defineProps<BorderBeamProps>();
+
+const root = ref<HTMLElement | null>(null);
+useOffscreenPause(root);
 
 const tailPieces = tailSegments(TAIL_SEGMENTS);
 const bloomPieces = tailSegments(BLOOM_SEGMENTS);
@@ -149,6 +153,7 @@ function piece(p: TailSegment, count: number): Record<string, string> {
 
 <template>
 	<div
+		ref="root"
 		:class="cn('border-beam', 'pointer-events-none absolute inset-0 rounded-[inherit]', className)"
 		:data-direction="reverse ? 'reverse' : 'forward'"
 		aria-hidden="true"
@@ -434,6 +439,11 @@ function piece(p: TailSegment, count: number): Record<string, string> {
 
 	.border-beam[data-direction="reverse"] .bb-ride {
 		animation-direction: reverse;
+	}
+
+	/* Out of view: freeze every rider. */
+	.border-beam[data-ft-offscreen] .bb-ride {
+		animation-play-state: paused;
 	}
 }
 

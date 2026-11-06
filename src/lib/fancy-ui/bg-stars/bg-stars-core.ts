@@ -5,12 +5,23 @@
 // an optional `random` param, default Math.random, so a future seed prop can
 // drive them).
 
+/**
+ * Frame subscription, injected by the wrapper (it is the shared frame ticker).
+ * Injected rather than imported so this file stays byte-identical in every
+ * package tree, whatever the relative path to the ticker is there.
+ */
+export type FrameSubscribe = (opts: { el?: Element; onFrame(dt: number, now: number): void }) => {
+	setPaused(paused: boolean): void;
+	unsubscribe(): void;
+};
+
 /** The DOM handles the engine needs. */
 export interface BgStarsElements {
 	/** Element that receives the mousemove listener driving the parallax target. */
 	host: HTMLElement;
 	/** Element the spring-smoothed parallax transform is written to. */
 	parallax: HTMLElement;
+	subscribe: FrameSubscribe;
 }
 
 /** Props the Svelte wrapper reads ONLY at mount today. */
@@ -42,6 +53,10 @@ export interface BgStarsEngine {
 const DEFAULT_FACTOR = 0.05;
 const DEFAULT_STIFFNESS = 50;
 const DEFAULT_DAMPING = 20;
+// Sub-pixel: under this the spring neither moves the layer nor sits visibly away
+// from its target, so the loop parks instead of writing the same transform every
+// frame for the page's whole life.
+const REST_EPSILON = 0.01;
 
 /**
  * Pure helper that builds a CSS `box-shadow` value describing `count`
@@ -89,20 +104,28 @@ export function createBgStars(
 	let velocityY = 0;
 
 	let reducedMotion = options.reducedMotion ?? false;
-	let rafId: number | null = null;
+	// Created lazily so a reduced-motion mount never requests a frame. The spring
+	// parks itself once settled; a new pointer target wakes it.
+	let sub: ReturnType<FrameSubscribe> | null = null;
 	let destroyed = false;
 
 	function applyTransform(): void {
 		el.parallax.style.transform = `translate(${springX}px, ${springY}px)`;
 	}
 
+	function wake(): void {
+		if (sub) sub.setPaused(false);
+		else sub = el.subscribe({ el: el.host, onFrame: tick });
+	}
+
 	function tick(): void {
+		if (destroyed) return;
 		// Reduced motion: no parallax travel. Snap the spring to rest, write it
-		// once, then idle until the preference flips back.
+		// once, then park until the preference flips back.
 		if (reducedMotion) {
 			springX = springY = targetX = targetY = velocityX = velocityY = 0;
 			applyTransform();
-			rafId = null;
+			sub?.setPaused(true);
 			return;
 		}
 
@@ -116,9 +139,23 @@ export function createBgStars(
 		springX += velocityX;
 		springY += velocityY;
 
+		const atRest =
+			Math.abs(velocityX) < REST_EPSILON &&
+			Math.abs(velocityY) < REST_EPSILON &&
+			Math.abs(targetX - springX) < REST_EPSILON &&
+			Math.abs(targetY - springY) < REST_EPSILON;
+
+		if (atRest) {
+			// Land exactly on the target so the parked transform matches the one
+			// the loop would have converged to.
+			velocityX = velocityY = 0;
+			springX = targetX;
+			springY = targetY;
+		}
+
 		applyTransform();
 
-		rafId = requestAnimationFrame(tick);
+		if (atRest) sub?.setPaused(true);
 	}
 
 	function handleMouseMove(e: MouseEvent): void {
@@ -127,11 +164,12 @@ export function createBgStars(
 		const centerY = window.innerHeight / 2;
 		targetX = -(e.clientX - centerX) * factor;
 		targetY = -(e.clientY - centerY) * factor;
+		wake();
 	}
 
 	el.host.addEventListener("mousemove", handleMouseMove);
 	applyTransform();
-	if (!reducedMotion) rafId = requestAnimationFrame(tick);
+	if (!reducedMotion) wake();
 
 	return {
 		setOptions(next) {
@@ -143,13 +181,9 @@ export function createBgStars(
 				reducedMotion = next.reducedMotion;
 				if (reducedMotion) {
 					// Settle immediately instead of waiting for the next frame.
-					if (rafId !== null) {
-						cancelAnimationFrame(rafId);
-						rafId = null;
-					}
 					tick();
-				} else if (rafId === null) {
-					rafId = requestAnimationFrame(tick);
+				} else {
+					wake();
 				}
 			}
 		},
@@ -160,10 +194,8 @@ export function createBgStars(
 			if (destroyed) return;
 			destroyed = true;
 			el.host.removeEventListener("mousemove", handleMouseMove);
-			if (rafId !== null) {
-				cancelAnimationFrame(rafId);
-				rafId = null;
-			}
+			sub?.unsubscribe();
+			sub = null;
 		},
 	};
 }

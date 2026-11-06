@@ -186,21 +186,9 @@
 		if (!hue) host.style.removeProperty("--pb-hue");
 		if (!running || reducedMotion) return;
 
+		// The shared ticker owns the viewport gate (256px margin) and the pause.
 		const handle = registerPulse(host, config, hue);
-		let io: IntersectionObserver | undefined;
-		if (typeof IntersectionObserver !== "undefined") {
-			io = new IntersectionObserver(
-				([entry]) => {
-					if (entry) handle.setPaused(!entry.isIntersecting);
-				},
-				{ rootMargin: "256px" }
-			);
-			io.observe(host);
-		}
-		return () => {
-			io?.disconnect();
-			handle.unregister();
-		};
+		return () => handle.unregister();
 	});
 
 	// --- outside variant: scale blobs with the box --------------------------------

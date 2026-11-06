@@ -15,6 +15,7 @@ export interface MatrixRainProps {
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import { createMatrixRain, type MatrixRainEngine } from "./matrix-rain-core.js";
 
 defineOptions({ name: "MatrixRain", inheritAttrs: false });
@@ -45,7 +46,7 @@ onMounted(() => {
 	if (!canvas) return;
 
 	engine = createMatrixRain(
-		{ canvas },
+		{ canvas, subscribe },
 		{
 			color,
 			speed,

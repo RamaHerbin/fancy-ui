@@ -133,3 +133,7 @@ The card's own hooks sit in front of the shared ones, for the case where this su
 - The sweep is a single gradient bar parked off the card's left edge, moved only by an animation that lives entirely inside `prefers-reduced-motion: no-preference`. Reduced motion therefore never sees it — there is no fallback to shorten, because the still state _is_ the parked one.
 - The preview's fade is a `mask-image` on the clipping box, so it works over any background the card is sitting on.
 - Nothing is scheduled and no DOM is touched at construction time, so the card renders under SSR unchanged.
+
+## Performance
+
+The streaming sweep pauses while the card is out of view.

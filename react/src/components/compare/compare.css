@@ -138,6 +138,11 @@
 	.compare[data-active] .compare-handle__ring {
 		animation-duration: 1.4s;
 	}
+	/* Out of view: freeze the seam pulses and the handle ring. */
+	.compare[data-ft-offscreen] .compare-beam__pulse,
+	.compare[data-ft-offscreen] .compare-handle__ring {
+		animation-play-state: paused;
+	}
 }
 
 @keyframes cmp-pulse {

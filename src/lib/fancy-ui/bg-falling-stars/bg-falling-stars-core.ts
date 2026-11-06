@@ -5,9 +5,20 @@
 // window/document access, no Math.random outside create* (an optional
 // `random` param drives it so a future seed prop can reuse this file).
 
+/**
+ * Frame subscription, injected by the wrapper (it is the shared frame ticker).
+ * Injected rather than imported so this file stays byte-identical in every
+ * package tree, whatever the relative path to the ticker is there.
+ */
+export type FrameSubscribe = (opts: { el?: Element; onFrame(dt: number, now: number): void }) => {
+	setPaused(paused: boolean): void;
+	unsubscribe(): void;
+};
+
 export interface FallingStarsElements {
 	/** The canvas the star field is drawn on. */
 	canvas: HTMLCanvasElement;
+	subscribe: FrameSubscribe;
 }
 
 /** Props the Svelte wrapper reads only at mount today. */
@@ -123,7 +134,7 @@ export function createFallingStars(
 	options: FallingStarsInitOptions & FallingStarsLiveOptions,
 	random: () => number = Math.random
 ): FallingStarsEngine | null {
-	const { canvas } = el;
+	const { canvas, subscribe } = el;
 
 	let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
 	if (!ctx) return null;
@@ -135,14 +146,16 @@ export function createFallingStars(
 	let dpr = 1;
 	let perspective = 0;
 	let stars: Star[] = [];
-	let rafId = 0;
+	// The ticker subscription. Created lazily so a reduced-motion mount never
+	// requests a frame; parked, not removed, while the still frame is shown.
+	let sub: ReturnType<FrameSubscribe> | null = null;
 	let reducedMotion = options.reducedMotion ?? false;
 	let destroyed = false;
 
 	function resize(): void {
 		if (destroyed) return;
 
-		dpr = window.devicePixelRatio || 1;
+		dpr = Math.min(2, window.devicePixelRatio || 1);
 		const width = Math.max(1, Math.floor(canvas.clientWidth));
 		const height = Math.max(1, Math.floor(canvas.clientHeight));
 
@@ -160,7 +173,7 @@ export function createFallingStars(
 
 		// Resizing wiped the bitmap; an idle (reduced-motion) engine has no
 		// scheduled frame to refill it.
-		if (reducedMotion && rafId === 0 && stars.length > 0) loop();
+		if (reducedMotion && stars.length > 0) loop();
 	}
 
 	function drawStar(star: Star, width: number, height: number, rgb: Rgb): void {
@@ -226,13 +239,14 @@ export function createFallingStars(
 			}
 		}
 
-		// One still frame under reduced motion: paint, then idle until the
+		// One still frame under reduced motion: paint, then park until the
 		// preference flips back (setOptions wakes the loop).
-		if (reducedMotion) {
-			rafId = 0;
-			return;
-		}
-		rafId = requestAnimationFrame(loop);
+		if (reducedMotion) sub?.setPaused(true);
+	}
+
+	function startLoop(): void {
+		if (sub) sub.setPaused(false);
+		else sub = subscribe({ el: canvas, onFrame: loop });
 	}
 
 	resize();
@@ -250,7 +264,7 @@ export function createFallingStars(
 	}
 
 	if (reducedMotion) loop();
-	else rafId = requestAnimationFrame(loop);
+	else startLoop();
 
 	// Under reduced motion no frame re-reads `currentColor`, so a theme switch
 	// (a class flip on <html>, the way dark mode is usually toggled) would leave
@@ -259,7 +273,7 @@ export function createFallingStars(
 	const themeObserver =
 		typeof MutationObserver !== "undefined"
 			? new MutationObserver(() => {
-					if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(color)) loop();
+					if (reducedMotion && CURRENT_COLOR.test(color)) loop();
 				})
 			: null;
 	themeObserver?.observe(document.documentElement, {
@@ -275,18 +289,17 @@ export function createFallingStars(
 			if (next.color !== undefined && next.color !== color) {
 				color = next.color;
 				// Idle engine: repaint the still frame in the new colour.
-				if (reducedMotion && rafId === 0) loop();
+				if (reducedMotion) loop();
 			}
-			if (wasReduced && !reducedMotion && rafId === 0) {
-				rafId = requestAnimationFrame(loop);
-			}
+			if (wasReduced && !reducedMotion) startLoop();
 		},
 		resize,
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
 			themeObserver?.disconnect();
-			if (rafId) cancelAnimationFrame(rafId);
+			sub?.unsubscribe();
+			sub = null;
 		},
 	};
 }

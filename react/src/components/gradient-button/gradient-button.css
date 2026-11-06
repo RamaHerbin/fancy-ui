@@ -22,6 +22,11 @@
 	animation-play-state: paused;
 }
 
+/* Out of view: freeze the beam. */
+.gradient-button[data-ft-offscreen] {
+	animation-play-state: paused;
+}
+
 /* Anchored on the root class: the Svelte compiler scoped these rules, plain CSS
    would leak them into every consumer element sharing the class name. */
 .gradient-button .gradient-content {

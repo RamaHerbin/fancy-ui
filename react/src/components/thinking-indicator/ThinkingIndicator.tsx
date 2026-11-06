@@ -1,5 +1,7 @@
-import { forwardRef, useEffect, type ReactNode } from "react";
+import { forwardRef, useEffect, useState, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import { formatElapsed, useElapsed } from "../../internals/use-elapsed.js";
 import "./thinking-indicator.css";
 
@@ -30,7 +32,16 @@ export interface ThinkingIndicatorProps {
  */
 export const ThinkingIndicator = forwardRef<HTMLDivElement, ThinkingIndicatorProps>(
 	function ThinkingIndicator(
-		{ status, running = true, variant = "inline", since, elapsedMs, showElapsed = true, done, className },
+		{
+			status,
+			running = true,
+			variant = "inline",
+			since,
+			elapsedMs,
+			showElapsed = true,
+			done,
+			className,
+		},
 		ref
 	) {
 		// Seeded at zero rather than from `since`: reading the wall clock during
@@ -41,6 +52,10 @@ export const ThinkingIndicator = forwardRef<HTMLDivElement, ThinkingIndicatorPro
 		// so a row that mounts already finished stays at 0s, which is what the
 		// README documents for that case.
 		const elapsed = useElapsed();
+
+		const [node, setNode] = useState<HTMLDivElement | null>(null);
+		useOffscreenPause(node);
+		const composedRef = useComposedRefs(ref, setNode);
 
 		// `start` returns its own stop function, which doubles as the effect
 		// cleanup: flipping `running` off, swapping in an external `elapsedMs`, or
@@ -60,7 +75,7 @@ export const ThinkingIndicator = forwardRef<HTMLDivElement, ThinkingIndicatorPro
 
 		return (
 			<div
-				ref={ref}
+				ref={composedRef}
 				className={cn(
 					"ft-thinking inline-flex items-center gap-2 text-sm",
 					variant === "pill" && "ft-thinking-pill bg-background/60 rounded-full border px-3 py-1",
@@ -79,7 +94,9 @@ export const ThinkingIndicator = forwardRef<HTMLDivElement, ThinkingIndicatorPro
 				{showDone ? (
 					<span className="ft-thinking-done text-muted-foreground">{done}</span>
 				) : (
-					<span className={cn("ft-thinking-label text-foreground", running && "ft-thinking-shimmer")}>
+					<span
+						className={cn("ft-thinking-label text-foreground", running && "ft-thinking-shimmer")}
+					>
 						{status}
 					</span>
 				)}

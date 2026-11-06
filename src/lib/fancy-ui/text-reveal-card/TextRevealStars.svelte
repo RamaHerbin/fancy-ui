@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	interface Props {
 		starsCount?: number;
@@ -51,7 +52,7 @@
 	);
 </script>
 
-<div class="absolute inset-0" style="container-type: size;">
+<div class="absolute inset-0" style="container-type: size;" use:offscreenPause>
 	{#each stars as star}
 		<span
 			class={cn(
@@ -91,6 +92,11 @@
 		.star-animate {
 			opacity: 0;
 			animation: star-drift linear infinite;
+		}
+
+		/* Out of view: freeze the drift. */
+		:global([data-ft-offscreen]) .star-animate {
+			animation-play-state: paused;
 		}
 	}
 </style>
