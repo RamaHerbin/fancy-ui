@@ -95,13 +95,6 @@
 	font-family: var(--fx-font-mono);
 }
 
-/* The Slider ships a two-hue fill (purple → cyan); the second stop is declared
-   on the control itself, so it is retargeted here rather than through
-   --ft-accent, with a doubled class to outrank the component's scoped rule. */
-.fx-root.fx-root .ft-slider-wrap {
-	--ft-slider-accent-end: var(--ft-slider-accent);
-}
-
 .fx-mono {
 	font-family: var(--fx-font-mono);
 }
