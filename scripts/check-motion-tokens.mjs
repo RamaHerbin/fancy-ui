@@ -242,7 +242,13 @@ export function tokenVars(s) {
 	const found = [];
 	// The name takes the whole custom-property identifier (hyphens included), so a
 	// hyphenated misspelling is reported as unknown instead of slipping past the gate.
-	for (const m of s.matchAll(/var\(\s*--ft-(duration|ease|stagger)-([a-zA-Z0-9-]+)\s*,/g)) {
+	// With or without a fallback: the name is validated either way, the fallback
+	// value only when one is written.
+	for (const m of s.matchAll(/var\(\s*--ft-(duration|ease|stagger)-([a-zA-Z0-9-]+)\s*([,)])/g)) {
+		if (m[3] === ")") {
+			found.push({ family: m[1], name: m[2], fallback: null, index: m.index });
+			continue;
+		}
 		const open = m.index + 3;
 		const end = closeParen(s, open);
 		if (end === -1) continue;
@@ -276,10 +282,10 @@ export function fallbackMismatch(v, tokens) {
 	if (table[v.name] === undefined)
 		return {
 			expected: "a token declared in tokens.ts",
-			got: `unknown name (fallback ${fb})`,
+			got: fb == null ? "unknown name (no fallback)" : `unknown name (fallback ${fb})`,
 			unknown: true,
 		};
-	if (/^var\(/.test(fb)) return null;
+	if (fb == null || /^var\(/.test(fb)) return null;
 	if (v.family === "ease") {
 		const want = tokens.easings[v.name];
 		const m = /^cubic-bezier\(([^)]*)\)$/.exec(fb);
@@ -530,6 +536,16 @@ export function selfTest() {
 		scan("a{transition: x var(--ft-duration-fast-extra, 150ms)}").mismatches.map((m) => m.unknown),
 		[true],
 		"a hyphenated unknown name is still validated"
+	);
+	eq(
+		scan("a{transition: x var(--ft-duration-fast-extra)}").mismatches.map((m) => m.unknown),
+		[true],
+		"an unknown name is reported without a fallback too"
+	);
+	eq(
+		scan("a{transition: x var(--ft-duration-fast)}").mismatches,
+		[],
+		"a known name without a fallback has nothing to compare"
 	);
 	eq(
 		scan("a{x:\n var(--ft-duration-base,\n 301ms)}").mismatches[0]?.line,
