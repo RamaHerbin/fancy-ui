@@ -300,6 +300,25 @@ export const STATIC_FINDING_IDS = {
 	"filter-shadow-animated": "11",
 };
 
+/**
+ * True when the function named `name` (declaration, or const/let arrow or
+ * function expression) calls requestAnimationFrame inside its own body: the
+ * evidence that a rAF callback reschedules itself. Unknown or bodyless = false.
+ */
+export function reschedulesItself(text, name) {
+	const decl = new RegExp(`(function\\s+${name}\\b|(const|let)\\s+${name}\\s*=)`).exec(text);
+	if (!decl) return false;
+	const open = text.indexOf("{", decl.index);
+	if (open === -1) return false;
+	let depth = 0;
+	for (let i = open; i < text.length; i++) {
+		if (text[i] === "{") depth++;
+		else if (text[i] === "}" && --depth === 0)
+			return /requestAnimationFrame\s*\(/.test(text.slice(open + 1, i));
+	}
+	return false;
+}
+
 const TIMING_RE = /^(ease(-in|-out|-in-out)?|linear|step-start|step-end|steps\(|cubic-bezier\()/;
 
 /**
@@ -1076,8 +1095,9 @@ export function analyse(item) {
 			if (/requestAnimationFrame\s*\(/.test(l)) {
 				flags.raf++;
 				const m = l.match(/requestAnimationFrame\(\s*(\w+)\s*\)/);
-				let loop = false;
-				if (m) loop = new RegExp(`(function\\s+${m[1]}\\b|(const|let)\\s+${m[1]}\\s*=)`).test(text);
+				// A named callback is a loop only when its own body schedules another
+				// frame; a one-shot `flush` queued after pointer events is not.
+				const loop = !!m && reschedulesItself(text, m[1]);
 				if (loop) flags.rafLoop++;
 				rafLines.push({ ln, loop });
 				add(

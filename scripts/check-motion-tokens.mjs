@@ -303,7 +303,18 @@ export function scanText(text, tokens) {
 	// durations were blanked as a whole: a fallback that wraps onto the next line
 	// must not surface as a literal, and an infinite animation excuses only its
 	// own duration, not the transition declared next to it
-	const noVars = blankAmbientTimes(stripVars(clean)).split("\n");
+	let scanText2 = blankAmbientTimes(stripVars(clean));
+	// curves first, on the whole text: a cubic-bezier() may wrap across lines;
+	// each one is then blanked so the per-line pass does not see a half of it
+	const curves = [];
+	for (const m of scanText2.matchAll(/cubic-bezier\(([^)]*)\)/g))
+		curves.push({
+			line: lineOf(m.index),
+			raw: m[0].replace(/\s+/g, ""),
+			on: tokens.curveSet.has(normCurve(m[1])),
+		});
+	scanText2 = scanText2.replace(/cubic-bezier\(([^)]*)\)/g, (m) => m.replace(/[^\n]/g, " "));
+	const noVars = scanText2.split("\n");
 	let open = false; // inside a multi-line transition / animation value
 	for (let i = 0; i < lines.length; i++) {
 		const line = noVars[i];
@@ -317,8 +328,7 @@ export function scanText(text, tokens) {
 			if (onToken) bare.push({ line: i + 1, kind, raw });
 			else if (!excused(i)) off.push({ line: i + 1, kind, raw });
 		};
-		for (const m of line.matchAll(/cubic-bezier\(([^)]*)\)/g))
-			note("curve", m[0].replace(/\s+/g, ""), tokens.curveSet.has(normCurve(m[1])));
+		for (const c of curves) if (c.line === i + 1) note("curve", c.raw, c.on);
 		const times = [];
 		if (inDecl) for (const m of line.matchAll(TIME)) times.push([m[0], toMs(m[0])]);
 		for (const m of line.matchAll(TW_TIME)) {
@@ -521,6 +531,16 @@ export function selfTest() {
 		"off-token curve and duration"
 	);
 	eq(scan("a{transition: x var(--d, 151ms)}").off.length, 0, "var fallback is not a literal");
+	eq(
+		scan("a{transition: x 150ms cubic-bezier(\n\t\t0.1, 0.2, 0.3, 0.4)}").off.length,
+		1,
+		"a curve wrapped across lines is still scanned"
+	);
+	eq(
+		scan("a{transition: x 150ms cubic-bezier(\n\t\t0.16, 1, 0.3, 1)}").bare.length,
+		2,
+		"a wrapped token curve is bare, like the token duration next to it"
+	);
 	eq(
 		scan("a{transition: opacity var(--ft-duration-fast,\n\t\t150ms) ease}").bare.length,
 		0,

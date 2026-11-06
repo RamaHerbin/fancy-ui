@@ -237,6 +237,10 @@ export function s6Partial(slug, res) {
 		});
 	}
 	if (a8.score === null) partial.uncertain_flags.push(`A8 not scored: ${a8.note}`);
+	if (res?.keyboard?.error)
+		partial.uncertain_flags.push(
+			`keyboard probe unavailable, overlay keyboard behaviour not scored: ${res.keyboard.error}`
+		);
 	if (res?.errors?.length) partial.uncertain_flags.push(...res.errors.map((e) => `axe: ${e}`));
 	return partial;
 }
@@ -293,12 +297,20 @@ const SEED_QUERY = "a";
  */
 async function openByKeyboard(page, slug, hint) {
 	const first = (hint.states?.open?.steps ?? []).find((s) => s.click || s.hover || s.focus);
+	const stage = page.locator("[data-parity-stage]");
 	const trig = first
 		? loc(page, first.click ?? first.hover ?? first.focus)
-		: page
-				.locator("[data-parity-stage]")
-				.locator('button, [role=combobox], input, [aria-haspopup], [tabindex="0"]')
-				.first();
+		: slug === "context-menu"
+			? // the region itself, when it is focusable (`focusable` prop), or a control inside it
+				stage
+					.locator(
+						".ft-context-menu-trigger[tabindex], .ft-context-menu-trigger button, .ft-context-menu-trigger [tabindex]"
+					)
+					.first()
+			: stage.locator('button, [role=combobox], input, [aria-haspopup], [tabindex="0"]').first();
+	// No focusable trigger at all: there is no keyboard path to open with, which
+	// is a finding about the component, not a probe failure.
+	if ((await trig.count()) === 0) return { via: null, unavailable: "no focusable trigger" };
 	await trig.focus({ timeout: 4000 });
 	const visible = () =>
 		page
@@ -307,12 +319,12 @@ async function openByKeyboard(page, slug, hint) {
 			.isVisible()
 			.catch(() => false);
 	await page.waitForTimeout(600);
-	if (await visible()) return "focus";
+	if (await visible()) return { via: "focus" };
 	if (slug === "autocomplete") {
 		// A query-driven popup: typing is the keyboard way to open it.
 		await page.keyboard.type(SEED_QUERY);
 		await page.waitForTimeout(500);
-		if (await visible()) return "type";
+		if (await visible()) return { via: "type" };
 	}
 	const keys =
 		slug === "tooltip" || slug === "hover-card"
@@ -323,9 +335,9 @@ async function openByKeyboard(page, slug, hint) {
 	for (const key of keys) {
 		await page.keyboard.press(key);
 		await page.waitForTimeout(500);
-		if (await visible()) return key;
+		if (await visible()) return { via: key };
 	}
-	return null;
+	return { via: null };
 }
 
 const activeInfo = (page) =>
@@ -347,8 +359,10 @@ async function keyboard(page, base, slug, hint) {
 		await page.waitForSelector("[data-parity-stage]");
 		// Keyboard first; when the overlay only opens from the pointer, open it that
 		// way so the focus and Escape checks still run, and say so (`keyboardOpen`).
-		k.via = await openByKeyboard(page, slug, hint);
-		k.keyboardOpen = k.via !== null;
+		const kb = await openByKeyboard(page, slug, hint);
+		k.via = kb.via;
+		k.keyboardOpen = kb.via !== null;
+		if (kb.unavailable) k.keyboardUnavailable = kb.unavailable;
 		if (!k.keyboardOpen) k.via = `pointer-fallback:${await openState(page, slug, hint)}`;
 		await page.waitForTimeout(500);
 		k.opened = await page
@@ -453,18 +467,31 @@ async function one(ctx, slug) {
 }
 
 /** axe source, cached locally after the first successful download (CDN timeouts happen), retried 5x. */
+/** The axe-core bundle, not an error page: its banner and a plausible size. */
+export const looksLikeAxe = (s) =>
+	typeof s === "string" && s.length > 50_000 && /^\s*\/\*!\s*axe\b/.test(s.slice(0, 200));
+
 async function loadAxe(cachePath) {
 	let src = fs.existsSync(cachePath) ? fs.readFileSync(cachePath, "utf8") : "";
+	// A cached error body (a 503 page from an earlier run) must not block every
+	// later sweep: drop it and download again.
+	if (src && !looksLikeAxe(src)) {
+		fs.rmSync(cachePath, { force: true });
+		src = "";
+	}
 	for (let i = 0; !src && i < 5; i++) {
 		try {
-			src = await (await fetch(AXE_URL)).text();
+			const res = await fetch(AXE_URL);
+			const body = res.ok ? await res.text() : "";
+			if (!looksLikeAxe(body)) throw new Error(`HTTP ${res.status}: not the axe bundle`);
 			fs.mkdirSync(join(cachePath, ".."), { recursive: true });
-			fs.writeFileSync(cachePath, src);
+			fs.writeFileSync(cachePath, body);
+			src = body;
 		} catch {
 			await new Promise((r) => setTimeout(r, 3000));
 		}
 	}
-	if (!src.includes("axe")) throw new Error("axe download failed");
+	if (!looksLikeAxe(src)) throw new Error("axe download failed");
 	return src;
 }
 

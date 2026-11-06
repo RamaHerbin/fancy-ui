@@ -23,7 +23,13 @@ import {
 	renderMatrix,
 	validateAll,
 } from "./build-matrix.mjs";
-import { POPUP, split as axeSplit, countSeriousCritical, s6Partial } from "./axe-sweep.mjs";
+import {
+	POPUP,
+	split as axeSplit,
+	countSeriousCritical,
+	looksLikeAxe,
+	s6Partial,
+} from "./axe-sweep.mjs";
 import { buildInventory, creditSources, entryBlocks, field, tagList } from "./inventory.mjs";
 import {
 	AXES,
@@ -71,6 +77,7 @@ import {
 	STATIC_FINDING_IDS,
 	analyse,
 	configure,
+	reschedulesItself,
 	gateOf,
 	loadFileText,
 	normCurve,
@@ -534,6 +541,30 @@ test("static findings carry a stable id per defect type across scans", () => {
 	assert.ok(ids.every((n) => /^[01][0-9]$/.test(n)));
 });
 
+test("a rAF callback is a loop only when its body schedules another frame", () => {
+	const oneShot =
+		"function flush() {\n\tid = null;\n\tpaint();\n}\nid = requestAnimationFrame(flush);";
+	const loop =
+		"function draw() {\n\tpaint();\n\tid = requestAnimationFrame(draw);\n}\nid = requestAnimationFrame(draw);";
+	assert.equal(reschedulesItself(oneShot, "flush"), false);
+	assert.equal(reschedulesItself(loop, "draw"), true);
+	assert.equal(
+		reschedulesItself("const tick = () => {\n\trequestAnimationFrame(tick);\n};", "tick"),
+		true
+	);
+	assert.equal(reschedulesItself("", "nope"), false);
+	const unproven = fixtureRepo(`<script>\n${oneShot}\n</script>`).findings.find(
+		(f) => f.id === "widget-01"
+	);
+	assert.equal(unproven.priority, "P2");
+	assert.match(unproven.title, /usage/);
+	const proven = fixtureRepo(`<script>\n${loop}\n</script>`).findings.find(
+		(f) => f.id === "widget-01"
+	);
+	assert.equal(proven.priority, "P1");
+	assert.match(proven.title, /loop/);
+});
+
 test("micro-capture: default selection and the hover-only signal", () => {
 	const inv = [
 		{ slug: "core-a", group: "core", category: "actions" },
@@ -630,6 +661,15 @@ test("S6: A8 from serious, critical and moderate hits and the keyboard check", (
 		scoreA8(res(state(), state(), { pass: false, keyboardOpen: true, pointerPass: false })).score,
 		0
 	);
+	// a broken probe scores nothing and is flagged, instead of a 0 for the component
+	const broken = res(state(), state(), { pass: false, error: "locator timed out" });
+	assert.equal(scoreA8(broken).score, 3);
+	assert.match(scoreA8(broken).note, /probe unavailable/);
+	assert.ok(
+		s6Partial("x", broken).uncertain_flags.some((f) => /keyboard probe unavailable/.test(f))
+	);
+	assert.ok(looksLikeAxe(`/*! axe v4.10.2\n * Copyright */${"x".repeat(60_000)}`));
+	assert.equal(looksLikeAxe("<html>503 Service Unavailable</html>"), false);
 	const p = s6Partial("x", res(state([serious])));
 	assert.equal(p.axes.A8.score, 1);
 	assert.equal(p.findings[0].id, "x-60");

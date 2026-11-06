@@ -438,12 +438,16 @@ export function scoreA8(res) {
 	if (moderate) parts.push(`${moderate} moderate`);
 	const kb = res.keyboard;
 	if (!kb) parts.push("keyboard n/a");
-	else if (kb.pass === false) {
+	else if (kb.error) {
+		// The probe itself broke (a locator timed out, the page failed): nothing
+		// about the component is known, so nothing is scored.
+		parts.push(`keyboard probe unavailable, not scored: ${kb.error}`);
+	} else if (kb.pass === false) {
 		if (kb.keyboardOpen === false && kb.pointerPass) {
 			// Opens only from the pointer: a contract gap (section 4), not a trap.
 			score = Math.min(score, 1);
 			parts.push(
-				"keyboard: the overlay does not open from the keyboard (focus and Escape hold once open)"
+				`keyboard: the overlay does not open from the keyboard${kb.keyboardUnavailable ? ` (${kb.keyboardUnavailable})` : ""} (focus and Escape hold once open)`
 			);
 		} else {
 			score = 0;
