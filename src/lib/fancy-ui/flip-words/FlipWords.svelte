@@ -20,8 +20,14 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { staggerCap, staggerDelay } from "../_internals/motion/stagger.js";
+	import { STAGGERS } from "../_internals/motion/tokens.js";
 
 	const EXIT_MS = 600;
+	// off-token: sequence. Words arrive one after another; the order is the content.
+	const WORD_OFFSET_S = 0.3;
+	// Glyph-scale items: the shortest cap on the ramp.
+	const glyphCap = staggerCap(0);
 
 	let { words, duration = 3000, class: className }: FlipWordsProps = $props();
 
@@ -95,13 +101,18 @@
 			{#each splitWords as wordObj, wordIndex (wordObj.word + wordIndex)}
 				<span
 					class="flip-words-word inline-block whitespace-nowrap"
-					style:--flip-words-word-delay="{wordIndex * 0.3}s"
+					style:--flip-words-word-delay="{wordIndex * WORD_OFFSET_S}s"
 				>
 					{#each wordObj.letters as letter, letterIndex (wordObj.word + letterIndex)}
 						<span
 							class="flip-words-letter inline-block"
-							style:--flip-words-letter-delay="{wordIndex * 0.3 + letterIndex * 0.05}s"
-							>{letter}</span
+							style:--ft-child-delay="{staggerDelay(
+								letterIndex,
+								wordObj.letters.length,
+								STAGGERS.item,
+								'first',
+								glyphCap
+							)}ms">{letter}</span
 						>
 					{/each}
 					<span class="inline-block">&nbsp;</span>
@@ -173,14 +184,15 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.flip-words-word {
 			opacity: 0;
-			animation: flipFadeInWord 0.3s ease forwards;
+			animation: flipFadeInWord var(--ft-duration-base, 300ms) ease forwards;
 			animation-delay: var(--flip-words-word-delay, 0s);
 		}
 
 		.flip-words-letter {
 			opacity: 0;
-			animation: flipFadeInLetter 0.2s ease forwards;
-			animation-delay: var(--flip-words-letter-delay, 0s);
+			animation: flipFadeInLetter var(--ft-duration-exit, 200ms) ease forwards;
+			/* The word offset is inherited from the parent word; the per-letter stagger is added on top. */
+			animation-delay: calc(var(--flip-words-word-delay, 0s) + var(--ft-child-delay, 0ms));
 		}
 
 		.flip-words-enter {

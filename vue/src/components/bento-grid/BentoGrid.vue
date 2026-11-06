@@ -14,7 +14,7 @@ export interface BentoGridProps {
 import { computed, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { inView } from "../../internals/motion/in-view.js";
-import { staggerDelay } from "../../internals/motion/stagger.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 
 defineOptions({ name: "BentoGrid", inheritAttrs: false });
@@ -27,9 +27,8 @@ defineSlots<{
 	default?: () => unknown;
 }>();
 
-/** ms per tile, and the total ceiling the stagger is compressed into. */
+/** ms per tile; the total ceiling comes from `staggerCap` (tile height). */
 const STEP = 70;
-const CAP = 420;
 
 const el = useTemplateRef<HTMLDivElement>("el");
 // Also set by the root's `focusin`: focus arriving inside a still-hidden grid
@@ -59,11 +58,14 @@ watch(
 			const kids = Array.from(root!.children).filter(
 				(node): node is HTMLElement => node instanceof HTMLElement
 			);
+			// Measured once per child-list change: a ~268 px tile lands on the
+			// 420 ms ceiling the grid was tuned to by hand.
+			const cap = staggerCap(kids[0]?.getBoundingClientRect().height ?? 0);
 			kids.forEach((node, i) => {
 				node.style.setProperty("--bento-i", String(i));
 				node.style.setProperty(
 					"--bento-delay",
-					`${staggerDelay(i, kids.length, STEP, "first", CAP)}ms`
+					`${staggerDelay(i, kids.length, STEP, "first", cap)}ms`
 				);
 			});
 		}
@@ -137,9 +139,10 @@ watch(
 	}
 	.fancy-bento.bento-reveal[data-state="shown"] > :deep(*) {
 		transition:
-			opacity 600ms cubic-bezier(0.4, 0, 0.2, 1),
-			transform 800ms cubic-bezier(0.16, 1, 0.3, 1),
-			border-color 300ms cubic-bezier(0.4, 0, 0.2, 1); /* DURATIONS.entrance, EASINGS.out */
+			opacity var(--ft-duration-entrance, 600ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			/* off-token: the sheen's own pacing, longer than a state flip */ transform 800ms
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+			border-color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* DURATIONS.entrance, EASINGS.out */
 		transition-delay: var(--bento-delay, 0ms), var(--bento-delay, 0ms), 0ms;
 	}
 }

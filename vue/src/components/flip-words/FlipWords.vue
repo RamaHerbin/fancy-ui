@@ -22,10 +22,16 @@ export interface FlipWordsProps {
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
+import { STAGGERS } from "../../internals/motion/tokens.js";
 
 defineOptions({ name: "FlipWords", inheritAttrs: false });
 
 const EXIT_MS = 600;
+// off-token: sequence. Words arrive one after another; the order is the content.
+const WORD_OFFSET_S = 0.3;
+// Glyph-scale items: the shortest cap on the ramp.
+const glyphCap = staggerCap(0);
 
 const { words, duration = 3000, class: className } = defineProps<FlipWordsProps>();
 
@@ -124,13 +130,15 @@ onBeforeUnmount(() => {
 				v-for="(wordObj, wordIndex) in splitWords"
 				:key="wordObj.word + wordIndex"
 				class="flip-words-word inline-block whitespace-nowrap"
-				:style="{ '--flip-words-word-delay': `${wordIndex * 0.3}s` }"
+				:style="{ '--flip-words-word-delay': `${wordIndex * WORD_OFFSET_S}s` }"
 			>
 				<span
 					v-for="(letter, letterIndex) in wordObj.letters"
 					:key="wordObj.word + letterIndex"
 					class="flip-words-letter inline-block"
-					:style="{ '--flip-words-letter-delay': `${wordIndex * 0.3 + letterIndex * 0.05}s` }"
+					:style="{
+						'--ft-child-delay': `${staggerDelay(letterIndex, wordObj.letters.length, STAGGERS.item, 'first', glyphCap)}ms`,
+					}"
 					>{{ letter }}</span
 				>{{ " " }}<span class="inline-block">&nbsp;</span>
 			</span>
@@ -148,14 +156,15 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: no-preference) {
 	.flip-words-word {
 		opacity: 0;
-		animation: flipFadeInWord 0.3s ease forwards;
+		animation: flipFadeInWord var(--ft-duration-base, 300ms) ease forwards;
 		animation-delay: var(--flip-words-word-delay, 0s);
 	}
 
 	.flip-words-letter {
 		opacity: 0;
-		animation: flipFadeInLetter 0.2s ease forwards;
-		animation-delay: var(--flip-words-letter-delay, 0s);
+		animation: flipFadeInLetter var(--ft-duration-exit, 200ms) ease forwards;
+		/* The word offset is inherited from the parent word; the per-letter stagger is added on top. */
+		animation-delay: calc(var(--flip-words-word-delay, 0s) + var(--ft-child-delay, 0ms));
 	}
 
 	.flip-words-enter {

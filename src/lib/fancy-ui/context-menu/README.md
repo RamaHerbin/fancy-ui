@@ -227,7 +227,7 @@ reasoning if you add a portalled read of the accent to either later.
 The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
 `JS_EASINGS.out`, the rung every floating surface in the library is on),
 growing from a `0.92` floor, and reverses over the same 150 ms on the
-departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
+same decelerating curve (`JS_EASINGS.out`) — collapsing only to `0.96`, half the depth,
 because leaving is a smaller gesture than arriving. The growth origin follows
 the placement the panel actually got — flipped sides included, and the
 cross-axis alignment as it ended up rather than as it was requested, since a

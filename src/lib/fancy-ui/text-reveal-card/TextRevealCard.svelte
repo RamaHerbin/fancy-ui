@@ -118,7 +118,7 @@
 	   While hovering the class is off, so the layers follow the pointer without easing. */
 	@media (prefers-reduced-motion: no-preference) {
 		.text-reveal-settle {
-			transition: all 0.4s ease-out;
+			transition: all 0.4s ease-out; /* off-token: reveal pace sits between base and entrance */
 		}
 	}
 </style>

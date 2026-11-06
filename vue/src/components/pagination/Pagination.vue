@@ -435,7 +435,8 @@ const navButtonBase =
 	 * glide at all — the source's zero-duration flip.
 	 */
 	.ft-pagination-move {
-		transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+		transition: transform var(--ft-duration-base, 300ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 }
 </style>

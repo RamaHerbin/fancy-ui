@@ -18,7 +18,8 @@ export interface BlurRevealProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "BlurReveal", inheritAttrs: false });
@@ -37,7 +38,50 @@ defineSlots<{
 }>();
 
 const containerRef = useTemplateRef<HTMLDivElement>("containerRef");
+const wrapperRef = useTemplateRef<HTMLDivElement>("wrapperRef");
 const isInView = ref(false);
+
+// A stagger is N copies of one entrance offset in time: the parent writes
+// each child's delay (capped by item size) and re-indexes when the child
+// list changes.
+let staggerObserver: MutationObserver | undefined;
+
+function applyStagger(root: HTMLElement, stepMs: number) {
+	const kids = Array.from(root.children).filter(
+		(el): el is HTMLElement | SVGElement => el instanceof HTMLElement || el instanceof SVGElement
+	);
+	const cap = staggerCap(kids[0]?.getBoundingClientRect().height ?? 0);
+	for (const [i, kid] of kids.entries()) {
+		const ms = staggerDelay(i, kids.length, stepMs, "first", cap);
+		kid.style.setProperty("--ft-child-delay", `${ms}ms`);
+	}
+}
+
+function stopStagger() {
+	staggerObserver?.disconnect();
+	staggerObserver = undefined;
+	const root = wrapperRef.value;
+	if (!root) return;
+	for (const el of Array.from(root.children)) {
+		if (el instanceof HTMLElement || el instanceof SVGElement) {
+			el.style.removeProperty("--ft-child-delay");
+		}
+	}
+}
+
+function startStagger() {
+	stopStagger();
+	const root = wrapperRef.value;
+	if (!root) return;
+	const stepMs = delay * 1000;
+	applyStagger(root, stepMs);
+	staggerObserver = new MutationObserver(() => applyStagger(root, stepMs));
+	staggerObserver.observe(root, { childList: true });
+}
+
+onMounted(startStagger);
+watch([wrapperRef, () => delay], startStagger, { flush: "post" });
+onBeforeUnmount(stopStagger);
 
 onMounted(() => {
 	const observer = new IntersectionObserver(
@@ -59,7 +103,6 @@ onMounted(() => {
 
 const style = computed(() => ({
 	"--blur-reveal-duration": `${duration}s`,
-	"--blur-reveal-delay": `${delay}s`,
 	"--blur-reveal-blur": blur,
 	"--blur-reveal-y": `${yOffset}px`,
 }));
@@ -69,6 +112,7 @@ const style = computed(() => ({
 	<div ref="containerRef" :class="cn(className)" :style="style">
 		<div
 			v-if="$slots.default"
+			ref="wrapperRef"
 			class="blur-reveal-wrapper"
 			:class="{ 'is-visible': isInView, 'mode-hard': mode === 'hard' }"
 		>
@@ -82,6 +126,7 @@ const style = computed(() => ({
 	opacity: 0;
 	filter: blur(var(--blur-reveal-blur, 20px));
 	transform: translateY(var(--blur-reveal-y, 20px));
+	/* off-token: prop-driven seconds */
 	transition:
 		opacity var(--blur-reveal-duration, 1s) ease-in-out,
 		filter var(--blur-reveal-duration, 1s) ease-in-out,
@@ -92,38 +137,6 @@ const style = computed(() => ({
 	opacity: 1;
 	filter: blur(0px);
 	transform: translateY(0);
-}
-
-/* Stagger delays for direct children */
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(1)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 0);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(2)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 1);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(3)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 2);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(4)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 3);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(5)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 4);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(6)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 5);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(7)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 6);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(8)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 7);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(9)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 8);
-}
-.blur-reveal-wrapper.is-visible > :deep(:nth-child(10)) {
-	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 9);
 }
 
 /* Hard mode: no blur/translate softening, opacity snaps in via a stepped timing function */
@@ -138,9 +151,16 @@ const style = computed(() => ({
 	opacity: 1;
 }
 
+/* Per-child delay, written by the component (staggerDelay + staggerCap). Placed after
+   the hard-mode shorthand, which resets transition-delay. */
+.blur-reveal-wrapper.is-visible > :deep(*) {
+	transition-delay: var(--ft-child-delay, 0ms);
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
 	.blur-reveal-wrapper > :deep(*) {
+		/* off-token: reduced-motion collapse */
 		transition-duration: 0.1s !important;
 		transition-delay: 0s !important;
 	}

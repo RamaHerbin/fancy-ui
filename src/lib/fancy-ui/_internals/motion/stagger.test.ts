@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { staggerDelay, type StaggerFrom } from "./stagger.js";
+import { staggerCap, staggerDelay, type StaggerFrom } from "./stagger.js";
 
 describe("staggerDelay", () => {
 	it("returns 0 for a single item or an empty list, whatever step/from/cap is", () => {
@@ -70,5 +70,20 @@ describe("staggerDelay", () => {
 		for (let i = 1; i < delays.length; i++) {
 			expect(delays[i]).toBeGreaterThanOrEqual(delays[i - 1]);
 		}
+	});
+});
+
+describe("staggerCap", () => {
+	it("ramps from the floor to the ceiling with item size (1 ms per px between 48 and 448 px)", () => {
+		expect(staggerCap(0)).toBe(200);
+		expect(staggerCap(48)).toBe(200);
+		expect(staggerCap(268)).toBe(420);
+		expect(staggerCap(448)).toBe(600);
+		expect(staggerCap(1000)).toBe(600);
+	});
+
+	it("feeds staggerDelay as a total-delay ceiling", () => {
+		const cap = staggerCap(0);
+		expect(staggerDelay(39, 40, 50, "first", cap)).toBeCloseTo(cap, 6);
 	});
 });

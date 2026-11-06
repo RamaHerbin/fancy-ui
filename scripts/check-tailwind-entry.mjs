@@ -90,6 +90,9 @@ for (const entry of ENTRIES) {
 			problems.push(`@source base does not exist on disk: ${source.base}`);
 		}
 		if (!/--primary:/.test(css)) problems.push("`--primary:` is not defined");
+		// The generated motion block must survive the `@layer base` compilation.
+		if (!css.includes("--ft-duration-fast: 150ms"))
+			problems.push("the generated `--ft-duration-fast: 150ms` is not in the compiled output");
 	} catch (error) {
 		problems.push(`compile failed: ${error.message}`);
 	}

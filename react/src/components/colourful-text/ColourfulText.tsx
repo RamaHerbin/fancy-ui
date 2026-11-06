@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
+import { STAGGERS } from "../../internals/motion/tokens.js";
+import "./colourful-text.css";
 
 /**
  * ColourfulText - Per-character color animation
@@ -29,6 +32,9 @@ export interface ColourfulTextProps {
 	 */
 	seed?: number;
 }
+
+// Glyph-scale items: the shortest cap on the ramp.
+const GLYPH_CAP = staggerCap(0);
 
 const DEFAULT_COLORS = [
 	"rgb(131, 179, 32)",
@@ -97,7 +103,7 @@ export function ColourfulText({
 	// the first render. A later `colors` change takes effect on the next
 	// interval tick, exactly as in the source.
 	const [currentColors, setCurrentColors] = useState<string[]>(() =>
-		shuffleColors(colors, mulberry32(seed)),
+		shuffleColors(colors, mulberry32(seed))
 	);
 
 	// The interval reads the CURRENT `colors` prop on every tick (the source's
@@ -121,17 +127,20 @@ export function ColourfulText({
 	const chars = text.split("");
 
 	return (
-		<span className={cn("colourful-text inline-flex", className)}>
+		<span
+			className={cn("colourful-text inline-flex", className)}
+			style={{ "--colourful-text-duration": `${duration}s` } as CSSProperties}
+		>
 			{chars.map((char, i) => (
 				<span
 					key={i}
 					className="colourful-char inline-block"
-					style={{
-						color: currentColors[i % currentColors.length] ?? startColor,
-						transition: `color ${duration}s ease ${i * 0.05}s,opacity ${duration}s ease ${
-							i * 0.05
-						}s,transform ${duration}s ease ${i * 0.05}s,filter ${duration}s ease ${i * 0.05}s`,
-					}}
+					style={
+						{
+							color: currentColors[i % currentColors.length] ?? startColor,
+							"--ft-child-delay": `${staggerDelay(i, chars.length, STAGGERS.item, "first", GLYPH_CAP)}ms`,
+						} as CSSProperties
+					}
 				>
 					{char === " " ? "\u00A0" : char}
 				</span>

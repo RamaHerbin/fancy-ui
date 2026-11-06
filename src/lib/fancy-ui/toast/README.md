@@ -208,7 +208,7 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 ## Motion
 
 A toast rises 8px into place over 300ms on the library's arrival curve, and
-sinks 4px away over 200ms on its departure curve when it is dismissed — half
+sinks 4px away over 200ms on the shared decelerating curve when it is dismissed — half
 the travel and a shorter clock, because leaving reads faster than arriving.
 Both durations come from the library's shared scale — `base` for the
 arrival, `exit` for the departure — and only `opacity` and `transform`

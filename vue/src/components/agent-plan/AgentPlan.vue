@@ -509,7 +509,7 @@ function selectStep(step: PlanStepData) {
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-agentplan-bar {
-		transition: width 420ms cubic-bezier(0.4, 0, 0.2, 1);
+		transition: width 420ms var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* off-token: progress fill pace sits between base and entrance */
 	}
 
 	.ft-agentplan-dot::after {
@@ -518,7 +518,7 @@ function selectStep(step: PlanStepData) {
 		inset: 0;
 		border-radius: inherit;
 		background: currentColor;
-		animation: ft-agentplan-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+		animation: ft-agentplan-ping 1.6s var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
 	}
 }
 

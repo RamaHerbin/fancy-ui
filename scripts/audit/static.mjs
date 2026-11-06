@@ -47,7 +47,7 @@ import { isMain, loadInventory, parseArgs, parseList, resolvePaths } from "./lib
 let REPO = "";
 let SRC = "";
 let TOKEN_CURVES = new Set();
-const TOKEN_MS = new Set([80, 150, 300, 200, 600, 15, 20, 40, 50]); // DURATIONS + STAGGERS + STAGGER_CAPS
+const TOKEN_MS = new Set([80, 150, 300, 200, 600, 15, 20, 40, 50]); // DURATIONS + STAGGERS + STAGGER_CAP floor/ceil (token-values.ts)
 
 /** Point the census at a checkout and read its token curves from tokens.ts. */
 export function configure(repo, tokensSrc) {

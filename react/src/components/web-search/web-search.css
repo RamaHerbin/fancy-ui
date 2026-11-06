@@ -77,7 +77,8 @@
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-websearch-item {
-		animation: ft-websearch-enter var(--ft-websearch-enter-duration) cubic-bezier(0.16, 1, 0.3, 1);
+		animation: ft-websearch-enter var(--ft-websearch-enter-duration)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
 	.ft-websearch-beam {

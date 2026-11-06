@@ -117,10 +117,10 @@ describe("anchored() — param resolution (pure, no DOM)", () => {
 		expect("tick" in config).toBe(false);
 	});
 
-	it("defaults an exit to fast and the departure curve", () => {
+	it("defaults an exit to fast on the same decelerating curve as the entrance", () => {
 		const config = anchored(el(), undefined, { direction: "out" });
 		expect(config.duration).toBe(DURATIONS.fast);
-		expect(config.easing).toBe(JS_EASINGS.in);
+		expect(config.easing).toBe(JS_EASINGS.out);
 	});
 
 	it("treats direction 'both' (one bidirectional instance) as entering", () => {
@@ -131,7 +131,7 @@ describe("anchored() — param resolution (pure, no DOM)", () => {
 
 	it("entering: false overrides direction 'both' — the escape hatch for a single bidirectional instance", () => {
 		const config = anchored(el(), { entering: false, exitDuration: 42 }, { direction: "both" });
-		expect(config.easing).toBe(JS_EASINGS.in);
+		expect(config.easing).toBe(JS_EASINGS.out);
 		expect(config.duration).toBe(42);
 	});
 

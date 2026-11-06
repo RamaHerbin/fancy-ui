@@ -61,7 +61,8 @@
 		box-shadow:
 			0 1px 2px rgba(15, 15, 20, 0.04),
 			0 12px 32px -18px rgba(15, 15, 20, 0.14);
-		transition: border-color 300ms cubic-bezier(0.4, 0, 0.2, 1); /* EASINGS.inout */
+		transition: border-color var(--ft-duration-base, 300ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* EASINGS.inout */
 	}
 
 	:global(.dark) .bento-tile {
@@ -105,8 +106,9 @@
 		opacity: 0;
 		transform: translate3d(0, 40%, 0);
 		transition:
-			opacity 500ms cubic-bezier(0.4, 0, 0.2, 1),
-			transform 700ms cubic-bezier(0.16, 1, 0.3, 1); /* EASINGS.out */
+			/* off-token: the sheen's own pacing, longer than a state flip */
+			opacity 500ms var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			transform 700ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* EASINGS.out */ /* off-token: the sheen's own pacing, longer than a state flip */
 	}
 
 	/* The bottom edge catches the light as the glow arrives. */
@@ -126,7 +128,7 @@
 			transparent
 		);
 		opacity: 0;
-		transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1);
+		transition: opacity 500ms var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* off-token: the sheen's own pacing, longer than a state flip */
 	}
 
 	.bento-tile:hover,
@@ -155,7 +157,7 @@
 
 	/* Content lift. */
 	.bento-tile :global(.bento-lift) {
-		transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+		transition: transform 500ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* off-token: the sheen's own pacing, longer than a state flip */
 	}
 
 	/* The icon sits in a small inset tile: darker well, inset hairline. */
@@ -171,10 +173,11 @@
 			inset 0 1px 2px rgba(0, 0, 0, 0.06),
 			0 1px 0 rgba(255, 255, 255, 0.9);
 		transition:
-			color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-			border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-			background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-			box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+			color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			border-color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			background-color var(--ft-duration-base, 300ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			box-shadow var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 	:global(.dark) .bento-tile :global(.bento-icon) {
 		color: #8a8a93;
@@ -206,9 +209,10 @@
 		opacity: 0;
 		transform: translate3d(-8px, 0, 0);
 		transition:
-			opacity 400ms cubic-bezier(0.4, 0, 0.2, 1),
-			transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
-			color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+			opacity var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			/* off-token: the sheen's own pacing, longer than a state flip */ transform 500ms
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+			color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 	.bento-tile:is(:hover, :focus-within) :global(.bento-cta) {
 		opacity: 1;
@@ -233,11 +237,11 @@
 	@media (prefers-reduced-motion: reduce) {
 		.bento-glow {
 			transform: none;
-			transition: opacity 300ms linear;
+			transition: opacity var(--ft-duration-base, 300ms) linear;
 		}
 		.bento-tile :global(.bento-cta) {
 			transform: none;
-			transition: opacity 300ms linear;
+			transition: opacity var(--ft-duration-base, 300ms) linear;
 		}
 		.bento-tile :global(.bento-lift) {
 			transition: none;

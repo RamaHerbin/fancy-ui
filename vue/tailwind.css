@@ -113,6 +113,24 @@
 		--border: light-dark(oklch(0.929 0.013 255.508), oklch(1 0 0 / 8%));
 		--input: light-dark(oklch(0.929 0.013 255.508), oklch(1 0 0 / 10%));
 		--ring: light-dark(oklch(0.704 0.04 256.788), oklch(0.551 0.027 264.364));
+		/* @generated motion-tokens:start — from _internals/motion/token-values.ts; `pnpm gen:motion-tokens` */
+		--ft-duration-micro: 80ms;
+		--ft-duration-fast: 150ms;
+		--ft-duration-base: 300ms;
+		--ft-duration-exit: 200ms;
+		--ft-duration-entrance: 600ms;
+		--ft-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+		--ft-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+		--ft-ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+		--ft-ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+		--ft-stagger-char: 15ms;
+		--ft-stagger-char-blur: 20ms;
+		--ft-stagger-word: 40ms;
+		--ft-stagger-line: 150ms;
+		--ft-stagger-item: 50ms;
+		--ft-hover-in: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+		--ft-hover-out: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+		/* @generated motion-tokens:end */
 	}
 
 	/*

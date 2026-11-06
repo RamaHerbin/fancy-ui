@@ -72,15 +72,17 @@
 		// `document.fonts` (FontFaceSet) may be undefined — jsdom/happy-dom and
 		// some older browsers don't implement it — so guard the read instead of
 		// letting a missing FontFaceSet throw inside this effect.
-		Promise.resolve(document.fonts?.load(currentFont)).catch(() => {}).then(() => {
-			if (!cancelled) {
-				try {
-					prepared = prepareWithSegments(currentText, currentFont);
-				} catch {
-					// Missing 2d context (e.g. jsdom) — stay on the pre-measure fallback.
+		Promise.resolve(document.fonts?.load(currentFont))
+			.catch(() => {})
+			.then(() => {
+				if (!cancelled) {
+					try {
+						prepared = prepareWithSegments(currentText, currentFont);
+					} catch {
+						// Missing 2d context (e.g. jsdom) — stay on the pre-measure fallback.
+					}
 				}
-			}
-		});
+			});
 
 		return () => {
 			cancelled = true;
@@ -155,7 +157,7 @@
 		opacity: 0;
 		transform: translateY(105%);
 		transition-property: transform, opacity;
-		transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+		transition-timing-function: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
 	.line.revealed {
@@ -165,7 +167,7 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.line {
-			transition-duration: 0.1s !important;
+			transition-duration: 0.1s !important; /* off-token: reduced-motion collapse to a near-instant fade */
 			transition-delay: 0s !important;
 		}
 	}

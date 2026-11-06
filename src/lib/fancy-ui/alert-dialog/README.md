@@ -71,7 +71,7 @@ The one thing this component will not do is let a destructive action complete wi
 
 ## Motion
 
-Identical to `Dialog`'s, because it is the same surface: panel and backdrop arrive together over 300 ms on the shared arrival curve and leave together over 200 ms on the departure curve, the panel scaling from a `0.92` floor in and to a `0.96` floor out, the backdrop fading on opacity alone. See `Dialog`'s README for the full description; two things are worth restating here, because this component's dismiss rules make them matter more:
+Identical to `Dialog`'s, because it is the same surface: panel and backdrop arrive together over 300 ms on the shared arrival curve and leave together over 200 ms on the same decelerating curve, the panel scaling from a `0.92` floor in and to a `0.96` floor out, the backdrop fading on opacity alone. See `Dialog`'s README for the full description; two things are worth restating here, because this component's dismiss rules make them matter more:
 
 - **Escape during the fade cannot cancel twice.** Escape is wired to the same `handleCancel` path the Cancel button calls, so a repeated press while the panel is leaving would otherwise fire `onCancel` again. The dismiss layer stops answering the moment `open` is false, and `onOpenChange`/`onCancel` are additionally guarded against a no-op change — a destructive prompt reports exactly one cancellation per dismissal.
 - **Focus returns at the dismiss instant**, not when the fade ends, so a keyboard user who backs out of a destructive prompt is on the trigger immediately rather than stranded on `<body>` for the length of the animation.

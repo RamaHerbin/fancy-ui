@@ -81,8 +81,8 @@ the travel now lives in the growth origin, which says "this came out of that"
 far more clearly than four pixels of movement ever did, and the floor is the
 one the whole floating-panel family shares.
 
-It leaves the same way in reverse: 150 ms again, on the departure curve
-(`JS_EASINGS.in`), collapsing to a `0.96` floor — half the entrance's delta,
+It leaves the same way in reverse: 150 ms again, on the same decelerating curve
+(`JS_EASINGS.out`), collapsing to a `0.96` floor — half the entrance's delta,
 because leaving is a smaller gesture than arriving. Both directions come from a
 single bidirectional transition, which is what a hover surface needs most:
 pointers change their mind, and a card the pointer comes back to mid-fade

@@ -96,9 +96,7 @@ const isExpanded = computed(() => expanded.value && hiddenCount.value > 0);
 const visible = computed(() =>
 	isExpanded.value || hiddenCount.value === 0 ? results : results.slice(0, cap.value)
 );
-const countText = computed(() =>
-	results.length === 1 ? "1 result" : `${results.length} results`
-);
+const countText = computed(() => (results.length === 1 ? "1 result" : `${results.length} results`));
 
 // Each row's derived host, monogram and safe href, resolved once per render
 // rather than re-derived at every reference in the template.
@@ -235,10 +233,7 @@ function toggleExpanded() {
 				</component>
 			</li>
 		</ul>
-		<p
-			v-else-if="searching"
-			class="ft-websearch-status text-muted-foreground mt-1.5 px-2 text-xs"
-		>
+		<p v-else-if="searching" class="ft-websearch-status text-muted-foreground mt-1.5 px-2 text-xs">
 			Searching…
 		</p>
 		<p v-else class="ft-websearch-empty text-muted-foreground mt-1.5 px-2 text-xs">No results</p>
@@ -336,7 +331,8 @@ function toggleExpanded() {
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-websearch-item {
-		animation: ft-websearch-enter var(--ft-websearch-enter-duration) cubic-bezier(0.16, 1, 0.3, 1);
+		animation: ft-websearch-enter var(--ft-websearch-enter-duration)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
 	.ft-websearch-beam {

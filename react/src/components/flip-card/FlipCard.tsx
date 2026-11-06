@@ -115,7 +115,7 @@ export function FlipCard({
 	function lift() {
 		const { reduced, duration } = live.current;
 		if (reduced) return;
-		const opts = { duration, easing: "cubic-bezier(0.33, 1, 0.68, 1)" };
+		const opts = { duration, easing: "cubic-bezier(0.33, 1, 0.68, 1)" }; // off-token: web animations easing cannot read a custom property
 		liftRef.current?.animate?.(
 			[
 				{ transform: "translateZ(0) scale(1)" },

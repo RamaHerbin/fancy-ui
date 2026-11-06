@@ -198,7 +198,7 @@ watch(
 .st-svg :deep(.st-head) {
 	color: var(--st-seg, var(--story-thread-head));
 	opacity: 0;
-	transition: opacity 0.3s ease;
+	transition: opacity var(--ft-duration-base, 300ms) ease;
 }
 .st-svg :deep(.st-head[data-visible]) {
 	opacity: 1;

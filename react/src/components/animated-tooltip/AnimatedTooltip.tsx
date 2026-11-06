@@ -84,6 +84,7 @@ function sink(_node: Element, params?: SinkParams): TransitionSpec {
 	const still = params.still;
 	return {
 		delay: 0,
+		// off-token: short sink exit, a beat longer than the fast rung
 		duration: still ? 120 : 160,
 		easing: (t: number) => t * t,
 		css: (t: number) =>

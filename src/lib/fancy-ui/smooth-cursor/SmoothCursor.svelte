@@ -264,7 +264,8 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.sc-label {
-			transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+			transition: opacity var(--ft-duration-base, 300ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 </style>

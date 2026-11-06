@@ -184,8 +184,8 @@ function showDone(): boolean {
 	}
 
 	.ft-thinking-dot-live::after {
-		animation: ft-thinking-pulse var(--ft-thinking-pulse-duration) cubic-bezier(0, 0, 0.2, 1)
-			infinite;
+		animation: ft-thinking-pulse var(--ft-thinking-pulse-duration)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
 	}
 }
 

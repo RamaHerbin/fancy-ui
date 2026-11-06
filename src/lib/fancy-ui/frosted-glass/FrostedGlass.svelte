@@ -150,7 +150,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.frosted-glass-filter {
-			animation: frosted-glass-settle 0.22s ease-out;
+			animation: frosted-glass-settle var(--ft-duration-exit, 200ms) ease-out;
 		}
 	}
 

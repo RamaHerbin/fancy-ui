@@ -40,7 +40,7 @@
 	--_tb-gutter: var(--tracing-beam-gutter, 2.5rem);
 	/* The rail's x inside the gutter. */
 	--_tb-x: 9px;
-	--_tb-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	--_tb-ease: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	display: grid;
 	grid-template-columns: var(--_tb-gutter) minmax(0, 1fr);
 }
@@ -120,9 +120,9 @@
 	transform-origin: left center;
 	transform: scaleX(0.5);
 	transition:
-		background-color 0.5s var(--_tb-ease),
-		transform 0.5s var(--_tb-ease),
-		box-shadow 0.5s var(--_tb-ease);
+		background-color var(--ft-duration-entrance, 600ms) var(--_tb-ease),
+		transform var(--ft-duration-entrance, 600ms) var(--_tb-ease),
+		box-shadow var(--ft-duration-entrance, 600ms) var(--_tb-ease);
 }
 
 .tb-root .tb-tick::before {
@@ -161,7 +161,7 @@
 	height: 0;
 	transform: translate3d(0, var(--tb-progress), 0);
 	opacity: 0;
-	transition: opacity 0.3s ease;
+	transition: opacity var(--ft-duration-base, 300ms) ease;
 }
 
 .tb-root .tb-head[data-ready="true"] {

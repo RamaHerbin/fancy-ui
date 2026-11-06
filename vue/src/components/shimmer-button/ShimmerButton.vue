@@ -93,7 +93,7 @@ function handlePointerMove(event: PointerEvent) {
 		:class="
 			cn(
 				'shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90',
-				'transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]',
+				'transform-gpu transition-[color] duration-300 ease-out hover:text-white active:scale-[0.98] motion-safe:transition-[transform,color]',
 				className
 			)
 		"
@@ -179,7 +179,7 @@ function handlePointerMove(event: PointerEvent) {
 	background-size: 250% 100%;
 	background-repeat: no-repeat;
 	background-position: 100% 0;
-	animation: shimmer-sweep var(--speed) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+	animation: shimmer-sweep var(--speed) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) infinite;
 }
 
 .shimmer-button__spot {
@@ -240,10 +240,10 @@ function handlePointerMove(event: PointerEvent) {
 /* The fade is motion: it only runs when the visitor has not asked for less. */
 @media (prefers-reduced-motion: no-preference) {
 	.shimmer-button__sheen {
-		transition: opacity 0.3s ease;
+		transition: opacity var(--ft-duration-base, 300ms) ease;
 	}
 	.shimmer-button__spot {
-		transition: opacity 0.3s ease;
+		transition: opacity var(--ft-duration-base, 300ms) ease;
 	}
 }
 </style>

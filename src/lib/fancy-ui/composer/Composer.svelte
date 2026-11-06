@@ -248,8 +248,8 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-composer {
 			transition:
-				border-color 150ms ease,
-				box-shadow 150ms ease;
+				border-color var(--ft-duration-fast, 150ms) ease,
+				box-shadow var(--ft-duration-fast, 150ms) ease;
 		}
 	}
 </style>

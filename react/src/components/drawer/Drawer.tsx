@@ -184,7 +184,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(function Drawer(
 			// the close is exactly as synchronous as it was before the drawer
 			// animated out at all.
 			duration: reduced ? 0 : entering ? DURATIONS.base : DURATIONS.exit,
-			easing: entering ? JS_EASINGS.out : JS_EASINGS.in,
+			easing: JS_EASINGS.out,
 			css: (t, u) => `transform: translateY(calc(${from}px * ${t} + 100% * ${u}))`,
 		};
 	}

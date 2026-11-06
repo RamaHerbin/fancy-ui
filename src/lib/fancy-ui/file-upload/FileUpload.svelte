@@ -435,7 +435,7 @@
 					}}
 					out:rowLeave|global={{
 						duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
-						easing: JS_EASINGS.in,
+						easing: JS_EASINGS.out,
 					}}
 				>
 					<span aria-hidden="true">📄</span>

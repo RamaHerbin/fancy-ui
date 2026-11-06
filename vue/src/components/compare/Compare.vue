@@ -615,14 +615,14 @@ onMounted(() => {
 
 @media (prefers-reduced-motion: no-preference) {
 	.compare-beam__pulse {
-		animation: cmp-pulse 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+		animation: cmp-pulse 3.2s var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) infinite;
 	}
 	.compare-beam__pulse--late {
 		animation-delay: -1.6s;
-		animation-duration: 3.2s;
+		animation-duration: 3.2s; /* off-token: ambient pulse period */
 	}
 	.compare[data-active] .compare-beam__pulse {
-		animation-duration: 1.6s;
+		animation-duration: 1.6s; /* off-token: faster ambient pulse while active */
 	}
 	.compare[data-active] .compare-beam__pulse--late {
 		animation-delay: -0.8s;
@@ -631,7 +631,7 @@ onMounted(() => {
 		animation: cmp-spin 4s linear infinite;
 	}
 	.compare[data-active] .compare-handle__ring {
-		animation-duration: 1.4s;
+		animation-duration: 1.4s; /* off-token: faster ambient ring spin while active */
 	}
 }
 

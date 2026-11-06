@@ -10,6 +10,11 @@
  * so the modal surfaces call `anchored` too and spell their rung at the call
  * site where the diff can see it.
  *
+ * Anchored panels keep `fast` in both directions: at 150 ms on a decelerating
+ * curve the exit is visually done by ~50 ms, and halving the depth (0.96 vs
+ * 0.92) is what makes leaving read smaller than arriving. Only the modal rung
+ * buys duration asymmetry (`base` in, `exit` out).
+ *
  * Two pieces that are deliberately kept separate:
  *
  * 1. `anchored()` — a css-only Svelte transition (scale + opacity, nothing
@@ -135,7 +140,7 @@ const EXIT_FLOOR = 1 - (1 - ENTER_FLOOR) / 2;
 /**
  * A css-only, direction-aware Svelte transition for an anchored floating
  * surface. Entrance: `JS_EASINGS.out` over `DURATIONS.fast`, growing from
- * the scale floor. Exit: `JS_EASINGS.in`, half the depth, and never delayed —
+ * the scale floor. Exit: the same `JS_EASINGS.out`, half the depth, and never delayed —
  * a dismissal that waits before starting reads as an unresponsive UI.
  *
  * Reduced motion collapses `duration` (and `delay`) to 0, which makes Svelte
@@ -162,7 +167,12 @@ export function anchored(
 			? (params.duration ?? DURATIONS.fast)
 			: (params.exitDuration ?? DURATIONS.fast);
 	const delay = reduced ? 0 : entering ? (params.delay ?? 0) : 0;
-	const easing = entering ? JS_EASINGS.out : JS_EASINGS.in;
+	// Both legs decelerate (owner ruling, 2026-10-24): an accelerating exit
+	// spends its first ~100 ms under 10 % progress and reads as input latency.
+	// The asymmetry of a dismissal is depth (EXIT_FLOOR) and, for the modal
+	// rung, duration — never the curve. `JS_EASINGS.in` survives for one use:
+	// a departure that hands off to an entrance (text-roll's wheel).
+	const easing = JS_EASINGS.out;
 
 	const floor = params.scale === false ? 1 : entering ? ENTER_FLOOR : EXIT_FLOOR;
 

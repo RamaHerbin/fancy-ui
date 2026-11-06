@@ -22,6 +22,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
+	import { staggerCap, staggerDelay } from "../_internals/motion/stagger.js";
 
 	let {
 		duration = 1,
@@ -34,7 +35,41 @@
 	}: BlurRevealProps = $props();
 
 	let containerRef: HTMLDivElement;
+	let wrapperRef = $state<HTMLDivElement>();
 	let isInView = $state(false);
+
+	// A stagger is N copies of one entrance offset in time: the parent writes
+	// each child's delay (capped by item size) and re-indexes when the child
+	// list changes.
+	$effect(() => {
+		if (!wrapperRef) return;
+		const root: HTMLElement = wrapperRef;
+		const stepMs = delay * 1000;
+
+		function apply() {
+			const kids = Array.from(root.children).filter(
+				(el): el is HTMLElement | SVGElement =>
+					el instanceof HTMLElement || el instanceof SVGElement
+			);
+			const cap = staggerCap(kids[0]?.getBoundingClientRect().height ?? 0);
+			for (let i = 0; i < kids.length; i++) {
+				const ms = staggerDelay(i, kids.length, stepMs, "first", cap);
+				kids[i].style.setProperty("--ft-child-delay", `${ms}ms`);
+			}
+		}
+
+		apply();
+		const observer = new MutationObserver(apply);
+		observer.observe(root, { childList: true });
+		return () => {
+			observer.disconnect();
+			for (const el of Array.from(root.children)) {
+				if (el instanceof HTMLElement || el instanceof SVGElement) {
+					el.style.removeProperty("--ft-child-delay");
+				}
+			}
+		};
+	});
 
 	onMount(() => {
 		const observer = new IntersectionObserver(
@@ -59,12 +94,16 @@
 	bind:this={containerRef}
 	class={cn(className)}
 	style:--blur-reveal-duration="{duration}s"
-	style:--blur-reveal-delay="{delay}s"
 	style:--blur-reveal-blur={blur}
 	style:--blur-reveal-y="{yOffset}px"
 >
 	{#if children}
-		<div class="blur-reveal-wrapper" class:is-visible={isInView} class:mode-hard={mode === "hard"}>
+		<div
+			bind:this={wrapperRef}
+			class="blur-reveal-wrapper"
+			class:is-visible={isInView}
+			class:mode-hard={mode === "hard"}
+		>
 			{@render children()}
 		</div>
 	{/if}
@@ -75,6 +114,7 @@
 		opacity: 0;
 		filter: blur(var(--blur-reveal-blur, 20px));
 		transform: translateY(var(--blur-reveal-y, 20px));
+		/* off-token: prop-driven seconds */
 		transition:
 			opacity var(--blur-reveal-duration, 1s) ease-in-out,
 			filter var(--blur-reveal-duration, 1s) ease-in-out,
@@ -85,38 +125,6 @@
 		opacity: 1;
 		filter: blur(0px);
 		transform: translateY(0);
-	}
-
-	/* Stagger delays for direct children */
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(1)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 0);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(2)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 1);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(3)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 2);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(4)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 3);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(5)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 4);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(6)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 5);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(7)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 6);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(8)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 7);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(9)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 8);
-	}
-	.blur-reveal-wrapper.is-visible > :global(:nth-child(10)) {
-		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 9);
 	}
 
 	/* Hard mode: no blur/translate softening, opacity snaps in via a stepped timing function */
@@ -131,9 +139,16 @@
 		opacity: 1;
 	}
 
+	/* Per-child delay, written by the component (staggerDelay + staggerCap). Placed after
+	   the hard-mode shorthand, which resets transition-delay. */
+	.blur-reveal-wrapper.is-visible > :global(*) {
+		transition-delay: var(--ft-child-delay, 0ms);
+	}
+
 	/* Respect reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.blur-reveal-wrapper > :global(*) {
+			/* off-token: reduced-motion collapse */
 			transition-duration: 0.1s !important;
 			transition-delay: 0s !important;
 		}

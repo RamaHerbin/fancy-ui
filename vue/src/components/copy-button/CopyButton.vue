@@ -383,11 +383,13 @@ watch(
    text snaps and the component never renders the outgoing layer. */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-copybtn__leave {
-		animation: ft-copybtn-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+		animation: ft-copybtn-out var(--ft-duration-micro, 80ms)
+			var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
 	}
 
 	.ft-copybtn__live[data-swapped] {
-		animation: ft-copybtn-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+		animation: ft-copybtn-in var(--ft-duration-fast, 150ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) var(--ft-duration-micro, 80ms) backwards;
 	}
 }
 

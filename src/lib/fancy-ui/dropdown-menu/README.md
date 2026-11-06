@@ -374,7 +374,7 @@ shortcuts/carets/group labels.
 The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
 `JS_EASINGS.out`, the rung every floating surface in the library is on),
 growing from a `0.92` floor, and reverses over the same 150 ms on the
-departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
+same decelerating curve (`JS_EASINGS.out`) — collapsing only to `0.96`, half the depth,
 because leaving is a smaller gesture than arriving. The growth origin follows
 the side the panel was actually placed on — flipped placements included — so
 it appears to come out of the trigger, and to go back into it, rather than out

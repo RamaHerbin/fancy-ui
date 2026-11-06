@@ -88,7 +88,7 @@ nothing to configure for the default look.
 
 ## Motion
 
-The panel rises from the bottom edge over 300 ms on the shared arrival curve (`DURATIONS.base` and `JS_EASINGS.out` from the motion foundation) and leaves the same way over 200 ms on the departure curve (`DURATIONS.exit`, `JS_EASINGS.in`). The scrim fades on opacity alone over the same two durations. Both run one clock, so they arrive and leave together.
+The panel rises from the bottom edge over 300 ms on the shared arrival curve (`DURATIONS.base` and `JS_EASINGS.out` from the motion foundation) and leaves the same way over 200 ms on the same decelerating curve (`DURATIONS.exit`, `JS_EASINGS.out` — exits decelerate too, only shorter). The scrim fades on opacity alone over the same two durations. Both run one clock, so they arrive and leave together.
 
 The travel is a full 100% of the panel's own height in both directions. Anchored surfaces halve their exit — leaving is a smaller gesture than arriving — but a drawer that slid half-way down and then vanished reads worse than one that simply clears the edge, so this is the deliberate exception.
 

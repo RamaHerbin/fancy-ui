@@ -83,6 +83,7 @@ Paths are relative to `src/lib/fancy-ui/` unless they start with `react/` or `vu
 - Reduced motion snaps to the end state; it never skips the state change, the announcement or the
   callback. A press may swap scale for a static opacity change, it may not disappear.
 - Why: the preference asks for less movement, not less information.
+- Vocabulary (tokens, exit curve, hover pair, stagger cap, the `off-token:` rule): `_internals/motion/README.md`.
 - Where: `_internals/motion/tokens.ts` (the gating rule), `status-morph/StatusMorph.svelte` (all
   motion under `no-preference`), `pagination/Pagination.svelte` (`flipDuration` → 0),
   `button/Button.svelte` (`leadFade`), `pressable/Pressable.svelte` and `toggle/Toggle.svelte`

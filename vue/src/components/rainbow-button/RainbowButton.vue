@@ -198,7 +198,7 @@ const baseClasses = computed(() =>
 	border-radius: inherit;
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 0.35s ease;
+	transition: opacity var(--ft-duration-base, 300ms) ease;
 }
 
 /* keep only the padding ring: the element minus its content box */

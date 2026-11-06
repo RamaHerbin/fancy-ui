@@ -171,7 +171,10 @@ function decide(next: "approved" | "denied") {
 			its own text is routinely missed by screen readers.
 		-->
 		<div class="ft-approval-foot mt-3" aria-live="polite">
-			<div v-if="isPending" class="ft-approval-actions flex flex-wrap items-center justify-end gap-2">
+			<div
+				v-if="isPending"
+				class="ft-approval-actions flex flex-wrap items-center justify-end gap-2"
+			>
 				<button
 					type="button"
 					class="ft-approval-deny text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60"
@@ -225,86 +228,86 @@ function decide(next: "approved" | "denied") {
 </template>
 
 <style scoped>
-	/*
+/*
 	 * Every colour is read at the point of use through two hooks: this card's own
 	 * `--ft-approval-*`, then the `--ft-status-*` vocabulary the whole AI family
 	 * shares, then the literal. Setting either anywhere up the tree retints the
 	 * card without having to win a specificity fight against these scoped rules,
 	 * and the shared one recolours every sibling component at once.
 	 */
-	.ft-approval.ft-destructive {
-		background: var(
-			--ft-approval-danger-bg,
-			color-mix(
-				in oklab,
-				var(
-						--ft-approval-danger,
-						var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
-					)
-					6%,
-				transparent
-			)
-		);
-		border-color: var(
-			--ft-approval-danger-border,
-			color-mix(
-				in oklab,
-				var(
-						--ft-approval-danger,
-						var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
-					)
-					22%,
-				transparent
-			)
-		);
-	}
-
-	.ft-approval.ft-destructive .ft-approval-icon {
-		color: var(
-			--ft-approval-danger,
-			var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
-		);
-	}
-
-	/*
-	 * Unlayered scoped rules beat Tailwind's layered utilities, so the destructive
-	 * button overrides `bg-foreground` / `text-background` without `!important`.
-	 * Its text flips with the scheme because no single ink clears 4.5:1 against a
-	 * red that is dark on a light page and light on a dark one.
-	 */
-	.ft-approval-approve.ft-destructive {
-		background: var(
-			--ft-approval-danger,
-			var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
-		);
-		color: var(--ft-approval-danger-fg, light-dark(oklch(0.985 0 0), oklch(0.16 0 0)));
-	}
-
-	.ft-approval-approve.ft-destructive:hover:not(:disabled) {
-		background: color-mix(
+.ft-approval.ft-destructive {
+	background: var(
+		--ft-approval-danger-bg,
+		color-mix(
 			in oklab,
 			var(
 					--ft-approval-danger,
 					var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
 				)
-				88%,
+				6%,
 			transparent
-		);
-	}
+		)
+	);
+	border-color: var(
+		--ft-approval-danger-border,
+		color-mix(
+			in oklab,
+			var(
+					--ft-approval-danger,
+					var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+				)
+				22%,
+			transparent
+		)
+	);
+}
 
-	/* Denied stays deliberately quiet — a refusal is not a failure. */
-	.ft-approval-resolved {
-		color: var(--ft-approval-denied, color-mix(in oklab, currentColor 65%, transparent));
-	}
+.ft-approval.ft-destructive .ft-approval-icon {
+	color: var(
+		--ft-approval-danger,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
 
-	.ft-approval-resolved.ft-approved {
-		color: var(
-			--ft-approval-approved,
-			var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
-		);
-	}
+/*
+	 * Unlayered scoped rules beat Tailwind's layered utilities, so the destructive
+	 * button overrides `bg-foreground` / `text-background` without `!important`.
+	 * Its text flips with the scheme because no single ink clears 4.5:1 against a
+	 * red that is dark on a light page and light on a dark one.
+	 */
+.ft-approval-approve.ft-destructive {
+	background: var(
+		--ft-approval-danger,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+	color: var(--ft-approval-danger-fg, light-dark(oklch(0.985 0 0), oklch(0.16 0 0)));
+}
 
-	/*
+.ft-approval-approve.ft-destructive:hover:not(:disabled) {
+	background: color-mix(
+		in oklab,
+		var(
+				--ft-approval-danger,
+				var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+			)
+			88%,
+		transparent
+	);
+}
+
+/* Denied stays deliberately quiet — a refusal is not a failure. */
+.ft-approval-resolved {
+	color: var(--ft-approval-denied, color-mix(in oklab, currentColor 65%, transparent));
+}
+
+.ft-approval-resolved.ft-approved {
+	color: var(
+		--ft-approval-approved,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+/*
 	 * The verdict's fade is the whole animation, and it lives behind the query, so
 	 * reduced motion is not a degraded variant to keep in sync: the footer simply
 	 * swaps, with the same colours and the same words.
@@ -314,20 +317,21 @@ function decide(next: "approved" | "denied") {
 	 * content under it does — so an `interpolate-size` rule here would have been
 	 * dead weight rather than a smooth collapse.
 	 */
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-approval-resolved {
-			animation: ft-approval-resolve-in 240ms cubic-bezier(0.4, 0, 0.2, 1);
-		}
+@media (prefers-reduced-motion: no-preference) {
+	.ft-approval-resolved {
+		animation: ft-approval-resolve-in var(--ft-duration-exit, 200ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
+}
 
-	@keyframes ft-approval-resolve-in {
-		from {
-			opacity: 0;
-			transform: translateY(-3px);
-		}
-		to {
-			opacity: 1;
-			transform: none;
-		}
+@keyframes ft-approval-resolve-in {
+	from {
+		opacity: 0;
+		transform: translateY(-3px);
 	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
 </style>

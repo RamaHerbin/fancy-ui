@@ -393,7 +393,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 					element,
 					{
 						duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
-						easing: JS_EASINGS.in,
+						easing: JS_EASINGS.out,
 					},
 					{ direction: "out" }
 				);

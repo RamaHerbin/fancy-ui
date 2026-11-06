@@ -62,7 +62,7 @@
 	bind:this={containerRef}
 	class={cn("box-reveal relative overflow-hidden", className)}
 >
-	<!-- Content (fades up) -->
+	<!-- Content (fades up). off-token: a phase offset after the box slide, not a stagger -->
 	<div
 		class="box-reveal-content"
 		style="opacity:{isInView ? 1 : 0};transform:translateY({isInView ? 0 : 25}px)"

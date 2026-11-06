@@ -282,8 +282,8 @@
 		--ft-subagents-track-width: 3.5rem;
 		--ft-subagents-track-height: 0.25rem;
 		--ft-subagents-badge-bg: color-mix(in oklab, currentColor 8%, transparent);
-		--ft-subagents-enter-duration: 320ms;
-		--ft-subagents-fill-duration: 320ms;
+		--ft-subagents-enter-duration: var(--ft-duration-base, 300ms);
+		--ft-subagents-fill-duration: var(--ft-duration-base, 300ms);
 	}
 
 	.ft-subagents-compact {
@@ -410,12 +410,13 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-subagents-row {
-			animation: ft-subagents-enter var(--ft-subagents-enter-duration) cubic-bezier(0.16, 1, 0.3, 1)
-				both;
+			animation: ft-subagents-enter var(--ft-subagents-enter-duration)
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
 		}
 
 		.ft-subagents-progress-fill {
-			transition: width var(--ft-subagents-fill-duration) cubic-bezier(0.4, 0, 0.2, 1);
+			transition: width var(--ft-subagents-fill-duration)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 
 		.ft-subagents-dot.ft-status-running::after {
@@ -424,7 +425,7 @@
 			inset: 0;
 			border-radius: inherit;
 			background: inherit;
-			animation: ft-subagents-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+			animation: ft-subagents-ping 1.6s var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
 		}
 	}
 

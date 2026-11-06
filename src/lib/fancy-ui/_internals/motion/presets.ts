@@ -7,9 +7,9 @@
  * `TransitionSpec`). Keeping the numbers in exactly one place is the
  * whole point of this file existing separately from `transitions.ts` — a
  * geometry change here is the one edit that keeps both in sync in theory,
- * even though Reveal's CSS side still has to be updated by hand (this
- * package ships no shared runtime stylesheet for motion; see `tokens.ts`'s
- * header comment for the same caveat applied to durations/easings).
+ * even though Reveal's CSS side still has to be updated by hand (the
+ * generated `--ft-*` block in `tailwind.css` covers durations, curves and
+ * stagger steps, not this geometry table).
  */
 
 export type PresetName =

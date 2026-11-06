@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DURATIONS, EASINGS, JS_EASINGS, STAGGER_CAPS, STAGGERS } from "./tokens.js";
+import { DURATIONS, EASINGS, HOVER, JS_EASINGS, STAGGER_CAP, STAGGERS } from "./tokens.js";
 import { expoIn, expoOut } from "./easing.js";
 
 describe("tokens", () => {
@@ -16,9 +16,21 @@ describe("tokens", () => {
 		});
 	});
 
-	it("STAGGERS and STAGGER_CAPS match the frozen values (ms)", () => {
+	it("STAGGERS and STAGGER_CAP match the frozen values (ms / px)", () => {
 		expect(STAGGERS).toEqual({ char: 15, charBlur: 20, word: 40, line: 150, item: 50 });
-		expect(STAGGER_CAPS).toEqual({ text: 200, item: 600 });
+		expect(STAGGER_CAP).toEqual({ floor: 200, ceil: 600, fromPx: 48, toPx: 448 });
+	});
+
+	it("HOVER pairs fast/out on the way in and exit/out on the way out — a return never bounces", () => {
+		expect(HOVER).toEqual({
+			in: { duration: "fast", easing: "out" },
+			out: { duration: "exit", easing: "out" },
+		});
+	});
+
+	it("JS_EASINGS.out decelerates: a quarter of the time covers most of the distance", () => {
+		expect(JS_EASINGS.out(0.25)).toBeGreaterThan(0.25);
+		expect(JS_EASINGS.in(0.25)).toBeLessThan(0.25);
 	});
 
 	it("JS_EASINGS exposes only out/in — overshoot has no JS-timed consumer", () => {

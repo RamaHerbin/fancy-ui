@@ -314,7 +314,8 @@ function describedBy() {
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-citation-preview {
-		animation: ft-citation-in 140ms cubic-bezier(0.4, 0, 0.2, 1);
+		animation: ft-citation-in var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 }
 

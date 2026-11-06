@@ -121,7 +121,7 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.hyper-text-char {
 			opacity: 0;
-			animation: hyperFadeIn 0.3s ease forwards;
+			animation: hyperFadeIn var(--ft-duration-base, 300ms) ease forwards;
 			animation-delay: var(--hyper-text-delay, 0s);
 		}
 	}

@@ -93,7 +93,7 @@ against both white and near-black. Which half applies is decided by
   fade out on top of it. The instant `loading` goes false the real content is
   rendered in its final, unwrapped position and the bones are re-parented into
   an `aria-hidden`, `pointer-events: none` overlay pinned over the root, which
-  fades to nothing over `200ms` (`DURATIONS.exit`) on the `JS_EASINGS.in`
+  fades to nothing over `200ms` (`DURATIONS.exit`) on the `JS_EASINGS.out`
   curve — opacity only, no transform. The content is queryable and clickable
   from the first frame; nothing waits for the fade. Standalone mode (no
   `children`) has nothing to reveal — `loading={false}` renders nothing at all

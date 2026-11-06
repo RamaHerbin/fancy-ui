@@ -108,7 +108,7 @@ onMounted(() => {
 	bonesLingering.value = loading;
 });
 
-// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.in` — a departure
+// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.out` — a departure
 // curve for a departing layer. `prefersReducedMotion()` is read inside the
 // params factory, which `usePresence` calls at the instant a leg starts —
 // never at construction and never during SSR. The overlay's "enter" leg
@@ -129,7 +129,7 @@ const overlayRef = composeRefs<HTMLDivElement>(
 	overlayPresence.register(bonesFade, (entering) =>
 		entering
 			? { duration: 0 }
-			: { duration: prefersReducedMotion() ? 0 : DURATIONS.exit, easing: JS_EASINGS.in }
+			: { duration: prefersReducedMotion() ? 0 : DURATIONS.exit, easing: JS_EASINGS.out }
 	)
 );
 

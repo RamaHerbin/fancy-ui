@@ -14,7 +14,7 @@ import type { RevealPresetName, StaggerFrom } from "../../internals/motion/types
 // setup-local binding.
 const DEFAULT_DURATION = 600; // tokens.DURATIONS.entrance
 const DEFAULT_DELAY = 0;
-const DEFAULT_EASING = "cubic-bezier(0.16, 1, 0.3, 1)"; // tokens.EASINGS.out
+const DEFAULT_EASING = "var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))"; // tokens.EASINGS.out
 const DEFAULT_DISTANCE = 16;
 
 export interface RevealProps {
@@ -56,8 +56,7 @@ export interface RevealProps {
 import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useInView } from "../../internals/motion/use-in-view.js";
-import { staggerDelay } from "../../internals/motion/stagger.js";
-import { STAGGER_CAPS } from "../../internals/motion/tokens.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
 
 defineOptions({ name: "Reveal", inheritAttrs: false });
 
@@ -276,8 +275,11 @@ function applyStagger(root: HTMLElement, step: number, origin: StaggerFrom) {
 			(child instanceof HTMLElement || child instanceof SVGElement) &&
 			!child.hasAttribute("data-reveal-skip")
 	);
+	// One layout read per child-list change, never per item: the cap ramps
+	// with item size (rows ≈ 200 ms, cards ≈ 600 ms).
+	const cap = staggerCap(kids[0]?.getBoundingClientRect().height ?? 0);
 	for (const [i, kid] of kids.entries()) {
-		const ms = staggerDelay(i, kids.length, step, origin, STAGGER_CAPS.item);
+		const ms = staggerDelay(i, kids.length, step, origin, cap);
 		kid.style.setProperty("--ft-reveal-child-delay", `${ms}ms`);
 	}
 }

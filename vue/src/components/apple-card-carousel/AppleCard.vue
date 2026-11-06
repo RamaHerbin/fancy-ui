@@ -15,6 +15,7 @@ export interface AppleCardData {
 }
 
 /** Shared transition duration — must stay in sync with the CSS transition below */
+// off-token: platform-native card curve pacing
 export const TRANSITION_MS = 400;
 
 export interface AppleCardProps {
@@ -85,7 +86,7 @@ const dialogStyle = computed(() => {
 		borderRadius: fullyExpanded.value ? "0px" : "1.5rem",
 		transition: reducedMotion
 			? "none"
-			: `top ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), left ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), width ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), height ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), border-radius ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1)`,
+			: /* off-token: platform-native card curve */ `top ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), left ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), width ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), height ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), border-radius ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1)`,
 	};
 });
 
@@ -184,7 +185,7 @@ function handleOverlayKeydown(e: KeyboardEvent) {
 		<img
 			:src="card.src"
 			:alt="card.title"
-			class="absolute inset-0 h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-500 hover:scale-105"
+			class="absolute inset-0 h-full w-full object-cover hover:scale-105 motion-safe:transition-transform motion-safe:duration-500"
 			draggable="false"
 		/>
 		<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
@@ -260,10 +261,7 @@ function handleOverlayKeydown(e: KeyboardEvent) {
 			<!-- Content area -->
 			<div class="p-6 md:p-8">
 				<component :is="card.content" v-if="card.content" />
-				<p
-					v-else-if="card.description"
-					class="leading-relaxed text-gray-600 dark:text-neutral-400"
-				>
+				<p v-else-if="card.description" class="leading-relaxed text-gray-600 dark:text-neutral-400">
 					{{ card.description }}
 				</p>
 			</div>

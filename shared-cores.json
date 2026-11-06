@@ -400,6 +400,16 @@
 		}
 	},
 	{
+		"id": "_internals/motion/token-values.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/token-values.ts",
+			"react": "react/src/internals/motion/token-values.ts",
+			"vue": "vue/src/internals/motion/token-values.ts"
+		}
+	},
+	{
 		"id": "_internals/motion/tokens.ts",
 		"kind": "data",
 		"shared": false,
@@ -413,12 +423,11 @@
 	{
 		"id": "_internals/motion/transitions.ts",
 		"kind": "pure-helper",
-		"shared": false,
-		"reason": "Svelte side imports `TransitionConfig` from svelte/transition; the React copy is framework-free. Ruling 8 candidate — purify the type and flip.",
+		"shared": true,
 		"paths": {
 			"svelte": "src/lib/fancy-ui/_internals/motion/transitions.ts",
 			"react": "react/src/internals/motion/transitions.ts",
-			"vue": null
+			"vue": "vue/src/internals/motion/transitions.ts"
 		}
 	},
 	{

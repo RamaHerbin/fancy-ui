@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent, ReactNode, TouchEvent as ReactTouchEvent } from "react";
+import type {
+	MouseEvent as ReactMouseEvent,
+	ReactNode,
+	TouchEvent as ReactTouchEvent,
+} from "react";
 
 import { cn } from "../../utils.js";
 import { linear } from "../../internals/motion/easing.js";
@@ -34,10 +38,7 @@ function fade300(node: Element): TransitionSpec {
 	};
 }
 
-function getDirection(
-	ev: { clientX: number; clientY: number },
-	obj: HTMLElement
-): number {
+function getDirection(ev: { clientX: number; clientY: number }, obj: HTMLElement): number {
 	const { width: w, height: h, left, top } = obj.getBoundingClientRect();
 	const x = ev.clientX - left - (w / 2) * (w > h ? h / w : 1);
 	const y = ev.clientY - top - (h / 2) * (h > w ? w / h : 1);

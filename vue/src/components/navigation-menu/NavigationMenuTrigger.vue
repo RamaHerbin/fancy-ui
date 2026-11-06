@@ -215,7 +215,7 @@ const classes = computed(() =>
 @media (prefers-reduced-motion: no-preference) {
 	.ft-navigation-menu-caret {
 		display: inline-block;
-		transition: transform 150ms ease;
+		transition: transform var(--ft-duration-fast, 150ms) ease;
 	}
 
 	.ft-navigation-menu-trigger[aria-expanded="true"] .ft-navigation-menu-caret {

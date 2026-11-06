@@ -5,7 +5,8 @@ import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { runTransition, type TransitionRun } from "../../internals/motion/animate.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
-import { DURATIONS, STAGGERS, STAGGER_CAPS } from "../../internals/motion/tokens.js";
+import { DURATIONS, STAGGERS } from "../../internals/motion/tokens.js";
+import { staggerCap } from "../../internals/motion/stagger.js";
 import type { StaggerFrom } from "../../internals/motion/types.js";
 import { rollIn, rollOut, type RollTransitionParams } from "./roll-transitions.js";
 import "./text-roll.css";
@@ -31,7 +32,7 @@ export interface TextRollProps extends Omit<HTMLAttributes<HTMLSpanElement>, "ch
 	 * `prefers-reduced-motion: reduce` (synchronous swap). */
 	duration?: number;
 	/** Per-cell stagger step in ms, before compression — see
-	 * `STAGGER_CAPS.text` (200ms total). Collapsed to `0` under reduced
+	 * `staggerCap(0)` (200ms total). Collapsed to `0` under reduced
 	 * motion, same as `duration`. */
 	stagger?: number;
 	/** Stagger origin, forwarded to the shared `staggerDelay` helper. */
@@ -399,8 +400,7 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 	// below and in each cell's ref cleanup.
 	useIsomorphicLayoutEffect(() => {
 		for (const cell of rendered) {
-			const desired: 0 | 1 | null =
-				cell.phase === "exit" ? 0 : cell.phase === "enter" ? 1 : null;
+			const desired: 0 | 1 | null = cell.phase === "exit" ? 0 : cell.phase === "enter" ? 1 : null;
 			if (desired === null) continue;
 			const leg = legsRef.current.get(cell.key);
 			if (leg && leg.to === desired) continue;
@@ -437,7 +437,7 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 		// value arriving mid-roll, may never fire its end callback — this
 		// roll is guaranteed to read "idle" again. `DURATIONS.entrance`
 		// (600ms) is the floor this contract names; a longer `duration` plus
-		// the worst-case stagger spread (`STAGGER_CAPS.text`) can
+		// the worst-case stagger spread (`staggerCap(0)`) can
 		// legitimately run past that floor, so the budget grows past 600ms
 		// rather than silently truncating a caller's own `duration`.
 		// `DURATIONS.fast` is slack for the delay-then-animate double
@@ -447,7 +447,7 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 		// on unmount.
 		const backstopMs = Math.max(
 			DURATIONS.entrance,
-			effDurationRef.current + STAGGER_CAPS.text + DURATIONS.fast
+			effDurationRef.current + staggerCap(0) + DURATIONS.fast
 		);
 		const timeoutId = setTimeout(() => {
 			setInFlight(0);
@@ -492,7 +492,12 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 			data-state={rollState}
 			data-direction={resolvedDirection}
 		>
-			<span className="ft-textroll-real" style={layerStyle} role={liveRole} aria-live={liveAriaLive}>
+			<span
+				className="ft-textroll-real"
+				style={layerStyle}
+				role={liveRole}
+				aria-live={liveAriaLive}
+			>
 				{value}
 			</span>
 			<span className="ft-textroll-cells" aria-hidden="true" style={layerStyle}>

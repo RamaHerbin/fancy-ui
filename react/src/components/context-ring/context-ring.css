@@ -59,12 +59,14 @@
 @media (prefers-reduced-motion: no-preference) {
 	.ft-ctxring-value {
 		transition:
-			stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1),
-			stroke 300ms linear;
+			stroke-dashoffset var(--ft-duration-entrance, 600ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			stroke var(--ft-duration-base, 300ms) linear;
 	}
 
 	.ft-ctxring-panel {
-		animation: ft-ctxring-in 140ms cubic-bezier(0.4, 0, 0.2, 1);
+		animation: ft-ctxring-in var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 }
 

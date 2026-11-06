@@ -99,14 +99,16 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-sources-list {
-			transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+			transition: grid-template-rows var(--ft-duration-base, 300ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 
 		.ft-sources-item.ft-in {
-			animation: ft-sources-in 240ms cubic-bezier(0.2, 0, 0, 1) backwards;
+			animation: ft-sources-in var(--ft-duration-exit, 200ms)
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) backwards;
 			/* Clamped: past a handful of cards the stagger stops reading as sequence
 			   and starts reading as lag, so the tail all lands together. */
-			animation-delay: calc(min(var(--ft-sources-index, 0), 6) * 45ms);
+			animation-delay: calc(min(var(--ft-sources-index, 0), 6) * var(--ft-stagger-item, 50ms));
 		}
 	}
 

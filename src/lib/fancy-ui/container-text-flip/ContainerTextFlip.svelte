@@ -2,6 +2,8 @@
 	import { cn } from "$lib/utils.js";
 	import { untrack } from "svelte";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { staggerCap, staggerDelay } from "../_internals/motion/stagger.js";
+	import { STAGGERS } from "../_internals/motion/tokens.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	interface Own {
@@ -26,6 +28,8 @@
 	let currentWordIndex = $state(0);
 	let currentWord = $derived(words[currentWordIndex] ?? "");
 	let letters = $derived(currentWord.split(""));
+	// Glyph-scale items: the shortest cap on the ramp.
+	const glyphCap = staggerCap(0);
 
 	// Read live: the query is started from an effect, never at construction.
 	const reduced = createReducedMotion();
@@ -63,8 +67,14 @@
 				{#each letters as letter, index}
 					<span
 						class="text-flip-letter inline-block"
-						style="animation-delay: {index * 0.02}s; animation-duration: {animationDuration}ms;"
-						>{letter === " " ? "\u00A0" : letter}</span
+						style:animation-duration="{animationDuration}ms"
+						style:--ft-child-delay="{staggerDelay(
+							index,
+							letters.length,
+							STAGGERS.charBlur,
+							'first',
+							glyphCap
+						)}ms">{letter === " " ? "\u00A0" : letter}</span
 					>
 				{/each}
 			{/key}
@@ -90,6 +100,7 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.text-flip-letter {
 			animation: text-flip-in ease-in-out forwards;
+			animation-delay: var(--ft-child-delay, 0ms);
 			opacity: 0;
 			filter: blur(10px);
 		}

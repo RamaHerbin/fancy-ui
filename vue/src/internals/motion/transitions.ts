@@ -104,22 +104,17 @@ function cssFor(name: PresetName, t: number, u: number, distance: number): strin
  * shorter/half-distance EXIT, like Presence, passes those explicitly in its
  * own `out`-side params — this factory does not guess at that asymmetry).
  *
- * `easing` is the one default that DOES read `options.direction`: with no
- * explicit `params.easing`, an `"out"`-direction instance (an exit-only
- * instance used on its own — StickyScroll's panel crossfade builds one
- * `preset("fade")` and uses it as both the enter and the exit spec, two
- * separate instances) defaults to `JS_EASINGS.in` (a departure curve);
- * anything else (`"in"`, or the unified `"both"` a single two-way
- * transition reports — Presence's case) defaults to `JS_EASINGS.out` (an
- * arrival curve, the more common perceived motion of the two when only one
- * curve is in play).
+ * `easing` defaults to `JS_EASINGS.out` in every direction — exits decelerate
+ * too (see `anchored.ts`: an accelerating departure reads as a wait). A caller
+ * wanting an accelerating departure that hands off to an entrance passes
+ * `JS_EASINGS.in` explicitly (text-roll's wheel is the one such caller).
  */
 export function preset(name: PresetName): TransitionFn<PresetParams> {
 	return (_node, params = {}, options) => {
 		const duration = params.duration ?? DURATIONS.base;
 		const delay = params.delay ?? 0;
 		const distance = params.distance ?? DEFAULT_DISTANCE;
-		const easing = params.easing ?? (options?.direction === "out" ? JS_EASINGS.in : JS_EASINGS.out);
+		const easing = params.easing ?? JS_EASINGS.out;
 
 		return {
 			delay,

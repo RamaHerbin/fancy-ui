@@ -139,12 +139,12 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.dock-icon {
 			transition:
-				width 180ms var(--_dock-ease),
-				height 180ms var(--_dock-ease);
+				width var(--ft-duration-exit, 200ms) var(--_dock-ease),
+				height var(--ft-duration-exit, 200ms) var(--_dock-ease);
 		}
 		.dock-icon::before,
 		.dock-icon[data-reflection]::after {
-			transition: opacity 180ms var(--_dock-ease);
+			transition: opacity var(--ft-duration-exit, 200ms) var(--_dock-ease);
 		}
 	}
 </style>

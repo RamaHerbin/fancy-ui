@@ -253,7 +253,11 @@ useFloat(panel, () => ({
 </script>
 
 <template>
-	<div ref="el" :class="cn('ft-ctxring inline-flex items-center gap-2', className)" :data-band="band">
+	<div
+		ref="el"
+		:class="cn('ft-ctxring inline-flex items-center gap-2', className)"
+		:data-band="band"
+	>
 		<!--
 			An explicit `aria-label`, because a button flattens everything inside it to
 			presentational: the `role="meter"` and its value below never reach
@@ -411,7 +415,8 @@ useFloat(panel, () => ({
 					     elements. Written inline, with no whitespace of its own on either
 					     side, so the row reads with exactly one space like the source. -->
 					<span class="min-w-0 truncate">{{ row.label }}</span
-					>{{ " " }}<span class="ft-ctxring-row-value flex-none tabular-nums">{{
+					>{{ " "
+					}}<span class="ft-ctxring-row-value flex-none tabular-nums">{{
 						compact(row.tokens)
 					}}</span>
 				</li>
@@ -483,12 +488,14 @@ useFloat(panel, () => ({
 @media (prefers-reduced-motion: no-preference) {
 	.ft-ctxring-value {
 		transition:
-			stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1),
-			stroke 300ms linear;
+			stroke-dashoffset var(--ft-duration-entrance, 600ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			stroke var(--ft-duration-base, 300ms) linear;
 	}
 
 	.ft-ctxring-panel {
-		animation: ft-ctxring-in 140ms cubic-bezier(0.4, 0, 0.2, 1);
+		animation: ft-ctxring-in var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 }
 

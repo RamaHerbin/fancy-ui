@@ -4,7 +4,7 @@ import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
-import { staggerDelay } from "../../internals/motion/stagger.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
 import "./bento-grid.css";
 
 export interface BentoGridProps extends HTMLAttributes<HTMLDivElement> {
@@ -16,9 +16,8 @@ export interface BentoGridProps extends HTMLAttributes<HTMLDivElement> {
 	children?: ReactNode;
 }
 
-/** ms per tile, and the total ceiling the stagger is compressed into. */
+/** ms per tile; the total ceiling comes from `staggerCap` (tile height). */
 const STEP = 70;
-const CAP = 420;
 
 export function BentoGrid({
 	className = "",
@@ -45,11 +44,14 @@ export function BentoGrid({
 			const kids = Array.from(root.children).filter(
 				(el): el is HTMLElement => el instanceof HTMLElement
 			);
+			// Measured once per child-list change: a ~268 px tile lands on the
+			// 420 ms ceiling the grid was tuned to by hand.
+			const cap = staggerCap(kids[0]?.getBoundingClientRect().height ?? 0);
 			kids.forEach((el, i) => {
 				el.style.setProperty("--bento-i", String(i));
 				el.style.setProperty(
 					"--bento-delay",
-					`${staggerDelay(i, kids.length, STEP, "first", CAP)}ms`
+					`${staggerDelay(i, kids.length, STEP, "first", cap)}ms`
 				);
 			});
 		}

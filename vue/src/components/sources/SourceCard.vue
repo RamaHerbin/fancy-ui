@@ -81,9 +81,7 @@ function resolveHref(raw: string): string | null {
 	-->
 	<component
 		:is="href ? 'a' : 'div'"
-		v-bind="
-			href ? { href, target: '_blank', rel: 'noopener noreferrer nofollow ugc' } : {}
-		"
+		v-bind="href ? { href, target: '_blank', rel: 'noopener noreferrer nofollow ugc' } : {}"
 		:class="
 			href ? cn('ft-source-card ft-source-linked', className) : cn('ft-source-card', className)
 		"
@@ -174,7 +172,7 @@ function resolveHref(raw: string): string | null {
 
 @media (prefers-reduced-motion: no-preference) {
 	.ft-source-linked {
-		transition: background-color 150ms ease;
+		transition: background-color var(--ft-duration-fast, 150ms) ease;
 	}
 }
 </style>

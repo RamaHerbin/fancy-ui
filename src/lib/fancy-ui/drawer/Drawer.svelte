@@ -259,7 +259,7 @@
 			// so the close is exactly as synchronous as it was before the
 			// drawer animated out at all.
 			duration: reduced ? 0 : entering ? DURATIONS.base : DURATIONS.exit,
-			easing: entering ? JS_EASINGS.out : JS_EASINGS.in,
+			easing: JS_EASINGS.out,
 			css: (t, u) => `transform: translateY(calc(${from}px * ${t} + 100% * ${u}))`,
 		};
 	}
@@ -413,7 +413,7 @@
 		 * let go.
 		 */
 		.ft-drawer-panel--releasing {
-			transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+			transition: transform var(--ft-duration-exit, 200ms) cubic-bezier(0.32, 0.72, 0, 1); /* off-token: sheet slide curve with a longer settle */
 		}
 	}
 

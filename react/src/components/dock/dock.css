@@ -123,14 +123,14 @@
 @media (prefers-reduced-motion: no-preference) {
 	.dock-shelf .dock-spot {
 		transition:
-			transform 140ms var(--_dock-ease),
-			opacity 300ms var(--_dock-ease);
+			transform var(--ft-duration-fast, 150ms) var(--_dock-ease),
+			opacity var(--ft-duration-base, 300ms) var(--_dock-ease);
 	}
 	.dock-shelf .dock-rim-light {
-		transition: transform 140ms var(--_dock-ease);
+		transition: transform var(--ft-duration-fast, 150ms) var(--_dock-ease);
 	}
 	.dock-shelf .dock-rim {
-		transition: opacity 300ms var(--_dock-ease);
+		transition: opacity var(--ft-duration-base, 300ms) var(--_dock-ease);
 	}
 }
 

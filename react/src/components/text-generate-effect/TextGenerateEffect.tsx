@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { staggerDelay } from "../../internals/motion/stagger.js";
 import { cn } from "../../utils.js";
 import "./text-generate-effect.css";
 
@@ -34,11 +35,15 @@ export function TextGenerateEffect({
 		const spans = scope.querySelectorAll<HTMLSpanElement>("span");
 
 		const timeout = setTimeout(() => {
+			// off-token: sequence. Word-by-word generation, uncapped; the step is a prop.
 			spans.forEach((span, index) => {
-				const wordTimeout = setTimeout(() => {
-					span.style.opacity = "1";
-					span.style.filter = filterRef.current ? "blur(0px)" : "none";
-				}, index * staggerRef.current);
+				const wordTimeout = setTimeout(
+					() => {
+						span.style.opacity = "1";
+						span.style.filter = filterRef.current ? "blur(0px)" : "none";
+					},
+					staggerDelay(index, spans.length, staggerRef.current)
+				);
 
 				// Store timeout ID for cleanup
 				(span as HTMLSpanElement & { _tid?: ReturnType<typeof setTimeout> })._tid = wordTimeout;

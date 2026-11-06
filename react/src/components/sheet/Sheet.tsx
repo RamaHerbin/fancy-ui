@@ -86,7 +86,7 @@ function edgeSlide(
 		// close is exactly as synchronous as it was before the sheet animated
 		// out at all.
 		duration: reduced ? 0 : entering ? DURATIONS.base : DURATIONS.exit,
-		easing: entering ? JS_EASINGS.out : JS_EASINGS.in,
+		easing: JS_EASINGS.out,
 		// `u = 1 - t`: fully out at t=0, resting at t=1. No opacity term — a
 		// sheet leaves by travelling, and fading it as well reads as two
 		// gestures fighting.

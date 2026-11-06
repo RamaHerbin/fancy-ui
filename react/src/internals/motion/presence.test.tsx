@@ -613,10 +613,11 @@ describe("usePresence — params and direction, resolved at leg start", () => {
 		await settleLegs();
 
 		expect(directions).toEqual(["in", "out"]);
-		// The point of passing it: the preset's own direction-dependent easing
-		// default resolves to an arrival curve entering and a departure one leaving.
+		// The point of passing it: the preset's own easing default is the
+		// decelerating curve in both directions (exits decelerate too), and the
+		// direction still reaches the spec so a caller can override per leg.
 		expect(specs[0]?.easing).toBe(JS_EASINGS.out);
-		expect(specs[1]?.easing).toBe(JS_EASINGS.in);
+		expect(specs[1]?.easing).toBe(JS_EASINGS.out);
 	});
 
 	it("reads the LATEST render's params, not the ones registered at mount", async () => {

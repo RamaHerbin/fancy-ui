@@ -31,10 +31,10 @@ describe("preset() — param resolution (pure, no DOM)", () => {
 		}
 	});
 
-	it("defaults easing to JS_EASINGS.in for direction out", () => {
+	it("defaults easing to JS_EASINGS.out for direction out too — exits decelerate", () => {
 		const fn = preset("fade");
 		const config = fn(document.createElement("div"), undefined, { direction: "out" });
-		expect(config.easing).toBe(JS_EASINGS.in);
+		expect(config.easing).toBe(JS_EASINGS.out);
 	});
 
 	it("every explicit param overrides its default, including a custom easing function", () => {

@@ -101,7 +101,7 @@ around it, so the stagger sequence stays contiguous.
 | ------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------- |
 | `--ft-reveal-duration`    | `var(--ft-duration-entrance, 600ms)` | Entrance duration                                                                  |
 | `--ft-reveal-delay`       | `0ms`                                | Delay before the entrance starts                                                   |
-| `--ft-reveal-easing`      | `var(--ft-ease-out)`                 | Entrance-only — `Reveal` never uses the departure curve                            |
+| `--ft-reveal-easing`      | `var(--ft-ease-out)`                 | Entrance-only — `Reveal` never animates out                            |
 | `--ft-reveal-distance`    | `16px`                               | Ignored by the `scale` preset                                                      |
 | `--ft-reveal-child-delay` | —                                    | JS-written, per child, only when `stagger > 0` — never a static `:nth-child` sheet |
 

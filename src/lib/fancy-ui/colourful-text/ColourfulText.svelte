@@ -23,6 +23,8 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
+	import { staggerCap, staggerDelay } from "../_internals/motion/stagger.js";
+	import { STAGGERS } from "../_internals/motion/tokens.js";
 
 	let {
 		text,
@@ -63,16 +65,33 @@
 	});
 
 	const chars = $derived(text.split(""));
+	// Glyph-scale items: the shortest cap on the ramp.
+	const glyphCap = staggerCap(0);
 </script>
 
-<span class={cn("colourful-text inline-flex", className)}>
+<span
+	class={cn("colourful-text inline-flex", className)}
+	style:--colourful-text-duration="{duration}s"
+>
 	{#each chars as char, i (i)}
 		<span
 			class="colourful-char inline-block"
-			style="color:{currentColors[i % currentColors.length] ??
-				startColor};transition:color {duration}s ease {i * 0.05}s,opacity {duration}s ease {i *
-				0.05}s,transform {duration}s ease {i * 0.05}s,filter {duration}s ease {i * 0.05}s"
+			style:color={currentColors[i % currentColors.length] ?? startColor}
+			style:--ft-child-delay="{staggerDelay(i, chars.length, STAGGERS.item, 'first', glyphCap)}ms"
 			>{char === " " ? "\u00A0" : char}</span
 		>
 	{/each}
 </span>
+
+<style>
+	/* A stagger: each glyph's delay is written by the component as
+	   --ft-child-delay (staggerDelay + staggerCap). */
+	.colourful-char {
+		/* off-token: prop-driven seconds */
+		transition:
+			color var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms),
+			opacity var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms),
+			transform var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms),
+			filter var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms);
+	}
+</style>

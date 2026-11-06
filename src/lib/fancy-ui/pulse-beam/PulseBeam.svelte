@@ -274,7 +274,7 @@
 		inset: 0;
 		border-radius: var(--pb-radius);
 		pointer-events: none;
-		transition: opacity 600ms ease;
+		transition: opacity var(--ft-duration-entrance, 600ms) ease;
 	}
 
 	/* Filter runs before the mask: the bloom blurs its gradients, then the 1px
@@ -357,7 +357,7 @@
 
 	.pulse-beam[data-state="fading"] .pulse-beam__layer {
 		opacity: 0;
-		transition-duration: 500ms;
+		transition-duration: var(--ft-duration-entrance, 600ms);
 	}
 
 	.pulse-beam[data-state="active"] .pulse-beam__layer,

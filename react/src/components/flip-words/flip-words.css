@@ -61,14 +61,15 @@
 @media (prefers-reduced-motion: no-preference) {
 	.flip-words .flip-words-word {
 		opacity: 0;
-		animation: flipFadeInWord 0.3s ease forwards;
+		animation: flipFadeInWord var(--ft-duration-base, 300ms) ease forwards;
 		animation-delay: var(--flip-words-word-delay, 0s);
 	}
 
 	.flip-words .flip-words-letter {
 		opacity: 0;
-		animation: flipFadeInLetter 0.2s ease forwards;
-		animation-delay: var(--flip-words-letter-delay, 0s);
+		animation: flipFadeInLetter var(--ft-duration-exit, 200ms) ease forwards;
+		/* The word offset is inherited from the parent word; the per-letter stagger is added on top. */
+		animation-delay: calc(var(--flip-words-word-delay, 0s) + var(--ft-child-delay, 0ms));
 	}
 
 	.flip-words .flip-words-enter {
