@@ -541,6 +541,23 @@ test("static findings carry a stable id per defect type across scans", () => {
 	assert.ok(ids.every((n) => /^[01][0-9]$/.test(n)));
 });
 
+test("infinite iteration is decided per animation, not per shorthand", () => {
+	const css =
+		"<style>@keyframes halo { from { filter: blur(0) } to { filter: blur(4px) } }\n@keyframes breathe { from { opacity: .5 } to { opacity: 1 } }\n.a { animation: halo 360ms ease both, breathe 2s ease-in-out infinite; }</style>";
+	const mixed = fixtureRepo(css);
+	const filterFinding = mixed.findings.find((f) => f.id === "widget-11");
+	assert.ok(filterFinding, "the filter animation is still reported");
+	assert.equal(filterFinding.priority, "P2", "but not as an infinite one");
+	const longhand = fixtureRepo(
+		"<style>@keyframes halo { from { filter: blur(0) } to { filter: blur(4px) } }\n@keyframes breathe { from { opacity: .5 } to { opacity: 1 } }\n.a { animation-name: halo, breathe; animation-duration: 360ms, 2s; animation-iteration-count: 1, infinite; }</style>"
+	);
+	assert.equal(longhand.findings.find((f) => f.id === "widget-11")?.priority, "P2");
+	const both = fixtureRepo(
+		"<style>@keyframes halo { from { filter: blur(0) } to { filter: blur(4px) } }\n.a { animation: halo 2s ease infinite; }</style>"
+	);
+	assert.equal(both.findings.find((f) => f.id === "widget-11")?.priority, "P1");
+});
+
 test("a rAF callback is a loop only when its body schedules another frame", () => {
 	const oneShot =
 		"function flush() {\n\tid = null;\n\tpaint();\n}\nid = requestAnimationFrame(flush);";

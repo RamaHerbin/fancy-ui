@@ -128,7 +128,9 @@ export function pickReference(available) {
 export function rmEntry(x) {
 	const settled = x.settle != null && x.settle < STILL_RATIO;
 	const ambient = x.settle != null && !settled;
-	const motionRatio = x.r300_1500 != null ? Math.max(x.r300_1500, x.r1500_3000 ?? 0) : x.still;
+	// the still window is mid->late when a midpoint exists (else first->late), and
+	// late->later whenever that frame exists: motion that starts late still counts
+	const motionRatio = Math.max(x.r300_1500 ?? x.still, x.r1500_3000 ?? 0);
 	const prePaint = x.r300_1500 != null && x.still >= STILL_RATIO && motionRatio < STILL_RATIO;
 	const endCheck =
 		x.end == null || x.settle == null
@@ -319,6 +321,10 @@ export function selfTest() {
 		settle: 0,
 	});
 	if (!pre.pre_paint || pre.motion_ratio !== 0) fail("pre-paint");
+	// motion that starts after the late frame counts even without a midpoint
+	const lateMover = rmEntry({ still: 0, r1500_3000: 0.2, end: 0, settle: 0 });
+	if (lateMover.motion_ratio !== 0.2 || scoreRmDynamic([lateMover]) !== 0)
+		fail("late motion without a midpoint scores 0");
 	// end state differs from the settled reference -> 1
 	const skip = rmEntry({ still: 0, r300_1500: 0, end: 0.2, settle: 0 });
 	if (scoreRmDynamic([skip]) !== 1) fail("skipped end scores 1");
@@ -431,8 +437,9 @@ async function main() {
 				if (p300 && existsSync(p300)) {
 					raw.r300_1500 = await R(b64(p300), b64(p1));
 					raw.r0_300 = await R(b64(p0), b64(p300));
-					if (p3000 && existsSync(p3000)) raw.r1500_3000 = await R(b64(p1), b64(p3000));
 				}
+				// independent of the midpoint: motion that starts after `late` must count
+				if (p3000 && existsSync(p3000)) raw.r1500_3000 = await R(b64(p1), b64(p3000));
 				info.fw[`${fw}-${theme}`] = {
 					...rmEntry(raw),
 					moments: { rm, ref, hover: hp },

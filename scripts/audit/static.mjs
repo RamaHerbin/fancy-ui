@@ -812,13 +812,37 @@ export function analyse(item) {
 	const ungatedTfo = [];
 	const layoutAnim = []; // {kind, file,line,evLine, where}
 	const filterAnim = [];
+	// Which @keyframes run forever, per animation: a shorthand list is split at its
+	// commas and each segment marks only the keyframes it names; the longhands pair
+	// `animation-name` with `animation-iteration-count` by position (the count list
+	// repeats, as CSS does), so a finite halo next to an infinite breathe stays finite.
 	const infiniteKf = new Set();
+	const kfNames = Object.keys(keyframes);
+	const named = (seg) => kfNames.filter((k) => new RegExp(`(^|[\\s,])${k}([\\s,;]|$)`).test(seg));
+	const byRule = new Map();
 	for (const d of allDecls) {
-		if (/^animation(-name)?$/.test(d.prop) && /\binfinite\b/.test(d.value)) {
-			for (const k of Object.keys(keyframes))
-				if (new RegExp(`(^|[\\s,])${k}([\\s,;]|$)`).test(d.value)) infiniteKf.add(k);
+		if (d.prop === "animation") {
+			for (const seg of splitTop(d.value))
+				if (/\binfinite\b/.test(seg)) for (const k of named(seg)) infiniteKf.add(k);
+		} else if (d.prop === "animation-name" || d.prop === "animation-iteration-count") {
+			const key = `${d.file}|${d.anc.join(" > ")}`;
+			const rule = byRule.get(key) ?? { names: null, counts: null };
+			if (d.prop === "animation-name") rule.names = splitTop(d.value).map((s) => s.trim());
+			else rule.counts = splitTop(d.value).map((s) => s.trim());
+			byRule.set(key, rule);
 		}
-		if (d.prop === "animation-iteration-count" && /infinite/.test(d.value)) infiniteKf.add("*");
+	}
+	for (const { names, counts } of byRule.values()) {
+		if (!counts) continue;
+		if (!names) {
+			// a count with no name list in the rule: nothing to pair, stay conservative
+			if (counts.some((c) => /infinite/.test(c))) infiniteKf.add("*");
+			continue;
+		}
+		names.forEach((n, i) => {
+			if (/infinite/.test(counts[i % counts.length] ?? ""))
+				for (const k of named(n)) infiniteKf.add(k);
+		});
 	}
 	for (const d of allDecls) {
 		if (isKeyframes(d.anc)) continue;
