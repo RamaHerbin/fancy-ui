@@ -11,7 +11,7 @@ describe("TextRevealCard (SSR)", () => {
 		const second = await renderToString(createSSRApp(TextRevealCard, {}));
 		expect(first).toBe(second);
 		expect(first).toContain("star-animate");
-		expect(first).toContain("--target-top");
+		expect(first).toContain("--drift-x");
 	});
 
 	it("gives two cards different star fields when their seeds differ", async () => {

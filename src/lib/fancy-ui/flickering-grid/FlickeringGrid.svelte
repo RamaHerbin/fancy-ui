@@ -28,6 +28,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { createFlickeringGrid, type FlickeringGridEngine } from "./flickering-grid-core.js";
 
 	let {
@@ -45,10 +46,28 @@
 	let canvasEl: HTMLCanvasElement;
 	let engine: FlickeringGridEngine | null = null;
 
+	// Started before the engine is created so the first frame already knows.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
+	$effect(() => {
+		const reducedMotion = reduced.current;
+		untrack(() => engine?.setOptions({ reducedMotion }));
+	});
+
 	onMount(() => {
 		engine = createFlickeringGrid(
 			{ container: containerEl, canvas: canvasEl },
-			{ squareSize, gridGap, flickerChance, color, maxOpacity, width, height }
+			{
+				squareSize,
+				gridGap,
+				flickerChance,
+				color,
+				maxOpacity,
+				width,
+				height,
+				reducedMotion: reduced.current,
+			}
 		);
 		if (!engine) return;
 

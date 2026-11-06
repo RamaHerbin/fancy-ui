@@ -1,0 +1,14 @@
+/* The inline opacity / transform / left are the state; only the tween that
+   animates them is motion, so under reduced motion the change lands
+   instantly. */
+@media (prefers-reduced-motion: no-preference) {
+	.box-reveal .box-reveal-content {
+		transition:
+			opacity var(--box-reveal-duration, 0.5s) ease var(--box-reveal-delay, 0.5s),
+			transform var(--box-reveal-duration, 0.5s) ease var(--box-reveal-delay, 0.5s);
+	}
+
+	.box-reveal .box-reveal-overlay {
+		transition: left var(--box-reveal-duration, 0.5s) ease-in var(--box-reveal-delay, 0.25s);
+	}
+}

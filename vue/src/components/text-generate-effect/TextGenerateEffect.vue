@@ -26,11 +26,9 @@ const {
 	class: className,
 } = defineProps<TextGenerateEffectProps>();
 
-// The per-span style below is bound as a STRING, not an object: a string style
-// is written to the element only when the string itself changes, so a re-render
-// caused by anything else leaves the opacity and filter the reveal wrote in
-// place. An object style is re-applied key by key on every patch, which would
-// push an already revealed word back to opacity 0 and blur it again.
+// The per-span style below only carries custom properties (`--tge-duration`,
+// `--tge-blur`); the opacity and filter the reveal writes inline are not part
+// of the bound object, so a re-patch leaves them in place.
 const wordsArray = computed(() => words.split(" "));
 const scopeRef = useTemplateRef<HTMLDivElement>("scopeRef");
 
@@ -87,17 +85,33 @@ onBeforeUnmount(stopReveal);
 </script>
 
 <template>
-	<div :class="cn('leading-snug tracking-wide', className)">
+	<div :class="cn('text-generate-effect leading-snug tracking-wide', className)">
 		<div ref="scopeRef">
 			<span
 				v-for="(word, idx) in wordsArray"
 				:key="word + idx"
-				class="inline-block"
-				:style="`opacity: 0; filter: ${
-					filter ? 'blur(10px)' : 'none'
-				}; transition: opacity ${duration}s, filter ${duration}s;`"
+				class="tge-word inline-block"
+				:style="{
+					'--tge-duration': `${duration}s`,
+					'--tge-blur': filter ? 'blur(10px)' : 'none',
+				}"
 				>{{ word }}&nbsp;</span
 			>
 		</div>
 	</div>
 </template>
+
+<style scoped>
+/* The resting state is the ungated default: every word visible and sharp.
+   The hidden start and the fade belong to the no-preference gate; the
+   reveal timers write opacity/filter inline, which wins inside the gate. */
+@media (prefers-reduced-motion: no-preference) {
+	.tge-word {
+		opacity: 0;
+		filter: var(--tge-blur, none);
+		transition:
+			opacity var(--tge-duration, 0.7s),
+			filter var(--tge-duration, 0.7s);
+	}
+}
+</style>

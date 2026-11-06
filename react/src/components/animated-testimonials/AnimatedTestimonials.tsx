@@ -71,6 +71,9 @@ export function AnimatedTestimonials({
 	// callback and gets the live value for free; a React closure captures.
 	const testimonialCountRef = useLiveRef(testimonialCount);
 
+	// Read when a navigation starts, so `navigate` keeps a stable identity.
+	const reducedMotionRef = useLiveRef(reducedMotion);
+
 	const navigate = useCallback(
 		(dir: "next" | "prev", fromUser = false) => {
 			if (isAnimatingRef.current || testimonialCount === 0) return;
@@ -80,6 +83,16 @@ export function AnimatedTestimonials({
 			// so neither one plays.
 			if (fromUser && testimonialCount > 1) playCue("select");
 			setDirection(dir);
+			// Reduced motion: no slide to wait for, so the quote swaps in the same
+			// tick (no latch, no blank frame).
+			if (reducedMotionRef.current) {
+				setActiveIndex((current) =>
+					dir === "next"
+						? (current + 1) % testimonialCount
+						: (current - 1 + testimonialCount) % testimonialCount
+				);
+				return;
+			}
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 			navigateTimerRef.current = setTimeout(() => {
@@ -93,7 +106,7 @@ export function AnimatedTestimonials({
 				navigateTimerRef.current = null;
 			}, TRANSITION_DURATION);
 		},
-		[testimonialCount, testimonialCountRef, playCue]
+		[testimonialCount, testimonialCountRef, reducedMotionRef, playCue]
 	);
 
 	// Reactive autoplay: restarts whenever autoplay, interval, hover state, focus
@@ -139,7 +152,7 @@ export function AnimatedTestimonials({
 							<div
 								key={index}
 								className={cn(
-									"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all",
+									"absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all motion-safe:duration-300",
 									index === activeIndex
 										? "z-20 translate-y-0 scale-100 rotate-0 opacity-100"
 										: "z-10 translate-y-4 scale-95 opacity-0",
@@ -149,7 +162,6 @@ export function AnimatedTestimonials({
 											? "translate-y-4"
 											: ""
 								)}
-								style={{ transitionDuration: `${TRANSITION_DURATION}ms` }}
 							>
 								<img
 									src={testimonial.src}
@@ -165,16 +177,13 @@ export function AnimatedTestimonials({
 					<div className="flex flex-col justify-between py-4">
 						<div
 							className={cn(
-								"ease-in-out",
+								"ease-in-out motion-safe:transition-[opacity,transform] motion-safe:duration-300",
 								isAnimating
 									? direction === "next"
 										? "translate-y-4 opacity-0"
 										: "-translate-y-4 opacity-0"
 									: "translate-y-0 opacity-100"
 							)}
-							style={{
-								transition: `opacity ${TRANSITION_DURATION}ms, transform ${TRANSITION_DURATION}ms`,
-							}}
 						>
 							<p className="text-lg text-gray-500 dark:text-neutral-300" aria-live="polite">
 								{activeTestimonial?.quote}

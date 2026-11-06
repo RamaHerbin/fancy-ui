@@ -102,9 +102,9 @@ function touchMoveHandler(event: TouchEvent) {
 					width: '100%',
 					opacity: widthPercentage > 0 ? 1 : 0,
 					clipPath: `inset(0 ${100 - widthPercentage}% 0 0)`,
-					transition: isMouseOver ? 'none' : 'all 0.4s ease-out',
 				}"
 				class="absolute z-20 bg-[#1d1c20] will-change-transform"
+				:class="{ 'text-reveal-settle': !isMouseOver }"
 			>
 				<slot name="text" />
 			</div>
@@ -115,16 +115,29 @@ function touchMoveHandler(event: TouchEvent) {
 					left: `${widthPercentage}%`,
 					transform: `rotate(${rotateDeg}deg)`,
 					opacity: widthPercentage > 0 ? 1 : 0,
-					transition: isMouseOver ? 'none' : 'all 0.4s ease-out',
 				}"
 				class="absolute z-50 h-40 w-[8px] bg-gradient-to-b from-transparent via-neutral-800 to-transparent will-change-transform"
+				:class="{ 'text-reveal-settle': !isMouseOver }"
 			></div>
 
 			<!-- Background text + stars -->
-			<div class="overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,white,transparent)]">
+			<div
+				class="overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,white,transparent)]"
+			>
 				<slot name="revealText" />
 				<TextRevealStars :starsCount="starsCount" :class="starsClass" :seed="starsSeed" />
 			</div>
 		</div>
 	</div>
 </template>
+
+<style scoped>
+/* The 0.4s settle after the pointer leaves is travel (clip-path, left, rotate, opacity):
+   it only runs without a reduce preference, otherwise the reveal snaps back.
+   While hovering the class is off, so the layers follow the pointer without easing. */
+@media (prefers-reduced-motion: no-preference) {
+	.text-reveal-settle {
+		transition: all 0.4s ease-out;
+	}
+}
+</style>

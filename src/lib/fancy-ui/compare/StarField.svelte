@@ -65,11 +65,17 @@
 </div>
 
 <style>
+	/* Resting state: a faint fixed star; twinkle and drift only run without a reduce preference. */
 	.star {
 		opacity: var(--fancy-ui-opacity-start);
-		animation:
-			twinkle var(--fancy-ui-twinkle-duration) ease-in-out infinite alternate,
-			drift var(--fancy-ui-drift-duration) linear infinite;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.star {
+			animation:
+				twinkle var(--fancy-ui-twinkle-duration) ease-in-out infinite alternate,
+				drift var(--fancy-ui-drift-duration) linear infinite;
+		}
 	}
 
 	@keyframes twinkle {

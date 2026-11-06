@@ -81,8 +81,9 @@
 		<!-- Reveal layer -->
 		<div
 			style="width: 100%; opacity: {widthPercentage > 0 ? 1 : 0}; clip-path: inset(0 {100 -
-				widthPercentage}% 0 0); transition: {isMouseOver ? 'none' : 'all 0.4s ease-out'};"
+				widthPercentage}% 0 0);"
 			class="absolute z-20 bg-[#1d1c20] will-change-transform"
+			class:text-reveal-settle={!isMouseOver}
 		>
 			{#if text}
 				{@render text()}
@@ -94,8 +95,9 @@
 			style="left: {widthPercentage}%; transform: rotate({rotateDeg}deg); opacity: {widthPercentage >
 			0
 				? 1
-				: 0}; transition: {isMouseOver ? 'none' : 'all 0.4s ease-out'};"
+				: 0};"
 			class="absolute z-50 h-40 w-[8px] bg-gradient-to-b from-transparent via-neutral-800 to-transparent will-change-transform"
+			class:text-reveal-settle={!isMouseOver}
 		></div>
 
 		<!-- Background text + stars -->
@@ -109,3 +111,14 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	/* The 0.4s settle after the pointer leaves is travel (clip-path, left, rotate, opacity):
+	   it only runs without a reduce preference, otherwise the reveal snaps back.
+	   While hovering the class is off, so the layers follow the pointer without easing. */
+	@media (prefers-reduced-motion: no-preference) {
+		.text-reveal-settle {
+			transition: all 0.4s ease-out;
+		}
+	}
+</style>

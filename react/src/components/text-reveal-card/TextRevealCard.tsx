@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { TextRevealStars } from "./TextRevealStars.js";
+import "./text-reveal-card.css";
 
 /**
  * TextRevealCard - A card whose hidden text is wiped into view by the
@@ -103,9 +104,12 @@ export function TextRevealCard({
 						width: "100%",
 						opacity: widthPercentage > 0 ? 1 : 0,
 						clipPath: `inset(0 ${100 - widthPercentage}% 0 0)`,
-						transition: isMouseOver ? "none" : "all 0.4s ease-out",
 					}}
-					className="absolute z-20 bg-[#1d1c20] will-change-transform"
+					className={
+						isMouseOver
+							? "absolute z-20 bg-[#1d1c20] will-change-transform"
+							: "text-reveal-settle absolute z-20 bg-[#1d1c20] will-change-transform"
+					}
 				>
 					{text}
 				</div>
@@ -116,9 +120,12 @@ export function TextRevealCard({
 						left: `${widthPercentage}%`,
 						transform: `rotate(${rotateDeg}deg)`,
 						opacity: widthPercentage > 0 ? 1 : 0,
-						transition: isMouseOver ? "none" : "all 0.4s ease-out",
 					}}
-					className="absolute z-50 h-40 w-[8px] bg-gradient-to-b from-transparent via-neutral-800 to-transparent will-change-transform"
+					className={
+						isMouseOver
+							? "absolute z-50 h-40 w-[8px] bg-gradient-to-b from-transparent via-neutral-800 to-transparent will-change-transform"
+							: "text-reveal-settle absolute z-50 h-40 w-[8px] bg-gradient-to-b from-transparent via-neutral-800 to-transparent will-change-transform"
+					}
 				></div>
 
 				{/* Background text + stars */}

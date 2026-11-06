@@ -29,7 +29,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { onMount } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	let {
 		text,
@@ -66,7 +66,14 @@
 
 	initializeStars();
 
-	onMount(() => {
+	// Read live: the query is started from an effect, never at construction.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
+	// Reduced motion holds the field still: no timer is armed, and flipping the
+	// preference back re-arms it because the effect depends on `reduced.current`.
+	$effect(() => {
+		if (reduced.current) return;
 		const intervalId = setInterval(updateStars, 100);
 		return () => clearInterval(intervalId);
 	});
@@ -77,7 +84,7 @@
 		{#each sparkles as sparkle (sparkle.id)}
 			<svg
 				class="sparkles-star pointer-events-none absolute z-20"
-				style="left:{sparkle.x};top:{sparkle.y};--sparkle-scale:{sparkle.scale};animation:sparkleAnim 0.8s ease-in-out {sparkle.delay}s infinite;transform:scale(0) rotate(75deg);opacity:0"
+				style="left:{sparkle.x};top:{sparkle.y};--sparkle-scale:{sparkle.scale};--sparkles-text-delay:{sparkle.delay}s"
 				width="21"
 				height="21"
 				viewBox="0 0 21 21"
@@ -107,6 +114,21 @@
 				opacity: 0;
 				transform: scale(0) rotate(150deg);
 			}
+		}
+	}
+
+	/* The ungated pose is the resting state: a still, half-grown star (the 50 %
+	   keyframe), so reduced motion keeps the sparkles and drops the pulse. */
+	.sparkles-star {
+		opacity: 1;
+		transform: scale(var(--sparkle-scale, 1)) rotate(120deg);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.sparkles-star {
+			opacity: 0;
+			transform: scale(0) rotate(75deg);
+			animation: sparkleAnim 0.8s ease-in-out var(--sparkles-text-delay, 0s) infinite;
 		}
 	}
 </style>

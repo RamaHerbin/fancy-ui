@@ -47,13 +47,15 @@ const isInView = useInView(containerRef, () => ({ threshold: 0.1, once: true }))
 const contentStyle = computed(() => ({
 	opacity: isInView.value ? "1" : "0",
 	transform: `translateY(${isInView.value ? 0 : 25}px)`,
-	transition: `opacity ${duration}s ease ${delay * 2}s,transform ${duration}s ease ${delay * 2}s`,
+	"--box-reveal-duration": `${duration}s`,
+	"--box-reveal-delay": `${delay * 2}s`,
 }));
 
 const overlayStyle = computed(() => ({
 	background: `${color}`,
 	left: isInView.value ? "100%" : "0%",
-	transition: `left ${duration}s ease-in ${delay}s`,
+	"--box-reveal-duration": `${duration}s`,
+	"--box-reveal-delay": `${delay}s`,
 }));
 </script>
 
@@ -72,3 +74,20 @@ const overlayStyle = computed(() => ({
 		<div class="box-reveal-overlay absolute inset-0 z-20" :style="overlayStyle"></div>
 	</div>
 </template>
+
+<style scoped>
+/* The inline opacity / transform / left are the state; only the tween that
+   animates them is motion, so under reduced motion the change lands
+   instantly. */
+@media (prefers-reduced-motion: no-preference) {
+	.box-reveal-content {
+		transition:
+			opacity var(--box-reveal-duration, 0.5s) ease var(--box-reveal-delay, 0.5s),
+			transform var(--box-reveal-duration, 0.5s) ease var(--box-reveal-delay, 0.5s);
+	}
+
+	.box-reveal-overlay {
+		transition: left var(--box-reveal-duration, 0.5s) ease-in var(--box-reveal-delay, 0.25s);
+	}
+}
+</style>

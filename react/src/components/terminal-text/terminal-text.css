@@ -2,8 +2,11 @@
    had no root class, so the rules are anchored on the component slug to keep
    the generic .cursor-blink name from leaking globally. The keyframe name
    `blink` is kept identical to the source (part of the visual contract). */
-.terminal-text .cursor-blink {
-	animation: blink 1s step-end infinite;
+/* The caret is a steady block first and a blinking one second. */
+@media (prefers-reduced-motion: no-preference) {
+	.terminal-text .cursor-blink {
+		animation: blink 1s step-end infinite;
+	}
 }
 
 @keyframes blink {

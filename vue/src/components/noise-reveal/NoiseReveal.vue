@@ -123,6 +123,16 @@ watch(
 	{ flush: "post" }
 );
 
+// Reduced motion: one still frame, the grain freezes, target changes snap. A
+// flip never rebuilds the scene.
+watch(
+	[engine, reducedMotion],
+	([currentEngine, currentReduced]) => {
+		currentEngine?.setOptions({ reducedMotion: currentReduced });
+	},
+	{ flush: "post" }
+);
+
 // Manual trigger: follow the `revealed` prop both ways
 watch(
 	[() => trigger, engine, () => revealed],

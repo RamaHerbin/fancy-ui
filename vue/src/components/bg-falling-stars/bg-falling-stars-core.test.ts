@@ -165,4 +165,61 @@ describe("createFallingStars", () => {
 			engine!.destroy();
 		});
 	});
+	it("reducedMotion paints one still frame without scheduling, and resumes when cleared", () => {
+		const ctx = makeCtx();
+		const canvas = makeCanvas(ctx);
+		const engine = createFallingStars({ canvas }, { count: 3, reducedMotion: true }, () => 0.5)!;
+
+		expect(rafSpy).not.toHaveBeenCalled();
+		expect(ctx.clearRect).toHaveBeenCalledTimes(1);
+		expect(ctx.fill).toHaveBeenCalledTimes(3);
+
+		// A colour change repaints the idle frame.
+		engine.setOptions({ color: "#ff0000" });
+		expect(ctx.clearRect).toHaveBeenCalledTimes(2);
+		expect(rafSpy).not.toHaveBeenCalled();
+
+		engine.setOptions({ reducedMotion: false });
+		expect(rafSpy).toHaveBeenCalledTimes(1);
+
+		engine.setOptions({ reducedMotion: true });
+		rafCallbacks.shift()!(0);
+		expect(rafCallbacks).toHaveLength(0);
+	});
+
+	it("repaints the idle still frame when the document theme class flips (currentColor)", async () => {
+		const flushObservers = () => new Promise<void>((r) => setTimeout(r, 0));
+		const ctx = makeCtx();
+		const canvas = makeCanvas(ctx);
+		const engine = createFallingStars(
+			{ canvas },
+			{ count: 3, color: "currentColor", reducedMotion: true },
+			() => 0.5
+		)!;
+		expect(ctx.clearRect).toHaveBeenCalledTimes(1);
+
+		try {
+			document.documentElement.classList.add("dark");
+			await flushObservers();
+			expect(ctx.clearRect).toHaveBeenCalledTimes(2);
+			expect(rafSpy).not.toHaveBeenCalled();
+
+			// A hex colour has nothing to re-read: the flip is ignored.
+			engine.setOptions({ color: "#ff0000" });
+			expect(ctx.clearRect).toHaveBeenCalledTimes(3);
+			document.documentElement.classList.remove("dark");
+			await flushObservers();
+			expect(ctx.clearRect).toHaveBeenCalledTimes(3);
+
+			// Nothing after destroy.
+			engine.setOptions({ color: "currentColor" });
+			expect(ctx.clearRect).toHaveBeenCalledTimes(4);
+			engine.destroy();
+			document.documentElement.classList.add("dark");
+			await flushObservers();
+			expect(ctx.clearRect).toHaveBeenCalledTimes(4);
+		} finally {
+			document.documentElement.classList.remove("dark");
+		}
+	});
 });

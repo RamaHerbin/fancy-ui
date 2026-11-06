@@ -21,6 +21,7 @@ export interface FlipWordsProps {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 
 defineOptions({ name: "FlipWords", inheritAttrs: false });
 
@@ -30,6 +31,10 @@ const { words, duration = 3000, class: className } = defineProps<FlipWordsProps>
 
 const currentIndex = ref(0);
 const isExiting = ref(false);
+
+// Live preference; its query starts from its own `onMounted`, registered before
+// the first schedule below, so the value is current when that runs.
+const reducedMotion = useReducedMotion();
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 let exitTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -75,8 +80,15 @@ function scheduleNext(index: number, d: number) {
 // watcher: an immediate callback also runs during a server render, which would
 // arm a timer no unmount ever clears.
 watch(
-	() => [currentIndex.value, isExiting.value, words.length, duration] as const,
-	([index, exiting, , d]) => {
+	() => [currentIndex.value, isExiting.value, words.length, duration, reducedMotion.value] as const,
+	([index, exiting, , d, reduced]) => {
+		// Reduced motion keeps the current word: nothing is scheduled, and a flip
+		// back re-arms the cycle because the preference is a source of this watch.
+		if (reduced) {
+			if (timeoutId) clearTimeout(timeoutId);
+			timeoutId = null;
+			return;
+		}
 		if (!exiting) {
 			scheduleNext(index, d);
 		}
@@ -85,7 +97,7 @@ watch(
 );
 
 onMounted(() => {
-	if (!isExiting.value) {
+	if (!isExiting.value && !reducedMotion.value) {
 		scheduleNext(currentIndex.value, duration);
 	}
 });
@@ -111,16 +123,14 @@ onBeforeUnmount(() => {
 			<span
 				v-for="(wordObj, wordIndex) in splitWords"
 				:key="wordObj.word + wordIndex"
-				class="flip-words-word inline-block whitespace-nowrap opacity-0"
-				:style="`animation:flipFadeInWord 0.3s ease forwards;animation-delay:${wordIndex * 0.3}s`"
+				class="flip-words-word inline-block whitespace-nowrap"
+				:style="{ '--flip-words-word-delay': `${wordIndex * 0.3}s` }"
 			>
 				<span
 					v-for="(letter, letterIndex) in wordObj.letters"
 					:key="wordObj.word + letterIndex"
-					class="inline-block opacity-0"
-					:style="`animation:flipFadeInLetter 0.2s ease forwards;animation-delay:${
-						wordIndex * 0.3 + letterIndex * 0.05
-					}s`"
+					class="flip-words-letter inline-block"
+					:style="{ '--flip-words-letter-delay': `${wordIndex * 0.3 + letterIndex * 0.05}s` }"
 					>{{ letter }}</span
 				>{{ " " }}<span class="inline-block">&nbsp;</span>
 			</span>
@@ -133,12 +143,28 @@ onBeforeUnmount(() => {
 	--flip-words-ms: 0.6s;
 }
 
-.flip-words-enter {
-	animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
-}
+/* Resting state is the ungated default: the current word is visible and in
+   place. The hidden start and every fade/flip belong to this gate. */
+@media (prefers-reduced-motion: no-preference) {
+	.flip-words-word {
+		opacity: 0;
+		animation: flipFadeInWord 0.3s ease forwards;
+		animation-delay: var(--flip-words-word-delay, 0s);
+	}
 
-.flip-words-exit {
-	animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+	.flip-words-letter {
+		opacity: 0;
+		animation: flipFadeInLetter 0.2s ease forwards;
+		animation-delay: var(--flip-words-letter-delay, 0s);
+	}
+
+	.flip-words-enter {
+		animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
+	}
+
+	.flip-words-exit {
+		animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+	}
 }
 </style>
 

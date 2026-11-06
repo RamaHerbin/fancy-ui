@@ -297,6 +297,9 @@ export function createNoiseReveal(
 		uniforms.uTexture.value = loaded;
 		const image = loaded.image as HTMLImageElement;
 		uniforms.uImageRes.value.set(image.naturalWidth || 1, image.naturalHeight || 1);
+		// The texture lands asynchronously: an idle (reduced-motion) loop must
+		// repaint, otherwise the plane would stay blank.
+		wake();
 	});
 
 	let destroyed = false;
@@ -310,11 +313,12 @@ export function createNoiseReveal(
 		if (reducedMotion) {
 			progress = value;
 			tween.active = false;
-			return;
+		} else {
+			tween.from = progress;
+			tween.start = performance.now();
+			tween.active = true;
 		}
-		tween.from = progress;
-		tween.start = performance.now();
-		tween.active = true;
+		wake();
 	};
 
 	const handleResize = () => {
@@ -325,22 +329,33 @@ export function createNoiseReveal(
 		camera.updateProjectionMatrix();
 		renderer.setSize(r.width, r.height, false);
 		fitPlane(r.width, r.height);
+		// setSize cleared the drawing buffer; repaint if the loop is idle.
+		wake();
 	};
 
 	window.addEventListener("resize", handleResize);
 
 	const clock = new THREE.Clock();
 	let animationId = 0;
-	const animate = () => {
+	// Re-enter the loop when it is idle (reduced motion renders one still frame,
+	// then waits for a wake: target change, texture load, resize, preference flip).
+	function wake() {
+		if (destroyed || animationId !== 0) return;
 		animationId = requestAnimationFrame(animate);
+	}
+	const animate = () => {
+		animationId = 0;
 		if (tween.active) {
 			const t = getProgress(performance.now() - tween.start, duration * 1000);
 			progress = lerp(tween.from, tween.to, easeInOutCubic(t));
 			if (t >= 1) tween.active = false;
 		}
 		uniforms.uProgress.value = progress;
-		uniforms.uTime.value = clock.getElapsedTime();
+		// Reduced motion freezes the grain: uTime keeps its last value.
+		if (!reducedMotion) uniforms.uTime.value = clock.getElapsedTime();
 		renderer.render(scene, camera);
+		if (reducedMotion && !tween.active) return;
+		animationId = requestAnimationFrame(animate);
 	};
 	animate();
 
@@ -349,7 +364,15 @@ export function createNoiseReveal(
 	return {
 		setOptions(next) {
 			if (destroyed) return;
-			if (next.reducedMotion !== undefined) reducedMotion = next.reducedMotion;
+			if (next.reducedMotion !== undefined && next.reducedMotion !== reducedMotion) {
+				reducedMotion = next.reducedMotion;
+				if (reducedMotion && tween.active) {
+					// Snap an in-flight tween to its destination.
+					progress = tween.to;
+					tween.active = false;
+				}
+				wake();
+			}
 			if (next.target !== undefined) setTarget(next.target);
 		},
 		resize: handleResize,

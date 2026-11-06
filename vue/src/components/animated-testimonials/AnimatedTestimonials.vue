@@ -42,6 +42,7 @@ const TRANSITION_DURATION = 300;
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 
 defineOptions({ name: "AnimatedTestimonials", inheritAttrs: false });
 
@@ -59,6 +60,11 @@ const activeIndex = ref(0);
 const direction = ref<"next" | "prev">("next");
 const isAnimating = ref(false);
 const isHovered = ref(false);
+const isFocused = ref(false);
+
+// Live preference; its query starts from its own `onMounted`, registered before
+// the autoplay watch below, so the value is current when that watch first runs.
+const reducedMotion = useReducedMotion();
 
 let navigateTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -66,6 +72,14 @@ function navigate(dir: "next" | "prev", fromUser = false) {
 	if (isAnimating.value || testimonials.length === 0) return;
 	if (sound && fromUser && testimonials.length > 1) playCue("select");
 	direction.value = dir;
+	// Reduced motion: no slide to wait for, so the quote swaps in the same tick
+	// (no latch, no blank frame).
+	if (reducedMotion.value) {
+		const n = testimonials.length;
+		activeIndex.value =
+			dir === "next" ? (activeIndex.value + 1) % n : (activeIndex.value - 1 + n) % n;
+		return;
+	}
 	isAnimating.value = true;
 	navigateTimer = setTimeout(() => {
 		// The list may have changed during the transition: read its live length
@@ -91,8 +105,10 @@ watch(
 	}
 );
 
-// Reactive autoplay: restarts whenever autoplay, interval, hover state or the
-// testimonials prop changes. Registered from onMounted, so the first run never
+// Reactive autoplay: restarts whenever autoplay, interval, hover state, focus
+// state, the motion preference or the testimonials prop changes. Pointer hover
+// and keyboard focus both hold the rotation, and a reduced-motion preference
+// keeps it from starting. Registered from onMounted, so the first run never
 // happens during a server render — no cleanup hook runs there, and an interval
 // scheduled on the server would never be cleared.
 onMounted(() => {
@@ -100,12 +116,21 @@ onMounted(() => {
 		[
 			() => autoplay,
 			() => isHovered.value,
+			() => isFocused.value,
+			() => reducedMotion.value,
 			() => interval,
 			() => testimonials,
 			() => testimonials.length,
 		],
 		(_v, _o, onCleanup) => {
-			if (!autoplay || isHovered.value || testimonials.length === 0) return;
+			if (
+				!autoplay ||
+				isHovered.value ||
+				isFocused.value ||
+				reducedMotion.value ||
+				testimonials.length === 0
+			)
+				return;
 
 			const timer = setInterval(() => navigate("next"), interval);
 			onCleanup(() => clearInterval(timer));
@@ -134,6 +159,8 @@ const activeTestimonial = computed(() =>
 		"
 		@mouseenter="isHovered = true"
 		@mouseleave="isHovered = false"
+		@focusin="isFocused = true"
+		@focusout="isFocused = false"
 		role="region"
 		aria-label="Testimonials"
 	>
@@ -148,7 +175,7 @@ const activeTestimonial = computed(() =>
 					:key="index"
 					:class="
 						cn(
-							'absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all',
+							'absolute inset-0 h-full w-full origin-bottom rounded-3xl ease-in-out motion-safe:transition-all motion-safe:duration-300',
 							index === activeIndex
 								? 'z-20 translate-y-0 scale-100 rotate-0 opacity-100'
 								: 'z-10 translate-y-4 scale-95 opacity-0',
@@ -159,7 +186,6 @@ const activeTestimonial = computed(() =>
 									: ''
 						)
 					"
-					:style="`transition-duration: ${TRANSITION_DURATION}ms`"
 				>
 					<img
 						:src="testimonial.src"
@@ -175,7 +201,7 @@ const activeTestimonial = computed(() =>
 				<div
 					:class="
 						cn(
-							'ease-in-out',
+							'ease-in-out motion-safe:transition-[opacity,transform] motion-safe:duration-300',
 							isAnimating
 								? direction === 'next'
 									? 'translate-y-4 opacity-0'
@@ -183,7 +209,6 @@ const activeTestimonial = computed(() =>
 								: 'translate-y-0 opacity-100'
 						)
 					"
-					:style="`transition: opacity ${TRANSITION_DURATION}ms, transform ${TRANSITION_DURATION}ms`"
 				>
 					<p class="text-lg text-gray-500 dark:text-neutral-300" aria-live="polite">
 						{{ activeTestimonial?.quote }}

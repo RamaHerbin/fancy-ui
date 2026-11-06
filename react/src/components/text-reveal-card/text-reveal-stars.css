@@ -3,23 +3,29 @@
 @keyframes star-drift {
 	0% {
 		opacity: 0;
-		transform: scale(1);
+		transform: translate(0, 0) scale(1);
 	}
 	50% {
 		opacity: var(--star-opacity, 0.5);
-		transform: scale(1.2);
+		transform: translate(calc(var(--drift-x) / 2), calc(var(--drift-y) / 2)) scale(1.2);
 	}
 	100% {
 		opacity: 0;
-		transform: scale(0);
-		top: var(--target-top);
-		left: var(--target-left);
+		transform: translate(var(--drift-x), var(--drift-y)) scale(0);
 	}
 }
 
 /* `.text-reveal-stars` is a port-added anchor: the Svelte compiler scoped
    this rule and the source has no root class to anchor on, so the slug class
    keeps the generic `.star-animate` name from leaking globally. */
+/* Resting state: a faint fixed star; the drift only runs without a reduce preference. */
 .text-reveal-stars .star-animate {
-	animation: star-drift linear infinite;
+	opacity: var(--star-opacity, 0.5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.text-reveal-stars .star-animate {
+		opacity: 0;
+		animation: star-drift linear infinite;
+	}
 }

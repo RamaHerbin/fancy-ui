@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { CSSProperties, HTMLAttributes } from "react";
 import { cn } from "../../utils.js";
 import "./letter-pullup.css";
 
@@ -27,14 +27,9 @@ export function LetterPullup({ words, delay = 0.05, className, ...props }: Lette
 					key={index}
 					className={cn(
 						"letter-pullup-char inline-block text-center text-4xl font-bold tracking-[-0.02em] text-black drop-shadow-sm md:leading-[5rem] dark:text-white",
-						className,
+						className
 					)}
-					style={{
-						animation: "letterPullUp 0.5s ease forwards",
-						animationDelay: `${index * delay}s`,
-						opacity: 0,
-						transform: "translateY(100px)",
-					}}
+					style={{ "--letter-pullup-delay": `${index * delay}s` } as CSSProperties}
 				>
 					{letter === " " ? " " : letter}
 				</span>

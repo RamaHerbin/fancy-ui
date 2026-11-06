@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { createMatrixRain, type MatrixRainEngine } from "./matrix-rain-core.js";
 
 	let {
@@ -25,12 +26,21 @@
 
 	let canvas: HTMLCanvasElement;
 	let engine: MatrixRainEngine | null = null;
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
 
 	// Mount only: the engine lives for the component's lifetime. Prop reads are
 	// untracked so no prop change can tear it down — the relayout that a
 	// glyphSize/density change used to cause is carried by setOptions below.
 	$effect(() => {
-		const initial = untrack(() => ({ color, speed, density, glyphSize, fadeOpacity }));
+		const initial = untrack(() => ({
+			color,
+			speed,
+			density,
+			glyphSize,
+			fadeOpacity,
+			reducedMotion: reduced.current,
+		}));
 		engine = createMatrixRain({ canvas }, initial);
 		if (!engine) return;
 
@@ -48,6 +58,12 @@
 	$effect(() => {
 		const next = { color, speed, fadeOpacity };
 		untrack(() => engine?.setOptions(next));
+	});
+
+	// Reduced motion: one still frame, loop wakes when the preference clears.
+	$effect(() => {
+		const reducedMotion = reduced.current;
+		untrack(() => engine?.setOptions({ reducedMotion }));
 	});
 
 	// Layout props: the engine relayouts the column grid when either changes.

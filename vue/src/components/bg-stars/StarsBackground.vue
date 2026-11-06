@@ -44,6 +44,7 @@ export interface StarsBackgroundProps {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 
 defineOptions({ name: "StarsBackground", inheritAttrs: false });
@@ -97,12 +98,19 @@ const hostRef = useTemplateRef<HTMLDivElement>("host");
 const parallaxRef = useTemplateRef<HTMLDivElement>("parallax");
 let engine: BgStarsEngine | null = null;
 
+// Live preference. Called before `onMounted` so its own mount hook (which starts the
+// media query) runs first and the first frame already knows.
+const reducedMotion = useReducedMotion();
+
 onMounted(() => {
 	const host = hostRef.value;
 	const parallax = parallaxRef.value;
 	if (!host || !parallax) return;
 
-	engine = createBgStars({ host, parallax }, { factor, stiffness, damping });
+	engine = createBgStars(
+		{ host, parallax },
+		{ factor, stiffness, damping, reducedMotion: reducedMotion.value }
+	);
 });
 
 onBeforeUnmount(() => {
@@ -122,6 +130,15 @@ watch(
 const layer1Duration = computed(() => `${speed}s`);
 const layer2Duration = computed(() => `${speed * 2}s`);
 const layer3Duration = computed(() => `${speed * 3}s`);
+
+// Reduced motion: one still frame; the loop wakes when the preference clears.
+watch(
+	reducedMotion,
+	(next) => {
+		engine?.setOptions({ reducedMotion: next });
+	},
+	{ flush: "post" }
+);
 </script>
 
 <template>
@@ -137,7 +154,10 @@ const layer3Duration = computed(() => `${speed * 3}s`);
 		<div ref="parallax" class="stars-parallax">
 			<!-- Star Layer 1 (smallest, fastest) -->
 			<div class="star-layer" :style="{ '--duration': layer1Duration }">
-				<div class="star-field" :style="{ width: '1px', height: '1px', boxShadow: boxShadow1 }"></div>
+				<div
+					class="star-field"
+					:style="{ width: '1px', height: '1px', boxShadow: boxShadow1 }"
+				></div>
 				<div
 					class="star-field top-[2000px]"
 					:style="{ width: '1px', height: '1px', boxShadow: boxShadow1 }"
@@ -146,7 +166,10 @@ const layer3Duration = computed(() => `${speed * 3}s`);
 
 			<!-- Star Layer 2 (medium) -->
 			<div class="star-layer" :style="{ '--duration': layer2Duration }">
-				<div class="star-field" :style="{ width: '2px', height: '2px', boxShadow: boxShadow2 }"></div>
+				<div
+					class="star-field"
+					:style="{ width: '2px', height: '2px', boxShadow: boxShadow2 }"
+				></div>
 				<div
 					class="star-field top-[2000px]"
 					:style="{ width: '2px', height: '2px', boxShadow: boxShadow2 }"
@@ -155,7 +178,10 @@ const layer3Duration = computed(() => `${speed * 3}s`);
 
 			<!-- Star Layer 3 (largest, slowest) -->
 			<div class="star-layer" :style="{ '--duration': layer3Duration }">
-				<div class="star-field" :style="{ width: '3px', height: '3px', boxShadow: boxShadow3 }"></div>
+				<div
+					class="star-field"
+					:style="{ width: '3px', height: '3px', boxShadow: boxShadow3 }"
+				></div>
 				<div
 					class="star-field top-[2000px]"
 					:style="{ width: '3px', height: '3px', boxShadow: boxShadow3 }"
@@ -179,7 +205,13 @@ const layer3Duration = computed(() => `${speed * 3}s`);
 	left: 0;
 	width: 100%;
 	height: 2000px;
-	animation: scroll-stars var(--duration, 50s) linear infinite;
+}
+
+/* Ungated = resting state: a still star field. Only the drift is motion. */
+@media (prefers-reduced-motion: no-preference) {
+	.star-layer {
+		animation: scroll-stars var(--duration, 50s) linear infinite;
+	}
 }
 
 .star-field {

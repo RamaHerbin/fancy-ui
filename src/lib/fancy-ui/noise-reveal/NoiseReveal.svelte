@@ -20,6 +20,7 @@
 <script lang="ts">
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { createNoiseReveal, type NoiseRevealEngine } from "./noise-reveal-core.js";
 
 	let {
@@ -35,6 +36,11 @@
 	let container: HTMLDivElement;
 	let engine: NoiseRevealEngine | null = $state.raw(null);
 
+	// Live preference: started before the scene effect so the first frame already
+	// knows; a flip never rebuilds the scene, it goes through setOptions below.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
 	// Scene lifecycle: rebuilt when the texture, the tween length or the trigger changes
 	$effect(() => {
 		if (!container) return;
@@ -46,7 +52,7 @@
 				duration,
 				trigger,
 				revealed: untrack(() => revealed),
-				reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+				reducedMotion: untrack(() => reduced.current),
 			}
 		);
 		if (!instance) return;
@@ -56,6 +62,12 @@
 			engine = null;
 			instance.destroy();
 		};
+	});
+
+	// Reduced motion: one still frame, the grain freezes, target changes snap.
+	$effect(() => {
+		const reducedMotion = reduced.current;
+		engine?.setOptions({ reducedMotion });
 	});
 
 	// Viewport trigger: reveal once on first intersection

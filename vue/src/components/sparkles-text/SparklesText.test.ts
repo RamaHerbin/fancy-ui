@@ -33,14 +33,12 @@ describe("SparklesText", () => {
 		expect(wrapper?.className).toContain("my-sparkle");
 	});
 
-	it("sparkle SVGs have animation styles", () => {
+	it("sparkle SVGs carry their stagger as a custom property", () => {
 		const { container } = render(SparklesText, {
 			props: { text: "X", sparklesCount: 1 },
 		});
 		const star = container.querySelector(".sparkles-star");
-		const style = (star as HTMLElement)?.getAttribute("style") ?? "";
-		expect(style).toContain("animation");
-		expect(style).toContain("sparkleAnim");
+		expect((star as HTMLElement).style.getPropertyValue("--sparkles-text-delay")).toMatch(/s$/);
 	});
 
 	it("uses custom colors on sparkle paths", () => {
