@@ -59,8 +59,44 @@ const shot = (root, fw, slug, theme, t, suffix = "") =>
 	join(root, "shots", fw, slug, `${theme}-${t}${suffix}.png`);
 const b64 = (p) => (existsSync(p) ? readFileSync(p).toString("base64") : null);
 
-/** The moments (ms) a capture produced for one framework x theme (and pass), from the shot files. */
+const logCache = new Map();
+/** The `ok` items of a capture directory's log, or null when there is no log. */
+function captureLog(root) {
+	if (!logCache.has(root)) {
+		const p = join(root, "capture-log.json");
+		let items = null;
+		try {
+			items = Object.values(JSON.parse(readFileSync(p, "utf8")).items ?? {});
+		} catch {
+			items = null;
+		}
+		logCache.set(root, items);
+	}
+	return logCache.get(root);
+}
+
+/**
+ * The moments (ms) the CURRENT capture produced for one framework x theme (and
+ * pass). Read from the capture log, which lists the files each item wrote: a
+ * re-run with other moments overwrites the log but leaves earlier frames on
+ * disk, so a directory scan would mix superseded shots in. Falls back to the
+ * directory when there is no log.
+ */
+export function momentsFromFiles(files, fw, slug, theme, suffix = "") {
+	const re = new RegExp(`^${fw}/${slug}/${theme}-(\\d+)${suffix}\\.png$`);
+	return files
+		.map((f) => re.exec(f))
+		.filter(Boolean)
+		.map((m) => Number(m[1]));
+}
 function momentsIn(root, fw, slug, theme, suffix = "") {
+	const items = captureLog(root);
+	if (items) {
+		const files = items
+			.filter((it) => it.status === "ok" && it.fw === fw && it.slug === slug)
+			.flatMap((it) => it.files ?? []);
+		return momentsFromFiles(files, fw, slug, theme, suffix);
+	}
 	const dir = join(root, "shots", fw, slug);
 	if (!existsSync(dir)) return [];
 	const re = new RegExp(`^${theme}-(\\d+)${suffix}\\.png$`);

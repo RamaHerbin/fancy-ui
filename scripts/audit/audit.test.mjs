@@ -65,9 +65,17 @@ import {
 	rates,
 	s5Partial,
 } from "./perf-sweep.mjs";
-import { pickHoverPair, pickMoments, pickReference, rmEntry, summariseSlug } from "./rm-check.mjs";
+import {
+	momentsFromFiles,
+	pickHoverPair,
+	pickMoments,
+	pickReference,
+	rmEntry,
+	summariseSlug,
+} from "./rm-check.mjs";
 import {
 	AMBIENT,
+	capturedMoments,
 	classifyCapturable,
 	isAmbientCandidate,
 	missingPorts,
@@ -521,6 +529,24 @@ test("rm-check: the compared moments follow what the capture produced", () => {
 	// no witness from one second on: the end state cannot be called settled
 	assert.deepEqual(pickReference([0, 800]), { ref: 800, prev: null });
 	assert.equal(pickReference([]), null);
+	// the current capture's moments come from the files its log lists, so a
+	// superseded frame still on disk is not picked up
+	const files = ["svelte/x/dark-0.png", "svelte/x/dark-800.png", "svelte/x/dark-0-hover.png"];
+	assert.deepEqual(momentsFromFiles(files, "svelte", "x", "dark"), [0, 800]);
+	assert.deepEqual(momentsFromFiles(files, "svelte", "x", "dark", "-hover"), [0]);
+	assert.deepEqual(momentsFromFiles(files, "react", "x", "dark"), []);
+	const logItems = [
+		{ status: "ok", fw: "svelte", slug: "x", files },
+		{
+			status: "ok",
+			fw: "react",
+			slug: "x",
+			files: ["react/x/dark-0.png", "react/x/dark-1500.png"],
+		},
+		{ status: "error", fw: "vue", slug: "x", files: ["vue/x/dark-0.png"] },
+	];
+	assert.deepEqual(capturedMoments(logItems, "x", "dark", false), [0, 800, 1500]);
+	assert.deepEqual(capturedMoments(logItems, "x", "dark", false, ["vue"]), []);
 	// the pointer pass compares two frames past the open delays, or nothing
 	assert.deepEqual(pickHoverPair([0, 300, 1500, 3000]), { a: 1500, b: 3000 });
 	assert.equal(pickHoverPair([0, 800]), null);
@@ -556,6 +582,31 @@ test("infinite iteration is decided per animation, not per shorthand", () => {
 		"<style>@keyframes halo { from { filter: blur(0) } to { filter: blur(4px) } }\n.a { animation: halo 2s ease infinite; }</style>"
 	);
 	assert.equal(both.findings.find((f) => f.id === "widget-11")?.priority, "P1");
+	// A1: the ambient exemption is per animation too, so the finite entrance
+	// next to the infinite loop keeps its off-token duration
+	assert.equal(
+		fixtureRepo("<style>.a { animation: enter 1200ms ease both, spin 2s linear infinite; }</style>")
+			.axes.A1.score,
+		2
+	);
+	assert.equal(
+		fixtureRepo(
+			"<style>.a { animation-name: enter, spin; animation-duration: 1200ms, 2s; animation-iteration-count: 1, infinite; }</style>"
+		).axes.A1.score,
+		2
+	);
+	assert.equal(
+		fixtureRepo(
+			"<style>.a { animation-name: spin; animation-duration: 2s; animation-iteration-count: infinite; }</style>"
+		).axes.A1.score,
+		3
+	);
+	// inline styles resolve the transition property whatever the token order
+	assert.equal(
+		fixtureRepo('<div style="transition: 150ms ease transform"></div>').axes.A2.score,
+		0
+	);
+	assert.equal(fixtureRepo('<div style="transition: 150ms ease"></div>').axes.A2.score, 0);
 });
 
 test("a rAF callback is a loop only when its body schedules another frame", () => {

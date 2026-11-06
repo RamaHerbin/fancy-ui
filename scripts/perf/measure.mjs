@@ -547,6 +547,9 @@ async function window_(page, cdp, ms, { moveMouse = false } = {}) {
 
 const medianOf = (samples, pick) => median(samples.map(pick));
 function aggregateWindows(samples) {
+	// a window reported unavailable in any rep stays unavailable (no numbers to median)
+	const blocked = samples.find((s) => s.unavailable);
+	if (blocked) return { unavailable: blocked.unavailable };
 	const keys = Object.keys(samples[0]);
 	return Object.fromEntries(keys.map((k) => [k, medianOf(samples, (s) => s[k])]));
 }
@@ -554,18 +557,50 @@ function aggregateWindows(samples) {
 /**
  * Offscreen: a 3000 px spacer is prepended so the stage sits far below the
  * 800 px viewport (never scrolled into view), 3 s window. A component that
- * keeps painting or looping here pays for pixels nobody sees.
+ * keeps painting or looping here pays for pixels nobody sees. A surface the
+ * spacer cannot move (a portalled, `position: fixed` toaster) is still on
+ * screen, so the window is reported unavailable rather than measured as
+ * offscreen work.
  */
 async function offscreenWindow(page, cdp) {
-	await page.evaluate(() => {
+	const stillVisible = await page.evaluate(() => {
 		const spacer = document.createElement("div");
 		spacer.id = "__perf-spacer";
 		spacer.style.cssText = "height:3000px;flex:none;width:1px";
 		document.body.prepend(spacer);
 		window.scrollTo(0, 0);
+		// Anything painted inside the viewport after the spacer, other than the
+		// spacer itself, is a surface the spacer did not move.
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+		const painted = (el) => {
+			const r = el.getBoundingClientRect();
+			return (
+				r.width > 0 && r.height > 0 && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw
+			);
+		};
+		const visible = [];
+		for (const el of document.body.querySelectorAll("*")) {
+			if (el === spacer || spacer.contains(el)) continue;
+			if (!(el instanceof HTMLElement) && !(el instanceof SVGElement)) continue;
+			if (el.tagName === "SCRIPT" || el.tagName === "STYLE") continue;
+			if (!painted(el)) continue;
+			// containers are expected to span the page: report leaf-ish nodes only
+			if (el.children.length > 0 && !["CANVAS", "IMG", "VIDEO", "SVG"].includes(el.tagName))
+				continue;
+			visible.push(
+				el.tagName.toLowerCase() + (el.className ? "." + String(el.className).split(/\s+/)[0] : "")
+			);
+			if (visible.length >= 3) break;
+		}
+		return visible;
 	});
 	await sleep(500);
-	const w = await window_(page, cdp, 3000);
+	const w = stillVisible.length
+		? {
+				unavailable: `surface still in the viewport after the spacer (${stillVisible.join(", ")}): fixed or portalled, cannot be scrolled away`,
+			}
+		: await window_(page, cdp, 3000);
 	await page.evaluate(() => document.getElementById("__perf-spacer")?.remove());
 	return w;
 }
@@ -1013,10 +1048,10 @@ function runReport() {
 					f1(r.active.scriptMsPerSec),
 					f1(r.active.longTasks),
 					f1(r.active.longTaskMs),
-					r.offscreen ? f1(r.offscreen.rafPerSec) : "n/a",
-					r.offscreen ? f1(r.offscreen.cpuMsPerSec) : "n/a",
-					r.hidden ? f1(r.hidden.rafPerSec) : "n/a",
-					r.hidden ? f1(r.hidden.cpuMsPerSec) : "n/a",
+					r.offscreen && !r.offscreen.unavailable ? f1(r.offscreen.rafPerSec) : "n/a",
+					r.offscreen && !r.offscreen.unavailable ? f1(r.offscreen.cpuMsPerSec) : "n/a",
+					r.hidden && !r.hidden.unavailable ? f1(r.hidden.rafPerSec) : "n/a",
+					r.hidden && !r.hidden.unavailable ? f1(r.hidden.cpuMsPerSec) : "n/a",
 				])
 			),
 			"",
@@ -1140,7 +1175,7 @@ function runReport() {
 		]);
 		// Offscreen and hidden windows exist only in results from the current harness.
 		for (const window of ["offscreen", "hidden"]) {
-			const rows = g.rows.filter((r) => r.name !== "none" && r[window]);
+			const rows = g.rows.filter((r) => r.name !== "none" && r[window] && !r[window].unavailable);
 			if (!rows.length) continue;
 			const worstWindow = Math.max(...rows.map((r) => r[window].cpuMsPerSec));
 			budgetRows.push([

@@ -475,8 +475,9 @@ export function scanMarkup(f, keyframes) {
 				desc = "";
 			if (prop === "transition" || prop === "transition-property") {
 				for (const seg of splitTop(val)) {
-					const p = prop === "transition" ? seg.split(/\s+/)[0] : seg.trim();
-					if (TFO_PROPS.has(p)) tfo = true;
+					// the property may follow the duration; absent, CSS means `all`
+					const p = prop === "transition" ? transitionProperty(seg) : seg.trim();
+					if (p === "all" || TFO_PROPS.has(p)) tfo = true;
 				}
 			} else if (prop === "transition-duration") {
 				tfo =
@@ -672,6 +673,12 @@ export function analyse(item) {
 			.map(ruleKey)
 	);
 	const loopsForever = (d) => /\binfinite\b/.test(d.value) || infiniteRules.has(ruleKey(d));
+	const countListByRule = new Map(
+		allDecls
+			.filter((d) => d.prop === "animation-iteration-count")
+			.map((d) => [ruleKey(d), splitTop(d.value).map((s) => s.trim())])
+	);
+	const countsOfRule = (d) => countListByRule.get(ruleKey(d)) ?? null;
 	for (const d of allDecls) {
 		const g = gateOf(d.anc);
 		const isAnim = /^animation/.test(d.prop);
@@ -682,11 +689,23 @@ export function analyse(item) {
 		if (!(isAnim || isTrans || isCustom || /cubic-bezier/.test(d.value))) continue;
 		if (isKeyframes(d.anc) && !/cubic-bezier/.test(d.value) && !/animation-timing/.test(d.prop))
 			continue;
-		// split transition shorthand per segment; skip colour-only segments
+		// split list shorthands per segment: colour-only transition segments are
+		// skipped, and the ambient exemption applies to one animation at a time
 		let segs = [d.value];
-		if (d.prop === "transition" || d.prop === "transition-property") segs = splitTop(d.value);
+		if (["transition", "transition-property", "animation", "animation-duration"].includes(d.prop))
+			segs = splitTop(d.value);
+		const counts = countsOfRule(d);
 		let anyHandled = false;
-		for (const seg of segs) {
+		for (const [segIndex, seg] of segs.entries()) {
+			// this segment runs forever: `infinite` in its own shorthand, or the
+			// iteration count at its position in the rule's longhand list
+			const countAt = () => /\binfinite\b/.test(counts?.[segIndex % (counts.length || 1)] ?? "");
+			const segLoops =
+				d.prop === "animation"
+					? /\binfinite\b/.test(seg) || countAt()
+					: d.prop === "animation-duration"
+						? countAt()
+						: loopsForever(d);
 			if (d.prop === "transition") {
 				const first = transitionProperty(seg);
 				if (COLOR_PROPS.has(first)) {
@@ -708,7 +727,7 @@ export function analyse(item) {
 			if (d.prop === "transition-property") continue;
 			for (const t of timeLiterals(seg)) {
 				if (t.ms <= 1) continue; // 0ms / 0.01ms reduced-motion style overrides
-				if (isAnim && t.ms >= 1000 && !/animation-delay/.test(d.prop) && loopsForever(d)) {
+				if (isAnim && t.ms >= 1000 && !/animation-delay/.test(d.prop) && segLoops) {
 					lit("duration", t.raw, d.file, d.line, "ambient-loop, excluded");
 					anyHandled = true;
 					continue;

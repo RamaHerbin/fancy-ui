@@ -59,18 +59,21 @@ import {
 export const MOMENTS = [0, 150, 300, 600, 1200, 2000, 4000];
 
 /**
- * The moments (ms) a capture produced for one slug, theme and pass, read from
- * the shot files (union over `fws`); a hint may have replaced the defaults.
+ * The moments (ms) the current capture produced for one slug, theme and pass
+ * (union over `fws`), from the files the capture log lists for its `ok` items:
+ * a re-run with other moments leaves superseded frames on disk, so the log,
+ * not the directory, says which ones are current.
  */
-export function capturedMoments(parityDir, slug, theme, hover, fws = FRAMEWORKS) {
+export function capturedMoments(logItems, slug, theme, hover, fws = FRAMEWORKS) {
 	const set = new Set();
-	const re = new RegExp(`^${theme}-(\\d+)${hover ? "-hover" : ""}\\.png$`);
 	for (const fw of fws) {
-		const dir = join(parityDir, "shots", fw, slug);
-		if (!existsSync(dir)) continue;
-		for (const f of readdirSync(dir)) {
-			const m = re.exec(f);
-			if (m) set.add(Number(m[1]));
+		const re = new RegExp(`^${fw}/${slug}/${theme}-(\\d+)${hover ? "-hover" : ""}\\.png$`);
+		for (const it of logItems) {
+			if (it.status !== "ok" || it.fw !== fw || it.slug !== slug) continue;
+			for (const f of it.files ?? []) {
+				const m = re.exec(f);
+				if (m) set.add(Number(m[1]));
+			}
 		}
 	}
 	return [...set].sort((x, y) => x - y);
@@ -331,6 +334,7 @@ async function main() {
 	const inventory = loadInventory(paths.inventory);
 	const slugs = inventory.map((i) => i.slug).filter((s) => !only || only.has(s));
 	const log = JSON.parse(readFileSync(join(paths.parity, "capture-log.json"), "utf8")).items;
+	const logItems = Object.values(log);
 	const scores = JSON.parse(readFileSync(join(paths.parity, "scores.json"), "utf8"));
 	const hintsDir = join(paths.repo, "scripts", "parity", "hints");
 	const hints = {};
@@ -380,7 +384,7 @@ async function main() {
 		if (!noSheets) {
 			for (const theme of THEMES) {
 				for (const hover of [false, true]) {
-					const moments = capturedMoments(paths.parity, slug, theme, hover);
+					const moments = capturedMoments(logItems, slug, theme, hover);
 					if (!moments.length) continue;
 					const cells = FRAMEWORKS.map((fw) =>
 						moments.map((t) => ({ fw, t, data: b64(shot(fw, slug, theme, t, hover)) }))
@@ -407,7 +411,7 @@ async function main() {
 			ambient = { checked: true, regionRatioMin: REGION_RATIO_MIN, byTheme: {}, laterFrames: 0 };
 			let best = 0;
 			for (const theme of THEMES) {
-				const moments = capturedMoments(paths.parity, slug, theme, false, ["svelte"]);
+				const moments = capturedMoments(logItems, slug, theme, false, ["svelte"]);
 				const frames = moments.map((t) => b64(shot("svelte", slug, theme, t, false)));
 				if (frames.every((f) => !f)) continue;
 				ambient.laterFrames = Math.max(ambient.laterFrames, frames.length - 1);
