@@ -131,6 +131,7 @@ export const NEEDS_PROPS = [
 	"FlipWords",
 	"HyperText",
 	"InlineCitation",
+	"MathBubble",
 	"LetterPullup",
 	"PromptSuggestions",
 	"SourceCard",

@@ -1161,5 +1161,215 @@
 			"react": "react/src/components/sun-switch/sun-switch-hdr.ts",
 			"vue": "vue/src/components/sun-switch/sun-switch-hdr.ts"
 		}
+	},
+	{
+		"id": "math-bubble/handwrite-bubble.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-bubble.ts",
+			"react": "react/src/components/math-bubble/handwrite-bubble.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-bubble.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-core.ts",
+			"react": "react/src/components/math-bubble/handwrite-core.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-core.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-draw.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-draw.ts",
+			"react": "react/src/components/math-bubble/handwrite-draw.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-draw.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-glyph-types.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-glyph-types.ts",
+			"react": "react/src/components/math-bubble/handwrite-glyph-types.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-glyph-types.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-hand.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-hand.ts",
+			"react": "react/src/components/math-bubble/handwrite-hand.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-hand.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-layout.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-layout.ts",
+			"react": "react/src/components/math-bubble/handwrite-layout.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-layout.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-parse.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-parse.ts",
+			"react": "react/src/components/math-bubble/handwrite-parse.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-parse.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-prng.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-prng.ts",
+			"react": "react/src/components/math-bubble/handwrite-prng.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-prng.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-shapes.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-shapes.ts",
+			"react": "react/src/components/math-bubble/handwrite-shapes.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-shapes.ts"
+		}
+	},
+	{
+		"id": "math-bubble/handwrite-timeline.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/handwrite-timeline.ts",
+			"react": "react/src/components/math-bubble/handwrite-timeline.ts",
+			"vue": "vue/src/components/math-bubble/handwrite-timeline.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/arrows-logic.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/arrows-logic.ts",
+			"react": "react/src/components/math-bubble/glyphs/arrows-logic.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/arrows-logic.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/digits-symbols.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/digits-symbols.ts",
+			"react": "react/src/components/math-bubble/glyphs/digits-symbols.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/digits-symbols.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/exemplar.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/exemplar.ts",
+			"react": "react/src/components/math-bubble/glyphs/exemplar.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/exemplar.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/greek-math.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/greek-math.ts",
+			"react": "react/src/components/math-bubble/glyphs/greek-math.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/greek-math.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/greek-upper-ops.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/greek-upper-ops.ts",
+			"react": "react/src/components/math-bubble/glyphs/greek-upper-ops.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/greek-upper-ops.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/index.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/index.ts",
+			"react": "react/src/components/math-bubble/glyphs/index.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/index.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/lower-nz.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/lower-nz.ts",
+			"react": "react/src/components/math-bubble/glyphs/lower-nz.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/lower-nz.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/lower.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/lower.ts",
+			"react": "react/src/components/math-bubble/glyphs/lower.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/lower.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/punct-fences.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/punct-fences.ts",
+			"react": "react/src/components/math-bubble/glyphs/punct-fences.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/punct-fences.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/upper-nz.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/upper-nz.ts",
+			"react": "react/src/components/math-bubble/glyphs/upper-nz.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/upper-nz.ts"
+		}
+	},
+	{
+		"id": "math-bubble/glyphs/upper.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/math-bubble/glyphs/upper.ts",
+			"react": "react/src/components/math-bubble/glyphs/upper.ts",
+			"vue": "vue/src/components/math-bubble/glyphs/upper.ts"
+		}
 	}
 ]

@@ -646,6 +646,24 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
+	"math-bubble": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"The bubble draws itself, then the formula is written inside it by hand once it scrolls into view.",
+		},
+		{
+			name: "Bubbles",
+			title: "Bubbles and Tails",
+			description: "Thought, shout and speech bubbles, each with its tail on a different side.",
+		},
+		{
+			name: "Loop",
+			title: "Loop",
+			description: "An array of formulas, written one after the other, cycling.",
+		},
+	],
 	"pixel-loader": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"typing-indicator": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"thinking-indicator": [{ name: "BasicUsage", title: "Basic Usage" }],

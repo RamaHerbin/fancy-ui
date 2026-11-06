@@ -102,6 +102,7 @@
 		"editorial-engine",
 		"frosted-glass",
 		"liquid-text",
+		"math-bubble",
 		"pixel-loader",
 		"typing-indicator",
 		"thinking-indicator",

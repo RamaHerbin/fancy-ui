@@ -71,6 +71,7 @@ export * from "./noise-reveal/index.js";
 export * from "./line-reveal/index.js";
 export * from "./editorial-engine/index.js";
 export * from "./liquid-text/index.js";
+export * from "./math-bubble/index.js";
 export * from "./pixel-loader/index.js";
 export * from "./pixel-scene/index.js";
 export * from "./typing-indicator/index.js";

@@ -102,6 +102,7 @@ export const fixtures: Record<string, Record<string, unknown>> = {
 	"root:LetterPullup": {"words":"Hello"},
 	"root:LineReveal": {"text":"x"},
 	"root:Link": {"href":"https://example.com","external":true},
+	"root:MathBubble": {"formula":"e^{i\\pi}+1=0"},
 	"root:NavbarLink": {"href":"/docs"},
 	"root:NavigationMenuItem": {"value":"products"},
 	"root:NavigationMenuLink": {"href":"/components","title":"Components","description":"Browse the full UI library"},
