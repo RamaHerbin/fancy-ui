@@ -79,6 +79,13 @@ const INTERACTIVE =
  * @param {Set<string>|null} only
  */
 export function selectSlugs(inventory, hoverStatic = {}, only = null) {
+	// An explicit --only names the slugs to capture: a request, not a filter on
+	// the default selection, so any inventory slug can get its S4 partial.
+	if (only)
+		return inventory
+			.map((it) => it.slug)
+			.filter((s) => only.has(s))
+			.sort();
 	const set = new Set();
 	for (const it of inventory) {
 		if (
@@ -89,7 +96,7 @@ export function selectSlugs(inventory, hoverStatic = {}, only = null) {
 			set.add(it.slug);
 		if (hoverStatic[it.slug]?.hoverRules?.some((r) => r.motionProps?.length)) set.add(it.slug);
 	}
-	return [...set].sort().filter((s) => !only || only.has(s));
+	return [...set].sort();
 }
 
 /**

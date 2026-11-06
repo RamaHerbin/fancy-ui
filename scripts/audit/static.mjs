@@ -281,6 +281,34 @@ export function parseCss(f) {
 	// register keyframes with no decls too
 	return out;
 }
+const TIMING_RE = /^(ease(-in|-out|-in-out)?|linear|step-start|step-end|steps\(|cubic-bezier\()/;
+
+/**
+ * The animated property of one `transition` shorthand segment, whatever the
+ * order of its tokens (`150ms ease transform` names transform); `all` when the
+ * segment has no property, as CSS defaults it. A `var()` token is returned as is.
+ */
+export function transitionProperty(seg) {
+	const toks = [];
+	let depth = 0;
+	let cur = "";
+	for (const ch of seg.trim()) {
+		if (ch === "(") depth++;
+		else if (ch === ")") depth--;
+		if (/\s/.test(ch) && depth === 0) {
+			if (cur) toks.push(cur);
+			cur = "";
+		} else cur += ch;
+	}
+	if (cur) toks.push(cur);
+	for (const t of toks) {
+		if (/^[-+]?\.?\d/.test(t)) continue; // a duration or a delay
+		if (TIMING_RE.test(t)) continue;
+		return t;
+	}
+	return "all";
+}
+
 export function splitTop(v) {
 	const parts = [];
 	let d = 0,
@@ -622,7 +650,7 @@ export function analyse(item) {
 		let anyHandled = false;
 		for (const seg of segs) {
 			if (d.prop === "transition") {
-				const first = seg.split(/\s+/)[0];
+				const first = transitionProperty(seg);
 				if (COLOR_PROPS.has(first)) {
 					add(`${d.file}:${d.line}: transition segment "${seg}" [ignored: colour-only]`);
 					continue;
@@ -765,12 +793,17 @@ export function analyse(item) {
 			const segs = d.prop === "transition" ? splitTop(d.value) : splitTop(d.value);
 			const kinds = new Set();
 			for (const seg of segs) {
-				const p = d.prop === "transition" ? seg.split(/\s+/)[0] : seg.trim();
+				const p = d.prop === "transition" ? transitionProperty(seg) : seg.trim();
 				if (p === "none" || /^\d|^var\(|^cubic|^ease|^linear/.test(p)) {
 					if (!/^var\(/.test(p)) continue;
 				}
 				if (COLOR_PROPS.has(p)) kinds.add("colour");
-				else if (TFO_PROPS.has(p) || (/^var\(/.test(p) && /transform|opacity/.test(seg)))
+				// `all` animates transform and opacity too
+				else if (
+					p === "all" ||
+					TFO_PROPS.has(p) ||
+					(/^var\(/.test(p) && /transform|opacity/.test(seg))
+				)
 					kinds.add("tfo");
 				else if (LAYOUT_RE.test(p)) kinds.add("layout");
 				else if (p === "box-shadow" || p === "text-shadow") kinds.add("shadow");

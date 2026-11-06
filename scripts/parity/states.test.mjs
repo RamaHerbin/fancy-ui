@@ -48,7 +48,8 @@ test("a close state is the open steps, a settle and Escape, shot from the first 
 	validateStates("x", states);
 	const { close } = resolveStates("x", states);
 	assert.deepEqual(close.steps, [...open.steps, { settle: true }, { press: "Escape" }]);
-	assert.deepEqual(close.moments, [0, 50, 100, 150]);
+	// the last moment lies past every exit, so the series ends on a settled frame
+	assert.deepEqual(close.moments, [0, 50, 100, 150, 400]);
 	assert.deepEqual(CLOSE_MOMENTS, close.moments);
 	assert.equal(close.noSettle, true);
 	assert.deepEqual(close.expect, [{ role: "button", name: "Go" }]);
@@ -61,7 +62,7 @@ test("a close state is the open steps, a settle and Escape, shot from the first 
 	});
 	assert.deepEqual(errors, []);
 	assert.equal(items[0].noSettle, true);
-	assert.deepEqual(items[0].moments, [0, 50, 100, 150]);
+	assert.deepEqual(items[0].moments, [0, 50, 100, 150, 400]);
 });
 
 test("a close state needs a source state and its own expectation", () => {

@@ -1,14 +1,14 @@
 {
 	"svelte": {
 		"bare": 148,
-		"offToken": 133
+		"offToken": 132
 	},
 	"react": {
 		"bare": 148,
-		"offToken": 133
+		"offToken": 132
 	},
 	"vue": {
 		"bare": 149,
-		"offToken": 133
+		"offToken": 132
 	}
 }

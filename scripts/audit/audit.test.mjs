@@ -77,6 +77,7 @@ import {
 	scanMarkup,
 	splitTop,
 	timeLiterals,
+	transitionProperty,
 } from "./static.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -202,6 +203,16 @@ test("A2 static: ungated transform motion scores 0, a gate or a blanket reduce o
 	);
 	assert.notEqual(longhand.fields.motion_class, "static");
 	assert.equal(longhand.axes.A2.score, 0);
+	// the shorthand's property is found whatever the token order; absent = `all`
+	assert.equal(transitionProperty("150ms ease transform"), "transform");
+	assert.equal(transitionProperty("transform 150ms cubic-bezier(0.1, 0.2, 0.3, 0.4)"), "transform");
+	assert.equal(transitionProperty("150ms ease"), "all");
+	assert.equal(transitionProperty("color 150ms"), "color");
+	assert.equal(
+		fixtureRepo("<style>.a { transition: 150ms ease transform; }</style>").axes.A2.score,
+		0
+	);
+	assert.equal(fixtureRepo("<style>.a { transition: 150ms ease; }</style>").axes.A2.score, 0);
 	const gated = fixtureRepo(
 		"<style>@media (prefers-reduced-motion: no-preference) { .a { transition: transform 150ms ease; } }</style>"
 	);
@@ -500,6 +511,8 @@ test("micro-capture: default selection and the hover-only signal", () => {
 	const hov = { hov: { hoverRules: [{ motionProps: ["transform"] }] } };
 	assert.deepEqual(selectSlugs(inv, hov), ["card", "core-a", "hov"]);
 	assert.deepEqual(selectSlugs(inv, hov, new Set(["hov"])), ["hov"]);
+	// --only is a request: a slug outside the default heuristic is captured too
+	assert.deepEqual(selectSlugs(inv, {}, new Set(["txt", "nope"])), ["txt"]);
 	assert.equal(
 		microSignal({ rest_hover: 0.05, rest_focus: 0, rest_press: 0, noise: 0.001 }).hoverOnly,
 		true

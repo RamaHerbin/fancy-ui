@@ -157,6 +157,54 @@ export function stripVars(s) {
 	}
 }
 
+/** Index just past the `}` closing the `{` at `open`, or the text length. */
+function closeBrace(s, open) {
+	let d = 0;
+	for (let i = open; i < s.length; i++) {
+		if (s[i] === "{") d++;
+		else if (s[i] === "}" && --d === 0) return i + 1;
+	}
+	return s.length;
+}
+
+/**
+ * Blank (same length, newlines kept) the time literals that belong to an ambient
+ * loop: the value of an `animation` shorthand that says `infinite`, even across
+ * lines, and the `animation-duration` of a rule whose `animation-iteration-count`
+ * is `infinite`. Any other declaration on the same line keeps its literals.
+ */
+export function blankAmbientTimes(text) {
+	let out = text;
+	const blank = (from, to) => {
+		out =
+			out.slice(0, from) +
+			out.slice(from, to).replace(/\d*\.?\d+(ms|s)\b/g, (m) => " ".repeat(m.length)) +
+			out.slice(to);
+	};
+	for (const m of text.matchAll(/animation(?:-name)?\s*[:=]\s*[^;}]*/g))
+		if (/\binfinite\b/.test(m[0])) blank(m.index, m.index + m[0].length);
+	for (const m of text.matchAll(/animation-iteration-count\s*:\s*infinite/g)) {
+		// the enclosing rule: back to its `{`, forward to the matching `}`
+		let depth = 0;
+		let start = -1;
+		for (let i = m.index; i >= 0; i--) {
+			if (text[i] === "}") depth++;
+			else if (text[i] === "{") {
+				if (depth === 0) {
+					start = i;
+					break;
+				}
+				depth--;
+			}
+		}
+		if (start === -1) continue;
+		const block = text.slice(start, closeBrace(text, start));
+		for (const d of block.matchAll(/animation-duration\s*:\s*[^;}]*/g))
+			blank(start + d.index, start + d.index + d[0].length);
+	}
+	return out;
+}
+
 /**
  * Every `var(--ft-<family>-<name>, <fallback>)` in `s` whose family is a token
  * family, including ones nested inside another var's fallback.
@@ -251,9 +299,11 @@ export function scanText(text, tokens) {
 	}
 	const excused = (i) =>
 		/off-token:/.test(original[i] ?? "") || /off-token:/.test(original[i - 1] ?? "");
-	// rules 2 and 3 run per line, on text whose var() expressions were blanked as a
-	// whole: a fallback that wraps onto the next line must not surface as a literal
-	const noVars = stripVars(clean).split("\n");
+	// rules 2 and 3 run per line, on text whose var() expressions and ambient-loop
+	// durations were blanked as a whole: a fallback that wraps onto the next line
+	// must not surface as a literal, and an infinite animation excuses only its
+	// own duration, not the transition declared next to it
+	const noVars = blankAmbientTimes(stripVars(clean)).split("\n");
 	let open = false; // inside a multi-line transition / animation value
 	for (let i = 0; i < lines.length; i++) {
 		const line = noVars[i];
@@ -269,9 +319,8 @@ export function scanText(text, tokens) {
 		};
 		for (const m of line.matchAll(/cubic-bezier\(([^)]*)\)/g))
 			note("curve", m[0].replace(/\s+/g, ""), tokens.curveSet.has(normCurve(m[1])));
-		const ambient = /\binfinite\b/.test(line);
 		const times = [];
-		if (inDecl && !ambient) for (const m of line.matchAll(TIME)) times.push([m[0], toMs(m[0])]);
+		if (inDecl) for (const m of line.matchAll(TIME)) times.push([m[0], toMs(m[0])]);
 		for (const m of line.matchAll(TW_TIME)) {
 			const n = parseFloat(m[2]);
 			times.push([m[0], m[3] === "s" ? n * 1000 : n]);
@@ -486,6 +535,21 @@ export function selfTest() {
 		scan("a{animation: spin 1.6s linear infinite}").off.length,
 		0,
 		"infinite loop duration skipped"
+	);
+	eq(
+		scan("a{transition: opacity 250ms; animation: spin 2s linear infinite}").off.length,
+		1,
+		"an ambient loop does not excuse the transition declared next to it"
+	);
+	eq(
+		scan("a{animation: spin\n\t\t2s linear\n\t\tinfinite}").off.length,
+		0,
+		"an ambient duration wrapped across lines is still excluded"
+	);
+	eq(
+		scan("a{animation-duration: 2s; animation-iteration-count: infinite}").off.length,
+		0,
+		"longhand ambient loop"
 	);
 	eq(scan("a{animation-duration: 0.01ms}").off.length, 0, "reduced-motion override skipped");
 	eq(scan("a{width: 151ms}").off.length, 0, "not a transition declaration");

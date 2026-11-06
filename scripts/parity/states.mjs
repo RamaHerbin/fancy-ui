@@ -32,10 +32,11 @@
  *                           has ended (what a state does after its steps)
  * - close: the exit of a panel, photographed from its first frame. It borrows
  *   another state's steps:
- *     "close": { "from": "open", "expect": [...], "moments"?: [0, 50, 100, 150] }
+ *     "close": { "from": "open", "expect": [...], "moments"?: [0, 50, 100, 150, 400] }
  *   resolves to the `open` steps, a settle (the entrance must be over) and
- *   { "press": "Escape" }, with moments default 0/50/100/150 counted from the
- *   Escape, and no settling afterwards (the exit is what is being shot).
+ *   { "press": "Escape" }, with moments default 0/50/100/150/400 counted from
+ *   the Escape (400 is past every exit: the settled picture) and no settling
+ *   afterwards (the exit is what is being shot).
  *   "expect" is what is still true while it closes (typically the trigger).
  * - expect: what must hold at every shot, or the item fails. Each entry is a
  *   target plus optional checks: "visible" (default true), "focusVisible"
@@ -62,7 +63,9 @@
 export const STATE_NAMES = ["open", "close", "focus", "long", "idle", "copied", "failed", "action"];
 export const DEFAULT_STATE_MOMENTS = [0];
 /** A close state is a start-phase capture of the exit. */
-export const CLOSE_MOMENTS = [0, 50, 100, 150];
+// 400 lies past the longest exit (DURATIONS.exit, 200 ms), so the last frame
+// of a close series is the settled picture, not a frame of the exit.
+export const CLOSE_MOMENTS = [0, 50, 100, 150, 400];
 /** Fake-clock budget for a state's animations to run out, and the step. */
 const SETTLE_MAX_MS = 5000;
 const SETTLE_STEP_MS = 50;
@@ -102,7 +105,7 @@ function checkTarget(where, target) {
 
 /**
  * Expands `"close": { "from": "<state>" }` into a full state: the source
- * state's steps, a settle, Escape; moments 0/50/100/150; `noSettle` so the
+ * state's steps, a settle, Escape; moments 0/50/100/150/400; `noSettle` so the
  * exit is not run out before the first shot. Other states pass through.
  */
 export function resolveStates(slug, states) {
