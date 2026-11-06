@@ -25,13 +25,11 @@ describe("HyperText", () => {
 		expect(wrapper?.className).toContain("my-hyper");
 	});
 
-	it("applies animation styles to each character", () => {
+	it("staggers each character through a custom property", () => {
 		const { container } = render(<HyperText text="Hi" />);
 		const chars = container.querySelectorAll(".hyper-text-char");
 		chars.forEach((char) => {
-			const style = (char as HTMLElement).getAttribute("style") ?? "";
-			expect(style).toContain("animation");
-			expect(style).toContain("hyperFadeIn");
+			expect((char as HTMLElement).style.getPropertyValue("--hyper-text-delay")).toMatch(/ms$/);
 		});
 	});
 

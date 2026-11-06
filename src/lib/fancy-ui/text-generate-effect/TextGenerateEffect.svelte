@@ -50,17 +50,31 @@
 	});
 </script>
 
-<div class={cn("leading-snug tracking-wide", className)}>
+<div class={cn("text-generate-effect leading-snug tracking-wide", className)}>
 	<div bind:this={scopeRef}>
 		{#each wordsArray as word, idx (word + idx)}
 			<span
-				class="inline-block"
-				style="opacity: 0; filter: {filter
-					? 'blur(10px)'
-					: 'none'}; transition: opacity {duration}s, filter {duration}s;"
+				class="tge-word inline-block"
+				style:--tge-duration="{duration}s"
+				style:--tge-blur={filter ? "blur(10px)" : "none"}
 			>
 				{word}&nbsp;
 			</span>
 		{/each}
 	</div>
 </div>
+
+<style>
+	/* The resting state is the ungated default: every word visible and sharp.
+	   The hidden start and the fade belong to the no-preference gate; the
+	   reveal timers write opacity/filter inline, which wins inside the gate. */
+	@media (prefers-reduced-motion: no-preference) {
+		.tge-word {
+			opacity: 0;
+			filter: var(--tge-blur, none);
+			transition:
+				opacity var(--tge-duration, 0.7s),
+				filter var(--tge-duration, 0.7s);
+		}
+	}
+</style>

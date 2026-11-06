@@ -28,8 +28,8 @@ const { starsCount = 130, class: className = "", seed = 1 } = defineProps<TextRe
 interface StarData {
 	top: string;
 	left: string;
-	targetTop: string;
-	targetLeft: string;
+	driftX: string;
+	driftY: string;
 	opacity: number;
 	duration: number;
 }
@@ -53,28 +53,43 @@ function mulberry32(value: number): () => number {
 const stars = computed<StarData[]>(() => {
 	const random = mulberry32(seed);
 	const randomMove = () => random() * 4 - 2;
-	return Array.from({ length: starsCount }, () => ({
-		top: `calc(${random() * 100}% + ${randomMove()}px)`,
-		left: `calc(${random() * 100}% + ${randomMove()}px)`,
-		targetTop: `calc(${random() * 100}% + ${randomMove()}px)`,
-		targetLeft: `calc(${random() * 100}% + ${randomMove()}px)`,
-		opacity: random(),
-		duration: random() * 10 + 20,
-	}));
+	return Array.from({ length: starsCount }, () => {
+		// Four position draws, kept in this order: start top/left, then the target.
+		const topPct = random() * 100;
+		const topMove = randomMove();
+		const leftPct = random() * 100;
+		const leftMove = randomMove();
+		const targetTopPct = random() * 100;
+		const targetTopMove = randomMove();
+		const targetLeftPct = random() * 100;
+		const targetLeftMove = randomMove();
+		return {
+			top: `calc(${topPct}% + ${topMove}px)`,
+			left: `calc(${leftPct}% + ${leftMove}px)`,
+			// The drift is a transform (compositor) rather than animated top/left.
+			// Percent deltas resolve against the size-container wrapper.
+			driftX: `calc(${targetLeftPct - leftPct}cqw + ${targetLeftMove - leftMove}px)`,
+			driftY: `calc(${targetTopPct - topPct}cqh + ${targetTopMove - topMove}px)`,
+			opacity: random(),
+			duration: random() * 10 + 20,
+		};
+	});
 });
 </script>
 
 <template>
-	<div class="absolute inset-0">
+	<div class="absolute inset-0" style="container-type: size">
 		<span
 			v-for="(star, i) in stars"
 			:key="i"
-			:class="cn('star-animate absolute z-[1] inline-block h-0.5 w-0.5 rounded-full bg-white', className)"
+			:class="
+				cn('star-animate absolute z-[1] inline-block h-0.5 w-0.5 rounded-full bg-white', className)
+			"
 			:style="{
 				top: star.top,
 				left: star.left,
-				'--target-top': star.targetTop,
-				'--target-left': star.targetLeft,
+				'--drift-x': star.driftX,
+				'--drift-y': star.driftY,
 				'--star-opacity': star.opacity,
 				animationDuration: `${star.duration}s`,
 			}"
@@ -92,23 +107,29 @@ const stars = computed<StarData[]>(() => {
 @keyframes star-drift {
 	0% {
 		opacity: 0;
-		transform: scale(1);
+		transform: translate(0, 0) scale(1);
 	}
 	50% {
 		opacity: var(--star-opacity, 0.5);
-		transform: scale(1.2);
+		transform: translate(calc(var(--drift-x) / 2), calc(var(--drift-y) / 2)) scale(1.2);
 	}
 	100% {
 		opacity: 0;
-		transform: scale(0);
-		top: var(--target-top);
-		left: var(--target-left);
+		transform: translate(var(--drift-x), var(--drift-y)) scale(0);
 	}
 }
 </style>
 
 <style scoped>
+/* Resting state: a faint fixed star; the drift only runs without a reduce preference. */
 .star-animate {
-	animation: star-drift linear infinite;
+	opacity: var(--star-opacity, 0.5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.star-animate {
+		opacity: 0;
+		animation: star-drift linear infinite;
+	}
 }
 </style>

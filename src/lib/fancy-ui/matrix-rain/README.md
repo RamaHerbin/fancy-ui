@@ -39,4 +39,7 @@ The canvas fills its parent (`h-full w-full`) and paints its own black backgroun
 - `speed >= 1` advances every column by `speed` rows per frame; `speed < 1` instead skips frames (`frameCount % round(1/speed) === 0`), which is why speed below 1 steps down in discrete slow-motion increments rather than scaling smoothly.
 - The canvas is sized in device pixels via `window.devicePixelRatio` and a matching `ctx.setTransform`, so glyphs stay crisp on HiDPI screens; a `ResizeObserver` on the canvas re-runs the resize/init logic (which also resets column positions) whenever its box size changes.
 - The render loop is a single `requestAnimationFrame` chain started in a `$effect` and torn down (canceled, observer disconnected) in its cleanup — there's no visibility-based pausing, so it keeps painting while off-screen or the tab is backgrounded.
-- No `prefers-reduced-motion` handling — the rain animates continuously regardless of user preference.
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the rain stops: the canvas paints one still frame and no animation frame is scheduled. The still is the seeded rain pre-rolled about 80 steps, so it shows dense columns with their fade trails rather than the sparse first frame; changing `color` or `fadeOpacity` repaints it. The preference is read live, so clearing it resumes the rain from where it was.

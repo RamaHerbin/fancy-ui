@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import "./flip-words.css";
 
 /**
@@ -46,7 +47,16 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 	// reads.
 	const wordCount = words.length;
 
+	// Reduced motion keeps the current word: nothing is scheduled, and a flip
+	// back re-arms the cycle because the effect depends on the preference.
+	const reducedMotion = useReducedMotion();
+
 	useEffect(() => {
+		if (reducedMotion) {
+			if (timeoutRef.current) clearTimeout(timeoutRef.current);
+			timeoutRef.current = null;
+			return;
+		}
 		// Re-schedule whenever a new word becomes active (not during exit).
 		if (isExiting) return;
 		if (wordCount < 2) return;
@@ -68,7 +78,7 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 				setCurrentIndex((index) => (length === 0 ? 0 : (index + 1) % length));
 			}, EXIT_MS);
 		}, duration);
-	}, [currentIndex, duration, isExiting, wordCount, wordsRef]);
+	}, [currentIndex, duration, isExiting, reducedMotion, wordCount, wordsRef]);
 
 	useEffect(() => {
 		return () => {
@@ -90,28 +100,25 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 				{splitWords.map((wordObj, wordIndex) => (
 					<span
 						key={wordObj.word + wordIndex}
-						className="flip-words-word inline-block whitespace-nowrap opacity-0"
-						style={{
-							animation: "flipFadeInWord 0.3s ease forwards",
-							animationDelay: `${wordIndex * 0.3}s`,
-						}}
+						className="flip-words-word inline-block whitespace-nowrap"
+						style={{ "--flip-words-word-delay": `${wordIndex * 0.3}s` } as CSSProperties}
 					>
 						{wordObj.letters.map((letter, letterIndex) => (
 							<span
 								key={wordObj.word + letterIndex}
-								className="inline-block opacity-0"
-								style={{
-									animation: "flipFadeInLetter 0.2s ease forwards",
-									animationDelay: `${wordIndex * 0.3 + letterIndex * 0.05}s`,
-								}}
+								className="flip-words-letter inline-block"
+								style={
+									{
+										"--flip-words-letter-delay": `${wordIndex * 0.3 + letterIndex * 0.05}s`,
+									} as CSSProperties
+								}
 							>
 								{letter}
 							</span>
 						))}
 						{/* Explicit space: the source markup carries a collapsible space between
 						    the letters and the trailing non-breaking space, and JSX drops the
-						    newline-bearing whitespace that would otherwise stand in for it. */}
-						{" "}
+						    newline-bearing whitespace that would otherwise stand in for it. */}{" "}
 						<span className="inline-block">&nbsp;</span>
 					</span>
 				))}

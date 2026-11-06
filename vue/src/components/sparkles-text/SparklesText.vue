@@ -53,10 +53,7 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
-function generateStar(
-	random: () => number,
-	colors: { first: string; second: string }
-): Sparkle {
+function generateStar(random: () => number, colors: { first: string; second: string }): Sparkle {
 	const x = `${random() * 100}%`;
 	const y = `${random() * 100}%`;
 	const color = random() > 0.5 ? colors.first : colors.second;
@@ -72,7 +69,8 @@ function generateStar(
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "SparklesText", inheritAttrs: false });
@@ -96,6 +94,15 @@ const sparkles = ref<Sparkle[]>(
 
 let intervalId: ReturnType<typeof setInterval> | undefined;
 
+function stop() {
+	if (intervalId !== undefined) clearInterval(intervalId);
+	intervalId = undefined;
+}
+
+// Live preference; its query is started from its own `onMounted`, registered
+// before ours, so the value is current by the time the watch below runs.
+const reducedMotion = useReducedMotion();
+
 onMounted(() => {
 	// Regeneration happens only after mount, so it never has to agree with
 	// the server; a second seeded stream keeps it deterministic anyway. It
@@ -104,19 +111,27 @@ onMounted(() => {
 	// reactive destructure), so a later colour change reaches the next
 	// regenerated star without tearing the interval down.
 	const random = mulberry32(seed + 1);
-	intervalId = setInterval(() => {
-		sparkles.value = sparkles.value.map((star) => {
-			if (star.lifespan <= 0) {
-				return generateStar(random, colors);
-			}
-			return { ...star, lifespan: star.lifespan - 0.1 };
-		});
-	}, 100);
+	// Reduced motion holds the field still: no timer is armed, and a flip back
+	// re-arms it.
+	watch(
+		reducedMotion,
+		(reduced) => {
+			stop();
+			if (reduced) return;
+			intervalId = setInterval(() => {
+				sparkles.value = sparkles.value.map((star) => {
+					if (star.lifespan <= 0) {
+						return generateStar(random, colors);
+					}
+					return { ...star, lifespan: star.lifespan - 0.1 };
+				});
+			}, 100);
+		},
+		{ flush: "post", immediate: true }
+	);
 });
 
-onBeforeUnmount(() => {
-	if (intervalId !== undefined) clearInterval(intervalId);
-});
+onBeforeUnmount(stop);
 </script>
 
 <template>
@@ -130,9 +145,7 @@ onBeforeUnmount(() => {
 					left: sparkle.x,
 					top: sparkle.y,
 					'--sparkle-scale': `${sparkle.scale}`,
-					animation: `sparkleAnim 0.8s ease-in-out ${sparkle.delay}s infinite`,
-					transform: 'scale(0) rotate(75deg)',
-					opacity: 0,
+					'--sparkles-text-delay': `${sparkle.delay}s`,
 				}"
 				width="21"
 				height="21"
@@ -149,8 +162,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-/* The source's only rule is a global keyframe, referenced from the inline
-   `style` above. It stays in an unscoped block so the compiler neither
+/* The source's only global rule is a keyframe, referenced from the gated rule
+   in the scoped block below. It stays in an unscoped block so the compiler neither
    renames it nor stamps a scope id onto markup the source leaves bare. */
 @keyframes sparkleAnim {
 	0% {
@@ -164,6 +177,23 @@ onBeforeUnmount(() => {
 	100% {
 		opacity: 0;
 		transform: scale(0) rotate(150deg);
+	}
+}
+</style>
+
+<style scoped>
+/* The ungated pose is the resting state: a still, half-grown star (the 50 %
+   keyframe), so reduced motion keeps the sparkles and drops the pulse. */
+.sparkles-star {
+	opacity: 1;
+	transform: scale(var(--sparkle-scale, 1)) rotate(120deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.sparkles-star {
+		opacity: 0;
+		transform: scale(0) rotate(75deg);
+		animation: sparkleAnim 0.8s ease-in-out var(--sparkles-text-delay, 0s) infinite;
 	}
 }
 </style>

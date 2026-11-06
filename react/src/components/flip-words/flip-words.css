@@ -1,5 +1,5 @@
-/* Keyframe names are part of the visual contract (referenced by inline
-   style attributes) — keep them identical to the source. */
+/* Keyframe names are part of the visual contract (referenced by the
+   gated rules below) — keep them identical to the source. */
 @keyframes flipFadeInWord {
 	0% {
 		opacity: 0;
@@ -56,10 +56,26 @@
 
 /* Rules anchored on the .flip-words root class (compiler scoping in the
    source; plain CSS is global). */
-.flip-words .flip-words-enter {
-	animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
-}
+/* Resting state is the ungated default: the current word is visible and in
+   place. The hidden start and every fade/flip belong to this gate. */
+@media (prefers-reduced-motion: no-preference) {
+	.flip-words .flip-words-word {
+		opacity: 0;
+		animation: flipFadeInWord 0.3s ease forwards;
+		animation-delay: var(--flip-words-word-delay, 0s);
+	}
 
-.flip-words .flip-words-exit {
-	animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+	.flip-words .flip-words-letter {
+		opacity: 0;
+		animation: flipFadeInLetter 0.2s ease forwards;
+		animation-delay: var(--flip-words-letter-delay, 0s);
+	}
+
+	.flip-words .flip-words-enter {
+		animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
+	}
+
+	.flip-words .flip-words-exit {
+		animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+	}
 }

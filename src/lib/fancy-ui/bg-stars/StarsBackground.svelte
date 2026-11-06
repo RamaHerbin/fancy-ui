@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 
 	interface Props {
@@ -48,6 +49,10 @@
 	let parallaxEl: HTMLDivElement;
 	let engine: BgStarsEngine | null = null;
 
+	// Started before the engine is created so the first frame already knows.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
 	// Star box-shadows (generated on mount, regenerated when starColor changes)
 	let boxShadow1 = $state("");
 	let boxShadow2 = $state("");
@@ -63,7 +68,7 @@
 	onMount(() => {
 		engine = createBgStars(
 			{ host: hostEl, parallax: parallaxEl },
-			{ factor, stiffness, damping },
+			{ factor, stiffness, damping, reducedMotion: reduced.current }
 		);
 
 		return () => {
@@ -73,7 +78,7 @@
 	});
 
 	$effect(() => {
-		const next = { factor, stiffness, damping };
+		const next = { factor, stiffness, damping, reducedMotion: reduced.current };
 		untrack(() => engine?.setOptions(next));
 	});
 
@@ -157,7 +162,13 @@
 		left: 0;
 		width: 100%;
 		height: 2000px;
-		animation: scroll-stars var(--duration, 50s) linear infinite;
+	}
+
+	/* Ungated = resting state: a still star field. Only the drift is motion. */
+	@media (prefers-reduced-motion: no-preference) {
+		.star-layer {
+			animation: scroll-stars var(--duration, 50s) linear infinite;
+		}
 	}
 
 	.star-field {

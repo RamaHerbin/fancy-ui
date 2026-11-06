@@ -1,5 +1,13 @@
-import { useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
+import {
+	useEffect,
+	useRef,
+	useState,
+	type CSSProperties,
+	type HTMLAttributes,
+	type ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
+import "./box-reveal.css";
 
 /**
  * BoxReveal - Sliding box reveal animation
@@ -8,7 +16,10 @@ import { cn } from "../../utils.js";
  * revealing the content underneath. Triggers when entering viewport
  * via IntersectionObserver.
  */
-export interface BoxRevealProps extends Omit<HTMLAttributes<HTMLDivElement>, "className" | "children"> {
+export interface BoxRevealProps extends Omit<
+	HTMLAttributes<HTMLDivElement>,
+	"className" | "children"
+> {
 	/** Color of the reveal box */
 	color?: string;
 	/** Animation duration in seconds */
@@ -51,15 +62,22 @@ export function BoxReveal({
 	}, []);
 
 	return (
-		<div ref={containerRef} className={cn("box-reveal relative overflow-hidden", className)} {...props}>
+		<div
+			ref={containerRef}
+			className={cn("box-reveal relative overflow-hidden", className)}
+			{...props}
+		>
 			{/* Content (fades up) */}
 			<div
 				className="box-reveal-content"
-				style={{
-					opacity: isInView ? 1 : 0,
-					transform: `translateY(${isInView ? 0 : 25}px)`,
-					transition: `opacity ${duration}s ease ${delay * 2}s,transform ${duration}s ease ${delay * 2}s`,
-				}}
+				style={
+					{
+						opacity: isInView ? 1 : 0,
+						transform: `translateY(${isInView ? 0 : 25}px)`,
+						"--box-reveal-duration": `${duration}s`,
+						"--box-reveal-delay": `${delay * 2}s`,
+					} as CSSProperties
+				}
 			>
 				{children}
 			</div>
@@ -67,11 +85,14 @@ export function BoxReveal({
 			{/* Sliding box overlay */}
 			<div
 				className="box-reveal-overlay absolute inset-0 z-20"
-				style={{
-					background: color,
-					left: isInView ? "100%" : "0%",
-					transition: `left ${duration}s ease-in ${delay}s`,
-				}}
+				style={
+					{
+						background: color,
+						left: isInView ? "100%" : "0%",
+						"--box-reveal-duration": `${duration}s`,
+						"--box-reveal-delay": `${delay}s`,
+					} as CSSProperties
+				}
 			/>
 		</div>
 	);

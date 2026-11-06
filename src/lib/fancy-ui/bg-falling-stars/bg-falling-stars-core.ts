@@ -20,6 +20,12 @@ export interface FallingStarsInitOptions {
 export interface FallingStarsLiveOptions {
 	/** Star color: a hex string, or `currentColor` (default) to follow the text colour. */
 	color?: string;
+	/**
+	 * Reduced-motion preference, owned by the wrapper (the core never reads
+	 * `matchMedia`). When true the engine paints one still frame and idles; a
+	 * flip back to false resumes the loop.
+	 */
+	reducedMotion?: boolean;
 }
 
 export interface FallingStarsEngine {
@@ -130,6 +136,7 @@ export function createFallingStars(
 	let perspective = 0;
 	let stars: Star[] = [];
 	let rafId = 0;
+	let reducedMotion = options.reducedMotion ?? false;
 	let destroyed = false;
 
 	function resize(): void {
@@ -150,6 +157,10 @@ export function createFallingStars(
 		}
 
 		perspective = width / 2;
+
+		// Resizing wiped the bitmap; an idle (reduced-motion) engine has no
+		// scheduled frame to refill it.
+		if (reducedMotion && rafId === 0 && stars.length > 0) loop();
 	}
 
 	function drawStar(star: Star, width: number, height: number, rgb: Rgb): void {
@@ -215,6 +226,12 @@ export function createFallingStars(
 			}
 		}
 
+		// One still frame under reduced motion: paint, then idle until the
+		// preference flips back (setOptions wakes the loop).
+		if (reducedMotion) {
+			rafId = 0;
+			return;
+		}
 		rafId = requestAnimationFrame(loop);
 	}
 
@@ -232,18 +249,43 @@ export function createFallingStars(
 		});
 	}
 
-	rafId = requestAnimationFrame(loop);
+	if (reducedMotion) loop();
+	else rafId = requestAnimationFrame(loop);
+
+	// Under reduced motion no frame re-reads `currentColor`, so a theme switch
+	// (a class flip on <html>, the way dark mode is usually toggled) would leave
+	// the still frame in the old colour. Repaint the idle frame when that
+	// happens; the live loop already picks the new colour up on its next frame.
+	const themeObserver =
+		typeof MutationObserver !== "undefined"
+			? new MutationObserver(() => {
+					if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(color)) loop();
+				})
+			: null;
+	themeObserver?.observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["class"],
+	});
 
 	return {
 		setOptions(next) {
-			if (next.color !== undefined) {
+			if (destroyed) return;
+			const wasReduced = reducedMotion;
+			if (next.reducedMotion !== undefined) reducedMotion = next.reducedMotion;
+			if (next.color !== undefined && next.color !== color) {
 				color = next.color;
+				// Idle engine: repaint the still frame in the new colour.
+				if (reducedMotion && rafId === 0) loop();
+			}
+			if (wasReduced && !reducedMotion && rafId === 0) {
+				rafId = requestAnimationFrame(loop);
 			}
 		},
 		resize,
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
+			themeObserver?.disconnect();
 			if (rafId) cancelAnimationFrame(rafId);
 		},
 	};

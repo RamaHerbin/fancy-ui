@@ -19,6 +19,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	const EXIT_MS = 600;
 
@@ -55,7 +56,18 @@
 		timeoutId = setTimeout(startAnimation, d);
 	}
 
+	// Read live: the query is started from an effect, never at construction.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
 	$effect(() => {
+		// Reduced motion keeps the current word: nothing is scheduled, and a flip
+		// back re-arms the cycle because the effect reads `reduced.current`.
+		if (reduced.current) {
+			if (timeoutId) clearTimeout(timeoutId);
+			timeoutId = null;
+			return;
+		}
 		// Re-schedule whenever a new word becomes active (not during exit).
 		// Reference currentIndex and duration directly so the effect re-runs on changes.
 		if (!isExiting) {
@@ -82,15 +94,14 @@
 		>
 			{#each splitWords as wordObj, wordIndex (wordObj.word + wordIndex)}
 				<span
-					class="flip-words-word inline-block whitespace-nowrap opacity-0"
-					style="animation:flipFadeInWord 0.3s ease forwards;animation-delay:{wordIndex * 0.3}s"
+					class="flip-words-word inline-block whitespace-nowrap"
+					style:--flip-words-word-delay="{wordIndex * 0.3}s"
 				>
 					{#each wordObj.letters as letter, letterIndex (wordObj.word + letterIndex)}
 						<span
-							class="inline-block opacity-0"
-							style="animation:flipFadeInLetter 0.2s ease forwards;animation-delay:{wordIndex *
-								0.3 +
-								letterIndex * 0.05}s">{letter}</span
+							class="flip-words-letter inline-block"
+							style:--flip-words-letter-delay="{wordIndex * 0.3 + letterIndex * 0.05}s"
+							>{letter}</span
 						>
 					{/each}
 					<span class="inline-block">&nbsp;</span>
@@ -157,11 +168,27 @@
 		--flip-words-ms: 0.6s;
 	}
 
-	.flip-words-enter {
-		animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
-	}
+	/* Resting state is the ungated default: the current word is visible and in
+	   place. The hidden start and every fade/flip belong to this gate. */
+	@media (prefers-reduced-motion: no-preference) {
+		.flip-words-word {
+			opacity: 0;
+			animation: flipFadeInWord 0.3s ease forwards;
+			animation-delay: var(--flip-words-word-delay, 0s);
+		}
 
-	.flip-words-exit {
-		animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+		.flip-words-letter {
+			opacity: 0;
+			animation: flipFadeInLetter 0.2s ease forwards;
+			animation-delay: var(--flip-words-letter-delay, 0s);
+		}
+
+		.flip-words-enter {
+			animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
+		}
+
+		.flip-words-exit {
+			animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+		}
 	}
 </style>

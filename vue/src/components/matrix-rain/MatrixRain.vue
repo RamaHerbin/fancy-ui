@@ -14,6 +14,7 @@ export interface MatrixRainProps {
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { createMatrixRain, type MatrixRainEngine } from "./matrix-rain-core.js";
 
 defineOptions({ name: "MatrixRain", inheritAttrs: false });
@@ -31,6 +32,10 @@ const canvasRef = useTemplateRef<HTMLCanvasElement>("canvas");
 let engine: MatrixRainEngine | null = null;
 let observer: ResizeObserver | null = null;
 
+// Live preference. Called before `onMounted` so its own mount hook (which starts the
+// media query) runs first and the first frame already knows.
+const reducedMotion = useReducedMotion();
+
 // Mount only: the engine lives for the component's lifetime. The initial
 // option snapshot is read once here — the same "no prop change tears the
 // engine down" guarantee the Svelte wrapper gets from reading inside
@@ -39,7 +44,17 @@ onMounted(() => {
 	const canvas = canvasRef.value;
 	if (!canvas) return;
 
-	engine = createMatrixRain({ canvas }, { color, speed, density, glyphSize, fadeOpacity });
+	engine = createMatrixRain(
+		{ canvas },
+		{
+			color,
+			speed,
+			density,
+			glyphSize,
+			fadeOpacity,
+			reducedMotion: reducedMotion.value,
+		}
+	);
 	if (!engine) return;
 
 	observer = new ResizeObserver(() => engine?.resize());
@@ -67,6 +82,15 @@ watch(
 	() => [glyphSize, density] as const,
 	([nextGlyphSize, nextDensity]) => {
 		engine?.setOptions({ glyphSize: nextGlyphSize, density: nextDensity });
+	},
+	{ flush: "post" }
+);
+
+// Reduced motion: one still frame; the loop wakes when the preference clears.
+watch(
+	reducedMotion,
+	(next) => {
+		engine?.setOptions({ reducedMotion: next });
 	},
 	{ flush: "post" }
 );

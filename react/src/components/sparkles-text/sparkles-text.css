@@ -1,4 +1,4 @@
-/* Keyframes referenced by the inline `animation` on each .sparkles-star.
+/* Keyframes referenced by the gated `animation` on each .sparkles-star.
    Keyframe names are global by nature; the name is kept identical to the
    Svelte source's emitted name. */
 @keyframes sparkleAnim {
@@ -13,5 +13,20 @@
 	100% {
 		opacity: 0;
 		transform: scale(0) rotate(150deg);
+	}
+}
+
+/* The ungated pose is the resting state: a still, half-grown star (the 50 %
+   keyframe), so reduced motion keeps the sparkles and drops the pulse. */
+.sparkles-text .sparkles-star {
+	opacity: 1;
+	transform: scale(var(--sparkle-scale, 1)) rotate(120deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.sparkles-text .sparkles-star {
+		opacity: 0;
+		transform: scale(0) rotate(75deg);
+		animation: sparkleAnim 0.8s ease-in-out var(--sparkles-text-delay, 0s) infinite;
 	}
 }

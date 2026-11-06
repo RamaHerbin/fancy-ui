@@ -38,7 +38,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,6 +67,8 @@ jobs:
       - run: pnpm check:cores
       # Each package's Tailwind entry compiles to real colour rules and default tokens.
       - run: pnpm check:tailwind
+      # Motion literals match tokens.ts: var(--ft-*) fallbacks exactly, bare and off-token counts never above their pins.
+      - run: pnpm check:motion-tokens
       # The component count the READMEs and package.json state matches the registry.
       - run: pnpm check:readme-count
       - run: pnpm check
@@ -139,7 +141,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # A shard is 6 to 9 minutes; twice that is a hung preview server, not a slow run.
     timeout-minutes: 20
     strategy:
@@ -222,7 +224,7 @@ jobs:
           github.head_ref == 'changeset-release/main') ||
         (github.event_name == 'pull_request'))
     needs: [preview-health]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -269,7 +271,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -390,7 +392,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -457,7 +459,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -528,7 +530,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -583,7 +585,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -657,7 +659,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -703,7 +705,7 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # The cap stops a hung server from holding a runner for hours.
     timeout-minutes: 15
     strategy:

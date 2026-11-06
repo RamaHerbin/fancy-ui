@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { createFallingStars, type FallingStarsEngine } from "./bg-falling-stars-core.js";
 
 	let {
@@ -23,13 +24,22 @@
 	let canvas: HTMLCanvasElement;
 	let engine: FallingStarsEngine | null = null;
 
+	// Started before the engine is created so the first frame already knows.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
+	$effect(() => {
+		const reducedMotion = reduced.current;
+		untrack(() => engine?.setOptions({ reducedMotion }));
+	});
+
 	$effect(() => {
 		const nextColor = color;
 		untrack(() => engine?.setOptions({ color: nextColor }));
 	});
 
 	onMount(() => {
-		engine = createFallingStars({ canvas }, { count, color });
+		engine = createFallingStars({ canvas }, { count, color, reducedMotion: reduced.current });
 
 		const resizeObserver = new ResizeObserver(() => engine?.resize());
 		resizeObserver.observe(canvas);

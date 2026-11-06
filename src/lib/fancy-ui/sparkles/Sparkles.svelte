@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { createSparkles, type SparklesEngine } from "./sparkles-core.js";
 
 	interface Props {
@@ -27,10 +28,14 @@
 	let canvasRef: HTMLCanvasElement;
 	let engine: SparklesEngine | null = null;
 
+	// Started before the engine is created so the first frame already knows.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
 	onMount(() => {
 		engine = createSparkles(
 			{ canvas: canvasRef, container: containerRef },
-			{ minSize, maxSize, speed, particleDensity, particleColor }
+			{ minSize, maxSize, speed, particleDensity, particleColor, reducedMotion: reduced.current }
 		);
 
 		const resizeObserver = new ResizeObserver(() => engine?.resize());
@@ -44,7 +49,8 @@
 
 	$effect(() => {
 		const color = particleColor;
-		untrack(() => engine?.setOptions({ particleColor: color }));
+		const reducedMotion = reduced.current;
+		untrack(() => engine?.setOptions({ particleColor: color, reducedMotion }));
 	});
 </script>
 
