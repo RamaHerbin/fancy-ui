@@ -671,7 +671,9 @@ async function runEffectsParity() {
 			};
 			for (const k of ["idle", "active", "offscreen", "hidden"])
 				console.log(
-					`  ${k}: ${row[k].cpuMsPerSec.toFixed(1)} CPU ms/s, ${row[k].rafPerSec.toFixed(0)} raf/s, ${row[k].longTasks} long tasks`
+					row[k].unavailable
+						? `  ${k}: unavailable (${row[k].unavailable})`
+						: `  ${k}: ${row[k].cpuMsPerSec.toFixed(1)} CPU ms/s, ${row[k].rafPerSec.toFixed(0)} raf/s, ${row[k].longTasks} long tasks`
 				);
 			out.push({
 				framework: fw,

@@ -255,11 +255,15 @@ const loc = (page, t) => page.getByRole(t.role, t.name ? { name: t.name } : {}).
 
 async function openState(page, slug, hint) {
 	const steps = hint.states?.open?.steps;
+	const mark = (l) =>
+		l.evaluate((el) => el.setAttribute("data-ft-probe-opener", "")).catch(() => {});
 	if (steps) {
 		for (const s of steps) {
-			if (s.click) await loc(page, s.click).click({ timeout: 4000 });
+			if (s.click)
+				(await mark(loc(page, s.click)), await loc(page, s.click).click({ timeout: 4000 }));
 			else if (s.hover) await loc(page, s.hover).hover({ timeout: 4000 });
-			else if (s.focus) await loc(page, s.focus).focus({ timeout: 4000 });
+			else if (s.focus)
+				(await mark(loc(page, s.focus)), await loc(page, s.focus).focus({ timeout: 4000 }));
 			else if (s.press) await page.keyboard.press(s.press);
 			else if (s.type) await page.keyboard.type(s.type);
 			else if (s.wait) await page.waitForTimeout(s.wait);
@@ -275,6 +279,7 @@ async function openState(page, slug, hint) {
 	const trig = stage
 		.locator('button, [role=combobox], input, [aria-haspopup], [tabindex="0"]')
 		.first();
+	await mark(trig);
 	if (slug === "tooltip" || slug === "hover-card") await trig.focus();
 	else await trig.click({ timeout: 4000 });
 	if (slug === "autocomplete") {
@@ -312,6 +317,8 @@ async function openByKeyboard(page, slug, hint) {
 	// is a finding about the component, not a probe failure.
 	if ((await trig.count()) === 0) return { via: null, unavailable: "no focusable trigger" };
 	await trig.focus({ timeout: 4000 });
+	// Remember the opener, so "focus returned" means back to it, not anywhere.
+	await trig.evaluate((el) => el.setAttribute("data-ft-probe-opener", ""));
 	const visible = () =>
 		page
 			.locator(POPUP)
@@ -343,12 +350,14 @@ async function openByKeyboard(page, slug, hint) {
 const activeInfo = (page) =>
 	page.evaluate((sel) => {
 		const a = document.activeElement;
-		if (!a || a === document.body) return { inside: false, tag: "body" };
+		if (!a || a === document.body) return { inside: false, tag: "body", opener: false };
 		return {
 			inside: !!a.closest(sel),
 			tag: a.tagName.toLowerCase(),
 			role: a.getAttribute("role"),
 			name: (a.getAttribute("aria-label") || a.textContent || "").trim().slice(0, 40),
+			// the element the probe opened from (marked before opening)
+			opener: a.hasAttribute("data-ft-probe-opener"),
 		};
 	}, POPUP);
 
@@ -383,7 +392,11 @@ async function keyboard(page, base, slug, hint) {
 			.catch(() => false));
 		const after = await activeInfo(page);
 		k.focusAfter = after;
-		k.focusReturned = after.tag !== "body" && !after.inside;
+		// Back on the opener when one was marked; when the overlay was opened
+		// without a focusable opener (right-click on a region), any focus outside
+		// the popup and off the body counts.
+		const hadOpener = await page.evaluate(() => !!document.querySelector("[data-ft-probe-opener]"));
+		k.focusReturned = hadOpener ? after.opener === true : after.tag !== "body" && !after.inside;
 		// combobox-like widgets keep focus on the input (role=combobox) while the popup is open: count as inside
 		const comboLike = [
 			"combobox",
