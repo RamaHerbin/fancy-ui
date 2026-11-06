@@ -382,6 +382,7 @@
 		   as a gesture rather than as one line drawn twice. */
 		.link-hover--fade::before,
 		.link-hover--fade:focus-visible::after {
+			/* off-token: the focus twin keeps the hover timing (CONTRACTS section 4) */
 			transition-delay: 0.1s;
 		}
 
@@ -428,7 +429,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--pulse:focus-visible::before {
-			animation: lineUp 0.3s ease forwards;
+			animation: lineUp var(--ft-duration-base, 300ms) ease forwards;
 		}
 
 		@media (hover: hover) {
@@ -479,7 +480,7 @@
 		}
 
 		.link-hover--pulse:focus-visible::after {
-			transition-delay: 0.3s;
+			transition-delay: var(--ft-duration-base, 300ms);
 		}
 
 		@media (hover: hover) {
@@ -553,7 +554,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--sweep:focus-visible::before {
-			animation: coverUp 0.3s ease forwards;
+			animation: coverUp var(--ft-duration-base, 300ms) ease forwards;
 		}
 
 		@media (hover: hover) {

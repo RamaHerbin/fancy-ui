@@ -262,6 +262,7 @@
 
 		/* On the way in, stagger: label a beat after the fill, arrow after it. */
 		.ihb:focus-visible .ihb-hover {
+			/* off-token: the focus twin keeps the hover timing (CONTRACTS section 4) */
 			transition-delay: 60ms;
 		}
 
@@ -272,6 +273,7 @@
 		}
 
 		.ihb:focus-visible .ihb-arrow {
+			/* off-token: the focus twin keeps the hover timing (CONTRACTS section 4) */
 			transition-delay: 160ms;
 		}
 

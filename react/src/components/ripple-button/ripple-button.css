@@ -36,6 +36,7 @@
 }
 
 .ripple-button:focus-visible .ripple-hover::after {
+	/* off-token: the idle ring keeps the ripple's own ease, like its hover twin */
 	animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 }
 

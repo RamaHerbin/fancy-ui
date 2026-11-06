@@ -135,7 +135,7 @@ function createRipple(event: MouseEvent) {
 				'ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden',
 				'bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium',
 				'shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]',
-				'duration-300 ease-out transition-[border-color,background-color] motion-safe:transition-[transform,border-color,background-color]',
+				'transition-[border-color,background-color] duration-300 ease-out motion-safe:transition-[transform,border-color,background-color]',
 				'hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
 				className
 			)
@@ -205,6 +205,7 @@ function createRipple(event: MouseEvent) {
 }
 
 .ripple-button:focus-visible .ripple-hover::after {
+	/* off-token: the idle ring keeps the ripple's own ease, like its hover twin */
 	animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 }
 
