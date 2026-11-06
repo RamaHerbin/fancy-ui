@@ -740,6 +740,8 @@ export function analyse(item) {
 	}
 	// markup/script literals (tailwind arbitrary classes, inline style strings, JS option keys)
 	for (const f of files) {
+		// GSAP writes `duration` / `delay` in seconds; everything else here is ms
+		const usesGsap = /\bgsap\b|from\s+["']gsap/.test(f.code.join("\n"));
 		for (let i = 0; i < f.code.length; i++) {
 			const l = f.code[i];
 			const reg = f.region[i];
@@ -775,11 +777,11 @@ export function analyse(item) {
 			// JS option keys duration: N / delay: N (script) and inline style strings
 			if (reg === "script") {
 				for (const m of l.matchAll(/\b(duration|delay)\s*:\s*(\d+(?:\.\d+)?)\b(?!\s*\*)/g)) {
-					const ms = parseFloat(m[2]);
+					const ms = usesGsap ? Math.round(parseFloat(m[2]) * 1000) : parseFloat(m[2]);
 					if (ms <= 1) continue;
 					lit(
 						"duration",
-						`${m[1]}:${m[2]}`,
+						`${m[1]}:${m[2]}${usesGsap ? "s" : ""}`,
 						rel,
 						i + 1,
 						TOKEN_MS.has(ms) ? "token" : "off",

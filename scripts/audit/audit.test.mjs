@@ -235,6 +235,16 @@ test("A2 static: ungated transform motion scores 0, a gate or a blanket reduce o
 	);
 	assert.notEqual(durationOnly.fields.motion_class, "static");
 	assert.equal(durationOnly.axes.A2.score, 0);
+	// GSAP options are seconds: 0.4 is a 400 ms off-token duration, not a skipped 0.4 ms
+	const gsapTween = fixtureRepo(
+		'<script>\nimport gsap from "gsap";\ngsap.to(node, { duration: 0.4, opacity: 1 });\n</script>'
+	);
+	assert.equal(gsapTween.axes.A1.score, 2);
+	assert.match(gsapTween.axes.A1.note, /duration:0\.4s/);
+	assert.equal(
+		fixtureRepo("<script>\nanimate(node, { duration: 150 });\n</script>").axes.A1.score,
+		3
+	);
 	// whitespace before the colon is still a declaration
 	const spaced = fixtureRepo("<style>.a { transition : transform 150ms ease; }</style>");
 	assert.notEqual(spaced.fields.motion_class, "static");
