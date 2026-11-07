@@ -2,6 +2,7 @@
 	import { AiDataTable } from "$lib/fancy-ui/ai-data-table";
 	import type { AiDataTableColumn, AiDataTableRow } from "$lib/fancy-ui/ai-data-table";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { aiDataTableCode } from "./code.js";
 
 	const columns: AiDataTableColumn[] = [
 		{ key: "option", label: "Deployment" },
@@ -22,6 +23,7 @@
 	component="AiDataTable"
 	slug="ai-data-table"
 	required={["columns", "rows"]}
+	codeFor={aiDataTableCode}
 	controls={[
 		{ key: "caption", type: "text", label: "Caption", maxLength: 80 },
 		{ key: "captionVisible", type: "boolean", label: "Caption visible" },

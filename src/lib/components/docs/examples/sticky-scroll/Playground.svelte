@@ -36,7 +36,7 @@
 >
 	{#snippet preview(values)}
 		<div
-			class="relative w-[36rem] max-w-[85vw] overflow-hidden rounded-xl border border-black/[0.08] bg-[#fafafa] p-4 dark:border-white/[0.08] dark:bg-[#0b0b0c]"
+			class="relative w-[36rem] max-w-[85vw] overflow-clip rounded-xl border border-black/[0.08] bg-[#fafafa] p-4 dark:border-white/[0.08] dark:bg-[#0b0b0c]"
 		>
 			<StickyScroll
 				items={steps}
