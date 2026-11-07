@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CodeDiff } from "$lib/fancy-ui/code-diff";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { codeDiffCode } from "./code.js";
 
 	const PATCH = [
 		"diff --git a/src/lib/query.ts b/src/lib/query.ts",
@@ -30,6 +31,7 @@
 	component="CodeDiff"
 	slug="code-diff"
 	required={["diff"]}
+	codeFor={codeDiffCode}
 	controls={[
 		{ key: "filename", type: "text", label: "Filename", maxLength: 60 },
 		{ key: "lineNumbers", type: "boolean", label: "Line numbers" },

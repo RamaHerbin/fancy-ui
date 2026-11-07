@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { FileUpload, type UploadFile } from "$lib/fancy-ui/file-upload";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { fileUploadCode } from "./code.js";
 
 	let files = $state<UploadFile[]>([]);
 </script>
@@ -8,6 +9,7 @@
 <PropsPlayground
 	component="FileUpload"
 	slug="file-upload"
+	codeFor={fileUploadCode}
 	controls={[
 		{ key: "accept", type: "text", label: "Accept", maxLength: 60 },
 		{ key: "multiple", type: "boolean", label: "Multiple" },

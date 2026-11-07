@@ -27,8 +27,8 @@ export function aiDataTableCode(
 ): string {
 	const attrs: string[] = [];
 	if (values.caption) attrs.push(attribute("caption", String(values.caption), framework));
-	if (values.captionVisible === false)
-		attrs.push(framework === "vue" ? ':caption-visible="false"' : "captionVisible={false}");
+	// The component defaults to a hidden caption, so a visible one is written out.
+	if (values.captionVisible === true) attrs.push("captionVisible");
 	if (values.dense === true) attrs.push("dense");
 	if (values.highlightColumn)
 		attrs.push(attribute("highlightColumn", String(values.highlightColumn), framework));

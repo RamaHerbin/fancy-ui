@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { TickNav, type TickNavItem } from "$lib/fancy-ui/tick-nav";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { tickNavCode } from "./code.js";
 
 	const items: TickNavItem[] = [
 		{ id: "signal", label: "01 Signal" },
@@ -17,6 +18,7 @@
 	component="TickNav"
 	slug="tick-nav"
 	required={["items"]}
+	codeFor={tickNavCode}
 	controls={[
 		{
 			key: "variant",
