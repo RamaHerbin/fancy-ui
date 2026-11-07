@@ -167,6 +167,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { createReducedMotion } from "../../internals/motion/media-query.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "AnimatedBeam", inheritAttrs: false });
 
@@ -231,6 +232,8 @@ const fibreOpacity = computed(() => pathOpacity ?? (pathColor ? 0.2 : 1));
 const fibreStyle = computed(() => (pathColor ? { stroke: pathColor } : {}));
 
 // Geometry
+const svgEl = ref<SVGSVGElement | null>(null);
+useOffscreenPause(svgEl);
 const pathD = ref("");
 const flowD = ref("");
 const ends = ref({ x1: 0, y1: 0, x2: 0, y2: 0 });
@@ -307,6 +310,7 @@ watch(
 
 <template>
 	<svg
+		ref="svgEl"
 		fill="none"
 		aria-hidden="true"
 		:width="svgDimensions.width"
@@ -522,6 +526,13 @@ watch(
 }
 .bloom-ring {
 	animation-name: beam-ring;
+}
+
+/* Out of view: freeze the packet and both bloom shapes. */
+[data-ft-offscreen] .packet-layer,
+[data-ft-offscreen] .bloom-disc,
+[data-ft-offscreen] .bloom-ring {
+	animation-play-state: paused;
 }
 
 /* The head lands at 78%: the halo swells behind the node, then lets go. */

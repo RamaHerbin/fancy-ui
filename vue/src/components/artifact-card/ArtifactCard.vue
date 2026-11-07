@@ -40,6 +40,7 @@ import { computed, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { StreamingText } from "../streaming-text/index.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "ArtifactCard", inheritAttrs: false });
 
@@ -62,6 +63,7 @@ defineSlots<{
 }>();
 
 const el = useTemplateRef<HTMLDivElement>("el");
+useOffscreenPause(el);
 defineExpose({ ref: el });
 
 /** Spoken beside the title, since the sweep and the tint say nothing out loud. */
@@ -92,9 +94,7 @@ const isError = computed(() => status === "error");
 
 const hasPreview = computed(() => preview !== undefined && preview !== "");
 const hasVersion = computed(() => version !== undefined);
-const hasCount = computed(
-	() => hasVersion.value && versionCount !== undefined && versionCount > 0
-);
+const hasCount = computed(() => hasVersion.value && versionCount !== undefined && versionCount > 0);
 // A navigator only makes sense when there is somewhere to navigate to *and*
 // somebody listening; otherwise the same numbers render as a plain badge.
 const navigable = computed(() => hasCount.value && onVersionChange !== undefined);
@@ -191,7 +191,9 @@ const navButtonClass =
 			</span>
 
 			<div class="min-w-0 flex-1">
-				<div class="ft-artifact-title text-foreground truncate text-sm font-medium">{{ title }}</div>
+				<div class="ft-artifact-title text-foreground truncate text-sm font-medium">
+					{{ title }}
+				</div>
 				<div class="ft-artifact-kind text-muted-foreground truncate text-xs">{{ kind }}</div>
 			</div>
 
@@ -294,10 +296,7 @@ const navButtonClass =
 
 		<span class="sr-only">{{ STATUS_LABELS[status] }}</span>
 
-		<div
-			v-if="hasPreview"
-			class="ft-artifact-preview border-border border-t px-3 py-3 text-sm"
-		>
+		<div v-if="hasPreview" class="ft-artifact-preview border-border border-t px-3 py-3 text-sm">
 			<div class="ft-artifact-clamp">
 				<StreamingText :text="preview ?? ''" :streaming="isStreaming" />
 			</div>
@@ -383,6 +382,11 @@ const navButtonClass =
 @media (prefers-reduced-motion: no-preference) {
 	.ft-artifact-sweep::after {
 		animation: ft-artifact-sweep var(--ft-artifact-sweep-duration, 1.9s) linear infinite;
+	}
+
+	/* Out of view: freeze the sweep. */
+	[data-ft-offscreen] .ft-artifact-sweep::after {
+		animation-play-state: paused;
 	}
 
 	/* 45% of the card wide, so 240% of itself is one full pass and a short beat. */

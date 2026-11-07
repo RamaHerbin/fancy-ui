@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createFallingStars } from "./bg-falling-stars-core.js";
+import { resetTickerForTests, subscribe } from "../_internals/motion/ticker.js";
 
 function makeCanvas(ctx: CanvasRenderingContext2D | null) {
 	const canvas = document.createElement("canvas");
@@ -53,6 +54,7 @@ describe("createFallingStars", () => {
 	});
 
 	afterEach(() => {
+		resetTickerForTests();
 		rafSpy.mockRestore();
 		cafSpy.mockRestore();
 		vi.restoreAllMocks();
@@ -60,13 +62,13 @@ describe("createFallingStars", () => {
 
 	it("returns null when a 2D context is unavailable", () => {
 		const canvas = makeCanvas(null);
-		const engine = createFallingStars({ canvas }, {});
+		const engine = createFallingStars({ canvas, subscribe }, {});
 		expect(engine).toBeNull();
 	});
 
 	it("returns an engine and starts the rAF loop when a context is available", () => {
 		const canvas = makeCanvas(makeCtx());
-		const engine = createFallingStars({ canvas }, {});
+		const engine = createFallingStars({ canvas, subscribe }, {});
 		expect(engine).not.toBeNull();
 		expect(rafSpy).toHaveBeenCalledTimes(1);
 	});
@@ -74,7 +76,11 @@ describe("createFallingStars", () => {
 	it("setOptions applies a new color used by subsequent draws", () => {
 		const ctx = makeCtx();
 		const canvas = makeCanvas(ctx);
-		const engine = createFallingStars({ canvas }, { color: "#FFF", count: 1 }, () => 0.5);
+		const engine = createFallingStars(
+			{ canvas, subscribe },
+			{ color: "#FFF", count: 1 },
+			() => 0.5
+		);
 		expect(engine).not.toBeNull();
 
 		engine?.setOptions({ color: "#ff0000" });
@@ -87,13 +93,13 @@ describe("createFallingStars", () => {
 
 	it("setOptions ignores keys not present on the partial update", () => {
 		const canvas = makeCanvas(makeCtx());
-		const engine = createFallingStars({ canvas }, { color: "#123456" });
+		const engine = createFallingStars({ canvas, subscribe }, { color: "#123456" });
 		expect(() => engine?.setOptions({})).not.toThrow();
 	});
 
 	it("destroy cancels the pending rAF and is idempotent", () => {
 		const canvas = makeCanvas(makeCtx());
-		const engine = createFallingStars({ canvas }, {});
+		const engine = createFallingStars({ canvas, subscribe }, {});
 		engine?.destroy();
 		expect(cafSpy).toHaveBeenCalledTimes(1);
 		expect(() => engine?.destroy()).not.toThrow();
@@ -102,7 +108,7 @@ describe("createFallingStars", () => {
 
 	it("resize is safe to call before and after destroy", () => {
 		const canvas = makeCanvas(makeCtx());
-		const engine = createFallingStars({ canvas }, {});
+		const engine = createFallingStars({ canvas, subscribe }, {});
 		expect(() => engine?.resize()).not.toThrow();
 		engine?.destroy();
 		expect(() => engine?.resize()).not.toThrow();
@@ -110,7 +116,7 @@ describe("createFallingStars", () => {
 
 	it("initializes exactly `count` stars (loop continues to run one rAF per frame)", () => {
 		const canvas = makeCanvas(makeCtx());
-		createFallingStars({ canvas }, { count: 5 });
+		createFallingStars({ canvas, subscribe }, { count: 5 });
 		// One initial rAF request; further frames only scheduled from inside loop.
 		expect(rafSpy).toHaveBeenCalledTimes(1);
 		rafCallbacks[0]?.(0);
@@ -121,7 +127,7 @@ describe("createFallingStars", () => {
 		const canvas = makeCanvas(makeCtx());
 		// speed = random()*5+2; with random()=0 => speed=2, z starts at random()*width=0
 		// so the star is immediately past the viewport (z<=0) on the first frame.
-		const engine = createFallingStars({ canvas }, { count: 1 }, () => 0);
+		const engine = createFallingStars({ canvas, subscribe }, { count: 1 }, () => 0);
 		expect(engine).not.toBeNull();
 		expect(() => rafCallbacks[0]?.(0)).not.toThrow();
 	});
@@ -132,7 +138,7 @@ describe("createFallingStars", () => {
 			const canvas = makeCanvas(ctx);
 			canvas.style.color = "rgb(1, 2, 3)";
 			document.body.append(canvas);
-			const engine = createFallingStars({ canvas }, { count: 1 });
+			const engine = createFallingStars({ canvas, subscribe }, { count: 1 });
 			expect(engine).not.toBeNull();
 			rafCallbacks.shift()?.(0);
 			expect(ctx.strokeStyleHistory[0]).toBe("rgba(1, 2, 3, 0.08)");
@@ -145,7 +151,7 @@ describe("createFallingStars", () => {
 			const canvas = makeCanvas(ctx);
 			canvas.style.color = "rgb(0, 0, 0)";
 			document.body.append(canvas);
-			const engine = createFallingStars({ canvas }, { count: 1 });
+			const engine = createFallingStars({ canvas, subscribe }, { count: 1 });
 			rafCallbacks.shift()?.(0);
 			canvas.style.color = "rgb(255, 255, 255)";
 			ctx.strokeStyleHistory.length = 0;
@@ -159,7 +165,7 @@ describe("createFallingStars", () => {
 			const ctx = makeCtx();
 			const canvas = makeCanvas(ctx);
 			canvas.style.color = "rgb(1, 2, 3)";
-			const engine = createFallingStars({ canvas }, { count: 1, color: "#F00" });
+			const engine = createFallingStars({ canvas, subscribe }, { count: 1, color: "#F00" });
 			rafCallbacks.shift()?.(0);
 			expect(ctx.strokeStyleHistory[0]).toBe("rgba(255, 0, 0, 0.08)");
 			engine!.destroy();
@@ -168,7 +174,11 @@ describe("createFallingStars", () => {
 	it("reducedMotion paints one still frame without scheduling, and resumes when cleared", () => {
 		const ctx = makeCtx();
 		const canvas = makeCanvas(ctx);
-		const engine = createFallingStars({ canvas }, { count: 3, reducedMotion: true }, () => 0.5)!;
+		const engine = createFallingStars(
+			{ canvas, subscribe },
+			{ count: 3, reducedMotion: true },
+			() => 0.5
+		)!;
 
 		expect(rafSpy).not.toHaveBeenCalled();
 		expect(ctx.clearRect).toHaveBeenCalledTimes(1);
@@ -182,8 +192,11 @@ describe("createFallingStars", () => {
 		engine.setOptions({ reducedMotion: false });
 		expect(rafSpy).toHaveBeenCalledTimes(1);
 
+		// Flipping back to reduced lets the pending frame paint and parks the
+		// subscription; the ticker's residual request finds nobody live.
 		engine.setOptions({ reducedMotion: true });
 		rafCallbacks.shift()!(0);
+		rafCallbacks.shift()!(16);
 		expect(rafCallbacks).toHaveLength(0);
 	});
 
@@ -192,7 +205,7 @@ describe("createFallingStars", () => {
 		const ctx = makeCtx();
 		const canvas = makeCanvas(ctx);
 		const engine = createFallingStars(
-			{ canvas },
+			{ canvas, subscribe },
 			{ count: 3, color: "currentColor", reducedMotion: true },
 			() => 0.5
 		)!;

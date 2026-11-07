@@ -34,6 +34,7 @@ export interface SparklesProps {
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import { createSparkles, type SparklesEngine } from "./sparkles-core.js";
 
 defineOptions({ name: "Sparkles", inheritAttrs: false });
@@ -61,7 +62,7 @@ onMounted(() => {
 	if (!canvasRef.value || !containerRef.value) return;
 
 	engine = createSparkles(
-		{ canvas: canvasRef.value, container: containerRef.value },
+		{ canvas: canvasRef.value, container: containerRef.value, subscribe },
 		{ minSize, maxSize, speed, particleDensity, particleColor, reducedMotion: reducedMotion.value }
 	);
 

@@ -11,6 +11,7 @@ import {
 	staticTextStyle,
 	type DisplacementTextState,
 } from "./displacement-text-core.js";
+import { resetTickerForTests, subscribe } from "../_internals/motion/ticker.js";
 
 /**
  * Records every three.js object the core builds, so the tests can assert on the
@@ -151,6 +152,10 @@ function fakeCtx() {
 	};
 }
 
+afterEach(() => {
+	resetTickerForTests();
+});
+
 describe("createDisplacementText", () => {
 	let rafSpy: ReturnType<typeof vi.spyOn>;
 	let cafSpy: ReturnType<typeof vi.spyOn>;
@@ -172,21 +177,79 @@ describe("createDisplacementText", () => {
 
 	it("mounts the renderer canvas in the host and starts the rAF loop", () => {
 		const host = makeHost();
-		const engine = createDisplacementText({ container: host }, {});
+		const engine = createDisplacementText({ container: host, subscribe }, {});
 
 		expect(engine).not.toBeNull();
 		expect(made.renderers).toHaveLength(1);
 		expect(host.querySelector("canvas")).toBe(made.renderers[0].domElement);
 		expect(rafSpy).toHaveBeenCalled();
-		// animate() renders once synchronously before the first scheduled frame
-		expect(made.renderers[0].render).toHaveBeenCalledTimes(1);
+		// Render on demand: the first frame draws, not the constructor.
+		expect(made.renderers[0].render).not.toHaveBeenCalled();
 		expect(made.renderers[0].setSize).toHaveBeenCalledWith(400, 200, false);
 		expect(made.renderers[0].setClearColor).toHaveBeenCalledWith(0x000000, 0);
 		engine?.destroy();
 	});
 
+	it("renders on demand: one frame, then parked until something changes", () => {
+		const queued: FrameRequestCallback[] = [];
+		rafSpy.mockImplementation(((cb: FrameRequestCallback) => {
+			queued.push(cb);
+			return 42;
+		}) as never);
+		const host = makeHost();
+		const engine = createDisplacementText({ container: host, subscribe }, {});
+		const render = made.renderers[0].render;
+
+		expect(render).not.toHaveBeenCalled();
+		queued.shift()!(0);
+		expect(render).toHaveBeenCalledTimes(1);
+
+		// Nothing changed: the next frame parks the subscription and draws nothing.
+		queued.shift()!(16);
+		expect(render).toHaveBeenCalledTimes(1);
+		queued.shift()?.(32);
+		expect(queued).toHaveLength(0);
+
+		// A pointer hit wakes it for exactly one more render.
+		made.hit = { point: { x: 1, y: 2, z: 3 } };
+		host.dispatchEvent(new MouseEvent("pointermove", { clientX: 200, clientY: 100 }));
+		expect(queued).toHaveLength(1);
+		queued.shift()!(48);
+		expect(render).toHaveBeenCalledTimes(2);
+
+		// A retexture and a resize each invalidate as well.
+		queued.shift()!(64);
+		queued.shift()?.(80);
+		engine?.setOptions({ text: "Other" });
+		queued.shift()!(96);
+		expect(render).toHaveBeenCalledTimes(3);
+		queued.shift()!(112);
+		queued.shift()?.(128);
+		engine?.resize();
+		queued.shift()!(144);
+		expect(render).toHaveBeenCalledTimes(4);
+		engine?.destroy();
+	});
+
+	it("does not wake for a pointer move that misses the text plane", () => {
+		const queued: FrameRequestCallback[] = [];
+		rafSpy.mockImplementation(((cb: FrameRequestCallback) => {
+			queued.push(cb);
+			return 42;
+		}) as never);
+		const host = makeHost();
+		const engine = createDisplacementText({ container: host, subscribe }, {});
+		queued.shift()!(0);
+		queued.shift()!(16);
+		queued.shift()?.(32);
+		made.hit = null;
+		host.dispatchEvent(new MouseEvent("pointermove", { clientX: 10, clientY: 10 }));
+		expect(queued).toHaveLength(0);
+		engine?.destroy();
+	});
+
 	it("builds the orthographic frustum from the host aspect ratio (half-height 8)", () => {
-		const engine = createDisplacementText({ container: makeHost(400, 200) }, {});
+		const engine = createDisplacementText({ container: makeHost(400, 200), subscribe }, {});
 		expect(made.cameraArgs[0]).toEqual([-16, 16, 8, -8, 0.01, 1000]);
 		expect(made.cameras[0].position.set).toHaveBeenCalledWith(0, -10, 5);
 		expect(made.cameras[0].lookAt).toHaveBeenCalledWith(0, 0, 0);
@@ -194,7 +257,7 @@ describe("createDisplacementText", () => {
 	});
 
 	it("falls back to a 1x1 box when the host reports no size", () => {
-		const engine = createDisplacementText({ container: makeHost(0, 0) }, {});
+		const engine = createDisplacementText({ container: makeHost(0, 0), subscribe }, {});
 		expect(engine).not.toBeNull();
 		expect(made.renderers[0].setSize).toHaveBeenCalledWith(1, 1, false);
 		expect(made.cameraArgs[0]).toEqual([-8, 8, 8, -8, 0.01, 1000]);
@@ -202,7 +265,7 @@ describe("createDisplacementText", () => {
 	});
 
 	it("keeps the 15x15/100-segment text plane, the 500x500 hit plane and the 45deg tilt", () => {
-		const engine = createDisplacementText({ container: makeHost() }, {});
+		const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 		expect(made.geometryArgs[0]).toEqual([15, 15, 100, 100]);
 		expect(made.geometryArgs[1]).toEqual([500, 500]);
 		expect(made.meshes[0].rotation.z).toBe(Math.PI / 4);
@@ -217,7 +280,7 @@ describe("createDisplacementText", () => {
 			.mockReturnValue(ctx as never);
 
 		const engine = createDisplacementText(
-			{ container: makeHost() },
+			{ container: makeHost(), subscribe },
 			{ text: "Fancy", fontSize: 120, font: "Georgia, serif", color: "#ff0000" }
 		);
 
@@ -238,19 +301,19 @@ describe("createDisplacementText", () => {
 		const ctx = fakeCtx();
 		vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(ctx as never);
 
-		const light = createDisplacementText({ container: makeHost() }, {});
+		const light = createDisplacementText({ container: makeHost(), subscribe }, {});
 		expect(ctx.fillStyle).toBe("#000000");
 		light?.destroy();
 
 		document.documentElement.classList.add("dark");
-		const dark = createDisplacementText({ container: makeHost() }, {});
+		const dark = createDisplacementText({ container: makeHost(), subscribe }, {});
 		expect(ctx.fillStyle).toBe("#ffffff");
 		dark?.destroy();
 	});
 
 	it("copies the raycast hit point into the uDisplacement uniform on pointermove", () => {
 		const host = makeHost();
-		const engine = createDisplacementText({ container: host }, {});
+		const engine = createDisplacementText({ container: host, subscribe }, {});
 		const point = { x: 1, y: 2, z: 3 };
 		made.hit = { point };
 
@@ -263,7 +326,7 @@ describe("createDisplacementText", () => {
 
 	it("leaves the uniform untouched when the ray misses", () => {
 		const host = makeHost();
-		const engine = createDisplacementText({ container: host }, {});
+		const engine = createDisplacementText({ container: host, subscribe }, {});
 		made.hit = null;
 
 		host.dispatchEvent(new MouseEvent("pointermove", { clientX: 10, clientY: 10 }));
@@ -284,7 +347,7 @@ describe("createDisplacementText", () => {
 		for (const [key, patch] of cases) {
 			it(`re-rasterizes the texture in place, without rebuilding the scene, when ${key} changes`, () => {
 				const host = makeHost();
-				const engine = createDisplacementText({ container: host }, {});
+				const engine = createDisplacementText({ container: host, subscribe }, {});
 				const first = made.renderers[0];
 				const firstTexture = made.textures[0];
 
@@ -301,7 +364,7 @@ describe("createDisplacementText", () => {
 		}
 
 		it("leaves the texture alone when only the inactive theme colour changes", () => {
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			// light mode: darkColor is not the colour on screen
 			engine?.setOptions({ darkColor: "#eeeeee" });
 			expect(made.textures).toHaveLength(1);
@@ -311,7 +374,7 @@ describe("createDisplacementText", () => {
 
 		it("re-applies the capped pixel ratio when maxDpr changes, without rebuilding", () => {
 			const dpr = vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(3);
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			expect(made.renderers[0].setPixelRatio).toHaveBeenLastCalledWith(2);
 
 			engine?.setOptions({ maxDpr: 1 });
@@ -325,7 +388,7 @@ describe("createDisplacementText", () => {
 
 		it("does nothing when every live key keeps its value", () => {
 			const engine = createDisplacementText(
-				{ container: makeHost() },
+				{ container: makeHost(), subscribe },
 				{ text: "Hi", fontSize: 10 }
 			);
 			engine?.setOptions({ text: "Hi", fontSize: 10 });
@@ -338,7 +401,7 @@ describe("createDisplacementText", () => {
 		});
 
 		it("is a no-op after destroy", () => {
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			engine?.destroy();
 			engine?.setOptions({ text: "Nope" });
 
@@ -350,7 +413,7 @@ describe("createDisplacementText", () => {
 	describe("pixel ratio", () => {
 		it("caps the device pixel ratio at 2 by default", () => {
 			const dpr = vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(3);
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			expect(made.renderers[0].setPixelRatio).toHaveBeenCalledWith(2);
 			engine?.destroy();
 			dpr.mockRestore();
@@ -358,7 +421,7 @@ describe("createDisplacementText", () => {
 
 		it("honours a custom cap", () => {
 			const dpr = vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(3);
-			const engine = createDisplacementText({ container: makeHost() }, { maxDpr: 1.5 });
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, { maxDpr: 1.5 });
 			expect(made.renderers[0].setPixelRatio).toHaveBeenCalledWith(1.5);
 			engine?.destroy();
 			dpr.mockRestore();
@@ -369,7 +432,7 @@ describe("createDisplacementText", () => {
 		it("returns null and leaves the host untouched when the renderer cannot get a context", () => {
 			made.failRenderer = true;
 			const host = makeHost();
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 
 			expect(engine).toBeNull();
 			expect(host.querySelector("canvas")).toBeNull();
@@ -379,7 +442,7 @@ describe("createDisplacementText", () => {
 		it("releases the renderer and leaves the host untouched when the scene build throws", () => {
 			made.failMaterial = true;
 			const host = makeHost();
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 
 			expect(engine).toBeNull();
 			expect(made.renderers).toHaveLength(1);
@@ -391,7 +454,7 @@ describe("createDisplacementText", () => {
 
 		it("drops the WebGL context before disposing when the scene build throws", () => {
 			made.failMaterial = true;
-			createDisplacementText({ container: makeHost() }, {});
+			createDisplacementText({ container: makeHost(), subscribe }, {});
 			const renderer = made.renderers[0];
 
 			expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
@@ -403,7 +466,7 @@ describe("createDisplacementText", () => {
 		it("stops the loop, releases everything and reports a lost context", () => {
 			const onContextLost = vi.fn();
 			const host = makeHost();
-			const engine = createDisplacementText({ container: host }, { onContextLost });
+			const engine = createDisplacementText({ container: host, subscribe }, { onContextLost });
 			const renderer = made.renderers[0];
 			const event = new Event("webglcontextlost", { cancelable: true });
 
@@ -449,7 +512,7 @@ describe("createDisplacementText", () => {
 		});
 
 		it("watches the documentElement class only when no fixed colour is set", () => {
-			const a = createDisplacementText({ container: makeHost() }, {});
+			const a = createDisplacementText({ container: makeHost(), subscribe }, {});
 			expect(observeSpy).toHaveBeenCalledWith(document.documentElement, {
 				attributes: true,
 				attributeFilter: ["class"],
@@ -457,13 +520,13 @@ describe("createDisplacementText", () => {
 			a?.destroy();
 
 			observeSpy.mockClear();
-			const b = createDisplacementText({ container: makeHost() }, { color: "#abcdef" });
+			const b = createDisplacementText({ container: makeHost(), subscribe }, { color: "#abcdef" });
 			expect(observeSpy).not.toHaveBeenCalled();
 			b?.destroy();
 		});
 
 		it("swaps and disposes the texture when the resolved colour changes", () => {
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			const firstTexture = made.textures[0];
 
 			// no class change yet → same colour → no new texture
@@ -480,7 +543,7 @@ describe("createDisplacementText", () => {
 		});
 
 		it("disconnects the observer on destroy", () => {
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			engine?.destroy();
 			expect(disconnects[0]).toHaveBeenCalledTimes(1);
 		});
@@ -489,7 +552,7 @@ describe("createDisplacementText", () => {
 	describe("resize", () => {
 		it("re-derives the frustum and the renderer size from the host", () => {
 			const host = makeHost(400, 200);
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 			made.renderers[0].setSize.mockClear();
 
 			host.getBoundingClientRect = () =>
@@ -505,7 +568,7 @@ describe("createDisplacementText", () => {
 
 		it("bails out on a zero-height host", () => {
 			const host = makeHost(400, 200);
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 			made.renderers[0].setSize.mockClear();
 
 			host.getBoundingClientRect = () =>
@@ -518,7 +581,7 @@ describe("createDisplacementText", () => {
 
 		it("is a no-op after destroy", () => {
 			const host = makeHost();
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 			engine?.destroy();
 			made.renderers[0].setSize.mockClear();
 
@@ -529,7 +592,7 @@ describe("createDisplacementText", () => {
 		it("is driven by the window resize listener, which is dropped on destroy", () => {
 			const host = makeHost(400, 200);
 			const removeSpy = vi.spyOn(window, "removeEventListener");
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 			made.renderers[0].setSize.mockClear();
 
 			window.dispatchEvent(new Event("resize"));
@@ -548,7 +611,7 @@ describe("createDisplacementText", () => {
 	describe("destroy", () => {
 		it("cancels the frame, unmounts the canvas and disposes every three resource", () => {
 			const host = makeHost();
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 			const renderer = made.renderers[0];
 
 			engine?.destroy();
@@ -562,7 +625,7 @@ describe("createDisplacementText", () => {
 		});
 
 		it("drops the WebGL context before disposing the renderer", () => {
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			const renderer = made.renderers[0];
 			expect(renderer.forceContextLoss).not.toHaveBeenCalled();
 
@@ -575,7 +638,7 @@ describe("createDisplacementText", () => {
 		});
 
 		it("is idempotent", () => {
-			const engine = createDisplacementText({ container: makeHost() }, {});
+			const engine = createDisplacementText({ container: makeHost(), subscribe }, {});
 			engine?.destroy();
 			engine?.destroy();
 			engine?.destroy();
@@ -587,7 +650,7 @@ describe("createDisplacementText", () => {
 
 		it("stops the pointer handler", () => {
 			const host = makeHost();
-			const engine = createDisplacementText({ container: host }, {});
+			const engine = createDisplacementText({ container: host, subscribe }, {});
 			engine?.destroy();
 			made.hit = { point: { x: 1, y: 1, z: 1 } };
 
@@ -742,7 +805,10 @@ describe("mountDisplacementText", () => {
 		motion = stubReducedMotion(true);
 		stubWebGL(true);
 		const host = makeHost();
-		const controller = mountDisplacementText({ container: host }, { text: "Still", onChange });
+		const controller = mountDisplacementText(
+			{ container: host, subscribe },
+			{ text: "Still", onChange }
+		);
 
 		expect(last()?.mode).toBe("static");
 		expect(made.renderers).toHaveLength(0);
@@ -755,7 +821,7 @@ describe("mountDisplacementText", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(true);
 		const host = makeHost();
-		const controller = mountDisplacementText({ container: host }, { onChange });
+		const controller = mountDisplacementText({ container: host, subscribe }, { onChange });
 
 		expect(last()?.mode).toBe("webgl");
 		expect(made.renderers).toHaveLength(1);
@@ -767,7 +833,7 @@ describe("mountDisplacementText", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(true);
 		const host = makeHost();
-		const controller = mountDisplacementText({ container: host }, { onChange });
+		const controller = mountDisplacementText({ container: host, subscribe }, { onChange });
 		const first = made.renderers[0];
 
 		motion.set(true);
@@ -789,7 +855,7 @@ describe("mountDisplacementText", () => {
 	it("stays static when the WebGL preflight fails", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(false);
-		const controller = mountDisplacementText({ container: makeHost() }, { onChange });
+		const controller = mountDisplacementText({ container: makeHost(), subscribe }, { onChange });
 
 		expect(last()?.mode).toBe("static");
 		expect(made.renderers).toHaveLength(0);
@@ -801,7 +867,7 @@ describe("mountDisplacementText", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(true);
 		made.failRenderer = true;
-		const controller = mountDisplacementText({ container: makeHost() }, { onChange });
+		const controller = mountDisplacementText({ container: makeHost(), subscribe }, { onChange });
 		expect(last()?.mode).toBe("static");
 		controller.destroy();
 	});
@@ -811,7 +877,7 @@ describe("mountDisplacementText", () => {
 		stubWebGL(true);
 		made.failMaterial = true;
 		const host = makeHost();
-		const controller = mountDisplacementText({ container: host }, { onChange });
+		const controller = mountDisplacementText({ container: host, subscribe }, { onChange });
 
 		expect(last()?.mode).toBe("static");
 		expect(host.querySelector("canvas")).toBeNull();
@@ -825,7 +891,7 @@ describe("mountDisplacementText", () => {
 	it("falls back to static for the rest of the mount after a context loss", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(true);
-		const controller = mountDisplacementText({ container: makeHost() }, { onChange });
+		const controller = mountDisplacementText({ container: makeHost(), subscribe }, { onChange });
 
 		made.renderers[0].domElement.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
 		expect(last()?.mode).toBe("static");
@@ -840,7 +906,7 @@ describe("mountDisplacementText", () => {
 	it("reports the resolved text colour and follows option changes while static", () => {
 		motion = stubReducedMotion(true);
 		const controller = mountDisplacementText(
-			{ container: makeHost() },
+			{ container: makeHost(), subscribe },
 			{ lightColor: "#111111", darkColor: "#eeeeee", onChange }
 		);
 		expect(last()?.color).toBe("#111111");
@@ -856,7 +922,7 @@ describe("mountDisplacementText", () => {
 	it("forwards option changes to the running engine without rebuilding it", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(true);
-		const controller = mountDisplacementText({ container: makeHost() }, { onChange });
+		const controller = mountDisplacementText({ container: makeHost(), subscribe }, { onChange });
 		controller.setOptions({ text: "Next" });
 		expect(made.renderers).toHaveLength(1);
 		expect(made.textures).toHaveLength(2);
@@ -866,7 +932,7 @@ describe("mountDisplacementText", () => {
 	it("drops its media-query listener and the engine on destroy", () => {
 		motion = stubReducedMotion(false);
 		stubWebGL(true);
-		const controller = mountDisplacementText({ container: makeHost() }, { onChange });
+		const controller = mountDisplacementText({ container: makeHost(), subscribe }, { onChange });
 		expect(motion.listeners.size).toBe(1);
 
 		controller.destroy();

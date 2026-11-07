@@ -100,6 +100,13 @@
 	.neon-border-container .neon-glow {
 		animation: neon-hum 2.8s ease-in-out 0.9s infinite alternate;
 	}
+
+	/* Out of view: freeze every loop (the attribute sits on the root). */
+	.neon-border-container.neon-animated[data-ft-offscreen],
+	[data-ft-offscreen] .neon-light,
+	[data-ft-offscreen] .neon-glow {
+		animation-play-state: paused;
+	}
 }
 
 @keyframes neon-travel {

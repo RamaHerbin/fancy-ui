@@ -123,3 +123,7 @@ With `prefers-reduced-motion: reduce` the divider's pulses, trail and glide stay
 - Replaced Vue slots with Svelte snippets
 - Replaced Nuxt Icon with inline SVG
 - Used Svelte 5 runes (`$state`, `$effect`, `$props`)
+
+## Performance
+
+The seam pulses, the handle ring and the star field pause while the component is out of view.

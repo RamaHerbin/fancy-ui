@@ -56,6 +56,11 @@
 	animation-name: meteor-fall-flare;
 }
 
+/* Out of view: freeze every meteor. The attribute sits on the container the meteors live in. */
+[data-ft-offscreen] .meteor {
+	animation-play-state: paused;
+}
+
 @keyframes meteor-fall-flare {
 	0% {
 		transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1)) translateX(0);

@@ -244,6 +244,34 @@ describe("FlickeringGrid", () => {
 		expect(raf.pending).toBe(1);
 	});
 
+	it("caps the backing-store scale at a pixel ratio of 2", () => {
+		stubCanvas2d();
+		stubResizeObserver();
+		stubRaf();
+		stubDevicePixelRatio(3);
+
+		const { container } = render(<FlickeringGrid width={40} height={20} />);
+		const canvas = container.querySelector("canvas")! as HTMLCanvasElement;
+
+		expect(canvas.width).toBe(80);
+		expect(canvas.height).toBe(40);
+	});
+
+	it("keeps a single loop through consecutive visible reports and cancels it when hidden", () => {
+		stubCanvas2d();
+		stubResizeObserver();
+		const raf = stubRaf();
+
+		render(<FlickeringGrid width={40} height={20} />);
+
+		act(() => latestIntersectionObserver().trigger(true));
+		act(() => latestIntersectionObserver().trigger(true));
+		expect(raf.pending).toBe(1);
+
+		act(() => latestIntersectionObserver().trigger(false));
+		expect(raf.cancelled.length).toBe(1);
+	});
+
 	it("repeats the same flicker sequence for the same seed and a different one for another seed", () => {
 		function sequenceFor(seed: number): string[] {
 			const harness = stubCanvas2d();

@@ -8,6 +8,7 @@ import {
 } from "react";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { subscribe, type TickerSubscription } from "../../internals/motion/ticker.js";
 import "./bg-stars.css";
 
 export interface StarsBackgroundProps {
@@ -131,11 +132,12 @@ export function StarsBackground({
 		// visibly away from its target, so the loop parks instead of writing
 		// the same transform every frame for the page's whole life.
 		const REST_EPSILON = 0.01;
-		let animationFrame = 0;
+		// The shared ticker owns the frame request, the viewport gate and the
+		// document-visibility pause. Created lazily so a reduced-motion mount
+		// never requests a frame; the spring parks itself once settled.
+		let sub: TickerSubscription | null = null;
 
 		function updateSpring() {
-			animationFrame = 0;
-
 			// Simple spring physics
 			const forceX = (target.current.x - spring.current.x) * (stiffness / 1000);
 			const forceY = (target.current.y - spring.current.y) * (stiffness / 1000);
@@ -165,31 +167,16 @@ export function StarsBackground({
 				parallaxEl.current.style.transform = `translate(${spring.current.x}px, ${spring.current.y}px)`;
 			}
 
-			if (!atRest) {
-				animationFrame = requestAnimationFrame(updateSpring);
-			}
+			if (atRest) sub?.setPaused(true);
 		}
 
 		function start() {
-			// Idempotent: a second wake while a frame is already queued, or
-			// while the page is in a background tab, changes nothing. Under
-			// reduced motion the spring never runs.
-			if (animationFrame !== 0 || document.hidden || reducedMotion) return;
-			animationFrame = requestAnimationFrame(updateSpring);
-		}
-
-		function stop() {
-			if (animationFrame !== 0) {
-				cancelAnimationFrame(animationFrame);
-				animationFrame = 0;
-			}
-		}
-
-		function handleVisibilityChange() {
-			if (document.hidden) {
-				stop();
-			} else {
-				start();
+			// Idempotent. Under reduced motion the spring never runs.
+			if (reducedMotion) return;
+			if (sub) sub.setPaused(false);
+			else {
+				const host = parallaxEl.current?.parentElement ?? parallaxEl.current;
+				sub = subscribe({ el: host ?? undefined, onFrame: updateSpring });
 			}
 		}
 
@@ -202,12 +189,11 @@ export function StarsBackground({
 			if (parallaxEl.current) parallaxEl.current.style.transform = "translate(0px, 0px)";
 		}
 		start();
-		document.addEventListener("visibilitychange", handleVisibilityChange);
 
 		return () => {
 			wakeSpring.current = () => {};
-			stop();
-			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			sub?.unsubscribe();
+			sub = null;
 		};
 	}, [stiffness, damping, reducedMotion]);
 

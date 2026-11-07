@@ -63,6 +63,7 @@
 	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	interface Props {
 		firstImage?: string;
@@ -367,6 +368,7 @@
 	aria-valuemax={100}
 	aria-orientation="horizontal"
 	tabindex="0"
+	use:offscreenPause
 >
 	<!-- The seam: a blade of light, screened onto both sides -->
 	<div
@@ -579,6 +581,11 @@
 		}
 		.compare[data-active] .compare-handle__ring {
 			animation-duration: 1.4s;
+		}
+		/* Out of view: freeze the seam pulses and the handle ring. */
+		.compare:global([data-ft-offscreen]) .compare-beam__pulse,
+		.compare:global([data-ft-offscreen]) .compare-handle__ring {
+			animation-play-state: paused;
 		}
 	}
 

@@ -18,7 +18,9 @@ export interface StarFieldProps {
 </script>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "StarField", inheritAttrs: false });
 
@@ -80,10 +82,13 @@ function createStars(count: number, seedValue: number): Star[] {
 // destructured props here captures their initial values, so the list is a plain
 // non-reactive array.
 const stars: Star[] = createStars(starsCount, seed);
+
+const root = ref<HTMLElement | null>(null);
+useOffscreenPause(root);
 </script>
 
 <template>
-	<div :class="cn('absolute inset-0 overflow-hidden', className)">
+	<div ref="root" :class="cn('absolute inset-0 overflow-hidden', className)">
 		<div
 			v-for="star in stars"
 			:key="star.id"
@@ -114,6 +119,11 @@ const stars: Star[] = createStars(starsCount, seed);
 		animation:
 			twinkle var(--fancy-ui-twinkle-duration) ease-in-out infinite alternate,
 			drift var(--fancy-ui-drift-duration) linear infinite;
+	}
+
+	/* Out of view: freeze twinkle and drift. */
+	[data-ft-offscreen] .star {
+		animation-play-state: paused;
 	}
 }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	interface Props {
 		starsCount?: number;
@@ -47,7 +48,7 @@
 	);
 </script>
 
-<div class={cn("absolute inset-0 overflow-hidden", className)}>
+<div class={cn("absolute inset-0 overflow-hidden", className)} use:offscreenPause>
 	{#each stars as star (star.id)}
 		<div
 			class="star absolute rounded-full bg-white"
@@ -75,6 +76,11 @@
 			animation:
 				twinkle var(--fancy-ui-twinkle-duration) ease-in-out infinite alternate,
 				drift var(--fancy-ui-drift-duration) linear infinite;
+		}
+
+		/* Out of view: freeze twinkle and drift. */
+		:global([data-ft-offscreen]) .star {
+			animation-play-state: paused;
 		}
 	}
 

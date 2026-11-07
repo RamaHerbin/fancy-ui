@@ -41,6 +41,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 	import StreamingText from "../streaming-text/StreamingText.svelte";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 
@@ -155,6 +156,7 @@
 	)}
 	data-status={status}
 	onclick={onOpen ? open : undefined}
+	use:offscreenPause
 >
 	<!--
 		The sweep is parked off its own left edge, so reduced motion — which never
@@ -365,6 +367,11 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-artifact-sweep::after {
 			animation: ft-artifact-sweep var(--ft-artifact-sweep-duration, 1.9s) linear infinite;
+		}
+
+		/* Out of view: freeze the sweep. */
+		:global([data-ft-offscreen]) .ft-artifact-sweep::after {
+			animation-play-state: paused;
 		}
 
 		/* 45% of the card wide, so 240% of itself is one full pass and a short beat. */

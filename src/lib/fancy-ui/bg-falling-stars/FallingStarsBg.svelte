@@ -13,6 +13,7 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { subscribe } from "../_internals/motion/ticker.js";
 	import { createFallingStars, type FallingStarsEngine } from "./bg-falling-stars-core.js";
 
 	let {
@@ -39,7 +40,10 @@
 	});
 
 	onMount(() => {
-		engine = createFallingStars({ canvas }, { count, color, reducedMotion: reduced.current });
+		engine = createFallingStars(
+			{ canvas, subscribe },
+			{ count, color, reducedMotion: reduced.current }
+		);
 
 		const resizeObserver = new ResizeObserver(() => engine?.resize());
 		resizeObserver.observe(canvas);

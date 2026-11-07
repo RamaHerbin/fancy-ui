@@ -73,6 +73,11 @@
 		animation: ft-artifact-sweep var(--ft-artifact-sweep-duration, 1.9s) linear infinite;
 	}
 
+	/* Out of view: freeze the sweep. */
+	.ft-artifact[data-ft-offscreen] .ft-artifact-sweep::after {
+		animation-play-state: paused;
+	}
+
 	/* 45% of the card wide, so 240% of itself is one full pass and a short beat. */
 	@keyframes ft-artifact-sweep {
 		from {

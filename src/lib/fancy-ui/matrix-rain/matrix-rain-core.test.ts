@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createMatrixRain } from "./matrix-rain-core.js";
+import { resetTickerForTests, subscribe } from "../_internals/motion/ticker.js";
 
 function makeCanvas(w = 300, h = 150) {
 	const canvas = document.createElement("canvas");
@@ -68,18 +69,19 @@ describe("createMatrixRain", () => {
 	});
 
 	afterEach(() => {
+		resetTickerForTests();
 		vi.restoreAllMocks();
 	});
 
 	it("returns null when the 2d context is unavailable (jsdom has no canvas backend)", () => {
-		expect(createMatrixRain({ canvas: makeCanvas() }, {})).toBeNull();
+		expect(createMatrixRain({ canvas: makeCanvas(), subscribe }, {})).toBeNull();
 	});
 
 	it("paints the opaque black background and starts the loop on creation", () => {
 		const canvas = makeCanvas();
 		const { fillRects, setTransform } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, {}, () => 0.42);
+		const engine = createMatrixRain({ canvas, subscribe }, {}, () => 0.42);
 		expect(engine).not.toBeNull();
 
 		expect(setTransform).toHaveBeenCalledWith(1, 0, 0, 1, 0, 0);
@@ -93,7 +95,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { ctx, fillRects, fillTexts } = attach(canvas);
 
-		createMatrixRain({ canvas }, {}, () => 0.42);
+		createMatrixRain({ canvas, subscribe }, {}, () => 0.42);
 		fillRects.length = 0;
 		tick();
 
@@ -124,7 +126,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillTexts } = attach(canvas);
 
-		createMatrixRain({ canvas }, { speed: 3 }, () => 0.42);
+		createMatrixRain({ canvas, subscribe }, { speed: 3 }, () => 0.42);
 		tick();
 		fillTexts.length = 0;
 		tick();
@@ -137,7 +139,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillRects, fillTexts } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, {}, () => 0.42)!;
 		engine.setOptions({
 			color: "#ff00ff",
 			speed: 2,
@@ -164,7 +166,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillRects, setTransform } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, {}, () => 0.42)!;
 		expect(setTransform).toHaveBeenCalledTimes(1);
 		fillRects.length = 0;
 
@@ -191,7 +193,7 @@ describe("createMatrixRain", () => {
 		const { fillTexts } = attach(canvas);
 
 		// speed 0.5 => advance only on even frame counts.
-		const engine = createMatrixRain({ canvas }, { speed: 0.5 }, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, { speed: 0.5 }, () => 0.42)!;
 
 		tick();
 		expect(fillTexts).toHaveLength(0); // frame 1: 1 % 2 !== 0
@@ -208,7 +210,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillRects, fillTexts } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, { color: "#123456" }, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, { color: "#123456" }, () => 0.42)!;
 		engine.setOptions({ color: undefined, fadeOpacity: undefined });
 
 		fillRects.length = 0;
@@ -225,7 +227,7 @@ describe("createMatrixRain", () => {
 		const mathRandom = vi.spyOn(Math, "random");
 
 		const random = vi.fn(() => 0.42);
-		createMatrixRain({ canvas }, {}, random);
+		createMatrixRain({ canvas, subscribe }, {}, random);
 		tick();
 
 		expect(random).toHaveBeenCalled();
@@ -236,7 +238,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillRects, fillTexts } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, {}, () => 0.42)!;
 		const pending = frames[0]!;
 
 		engine.destroy();
@@ -260,7 +262,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillRects, setTransform } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, {}, () => 0.42)!;
 		fillRects.length = 0;
 
 		expect(() => engine.resize()).not.toThrow();
@@ -277,7 +279,7 @@ describe("createMatrixRain", () => {
 		const { fillTexts } = attach(canvas);
 
 		expect(() =>
-			createMatrixRain({ canvas }, { density: 0, glyphSize: 0 }, () => 0.42)
+			createMatrixRain({ canvas, subscribe }, { density: 0, glyphSize: 0 }, () => 0.42)
 		).not.toThrow();
 		tick();
 
@@ -289,7 +291,7 @@ describe("createMatrixRain", () => {
 		const canvas = makeCanvas();
 		const { fillTexts } = attach(canvas);
 
-		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, { reducedMotion: true }, () => 0.42)!;
 		expect(frames).toHaveLength(0);
 		// 300 / 16 => 18 columns; one simulated step draws a head + body per column
 		// (36 glyphs). The still pre-rolls the seeded simulation before its single
@@ -307,24 +309,29 @@ describe("createMatrixRain", () => {
 		tick();
 		expect(frames).toHaveLength(1);
 
-		// Flipping back to reduced lets the pending frame finish, then idles.
+		// Flipping back to reduced lets the pending frame finish and parks the
+		// subscription; the ticker's one residual request finds nobody live and
+		// does not reschedule.
 		engine.setOptions({ reducedMotion: true });
 		tick();
+		fillTexts.length = 0;
+		tick();
 		expect(frames).toHaveLength(0);
+		expect(fillTexts).toHaveLength(0);
 	});
 
 	it("reducedMotion pre-rolls the still into trails: a seeded rain is denser than the t=0 frame", () => {
 		const t0 = makeCanvas();
 		const t0Fake = attach(t0);
 		// Without reduced motion the first frame is the t=0 frame.
-		createMatrixRain({ canvas: t0 }, {}, () => 0.42)!;
+		createMatrixRain({ canvas: t0, subscribe }, {}, () => 0.42)!;
 		tick();
 		const t0Count = t0Fake.fillTexts.length;
 		frames.length = 0;
 
 		const still = makeCanvas();
 		const stillFake = attach(still);
-		createMatrixRain({ canvas: still }, { reducedMotion: true }, () => 0.42)!;
+		createMatrixRain({ canvas: still, subscribe }, { reducedMotion: true }, () => 0.42)!;
 		expect(frames).toHaveLength(0);
 		expect(stillFake.fillTexts.length).toBeGreaterThan(t0Count);
 		// Every pre-roll step lays its own fade-trail rectangle over the last.
@@ -334,7 +341,7 @@ describe("createMatrixRain", () => {
 	it("reducedMotion repaints the idle still when colour or fadeOpacity changes", () => {
 		const canvas = makeCanvas();
 		const { fillRects, fillTexts } = attach(canvas);
-		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+		const engine = createMatrixRain({ canvas, subscribe }, { reducedMotion: true }, () => 0.42)!;
 
 		fillRects.length = 0;
 		fillTexts.length = 0;
@@ -359,7 +366,7 @@ describe("createMatrixRain", () => {
 		const { fillTexts } = attach(canvas);
 		// The live cadence advances once every 100 frames at this speed; the
 		// pre-roll must not depend on it.
-		createMatrixRain({ canvas }, { speed: 0.01, reducedMotion: true }, () => 0.42);
+		createMatrixRain({ canvas, subscribe }, { speed: 0.01, reducedMotion: true }, () => 0.42);
 		expect(frames).toHaveLength(0);
 		// 300 / 16 => 18 columns, a head + body glyph each per advanced step.
 		expect(fillTexts.length).toBeGreaterThan(36);

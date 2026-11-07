@@ -424,6 +424,30 @@ describe("LiquidText", () => {
 		});
 	});
 
+	describe("pixel ratio", () => {
+		it("caps the backing-store scale at 2", () => {
+			const canvasContexts = installFakeCanvasContexts();
+			const raf = installRafTracker();
+			Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+				configurable: true,
+				value: 300,
+			});
+			vi.stubGlobal("devicePixelRatio", 3);
+
+			try {
+				const { container } = render(<LiquidText text="Liquid" fontSize={50} staticBelow={0} />);
+				const canvas = container.querySelector("canvas")!;
+				// 300 CSS px wide at the capped ratio of 2, not 900.
+				expect(canvas.width).toBe(600);
+			} finally {
+				vi.unstubAllGlobals();
+				delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
+				raf.restore();
+				canvasContexts.restore();
+			}
+		});
+	});
+
 	describe("class prop", () => {
 		it("applies the class prop to the root element", () => {
 			const { container } = render(<LiquidText className="my-liquid-class" />);

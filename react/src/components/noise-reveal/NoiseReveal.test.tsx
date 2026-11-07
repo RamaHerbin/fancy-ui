@@ -110,6 +110,16 @@ describe("NoiseReveal", () => {
 		expect(container.querySelector("div[role='img']")).toBeFalsy();
 	});
 
+	it("caps the renderer pixel ratio at 2", () => {
+		vi.stubGlobal("devicePixelRatio", 3);
+		try {
+			render(<NoiseReveal src={src} />);
+			expect(lastMock.renderer.setPixelRatio).toHaveBeenCalledWith(2);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
 	describe("cleanup on unmount", () => {
 		it("removes resize listener", () => {
 			const spy = vi.spyOn(window, "removeEventListener");

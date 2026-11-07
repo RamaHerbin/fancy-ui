@@ -1,5 +1,6 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./border-beam.css";
 
 /**
@@ -125,6 +126,9 @@ export function BorderBeam({
 	glow = 0.6,
 	reverse = false,
 }: BorderBeamProps) {
+	const [node, setNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(node);
+
 	const phase = beamPhase(duration, delay, anchor, reverse);
 
 	const style = {
@@ -144,6 +148,7 @@ export function BorderBeam({
 
 	return (
 		<div
+			ref={setNode}
 			className={cn(
 				"border-beam",
 				"pointer-events-none absolute inset-0 rounded-[inherit]",

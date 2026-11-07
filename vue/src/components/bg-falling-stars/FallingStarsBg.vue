@@ -15,6 +15,7 @@ export interface FallingStarsBgProps {
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import { createFallingStars, type FallingStarsEngine } from "./bg-falling-stars-core.js";
 
 defineOptions({ name: "FallingStarsBg", inheritAttrs: false });
@@ -45,7 +46,10 @@ onMounted(() => {
 	const canvas = canvasRef.value;
 	if (!canvas) return;
 
-	engine = createFallingStars({ canvas }, { count, color, reducedMotion: reducedMotion.value });
+	engine = createFallingStars(
+		{ canvas, subscribe },
+		{ count, color, reducedMotion: reducedMotion.value }
+	);
 
 	resizeObserver = new ResizeObserver(() => engine?.resize());
 	resizeObserver.observe(canvas);

@@ -253,7 +253,7 @@ export function createNoiseReveal(
 	if (!renderer) return null;
 
 	renderer.setClearColor(0x000000, 0);
-	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
 	renderer.setSize(width, height, false);
 	renderer.domElement.style.width = "100%";
 	renderer.domElement.style.height = "100%";

@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBgStars, generateStars } from "./bg-stars-core.js";
+import { resetTickerForTests, subscribe } from "../_internals/motion/ticker.js";
 
 function makeElements() {
 	const host = document.createElement("div");
 	const parallax = document.createElement("div");
 	host.appendChild(parallax);
 	document.body.appendChild(host);
-	return { host, parallax };
+	return { host, parallax, subscribe };
 }
 
 describe("generateStars", () => {
@@ -51,6 +52,7 @@ describe("createBgStars", () => {
 	});
 
 	afterEach(() => {
+		resetTickerForTests();
 		rafSpy.mockRestore();
 		cafSpy.mockRestore();
 		document.body.innerHTML = "";
@@ -163,9 +165,40 @@ describe("createBgStars", () => {
 		engine.setOptions({ reducedMotion: false });
 		expect(rafSpy).toHaveBeenCalledTimes(1);
 
-		// Flipping to reduced mid-flight settles at once and cancels the pending frame.
+		// Flipping to reduced mid-flight settles at once and parks the loop: the
+		// ticker's residual request finds nobody live and asks for no further frame.
 		engine.setOptions({ reducedMotion: true });
-		expect(cafSpy).toHaveBeenCalled();
 		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
+		rafSpy.mock.calls[0]![0](0);
+		expect(rafSpy).toHaveBeenCalledTimes(1);
+	});
+
+	it("parks once the spring settles and wakes on the next pointer move", () => {
+		const el = makeElements();
+		const queued: FrameRequestCallback[] = [];
+		rafSpy.mockImplementation((cb: FrameRequestCallback) => {
+			queued.push(cb);
+			return queued.length as unknown as number;
+		});
+		createBgStars(el, { factor: 1, stiffness: 50, damping: 20 });
+		Object.defineProperty(window, "innerWidth", { value: 1000, configurable: true });
+		Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+
+		// Settled from the start (target and spring both at 0): the first frame parks.
+		queued.shift()!(0);
+		const afterPark = rafSpy.mock.calls.length;
+		queued.shift()?.(16);
+		expect(rafSpy.mock.calls.length).toBe(afterPark);
+		expect(queued).toHaveLength(0);
+
+		el.host.dispatchEvent(
+			new MouseEvent("mousemove", { clientX: 600, clientY: 500, bubbles: true })
+		);
+		expect(queued).toHaveLength(1);
+		let t = 32;
+		for (let i = 0; i < 2000 && queued.length > 0; i++) queued.shift()!((t += 16));
+		// The spring converged and slept on its own, snapped onto the target.
+		expect(queued).toHaveLength(0);
+		expect(el.parallax.style.transform).toBe("translate(-100px, -100px)");
 	});
 });

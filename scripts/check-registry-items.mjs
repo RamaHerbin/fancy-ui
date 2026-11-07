@@ -84,7 +84,7 @@ const BRAND_WORDS = [
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
 /** Vue files over all 160 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 533;
+const VUE_EXPECTED_FILES = 536;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
@@ -115,7 +115,7 @@ const STACKS = {
 		urlPath: "/r/svelte",
 		expectedCount: 158,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 504,
+		expectedFiles: 506,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],

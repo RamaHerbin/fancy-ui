@@ -13,6 +13,7 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { subscribe } from "../_internals/motion/ticker.js";
 	import { createMatrixRain, type MatrixRainEngine } from "./matrix-rain-core.js";
 
 	let {
@@ -41,7 +42,7 @@
 			fadeOpacity,
 			reducedMotion: reduced.current,
 		}));
-		engine = createMatrixRain({ canvas }, initial);
+		engine = createMatrixRain({ canvas, subscribe }, initial);
 		if (!engine) return;
 
 		const observer = new ResizeObserver(() => engine?.resize());

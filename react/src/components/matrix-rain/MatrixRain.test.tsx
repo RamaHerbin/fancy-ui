@@ -242,9 +242,8 @@ describe("MatrixRain", () => {
 			const observer = latestIntersectionObserver();
 			act(() => observer.trigger(false));
 
-			// The pending frame was cancelled and no replacement queued, so
-			// stepping the queue paints nothing at all.
-			expect(harness.cancelled.length).toBe(1);
+			// The ticker lets the one queued request run, finds nobody live and does
+			// not queue a replacement, so stepping the queue paints nothing at all.
 			harness.step(3);
 			expect(harness.glyphs.length).toBe(drawnWhileVisible);
 

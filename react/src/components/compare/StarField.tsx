@@ -1,5 +1,6 @@
-import { memo, useMemo, type CSSProperties } from "react";
+import { memo, useMemo, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./star-field.css";
 
 export interface StarFieldProps {
@@ -92,8 +93,14 @@ export const StarField = memo(function StarField({
 	// would reshuffle the sky.
 	const stars = useMemo(() => createStars(starsCount, seed), [starsCount, seed]);
 
+	const [node, setNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(node);
+
 	return (
-		<div className={cn("fancy-star-field absolute inset-0 overflow-hidden", className)}>
+		<div
+			ref={setNode}
+			className={cn("fancy-star-field absolute inset-0 overflow-hidden", className)}
+		>
 			{stars.map((star) => (
 				<div
 					key={star.id}

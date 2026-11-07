@@ -5,8 +5,19 @@
 const GLYPHS =
 	"アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&";
 
+/**
+ * Frame subscription, injected by the wrapper (it is the shared frame ticker).
+ * Injected rather than imported so this file stays byte-identical in every
+ * package tree, whatever the relative path to the ticker is there.
+ */
+export type FrameSubscribe = (opts: { el?: Element; onFrame(dt: number, now: number): void }) => {
+	setPaused(paused: boolean): void;
+	unsubscribe(): void;
+};
+
 export interface MatrixRainElements {
 	canvas: HTMLCanvasElement;
+	subscribe: FrameSubscribe;
 }
 
 // Nothing in this component is snapshotted at mount: every option is re-read by
@@ -80,7 +91,7 @@ export function createMatrixRain(
 	options: MatrixRainInitOptions & MatrixRainLiveOptions,
 	random: () => number = Math.random
 ): MatrixRainEngine | null {
-	const { canvas } = elements;
+	const { canvas, subscribe } = elements;
 	const maybeCtx = canvas.getContext("2d");
 	if (!maybeCtx) return null;
 	// Re-bound with a non-nullable type so the nested draw/resize closures need
@@ -89,7 +100,9 @@ export function createMatrixRain(
 
 	let opts: Required<MatrixRainLiveOptions> = merge(DEFAULTS, options);
 
-	let rafId: number | null = null;
+	// The ticker subscription. Created lazily so a reduced-motion mount never
+	// requests a frame at all; parked (not unsubscribed) while the still is shown.
+	let sub: ReturnType<FrameSubscribe> | null = null;
 	let columns: number[] = [];
 	// Frame counter drives the sub-1x-speed advance cadence. It lives for the
 	// whole engine lifetime and is deliberately NOT reset by a relayout — in the
@@ -114,7 +127,7 @@ export function createMatrixRain(
 
 	function resize() {
 		if (destroyed) return;
-		const dpr = window.devicePixelRatio || 1;
+		const dpr = Math.min(2, window.devicePixelRatio || 1);
 		canvasW = canvas.clientWidth;
 		canvasH = canvas.clientHeight;
 		canvas.width = Math.floor(canvasW * dpr);
@@ -125,7 +138,7 @@ export function createMatrixRain(
 		initColumns(canvasW, canvasH);
 		// The repaint above wiped the canvas; an idle (reduced-motion) engine has
 		// no scheduled frame to refill it, so paint one now.
-		if (opts.reducedMotion && rafId === null) paintStill();
+		if (opts.reducedMotion) paintStill();
 	}
 
 	// Pre-rolls the simulation, then leaves the canvas holding one still frame.
@@ -188,17 +201,18 @@ export function createMatrixRain(
 		if (destroyed) return;
 		step();
 		// A frame still pending when the preference flips to reduce finishes, then
-		// idles (setOptions wakes the loop on the way back).
-		if (opts.reducedMotion) {
-			rafId = null;
-			return;
-		}
-		rafId = requestAnimationFrame(draw);
+		// parks (setOptions wakes the loop on the way back).
+		if (opts.reducedMotion) sub?.setPaused(true);
+	}
+
+	function startLoop() {
+		if (sub) sub.setPaused(false);
+		else sub = subscribe({ el: canvas, onFrame: draw });
 	}
 
 	// resize() already paints the one still frame when reduced motion is on.
 	resize();
-	if (!opts.reducedMotion) rafId = requestAnimationFrame(draw);
+	if (!opts.reducedMotion) startLoop();
 
 	return {
 		setOptions(next) {
@@ -212,7 +226,6 @@ export function createMatrixRain(
 				resize();
 			} else if (
 				opts.reducedMotion &&
-				rafId === null &&
 				(opts.color !== prev.color || opts.fadeOpacity !== prev.fadeOpacity)
 			) {
 				// A colour or fade change is state, not motion: an idle still frame has
@@ -222,18 +235,14 @@ export function createMatrixRain(
 				initColumns(canvasW, canvasH);
 				paintStill();
 			}
-			if (prev.reducedMotion && !opts.reducedMotion && rafId === null) {
-				rafId = requestAnimationFrame(draw);
-			}
+			if (prev.reducedMotion && !opts.reducedMotion) startLoop();
 		},
 		resize,
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
-			if (rafId !== null) {
-				cancelAnimationFrame(rafId);
-				rafId = null;
-			}
+			sub?.unsubscribe();
+			sub = null;
 		},
 	};
 }
