@@ -265,6 +265,10 @@ export function NoiseReveal({
 
 		const plane = new THREE.Mesh(geometry, material);
 		scene.add(plane);
+		// Nothing is drawn until the image has landed: with no texture bound the
+		// shader samples black, and a plane that starts revealed would flash an opaque
+		// black slab before the picture arrives.
+		plane.visible = false;
 
 		// Scale the unit plane to exactly fill the camera frustum at z=0.
 		// Non-null assertions on `uniforms`: the type definitions declare it as a
@@ -288,6 +292,7 @@ export function NoiseReveal({
 			loaded.colorSpace = THREE.SRGBColorSpace;
 			texture = loaded;
 			material.uniforms.uTexture!.value = loaded;
+			plane.visible = true;
 			const image = loaded.image as HTMLImageElement;
 			(material.uniforms.uImageRes!.value as THREE.Vector2).set(
 				image.naturalWidth || 1,

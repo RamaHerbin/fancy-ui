@@ -425,6 +425,7 @@ export default {
 	"error.report": "リンク切れを報告",
 	"comp.previewFailed": "このプレビューを読み込めませんでした。",
 	"demo.noPreview": "このコンポーネントのプレビューはまだありません。",
+	"demo.replay": "もう一度再生",
 	"demo.notFound": "コンポーネントが見つかりません。",
 	"recipes.steps": "手順",
 	"recipes.pitfalls": "よくある落とし穴",

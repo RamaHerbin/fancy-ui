@@ -37,11 +37,11 @@
 	let selectedVariant: VariantType = $state("type1");
 </script>
 
-<div class="w-full">
-	<div class="mb-4 flex flex-wrap gap-2">
+<div class="w-full max-w-3xl px-4">
+	<div class="mb-3 flex flex-wrap gap-1.5">
 		{#each variants as v}
 			<button
-				class="rounded-lg border px-3 py-1.5 text-sm transition-colors {selectedVariant === v.type
+				class="rounded-lg border px-2.5 py-1 text-xs transition-colors {selectedVariant === v.type
 					? 'border-primary bg-primary text-primary-foreground'
 					: 'border-border bg-card hover:bg-accent'}"
 				onclick={() => (selectedVariant = v.type)}
@@ -50,7 +50,7 @@
 			</button>
 		{/each}
 	</div>
-	<div class="relative h-[500px] cursor-crosshair overflow-hidden rounded-lg border">
+	<div class="relative h-[320px] cursor-crosshair overflow-hidden rounded-lg border">
 		<ImageTrailCursor {images} variant={selectedVariant} />
 		<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
 			<p class="text-muted-foreground text-lg font-medium select-none">Move your cursor here</p>

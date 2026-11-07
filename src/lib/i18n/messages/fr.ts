@@ -434,6 +434,7 @@ export default {
 	"error.report": "Signaler un lien cassé",
 	"comp.previewFailed": "Cet aperçu n'a pas pu être chargé.",
 	"demo.noPreview": "Aucun aperçu n'est encore disponible pour ce composant.",
+	"demo.replay": "Rejouer",
 	"demo.notFound": "Composant introuvable.",
 	"recipes.steps": "Étapes",
 	"recipes.pitfalls": "Pièges à éviter",

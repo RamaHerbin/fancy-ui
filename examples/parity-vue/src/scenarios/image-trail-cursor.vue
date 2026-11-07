@@ -40,13 +40,13 @@ const selectedVariant = ref<VariantType>("type1");
 </script>
 
 <template>
-	<div class="w-full">
-		<div class="mb-4 flex flex-wrap gap-2">
+	<div class="w-full max-w-3xl px-4">
+		<div class="mb-3 flex flex-wrap gap-1.5">
 			<button
 				v-for="v in variants"
 				:key="v.type"
 				:class="[
-					'rounded-lg border px-3 py-1.5 text-sm transition-colors',
+					'rounded-lg border px-2.5 py-1 text-xs transition-colors',
 					selectedVariant === v.type
 						? 'border-primary bg-primary text-primary-foreground'
 						: 'border-border bg-card hover:bg-accent',
@@ -56,7 +56,7 @@ const selectedVariant = ref<VariantType>("type1");
 				{{ v.label }}
 			</button>
 		</div>
-		<div class="relative h-[500px] cursor-crosshair overflow-hidden rounded-lg border">
+		<div class="relative h-[320px] cursor-crosshair overflow-hidden rounded-lg border">
 			<ImageTrailCursor :images="images" :variant="selectedVariant" />
 			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
 				<p class="text-muted-foreground text-lg font-medium select-none">Move your cursor here</p>

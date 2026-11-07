@@ -77,7 +77,9 @@ export const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
 		// consumer's theme is likely to already define.
 		const controlClasses = cn(
 			"ft-radio-item-control",
-			group?.invalid && !isChecked ? "border-destructive" : "border-input"
+			group?.invalid && !isChecked
+				? "border-destructive"
+				: "border-[color:light-dark(var(--input),color-mix(in_oklab,var(--foreground)_50%,transparent))]"
 		);
 
 		return (

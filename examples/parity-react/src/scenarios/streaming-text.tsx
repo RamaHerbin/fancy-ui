@@ -46,7 +46,7 @@ export default function Scenario() {
 	}, []);
 
 	return (
-		<div className="bg-card w-full max-w-xl rounded-lg border p-5">
+		<div className="bg-card min-h-40 w-full max-w-xl rounded-lg border p-5">
 			<p className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
 				Assistant
 			</p>

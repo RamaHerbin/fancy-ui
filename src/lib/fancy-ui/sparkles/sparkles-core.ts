@@ -51,7 +51,7 @@ const DEFAULT_MIN_SIZE = 1;
 const DEFAULT_MAX_SIZE = 3;
 const DEFAULT_SPEED = 4;
 const DEFAULT_PARTICLE_DENSITY = 120;
-const DEFAULT_PARTICLE_COLOR = "#ffffff";
+const DEFAULT_PARTICLE_COLOR = "currentColor";
 
 const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
 

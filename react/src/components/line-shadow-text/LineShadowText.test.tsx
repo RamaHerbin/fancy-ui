@@ -25,23 +25,19 @@ describe("LineShadowText", () => {
 	});
 
 	it("sets shadow color CSS variable", () => {
-		const { container } = render(
-			<LineShadowText text="Colored" shadowColor="red" />,
-		);
+		const { container } = render(<LineShadowText text="Colored" shadowColor="red" />);
 		const el = container.firstElementChild as HTMLElement;
 		expect(el.style.getPropertyValue("--shadow-color")).toBe("red");
 	});
 
-	it("defaults shadow color to black", () => {
+	it("defaults shadow color to a light-dark pair", () => {
 		const { container } = render(<LineShadowText text="Default color" />);
 		const el = container.firstElementChild as HTMLElement;
-		expect(el.style.getPropertyValue("--shadow-color")).toBe("black");
+		expect(el.style.getPropertyValue("--shadow-color")).toBe("light-dark(black, white)");
 	});
 
 	it("applies custom class", () => {
-		const { container } = render(
-			<LineShadowText text="Styled" className="text-4xl font-bold" />,
-		);
+		const { container } = render(<LineShadowText text="Styled" className="text-4xl font-bold" />);
 		const el = container.firstElementChild as HTMLElement;
 		expect(el.className).toContain("text-4xl");
 		expect(el.className).toContain("font-bold");

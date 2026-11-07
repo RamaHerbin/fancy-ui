@@ -37,7 +37,10 @@
 	z-index: -1;
 	pointer-events: none;
 	border-radius: var(--radius-md, 0.375rem);
-	background: var(--ft-pagination-indicator-color, var(--color-accent));
+	background: var(
+		--ft-pagination-indicator-color,
+		color-mix(in oklab, var(--ft-nav-accent) 34%, transparent)
+	);
 	opacity: 0;
 }
 

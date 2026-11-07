@@ -116,7 +116,7 @@ useSoundFeedback(fail, () => ({ on: { click: "error" } }));
 </script>
 
 <template>
-	<div data-sound-lab class="w-full max-w-3xl text-left">
+	<div data-sound-lab class="max-h-[28rem] w-full max-w-3xl overflow-y-auto px-4 py-1 text-left">
 		<div class="flex flex-wrap items-center gap-4">
 			<SoundToggle show-label />
 

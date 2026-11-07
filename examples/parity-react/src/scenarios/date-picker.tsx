@@ -2,5 +2,9 @@
 import { DatePicker } from "fancy-ui-react";
 
 export default function Scenario() {
-	return <DatePicker label="Date" placeholder="Pick a date" />;
+	return (
+		<div className="w-full max-w-sm px-6">
+			<DatePicker label="Date" placeholder="Pick a date" />
+		</div>
+	);
 }

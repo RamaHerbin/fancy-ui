@@ -20,12 +20,13 @@ export interface ConfettiButtonProps {
 </script>
 
 <script setup lang="ts">
-import { useAttrs, useTemplateRef } from "vue";
+import { onMounted, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import confetti from "canvas-confetti";
 import { sound as soundFx } from "../../sound/sound.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
 import { callListener } from "../../internals/call-listener.js";
+import { isDev } from "../../internals/env.js";
 import { CONFETTI_CONTEXT } from "./context.js";
 
 defineOptions({ name: "ConfettiButton", inheritAttrs: false });
@@ -44,6 +45,16 @@ const attrs = useAttrs();
 
 const confettiContext = CONFETTI_CONTEXT.useOptional();
 const el = useTemplateRef<HTMLButtonElement>("el");
+
+// Dev-only: the component already renders a <button>, so interactive children
+// nest invalid markup (and a server render hydrates with a mismatch).
+onMounted(() => {
+	if (isDev && el.value?.querySelector('button, a[href], input, [role="button"]')) {
+		console.warn(
+			"[ConfettiButton] An interactive element (button, link, input or role=button) is nested inside the ConfettiButton, which already renders a <button>. Nested interactive content is invalid HTML and breaks hydration and keyboard behaviour. Pass plain text or non-interactive markup as children instead."
+		);
+	}
+});
 
 // Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 // off (and never the default click → press, which `handleClick` already plays).

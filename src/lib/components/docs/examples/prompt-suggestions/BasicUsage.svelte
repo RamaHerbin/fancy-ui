@@ -69,6 +69,6 @@
 		{visible}
 		onSelect={select}
 		label="Follow-up prompts"
-		class="mt-1"
+		class="mt-1 min-h-[4.5rem] content-start"
 	/>
 </div>

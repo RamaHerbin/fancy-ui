@@ -25,7 +25,9 @@ describe("TerminalText", () => {
 	it("renders nothing until the first scheduled tick, then streams characters over time and completes", async () => {
 		vi.useFakeTimers();
 		const onComplete = vi.fn();
-		const { container } = render(<TerminalText lines={["hi"]} speed={10} onComplete={onComplete} />);
+		const { container } = render(
+			<TerminalText lines={["hi"]} speed={10} onComplete={onComplete} />
+		);
 		const wrapper = container.firstElementChild as HTMLElement;
 
 		// The effect only schedules timeouts synchronously; none have fired yet.
@@ -60,12 +62,21 @@ describe("TerminalText", () => {
 		expect(container.querySelector(".cursor-blink")).toBeFalsy();
 	});
 
+	it("reserves the finished block: the whole transcript and the caret row ride on data-ghost from the first frame", () => {
+		const { container } = render(<TerminalText lines={["ab", "cde"]} />);
+		const wrapper = container.firstElementChild as HTMLElement;
+		expect(wrapper.dataset.ghost).toBe("ab\ncde\n█");
+		// Nothing typed yet, and the ghost adds no text of its own.
+		expect(wrapper.textContent?.trim()).toBe("");
+	});
+
 	it("streams multiple lines in order, one div per line", async () => {
 		vi.useFakeTimers();
 		const { container } = render(<TerminalText lines={["a", "bb"]} speed={10} cursor={false} />);
 		await advance(90);
 		const wrapper = container.firstElementChild as HTMLElement;
-		const lineDivs = Array.from(wrapper.children) as HTMLElement[];
+		// The typed lines sit in one grid cell next to the invisible size-holding ghost.
+		const lineDivs = Array.from(wrapper.firstElementChild!.children) as HTMLElement[];
 		expect(lineDivs).toHaveLength(2);
 		expect(lineDivs[0]!.textContent).toBe("a");
 		expect(lineDivs[1]!.textContent).toBe("bb");

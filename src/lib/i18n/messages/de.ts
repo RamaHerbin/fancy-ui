@@ -426,6 +426,7 @@ export default {
 	"error.report": "Defekten Link melden",
 	"comp.previewFailed": "Diese Vorschau konnte nicht geladen werden.",
 	"demo.noPreview": "Für diese Komponente gibt es noch keine Vorschau.",
+	"demo.replay": "Erneut abspielen",
 	"demo.notFound": "Komponente nicht gefunden.",
 	"recipes.steps": "Schritte",
 	"recipes.pitfalls": "Stolperfallen",

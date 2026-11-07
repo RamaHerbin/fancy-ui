@@ -27,8 +27,7 @@ describe("Sparkles", () => {
 		const div = container.firstElementChild as HTMLElement;
 		const style = div?.getAttribute("style") ?? "";
 		expect(style).toContain("background");
-		// jsdom converts hex to rgb
-		expect(style).toMatch(/background.*rgb\(13,\s*71,\s*161\)|#0d47a1/);
+		expect(style).toMatch(/background:\s*transparent/);
 	});
 
 	it("applies custom background style", () => {

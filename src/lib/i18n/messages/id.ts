@@ -419,6 +419,7 @@ export default {
 	"error.report": "Laporkan tautan rusak",
 	"comp.previewFailed": "Pratinjau ini tidak dapat dimuat.",
 	"demo.noPreview": "Belum ada pratinjau untuk komponen ini.",
+	"demo.replay": "Putar ulang",
 	"demo.notFound": "Komponen tidak ditemukan.",
 	"recipes.steps": "Langkah-langkah",
 	"recipes.pitfalls": "Kesalahan umum",

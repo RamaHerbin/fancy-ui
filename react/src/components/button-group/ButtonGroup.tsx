@@ -38,7 +38,7 @@ export const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(
 				<div
 					ref={ref}
 					className={cn(
-						"ft-button-group border-border inline-flex rounded-lg border",
+						"ft-button-group inline-flex rounded-lg border border-[color:light-dark(var(--border),color-mix(in_oklab,var(--foreground)_40%,transparent))]",
 						orientation === "vertical" ? "flex-col" : "flex-row",
 						className
 					)}

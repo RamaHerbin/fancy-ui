@@ -8,7 +8,13 @@ const DAY = 24 * HOUR;
 
 const now = Date.now();
 
-type Thread = { id: string; title: string; preview?: string; updatedAt: Date | number; unread?: boolean };
+type Thread = {
+	id: string;
+	title: string;
+	preview?: string;
+	updatedAt: Date | number;
+	unread?: boolean;
+};
 
 const INITIAL: Thread[] = [
 	{
@@ -64,8 +70,8 @@ export default function Scenario() {
 	}
 
 	return (
-		<>
-			<div className="bg-card grid w-full max-w-2xl gap-4 rounded-lg border p-4 sm:grid-cols-[20rem_1fr]">
+		<div className="w-full max-w-2xl px-4">
+			<div className="bg-card grid w-full gap-4 rounded-lg border p-4 sm:grid-cols-[20rem_1fr]">
 				<ThreadList
 					sound
 					threads={threads}
@@ -98,6 +104,6 @@ export default function Scenario() {
 				The unread dot clears the moment the thread is opened, and each row reveals its delete
 				button on hover — or on focus, if you tab through instead.
 			</p>
-		</>
+		</div>
 	);
 }

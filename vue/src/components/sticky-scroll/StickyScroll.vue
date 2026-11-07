@@ -30,7 +30,7 @@ export interface StickyScrollProps<T> {
 </script>
 
 <script setup lang="ts" generic="T">
-import { computed, useAttrs, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { preset } from "../../internals/motion/transitions.js";
@@ -86,11 +86,30 @@ const reduced = useReducedMotion();
 // the family.
 const fadePanel = preset("fade");
 const effectiveCrossfade = computed(() => crossfade && !reduced.value);
+
+// The observers report which row sits on the centre line a frame or two after
+// mount. That first report is the layout settling, not a scroll: swapping the
+// panel with a fade would show the first row's panel for a beat and then dissolve
+// into the right one. Until two frames have passed the swap is instant.
+const settled = ref(false);
+let firstFrame = 0;
+let secondFrame = 0;
+onMounted(() => {
+	firstFrame = requestAnimationFrame(() => {
+		secondFrame = requestAnimationFrame(() => {
+			settled.value = true;
+		});
+	});
+});
+onBeforeUnmount(() => {
+	cancelAnimationFrame(firstFrame);
+	cancelAnimationFrame(secondFrame);
+});
 // `duration: 0` is the sampler's own synchronous fast path (see
 // `internals/motion/animate.ts`'s header comment) — reduced motion and
 // `crossfade={false}` both collapse to it, no separate branch needed.
 const panelParams = computed(() => ({
-	duration: effectiveCrossfade.value ? DURATIONS.base : 0,
+	duration: effectiveCrossfade.value && settled.value ? DURATIONS.base : 0,
 }));
 
 // Guards two edge cases at once: an empty `items` list (nothing to index),

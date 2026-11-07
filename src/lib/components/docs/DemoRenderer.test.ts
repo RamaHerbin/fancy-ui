@@ -70,11 +70,10 @@ describe("DemoRenderer sized stage", () => {
 });
 
 describe("sparkles preview visibility", () => {
-	it("pairs white particles with an opaque backdrop so light theme shows them", () => {
+	it("shows the component's own theme-aware defaults: no colour or backdrop override", () => {
 		const props = defaultProps.sparkles;
-		expect(props.particleColor).toBe("currentColor");
-		expect(props.class).toContain("text-white");
-		expect(props.background).not.toBe("transparent");
+		expect(props.particleColor).toBeUndefined();
+		expect(props.background).toBeUndefined();
 	});
 });
 
