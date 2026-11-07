@@ -7,7 +7,7 @@
 <PropsPlayground
 	component="RecommendationCard"
 	slug="recommendation-card"
-	required={["title"]}
+	required={["title", "badge", "description", "confidence"]}
 	controls={[
 		{ key: "badge", type: "text", label: "Badge", maxLength: 24 },
 		{ key: "title", type: "text", label: "Title", maxLength: 60 },

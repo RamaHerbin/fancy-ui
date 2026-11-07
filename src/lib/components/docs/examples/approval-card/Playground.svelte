@@ -7,7 +7,7 @@
 <PropsPlayground
 	component="ApprovalCard"
 	slug="approval-card"
-	required={["title"]}
+	required={["title", "description"]}
 	controls={[
 		{ key: "title", type: "text", label: "Title", maxLength: 60 },
 		{ key: "description", type: "text", label: "Description", maxLength: 120 },

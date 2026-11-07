@@ -7,7 +7,7 @@
 <PropsPlayground
 	component="ArtifactCard"
 	slug="artifact-card"
-	required={["title"]}
+	required={["title", "version", "versionCount", "preview"]}
 	controls={[
 		{ key: "title", type: "text", label: "Title", maxLength: 60 },
 		{ key: "kind", type: "text", label: "Kind", maxLength: 24 },

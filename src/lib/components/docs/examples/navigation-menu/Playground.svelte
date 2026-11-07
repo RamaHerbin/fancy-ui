@@ -8,11 +8,39 @@
 		NavigationMenuLink,
 	} from "$lib/fancy-ui/navigation-menu";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { navigationMenuCode } from "./code.js";
 </script>
 
 <PropsPlayground
 	component="NavigationMenu"
 	slug="navigation-menu"
+	importNames={{
+		svelte: [
+			"NavigationMenu",
+			"NavigationMenuList",
+			"NavigationMenuItem",
+			"NavigationMenuTrigger",
+			"NavigationMenuContent",
+			"NavigationMenuLink",
+		],
+		react: [
+			"NavigationMenu",
+			"NavigationMenuList",
+			"NavigationMenuItem",
+			"NavigationMenuTrigger",
+			"NavigationMenuContent",
+			"NavigationMenuLink",
+		],
+		vue: [
+			"NavigationMenu",
+			"NavigationMenuList",
+			"NavigationMenuItem",
+			"NavigationMenuTrigger",
+			"NavigationMenuContent",
+			"NavigationMenuLink",
+		],
+	}}
+	codeFor={navigationMenuCode}
 	controls={[
 		{ key: "label", type: "text", label: "Label", maxLength: 30 },
 		{ key: "openDelay", type: "range", label: "Open delay (ms)", min: 0, max: 800, step: 10 },

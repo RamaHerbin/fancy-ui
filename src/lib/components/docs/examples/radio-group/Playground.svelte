@@ -5,6 +5,7 @@
 		type RadioGroupOrientation,
 	} from "$lib/fancy-ui/radio-group";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { radioGroupCode } from "./code.js";
 
 	let plan = $state("a");
 </script>
@@ -12,7 +13,12 @@
 <PropsPlayground
 	component="RadioGroup"
 	slug="radio-group"
-	importNames={{ svelte: ["RadioGroup", "RadioGroupItem"] }}
+	importNames={{
+		svelte: ["RadioGroup", "RadioGroupItem"],
+		react: ["RadioGroup", "RadioGroupItem"],
+		vue: ["RadioGroup", "RadioGroupItem"],
+	}}
+	codeFor={radioGroupCode}
 	controls={[
 		{
 			key: "orientation",

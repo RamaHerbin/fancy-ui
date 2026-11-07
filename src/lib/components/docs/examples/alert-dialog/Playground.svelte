@@ -2,6 +2,7 @@
 	import { AlertDialog } from "$lib/fancy-ui/alert-dialog";
 	import { Button } from "$lib/fancy-ui/button";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { alertDialogCode } from "./code.js";
 </script>
 
 {#snippet trigger()}
@@ -11,7 +12,12 @@
 <PropsPlayground
 	component="AlertDialog"
 	slug="alert-dialog"
-	importNames={{ svelte: ["AlertDialog", "Button"] }}
+	importNames={{
+		svelte: ["AlertDialog", "Button"],
+		react: ["AlertDialog", "Button"],
+		vue: ["AlertDialog", "Button"],
+	}}
+	codeFor={alertDialogCode}
 	controls={[
 		{ key: "title", type: "text", label: "Title", maxLength: 60 },
 		{ key: "description", type: "text", label: "Description", maxLength: 120 },

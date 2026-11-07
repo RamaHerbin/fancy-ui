@@ -2,6 +2,7 @@
 	import { IconButton, type IconButtonShape } from "$lib/fancy-ui/icon-button";
 	import type { ButtonSize, ButtonVariant } from "$lib/fancy-ui/button";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { iconButtonCode } from "./code.js";
 
 	const opts = (list: string[]) => list.map((v) => ({ value: v, label: v }));
 </script>
@@ -9,6 +10,7 @@
 <PropsPlayground
 	component="IconButton"
 	slug="icon-button"
+	codeFor={iconButtonCode}
 	required={["label"]}
 	constraints={["`label` is required: an icon-only control has no other accessible name."]}
 	controls={[

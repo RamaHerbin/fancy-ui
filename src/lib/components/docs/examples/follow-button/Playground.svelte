@@ -9,6 +9,7 @@
 <PropsPlayground
 	component="FollowButton"
 	slug="follow-button"
+	required={["label"]}
 	controls={[
 		{ key: "following", type: "boolean", label: "Following" },
 		{ key: "label", type: "text", label: "Accessible label", maxLength: 40 },

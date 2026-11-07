@@ -2,12 +2,18 @@
 	import { Button } from "$lib/fancy-ui/button";
 	import { ButtonGroup, type ButtonGroupOrientation } from "$lib/fancy-ui/button-group";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { buttonGroupCode } from "./code.js";
 </script>
 
 <PropsPlayground
 	component="ButtonGroup"
 	slug="button-group"
-	importNames={{ svelte: ["ButtonGroup", "Button"] }}
+	importNames={{
+		svelte: ["ButtonGroup", "Button"],
+		react: ["ButtonGroup", "Button"],
+		vue: ["ButtonGroup", "Button"],
+	}}
+	codeFor={buttonGroupCode}
 	controls={[
 		{
 			key: "orientation",

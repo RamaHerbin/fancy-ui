@@ -2,12 +2,18 @@
 	import { FormField } from "$lib/fancy-ui/form-field";
 	import { Input } from "$lib/fancy-ui/input";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { formFieldCode } from "./code.js";
 </script>
 
 <PropsPlayground
 	component="FormField"
 	slug="form-field"
-	importNames={{ svelte: ["FormField", "Input"] }}
+	importNames={{
+		svelte: ["FormField", "Input"],
+		react: ["FormField", "Input"],
+		vue: ["FormField", "Input"],
+	}}
+	codeFor={formFieldCode}
 	controls={[
 		{ key: "label", type: "text", label: "Label", maxLength: 30 },
 		{ key: "description", type: "text", label: "Description", maxLength: 80 },

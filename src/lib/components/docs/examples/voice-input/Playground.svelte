@@ -6,6 +6,7 @@
 <PropsPlayground
 	component="VoiceInput"
 	slug="voice-input"
+	required={["demo", "color", "transcript"]}
 	constraints={["It never opens a microphone: pass `samples` from your own audio pipeline."]}
 	controls={[
 		{ key: "demo", type: "boolean", label: "Demo waveform" },

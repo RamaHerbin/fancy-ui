@@ -6,6 +6,7 @@
 		type DatamoshSweep,
 	} from "$lib/fancy-ui/datamosh-transition";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { datamoshTransitionCode } from "./code.js";
 
 	let transition: ReturnType<typeof DatamoshTransition> | undefined = $state();
 	let busy = $state(false);
@@ -24,6 +25,12 @@
 <PropsPlayground
 	component="DatamoshTransition"
 	slug="datamosh-transition"
+	importNames={{
+		svelte: ["DatamoshTransition"],
+		react: ["DatamoshTransition", "type DatamoshTransitionHandle"],
+		vue: ["DatamoshTransition"],
+	}}
+	codeFor={datamoshTransitionCode}
 	constraints={[
 		"Mount it once and drive it with `cover()` then `reveal()` from a navigation hook.",
 	]}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { TimePicker } from "$lib/fancy-ui/time-picker";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { timePickerCode } from "./code.js";
 
 	let time = $state<string | null>(null);
 </script>
@@ -8,6 +9,7 @@
 <PropsPlayground
 	component="TimePicker"
 	slug="time-picker"
+	codeFor={timePickerCode}
 	controls={[
 		{ key: "label", type: "text", label: "Label", maxLength: 30 },
 		{ key: "placeholder", type: "text", label: "Placeholder", maxLength: 30 },

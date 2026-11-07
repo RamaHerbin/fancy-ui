@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { LiquidGlass } from "$lib/fancy-ui/liquid-glass";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { liquidGlassCode } from "./code.js";
 
 	const opts = (list: string[]) => list.map((v) => ({ value: v, label: v }));
 	const channel = opts(["R", "G", "B"]);
@@ -9,6 +10,7 @@
 <PropsPlayground
 	component="LiquidGlass"
 	slug="liquid-glass"
+	codeFor={liquidGlassCode}
 	constraints={["Place it over a busy background, the refraction needs something to bend."]}
 	controls={[
 		{ key: "radius", type: "range", label: "Radius", min: 0, max: 60, step: 1 },

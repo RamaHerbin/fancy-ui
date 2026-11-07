@@ -6,6 +6,7 @@
 <PropsPlayground
 	component="FluidCursor"
 	slug="fluid-cursor"
+	required={["fluidColor"]}
 	constraints={[
 		"Mount it in a sized, relatively positioned container (`contained` is on by default).",
 	]}

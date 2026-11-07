@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { FlipCard, type FlipCardProps } from "$lib/fancy-ui/flip-card";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { flipCardCode } from "./code.js";
 </script>
 
 <PropsPlayground
 	component="FlipCard"
 	slug="flip-card"
+	codeFor={flipCardCode}
 	controls={[
 		{
 			key: "rotate",

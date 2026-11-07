@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { SearchInput } from "$lib/fancy-ui/search-input";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { searchInputCode } from "./code.js";
 
 	let query = $state("");
 </script>
@@ -8,6 +9,7 @@
 <PropsPlayground
 	component="SearchInput"
 	slug="search-input"
+	codeFor={searchInputCode}
 	controls={[
 		{ key: "placeholder", type: "text", label: "Placeholder", maxLength: 40 },
 		{ key: "label", type: "text", label: "Label", maxLength: 30 },

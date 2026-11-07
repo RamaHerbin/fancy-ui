@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { BentoGrid, BentoGridItem } from "$lib/fancy-ui/bento-grid";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { bentoGridCode } from "./code.js";
 	import Activity from "@lucide/svelte/icons/activity";
 	import Rocket from "@lucide/svelte/icons/rocket";
 	import Gauge from "@lucide/svelte/icons/gauge";
@@ -19,6 +20,12 @@
 <PropsPlayground
 	component="BentoGrid"
 	slug="bento-grid"
+	importNames={{
+		svelte: ["BentoGrid", "BentoGridItem"],
+		react: ["BentoGrid", "BentoGridItem"],
+		vue: ["BentoGrid", "BentoGridItem"],
+	}}
+	codeFor={bentoGridCode}
 	controls={[
 		{ key: "reveal", type: "boolean", label: "Reveal on scroll" },
 		{ key: "accent", type: "color", label: "Accent" },

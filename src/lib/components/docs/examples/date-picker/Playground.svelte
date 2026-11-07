@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { DatePicker } from "$lib/fancy-ui/date-picker";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { datePickerCode } from "./code.js";
 
 	let selected = $state<Date | null>(null);
 </script>
@@ -8,6 +9,7 @@
 <PropsPlayground
 	component="DatePicker"
 	slug="date-picker"
+	codeFor={datePickerCode}
 	controls={[
 		{ key: "label", type: "text", label: "Label", maxLength: 30 },
 		{ key: "placeholder", type: "text", label: "Placeholder", maxLength: 30 },

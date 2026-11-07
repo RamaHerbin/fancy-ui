@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { AnimatedBeam } from "$lib/fancy-ui/animated-beam";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { animatedBeamCode } from "./code.js";
 	import FileText from "@lucide/svelte/icons/file-text";
 	import Sparkles from "@lucide/svelte/icons/sparkles";
 
@@ -15,6 +16,7 @@
 <PropsPlayground
 	component="AnimatedBeam"
 	slug="animated-beam"
+	codeFor={animatedBeamCode}
 	constraints={["Mount it in a relative container and pass the container and both node elements."]}
 	controls={[
 		{ key: "curvature", type: "range", label: "Curvature", min: -120, max: 120, step: 5 },

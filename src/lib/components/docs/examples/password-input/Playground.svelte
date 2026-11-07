@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { PasswordInput } from "$lib/fancy-ui/password-input";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { passwordInputCode } from "./code.js";
 
 	let password = $state("correct horse 7!");
 </script>
@@ -8,6 +9,7 @@
 <PropsPlayground
 	component="PasswordInput"
 	slug="password-input"
+	codeFor={passwordInputCode}
 	controls={[
 		{ key: "label", type: "text", label: "Label", maxLength: 30 },
 		{ key: "placeholder", type: "text", label: "Placeholder", maxLength: 40 },

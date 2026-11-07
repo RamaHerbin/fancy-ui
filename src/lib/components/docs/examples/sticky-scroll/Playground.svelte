@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { StickyScroll } from "$lib/fancy-ui/sticky-scroll";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { stickyScrollCode } from "./code.js";
 
 	interface Step {
 		title: string;
@@ -18,6 +19,7 @@
 <PropsPlayground
 	component="StickyScroll"
 	slug="sticky-scroll"
+	codeFor={stickyScrollCode}
 	constraints={["Give it a tall column of items, the panel sticks while they scroll past."]}
 	controls={[
 		{

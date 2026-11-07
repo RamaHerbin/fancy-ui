@@ -2,6 +2,7 @@
 	import { ChatPanel, ChatEmptyState } from "$lib/fancy-ui/chat-panel";
 	import { ChatMessage } from "$lib/fancy-ui/chat-message";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { chatPanelCode } from "./code.js";
 
 	const turns: { role: "user" | "assistant"; content: string }[] = [
 		{ role: "user", content: "Why does my transcript jump around while an answer comes in?" },
@@ -22,6 +23,12 @@
 <PropsPlayground
 	component="ChatPanel"
 	slug="chat-panel"
+	importNames={{
+		svelte: ["ChatPanel", "ChatEmptyState", "ChatMessage"],
+		react: ["ChatPanel", "ChatEmptyState", "ChatMessage"],
+		vue: ["ChatPanel", "ChatEmptyState", "ChatMessage"],
+	}}
+	codeFor={chatPanelCode}
 	constraints={["Give it a fixed height: the message region scrolls inside it."]}
 	controls={[
 		{ key: "empty", type: "boolean", label: "Empty" },

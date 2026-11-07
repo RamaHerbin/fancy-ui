@@ -8,6 +8,7 @@
 <PropsPlayground
 	component="NumberInput"
 	slug="number-input"
+	required={["min", "max"]}
 	controls={[
 		{ key: "min", type: "number", label: "Min", step: 1 },
 		{ key: "max", type: "number", label: "Max", step: 1 },
