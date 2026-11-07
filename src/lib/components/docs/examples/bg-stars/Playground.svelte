@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { StarsBackground } from "$lib/fancy-ui/bg-stars";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { bgStarsCode } from "./code.js";
 </script>
 
 <PropsPlayground
 	component="StarsBackground"
 	slug="bg-stars"
+	codeFor={bgStarsCode}
 	controls={[
 		{ key: "factor", type: "range", label: "Parallax factor", min: 0, max: 0.3, step: 0.01 },
 		{ key: "speed", type: "range", label: "Speed (s)", min: 10, max: 120, step: 5 },

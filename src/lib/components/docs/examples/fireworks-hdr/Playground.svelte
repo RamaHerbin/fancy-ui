@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { FireworksHdr, type FireworksHandle } from "$lib/fancy-ui/fireworks-hdr";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { fireworksHdrCode } from "./code.js";
 
 	let handle = $state<FireworksHandle | null>(null);
 
@@ -12,6 +13,7 @@
 <PropsPlayground
 	component="FireworksHdr"
 	slug="fireworks-hdr"
+	codeFor={fireworksHdrCode}
 	constraints={["Mount it in a sized, relatively positioned container."]}
 	controls={[
 		{ key: "hdr", type: "boolean", label: "GPU engine (HDR)" },

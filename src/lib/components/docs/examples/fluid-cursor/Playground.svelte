@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { FluidCursor } from "$lib/fancy-ui/fluid-cursor";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
+	import { fluidCursorCode } from "./code.js";
 </script>
 
 <PropsPlayground
 	component="FluidCursor"
 	slug="fluid-cursor"
+	codeFor={fluidCursorCode}
 	required={["fluidColor"]}
 	constraints={[
 		"Mount it in a sized, relatively positioned container (`contained` is on by default).",
