@@ -39,7 +39,7 @@
 		"rounded-lg border border-black/[0.06] bg-white/70 dark:border-white/[0.06] dark:bg-white/[0.02]";
 </script>
 
-<BentoGrid>
+<BentoGrid class="md:auto-rows-[14rem]">
 	<BentoGridItem class="md:col-span-2">
 		{#snippet header()}
 			<div class="relative flex min-h-[5.5rem] flex-1 flex-col overflow-hidden {well}">

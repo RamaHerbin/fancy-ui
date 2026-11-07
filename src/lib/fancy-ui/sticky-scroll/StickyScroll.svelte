@@ -73,10 +73,28 @@
 	// the family instead of a second, disconnected 400ms/linear default.
 	const fadePanel = preset("fade");
 	const effectiveCrossfade = $derived(crossfade && !reduced.current);
+
+	// The observers report which row sits on the centre line a frame or two after
+	// mount. That first report is the layout settling, not a scroll: swapping the
+	// panel with a fade would show the first row's panel for a beat and then dissolve
+	// into the right one. Until two frames have passed the swap is instant.
+	let settled = $state(false);
+	$effect(() => {
+		let second = 0;
+		const first = requestAnimationFrame(() => {
+			second = requestAnimationFrame(() => (settled = true));
+		});
+		return () => {
+			cancelAnimationFrame(first);
+			cancelAnimationFrame(second);
+		};
+	});
 	// `duration: 0` is Svelte's own synchronous fast path (see
 	// `_internals/motion/transitions.ts`'s header comment) — reduced motion
 	// and `crossfade={false}` both collapse to it, no separate branch needed.
-	const panelParams = $derived({ duration: effectiveCrossfade ? DURATIONS.base : 0 });
+	const panelParams = $derived({
+		duration: effectiveCrossfade && settled ? DURATIONS.base : 0,
+	});
 
 	// Guards two edge cases at once: an empty `items` list (nothing to
 	// index), and `activeIndex` drifting out of range if the caller shrinks

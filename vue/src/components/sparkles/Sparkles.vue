@@ -40,8 +40,8 @@ defineOptions({ name: "Sparkles", inheritAttrs: false });
 
 const {
 	class: className,
-	background = "#0d47a1",
-	particleColor = "#ffffff",
+	background = "transparent",
+	particleColor = "currentColor",
 	minSize = 1,
 	maxSize = 3,
 	speed = 4,

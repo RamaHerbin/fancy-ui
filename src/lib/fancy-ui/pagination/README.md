@@ -103,7 +103,7 @@ default:
 | Variable                          | Default                          | What it controls                                                                                        |
 | --------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `--ft-pagination-slide-duration`  | `var(--ft-duration-base, 300ms)` | How long the pill takes to slide to the new page (the older `--ft-pagination-pop-duration` still works) |
-| `--ft-pagination-indicator-color` | `var(--color-accent)`            | The pill's fill                                                                                         |
+| `--ft-pagination-indicator-color` | `color-mix(in oklab, var(--ft-nav-accent) 34%, transparent)` | The pill's fill                                                                                         |
 
 ## Motion
 

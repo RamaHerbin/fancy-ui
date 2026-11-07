@@ -2,5 +2,9 @@
 import { Textarea } from "fancy-ui-react";
 
 export default function Scenario() {
-	return <Textarea label="Message" placeholder="Tell us what you think…" />;
+	return (
+		<div className="w-full max-w-sm px-6">
+			<Textarea label="Message" placeholder="Tell us what you think…" />
+		</div>
+	);
 }

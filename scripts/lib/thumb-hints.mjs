@@ -34,7 +34,11 @@ export const THUMB_HINTS = {
 	// Scroll-driven: a still capture of the hero or example stage shows only the
 	// first node's caption on an empty rail, so keep the fallback tile instead.
 	"story-thread": { skip: true },
-	"flickering-grid": { stage: 1 },
+	"flickering-grid": { stage: 2 },
+	"icon-button": { stage: 2 },
+	"password-input": { stage: 2, delay: 800 },
+	skeleton: { stage: 1 },
+	meteors: { delay: 1800 },
 	"bg-falling-stars": { stage: 1 },
 	"border-beam": { stage: 1 },
 	"glowing-effect": { stage: 1, hover: [0.4, 0.45] },

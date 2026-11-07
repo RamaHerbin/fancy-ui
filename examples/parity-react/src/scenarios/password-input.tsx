@@ -2,5 +2,9 @@
 import { PasswordInput } from "fancy-ui-react";
 
 export default function Scenario() {
-	return <PasswordInput label="Password" showStrength />;
+	return (
+		<div className="w-full max-w-sm px-6">
+			<PasswordInput label="Password" showStrength />
+		</div>
+	);
 }

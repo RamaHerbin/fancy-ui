@@ -378,6 +378,7 @@ export default {
 	"error.report": "报告失效链接",
 	"comp.previewFailed": "无法加载此预览。",
 	"demo.noPreview": "此组件暂无预览。",
+	"demo.replay": "重播",
 	"demo.notFound": "未找到该组件。",
 	"recipes.steps": "步骤",
 	"recipes.pitfalls": "常见陷阱",

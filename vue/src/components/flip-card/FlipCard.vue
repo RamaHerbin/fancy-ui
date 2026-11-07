@@ -236,7 +236,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 				<!-- Back -->
 				<div
-					class="ft-flip-card__face ft-flip-card__back bg-card text-card-foreground absolute size-full overflow-hidden rounded-2xl border p-4 [backface-visibility:hidden]"
+					class="ft-flip-card__face ft-flip-card__back bg-muted text-card-foreground border-foreground/25 absolute size-full overflow-hidden rounded-2xl border p-4 [backface-visibility:hidden]"
 					:aria-hidden="showingBack ? undefined : 'true'"
 					:inert="!showingBack || undefined"
 				>

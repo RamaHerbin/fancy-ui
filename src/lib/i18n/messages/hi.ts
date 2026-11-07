@@ -419,6 +419,7 @@ export default {
 	"error.report": "टूटे लिंक की रिपोर्ट करें",
 	"comp.previewFailed": "यह प्रीव्यू लोड नहीं हो सका।",
 	"demo.noPreview": "इस कंपोनेंट का अभी कोई प्रीव्यू उपलब्ध नहीं है।",
+	"demo.replay": "फिर से चलाएँ",
 	"demo.notFound": "कंपोनेंट नहीं मिला।",
 	"recipes.steps": "चरण",
 	"recipes.pitfalls": "आम गलतियाँ",

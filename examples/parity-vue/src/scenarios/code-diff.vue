@@ -2,7 +2,7 @@
 // Mirrors src/lib/components/docs/examples/code-diff/BasicUsage.svelte.
 import { CodeDiff } from "fancy-ui-vue";
 
-/** A two-hunk edit to one file: the shape an agent hands back after a fix. */
+/** A one-hunk edit to one file: the shape an agent hands back after a fix. */
 const PATCH = [
 	"diff --git a/src/lib/query.ts b/src/lib/query.ts",
 	"index 8f2a1c4..b31e097 100644",
@@ -18,11 +18,6 @@ const PATCH = [
 	" }",
 	" ",
 	" function normalise(row: Row) {",
-	"@@ -41,3 +42,3 @@ function normalise(row: Row) {",
-	"   const region = row.region ?? UNASSIGNED;",
-	"-  return { region, total: row.total };",
-	"+  return { region, total: Number(row.total) };",
-	" }",
 	"",
 ].join("\n");
 

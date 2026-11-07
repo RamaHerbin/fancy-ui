@@ -424,6 +424,7 @@ export default {
 	"error.report": "Nahlásit nefunkční odkaz",
 	"comp.previewFailed": "Tento náhled se nepodařilo načíst.",
 	"demo.noPreview": "Pro tuto komponentu zatím není k dispozici náhled.",
+	"demo.replay": "Přehrát znovu",
 	"demo.notFound": "Komponenta nenalezena.",
 	"recipes.steps": "Kroky",
 	"recipes.pitfalls": "Časté chyby",

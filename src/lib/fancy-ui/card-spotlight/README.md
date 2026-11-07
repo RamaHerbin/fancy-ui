@@ -9,7 +9,7 @@ Card with a mouse-following radial gradient spotlight overlay that appears on ho
 | `class`           | `string` | `''`        | Classes for the outer container      |
 | `slotClass`       | `string` | `''`        | Classes for the content wrapper      |
 | `gradientSize`    | `number` | `200`       | Radius of the spotlight gradient     |
-| `gradientColor`   | `string` | `'#262626'` | Color of the spotlight               |
+| `gradientColor`   | `string` | `'color-mix(in oklab, var(--foreground) 14%, transparent)'` | Color of the spotlight               |
 | `gradientOpacity` | `number` | `0.8`       | Opacity of the gradient overlay      |
 
 ## Usage

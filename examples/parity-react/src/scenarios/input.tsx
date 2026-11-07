@@ -3,5 +3,9 @@
 import { Input } from "fancy-ui-react";
 
 export default function Scenario() {
-	return <Input label="Email" placeholder="name@example.com" />;
+	return (
+		<div className="w-full max-w-sm px-6">
+			<Input label="Email" placeholder="name@example.com" />
+		</div>
+	);
 }

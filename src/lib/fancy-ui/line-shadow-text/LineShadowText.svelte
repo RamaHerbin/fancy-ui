@@ -12,7 +12,7 @@
 
 	let {
 		text,
-		shadowColor = "black",
+		shadowColor = "light-dark(black, white)",
 		as = "span",
 		class: className,
 	}: LineShadowTextProps = $props();

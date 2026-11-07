@@ -134,16 +134,27 @@ export function NumberTicker({
 		}
 	}, [animTarget, animate]);
 
-	const formattedValue = new Intl.NumberFormat("en-US", {
-		minimumFractionDigits: decimalPlaces,
-		maximumFractionDigits: decimalPlaces,
-	}).format(Number(displayValue.toFixed(decimalPlaces)));
+	const format = (n: number): string =>
+		new Intl.NumberFormat("en-US", {
+			minimumFractionDigits: decimalPlaces,
+			maximumFractionDigits: decimalPlaces,
+		}).format(Number(n.toFixed(decimalPlaces)));
+
+	const formattedValue = format(displayValue);
+
+	// The widest the number gets on its way from where it starts to where it ends.
+	// Drawn as an invisible line under the digits, so the box is already its final
+	// width on the first frame and nothing recentres while it counts.
+	const from = format(direction === "down" ? value : 0);
+	const to = format(direction === "down" ? 0 : value);
+	const widest = to.length > from.length ? to : from;
 
 	return (
 		<span
 			ref={spanRef}
+			data-final={widest}
 			className={cn(
-				"number-ticker inline-block text-black tabular-nums dark:text-white",
+				"number-ticker inline-block text-end text-black tabular-nums after:invisible after:block after:h-0 after:overflow-hidden after:content-[attr(data-final)] dark:text-white",
 				className
 			)}
 		>

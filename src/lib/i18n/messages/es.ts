@@ -432,6 +432,7 @@ export default {
 	"error.report": "Informar de un enlace roto",
 	"comp.previewFailed": "No se pudo cargar esta vista previa.",
 	"demo.noPreview": "Todavía no hay vista previa para este componente.",
+	"demo.replay": "Repetir",
 	"demo.notFound": "Componente no encontrado.",
 	"recipes.steps": "Pasos",
 	"recipes.pitfalls": "Errores comunes",

@@ -417,9 +417,11 @@ describe("createPixelScene", () => {
 
 	it("sizes the grid and backing store from the host", () => {
 		const { canvas, painter } = setup();
+		// The first picture is on the canvas before any animation frame runs.
+		expect(painter).toHaveBeenCalledTimes(1);
 		run(16);
 		expect(canvas.width).toBe(50);
-		expect(painter).toHaveBeenCalledTimes(1);
+		expect(painter).toHaveBeenCalledTimes(2);
 		const g = painter.mock.calls[0]![1];
 		expect([g.cols, g.rows]).toEqual([10, 6]);
 	});

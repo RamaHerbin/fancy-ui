@@ -173,6 +173,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomWords", title: "Custom Words" },
 		{ name: "FastInterval", title: "Fast Interval", description: "Shorter flip interval." },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"border-beam": [
 		{
@@ -299,6 +300,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColor", title: "Custom Color" },
 		{ name: "AnimationSpeed", title: "Animation Speed" },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"datamosh-transition": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -313,6 +315,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"A vector trace of a sunset photo that sets into dusk. With the picture source on, the tiles decode the scene being left.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"pixel-scene": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -380,6 +383,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 				"A toggle: click, tap, Enter or Space. The link on the back stays clickable, and bind:flipped drives it from outside.",
 		},
 		{ name: "MultipleCards", title: "Multiple Cards" },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	book: [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -473,6 +477,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Card Variant",
 			description: "Props-based BentoGridCard with icons, soft colour washes and a custom accent.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"animated-beam": [
 		{
@@ -486,6 +491,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"Three packets in flight with a long cool tail and strong glow, and a short warm tail run in reverse.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"animated-testimonials": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -535,6 +541,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"Retro ordered-dither rendering — the fluid is snapped to a chunky pixel grid and each color channel is quantized with a 4x4 Bayer threshold, so dot density encodes brightness. Forces the WebGL renderer (hdr is ignored).",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"fireworks-hdr": [
 		{
@@ -549,6 +556,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"Shells that break into a figure: the built-in heart and star, or any closed outline you pass as points. The burst is cut from the figure, so it draws itself in the sky and then droops.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"smooth-cursor": [
 		{
@@ -571,6 +579,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Landing Page Navbar",
 			description: "Landing page with a liquid glass pill navigation.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"frosted-glass": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -660,7 +669,10 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"tool-call": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"tool-timeline": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"terminal-block": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"code-diff": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"code-diff": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	sources: [{ name: "BasicUsage", title: "Basic Usage" }],
 	"inline-citation": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"web-search": [{ name: "BasicUsage", title: "Basic Usage" }],
@@ -683,21 +695,37 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
-	"approval-card": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"ai-data-table": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"approval-card": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
+	"recommendation-card": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
+	"artifact-card": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
+	"ai-data-table": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	composer: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "FullComposer", title: "Full Composer" },
 	],
-	"voice-input": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"voice-input": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"context-ring": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"scroll-anchor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"thread-list": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"chat-panel": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "FullConversation", title: "Full Conversation" },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	button: [
@@ -727,6 +755,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "Variants", title: "Variants" },
 		{ name: "Sizes", title: "Sizes" },
 		{ name: "Shapes", title: "Shapes" },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"button-group": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -747,6 +776,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				'orientation="vertical" stacks the items and rotates the divider onto the same axis.',
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	link: [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -811,6 +841,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"A fake 800 ms server and a switch that makes the next request fail: watch the optimistic flip, the rollback, and the retry.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"copy-button": [
 		{
@@ -870,6 +901,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Disabled",
 			description: "disabled reaches the control through context.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	input: [
 		{
@@ -953,6 +985,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With FormField",
 			description: "Wrapped in FormField — required and the error message driven by context.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	switch: [
 		{
@@ -988,6 +1021,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Fractional Steps",
 			description: "0.1 steps over a 0–1 range, without float drift.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	dialog: [
@@ -1034,6 +1068,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Custom Labels",
 			description: "A non-delete use case — signing out of every device.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	sheet: [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1186,6 +1221,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "onSearch fires 300ms after typing settles instead of on every keystroke.",
 		},
 		{ name: "WithFormField", title: "With FormField" },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"password-input": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1199,6 +1235,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "New Password",
 			description: 'autocomplete="new-password" plus showStrength, inside a FormField.',
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"file-upload": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1214,6 +1251,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "accept, maxSize and maxFiles all enforced in JS on both the picker and a drop.",
 		},
 		{ name: "WithFormField", title: "With FormField" },
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"date-picker": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1232,6 +1270,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With FormField",
 			description: "Wrapped in FormField — required and the error message driven by context.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"time-picker": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1245,6 +1284,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With Bounds",
 			description: "Restricted to business hours, 09:00 to 17:00.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	navbar: [
@@ -1295,6 +1335,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Classic",
 			description: "The plain ruler: no glow, accent lines only.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	sidebar: [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1507,6 +1548,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With Current Page",
 			description: "A panel where one link is marked as the current page.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	sound: [
 		{
@@ -1700,7 +1742,10 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "An auto-incrementing counter, only the changed digits roll.",
 		},
 	],
-	"sticky-scroll": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"sticky-scroll": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"dim-siblings": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{

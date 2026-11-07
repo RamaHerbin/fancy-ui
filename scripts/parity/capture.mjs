@@ -46,7 +46,9 @@
  *     instant.
  *
  * Per-slug tweaks live in scripts/parity/hints/<slug>.json:
- *   { "hover"?: [fx, fy], "sweep"?: true, "click"?: [fx, fy], "restMs"?: number, "skip"?: "reason", "moments"?: number[] }
+ *   { "hover"?: [fx, fy], "sweep"?: true, "click"?: [fx, fy], "restMs"?: number, "skip"?: "reason", "moments"?: number[], "viewport"?: [w, h] }
+ * A "viewport" the size of the stage puts viewport-anchored panels (a bottom
+ * drawer, a right sheet, a top command menu) inside the photographed box.
  * hover/sweep/click follow applyPointerHint (scripts/lib/stage-capture.mjs),
  * with its rest after a hover (350 ms, or "restMs": a short one makes a
  * 150 ms `fast` flip photographable) spent on the fake clock; moments of the
@@ -354,7 +356,7 @@ async function applyHint(page, stage, hint) {
 async function captureItem(browser, args, item) {
 	const { fw, slug, theme, pointer, moments, hint, state, spec } = item;
 	const context = await browser.newContext({
-		viewport: VIEWPORT,
+		viewport: hint?.viewport ? { width: hint.viewport[0], height: hint.viewport[1] } : VIEWPORT,
 		deviceScaleFactor: 1,
 		colorScheme: theme,
 		reducedMotion: args.reducedMotion,

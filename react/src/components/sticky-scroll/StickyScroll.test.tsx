@@ -13,6 +13,13 @@ function items(n: number): Item[] {
 	return Array.from({ length: n }, (_, i) => ({ id: `item-${i}`, label: `Item ${i}` }));
 }
 
+/** Two animation frames: the window in which a panel swap is still instant. */
+function twoFrames(): Promise<void> {
+	return new Promise((resolve) => {
+		requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+	});
+}
+
 /** The `number-ticker`/`in-view.test.ts` capturing-mock archetype: a real
  * IntersectionObserver never fires under jsdom, so a mock that records every
  * constructed instance (one per `<section>`, since the observer is applied
@@ -222,9 +229,7 @@ describe("StickyScroll", () => {
 		expect(root(container).dataset.panelSide).toBe("end");
 		cleanup();
 
-		const { container: start } = render(
-			<StickyScrollHarness items={items(2)} panelSide="start" />
-		);
+		const { container: start } = render(<StickyScrollHarness items={items(2)} panelSide="start" />);
 		expect(start.querySelector(".ft-stickyscroll")?.getAttribute("data-panel-side")).toBe("start");
 	});
 
@@ -284,6 +289,7 @@ describe("StickyScroll", () => {
 			<StickyScrollHarness items={items(3)} activeIndex={0} />
 		);
 		await act(async () => {});
+		await act(twoFrames);
 
 		rerender(<StickyScrollHarness items={items(3)} activeIndex={1} />);
 
@@ -302,6 +308,22 @@ describe("StickyScroll", () => {
 		});
 		expect(container.querySelector(".panel-content")?.textContent).toBe("panel 1:Item 1");
 		expect(animateSpy).toHaveBeenCalled();
+	});
+
+	it("the swap that lands in the first two frames after mount is instant, not a fade", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const { container, rerender } = render(
+			<StickyScrollHarness items={items(3)} activeIndex={0} />
+		);
+		await act(async () => {});
+
+		// What the observers do on load: report the row on the centre line.
+		rerender(<StickyScrollHarness items={items(3)} activeIndex={1} />);
+		await act(async () => {});
+
+		expect(container.querySelectorAll(".ft-stickyscroll-panel-frame")).toHaveLength(1);
+		expect(container.querySelector(".panel-content")?.textContent).toBe("panel 1:Item 1");
+		expect(animateSpy).not.toHaveBeenCalled();
 	});
 
 	it("crossfade={false} also takes the synchronous path, independent of reduced motion", async () => {
@@ -478,6 +500,7 @@ describe("StickyScroll", () => {
 
 		const { container, rerender } = render(<Tree index={0} armed={false} />);
 		await act(async () => {});
+		await act(twoFrames);
 		animateSpy.mockClear();
 
 		rerender(<Tree index={1} armed />);

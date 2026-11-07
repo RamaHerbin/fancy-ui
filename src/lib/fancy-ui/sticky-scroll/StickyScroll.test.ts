@@ -13,6 +13,13 @@ function items(n: number): Item[] {
 	return Array.from({ length: n }, (_, i) => ({ id: `item-${i}`, label: `Item ${i}` }));
 }
 
+/** Two animation frames: the window in which a panel swap is still instant. */
+function twoFrames(): Promise<void> {
+	return new Promise((resolve) => {
+		requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+	});
+}
+
 /** The `number-ticker`/`in-view.test.ts` capturing-mock archetype: a real
  * IntersectionObserver never fires under jsdom, so a mock that records every
  * constructed instance (one per `<section>`, since `use:inView` is applied
@@ -203,6 +210,7 @@ describe("StickyScroll", () => {
 			props: { items: items(3), activeIndex: 0 },
 		});
 		await tick();
+		await twoFrames();
 
 		const rerendered = rerender({ items: items(3), activeIndex: 1 });
 
@@ -222,6 +230,22 @@ describe("StickyScroll", () => {
 		});
 		expect(container.querySelector(".panel-content")?.textContent).toBe("panel 1:Item 1");
 		expect(animateSpy).toHaveBeenCalled();
+	});
+
+	it("the swap that lands in the first two frames after mount is instant, not a fade", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const { container, rerender } = render(StickyScrollHarness, {
+			props: { items: items(3), activeIndex: 0 },
+		});
+		await tick();
+
+		// What the observers do on load: report the row on the centre line.
+		await rerender({ items: items(3), activeIndex: 1 });
+		await tick();
+
+		expect(container.querySelectorAll(".ft-stickyscroll-panel-frame")).toHaveLength(1);
+		expect(container.querySelector(".panel-content")?.textContent).toBe("panel 1:Item 1");
+		expect(animateSpy).not.toHaveBeenCalled();
 	});
 
 	it("crossfade={false} also takes the synchronous path, independent of reduced motion", async () => {

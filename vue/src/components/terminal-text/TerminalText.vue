@@ -14,7 +14,7 @@ export interface TerminalTextProps {
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 
@@ -34,6 +34,8 @@ const {
 const GLITCH_GLYPHS = "アイウエオ@#$%&!?░▒▓█▄▀■□▪▫";
 
 const displayedLines = ref<string[]>([]);
+// The finished transcript, caret row included, drawn invisibly to hold the size.
+const ghost = computed(() => (lines ?? []).join("\n") + (cursor ? `\n${cursorChar}` : ""));
 const done = ref(false);
 
 // Live preference; its query starts from its own `onMounted`, registered before
@@ -268,15 +270,31 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div :class="cn('font-mono text-sm leading-relaxed', className)">
-		<div v-for="(line, i) in displayedLines" :key="i" class="min-h-[1.4em]">
-			<span>{{ line }}</span
-			><span v-if="cursor && i === displayedLines.length - 1 && !done" class="cursor-blink">{{
-				cursorChar
-			}}</span>
-		</div>
-		<div v-if="cursor && done" class="min-h-[1.4em]">
-			<span class="cursor-blink">{{ cursorChar }}</span>
+	<!--
+		The block is as big as the finished transcript from the first frame: the full
+		text (and the caret row) is laid out invisibly in the same grid cell as the
+		typed lines, so typing never grows the block or moves it inside a centred
+		parent.
+	-->
+	<div
+		:data-ghost="ghost"
+		:class="
+			cn(
+				'grid font-mono text-sm leading-relaxed after:invisible after:col-start-1 after:row-start-1 after:whitespace-pre-wrap after:content-[attr(data-ghost)]',
+				className
+			)
+		"
+	>
+		<div class="col-start-1 row-start-1">
+			<div v-for="(line, i) in displayedLines" :key="i" class="min-h-[1.4em]">
+				<span>{{ line }}</span
+				><span v-if="cursor && i === displayedLines.length - 1 && !done" class="cursor-blink">{{
+					cursorChar
+				}}</span>
+			</div>
+			<div v-if="cursor && done" class="min-h-[1.4em]">
+				<span class="cursor-blink">{{ cursorChar }}</span>
+			</div>
 		</div>
 	</div>
 </template>

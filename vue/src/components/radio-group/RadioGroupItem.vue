@@ -108,7 +108,9 @@ const labelClasses = computed(() =>
 const controlClasses = computed(() =>
 	cn(
 		"ft-radio-item-control",
-		group?.invalid && !isChecked.value ? "border-destructive" : "border-input"
+		group?.invalid && !isChecked.value
+			? "border-destructive"
+			: "border-[color:light-dark(var(--input),color-mix(in_oklab,var(--foreground)_50%,transparent))]"
 	)
 );
 </script>

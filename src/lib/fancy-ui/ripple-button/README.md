@@ -20,7 +20,7 @@ A button that answers every click with a ripple of light from the exact click po
 
 | Prop          | Type      | Default     | Description                                                                                                         |
 | ------------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| `rippleColor` | `string`  | `"#60a5fa"` | Colour of the ripple: its glow, its rings and the border tint                                                       |
+| `rippleColor` | `string`  | `"color-mix(in oklab, currentColor 70%, transparent)"` | Colour of the ripple: its glow, its rings and the border tint                                                       |
 | `duration`    | `number`  | `900`       | Animation duration in milliseconds                                                                                  |
 | `class`       | `string`  | —           | Additional CSS classes                                                                                              |
 | `children`    | `Snippet` | —           | Button content                                                                                                      |

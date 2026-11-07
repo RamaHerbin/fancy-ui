@@ -29,7 +29,7 @@ const {
 	sentence = "Fancy Focus",
 	manualMode = false,
 	blurAmount = 5,
-	borderColor = "green",
+	borderColor = "var(--ft-accent, light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75)))",
 	animationDuration = 0.5,
 	pauseBetweenAnimations = 1,
 	class: className = "",
@@ -42,6 +42,11 @@ const containerRef = useTemplateRef<HTMLDivElement>("containerRef");
 const wordElements = ref<(HTMLSpanElement | null)[]>([]);
 const currentIndex = ref(0);
 const focusRect = ref({ x: 0, y: 0, width: 0, height: 0 });
+// The frame is placed on its first word without a transition: the zero-size box
+// it was rendered with would otherwise be the start of the move, and the frame
+// would fly in from the container's corner. Transitions switch on one frame later.
+const settled = ref(false);
+let settleFrame = 0;
 
 function setWordRef(el: Element | null, index: number) {
 	wordElements.value[index] = el as HTMLSpanElement | null;
@@ -102,6 +107,9 @@ function startCycle() {
 
 onMounted(() => {
 	updateFocusRect();
+	settleFrame = requestAnimationFrame(() => {
+		settled.value = true;
+	});
 	if (!manualMode) startCycle();
 });
 
@@ -120,7 +128,10 @@ watch(
 	}
 );
 
-onBeforeUnmount(stopCycle);
+onBeforeUnmount(() => {
+	stopCycle();
+	cancelAnimationFrame(settleFrame);
+});
 </script>
 
 <template>
@@ -149,6 +160,7 @@ onBeforeUnmount(stopCycle);
 				width: `${focusRect.width}px`,
 				height: `${focusRect.height}px`,
 				opacity: currentIndex >= 0 ? 1 : 0,
+				transition: settled ? undefined : 'none',
 				'--focus-duration': `${animationDuration}s`,
 				'--border-color': borderColor,
 			}"

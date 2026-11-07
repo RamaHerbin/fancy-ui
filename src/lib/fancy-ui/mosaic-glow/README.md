@@ -32,7 +32,7 @@ Per-tile state lives in typed arrays (`mosaic-glow-core.ts`):
 - `ambient` — the faint resting brightness, cubic-skewed so most tiles sit near black.
 - `heat` — the current lit level driven by the halo.
 
-Each frame: `target = falloff(distance / radius) · weight`, then `heat` moves toward `target` with a fast attack (τ ≈ 40 ms) and a slow release (τ = 0.05 + 0.7·trail s). The exponential approach is time-based, so the trail reads the same at 30 or 120 fps. The halo position itself lerps toward the pointer (τ = 0.8·smoothing s) — that lag plus the slow release is what makes the comet.
+Each frame: `target = falloff(distance / radius) · weight`, then `heat` moves toward `target` with a fast attack (τ ≈ 40 ms) and a slow release (τ = 0.05 + 0.7·trail s). The exponential approach is time-based, so the trail is designed to read the same at any frame rate (a design property, not a published measurement). The halo position itself lerps toward the pointer (τ = 0.8·smoothing s) — that lag plus the slow release is what makes the comet.
 
 Colours come from a 64-entry lookup table built once per `color`/`background`: a hair above the surface at 0, the halo colour at 55 %, a near-white tint at 100 %. `intensity` scales at sampling time, so the slider never rebuilds the table.
 

@@ -5,5 +5,7 @@ import { Input } from "fancy-ui-vue";
 </script>
 
 <template>
-	<Input label="Email" placeholder="name@example.com" />
+	<div class="w-full max-w-sm px-6">
+		<Input label="Email" placeholder="name@example.com" />
+	</div>
 </template>

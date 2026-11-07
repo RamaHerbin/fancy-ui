@@ -1099,6 +1099,12 @@ export function createPixelScene(
 
 	resolveInk(0, true);
 	layout();
+	// The first picture is drawn at once, not on the next animation frame: until
+	// then the canvas is empty and the copy above it would stand on a blank card.
+	if (awake()) {
+		render(typeof performance !== "undefined" ? performance.now() : 0);
+		dirty = false;
+	}
 	schedule();
 
 	return {
