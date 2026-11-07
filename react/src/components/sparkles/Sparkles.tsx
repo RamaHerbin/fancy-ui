@@ -69,6 +69,8 @@ function mulberry32(seed: number): () => number {
 }
 
 const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
+/** Seconds between two re-resolutions of an inherited `currentColor` while the loop runs. */
+const COLOR_REFRESH_S = 0.5;
 
 /**
  * Resolve `currentColor` to a `#rrggbb` string from `el`'s computed text colour
@@ -148,6 +150,7 @@ export function Sparkles({
 		// not removed, while the still frame is shown.
 		let sub: TickerSubscription | null = null;
 		let fill: string | null = null;
+		let sinceResolve = 0;
 		// Kept alongside the backing store because the context transform below
 		// puts the draw calls in CSS-pixel space while `canvas.width` counts
 		// device pixels; the draw site divides by it to stay in the same space.
@@ -223,8 +226,16 @@ export function Sparkles({
 
 		function onFrame(dt: number) {
 			// dt is 0 on the first frame and on every resume: the page may have
-			// changed theme while the loop was parked.
-			if (dt === 0) fill = null;
+			// changed theme while the loop was parked. Between those, an inherited
+			// colour can still change under the canvas (an ancestor's class or
+			// style, a media query, a hover state) with no observer to tell us, so
+			// the cache is also dropped every COLOR_REFRESH_S — one computed-style
+			// read per half second instead of one per frame.
+			sinceResolve += dt;
+			if (dt === 0 || sinceResolve >= COLOR_REFRESH_S) {
+				fill = null;
+				sinceResolve = 0;
+			}
 			paint(dt);
 			// One still frame under reduced motion: paint, then park.
 			if (reducedMotion) sub?.setPaused(true);

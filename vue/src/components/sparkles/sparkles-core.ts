@@ -59,6 +59,8 @@ interface Particle {
 }
 
 const DEFAULT_MIN_SIZE = 1;
+/** Seconds between two re-resolutions of an inherited `currentColor` while the loop runs. */
+const COLOR_REFRESH_S = 0.5;
 const DEFAULT_MAX_SIZE = 3;
 const DEFAULT_SPEED = 4;
 const DEFAULT_PARTICLE_DENSITY = 120;
@@ -125,6 +127,7 @@ export function createSparkles(
 	// null means "resolve on the next paint". Invalidated by a colour change, by
 	// the theme observer below and by every resume (a frame with dt 0).
 	let fill: string | null = null;
+	let sinceResolve = 0;
 	let reducedMotion = options.reducedMotion ?? false;
 	let destroyed = false;
 
@@ -198,8 +201,16 @@ export function createSparkles(
 	function onFrame(dt: number): void {
 		if (destroyed) return;
 		// dt is 0 on the first frame and on every resume: the page may have
-		// changed theme while the loop was parked.
-		if (dt === 0) fill = null;
+		// changed theme while the loop was parked. Between those, an inherited
+		// colour can still change under the canvas (an ancestor's class or
+		// style, a media query, a hover state) with no observer to tell us, so
+		// the cache is also dropped every COLOR_REFRESH_S — one computed-style
+		// read per half second instead of one per frame.
+		sinceResolve += dt;
+		if (dt === 0 || sinceResolve >= COLOR_REFRESH_S) {
+			fill = null;
+			sinceResolve = 0;
+		}
 		paint(dt);
 		// One still frame under reduced motion: paint, then park until the
 		// preference flips back (setOptions wakes the loop).

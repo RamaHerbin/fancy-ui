@@ -180,6 +180,41 @@ describe("createSparkles", () => {
 		expect(fillStyles[0]).toMatch(/^#fafafa/);
 	});
 
+	it("re-resolves an inherited colour that changes while the loop runs, within half a second", () => {
+		const fakeCtx = makeFakeCtx();
+		const { canvas, container } = makeElements(fakeCtx);
+		stubRect(container, 200, 100);
+		canvas.style.color = "rgb(18, 52, 86)";
+		const fillStyles: string[] = [];
+		Object.defineProperty(fakeCtx, "fillStyle", {
+			set(v: string) {
+				fillStyles.push(v);
+			},
+			get() {
+				return fillStyles[fillStyles.length - 1] ?? "";
+			},
+		});
+		createSparkles(
+			{ canvas, container, subscribe },
+			{ particleColor: "currentColor", particleDensity: 1 },
+			() => 0.5
+		);
+		frames[0]?.(0);
+		frames[frames.length - 1]?.(16);
+		// An ancestor's colour changes with no theme flip and no park.
+		canvas.style.color = "rgb(250, 250, 250)";
+		fillStyles.length = 0;
+		frames[frames.length - 1]?.(32);
+		expect(fillStyles[0]).toMatch(/^#123456/);
+		// Half a second of 16 ms frames later (dt is clamped per frame, so one
+		// long gap does not count) the cache has been dropped and the new colour shows.
+		for (let t = 48; t <= 600; t += 16) {
+			fillStyles.length = 0;
+			frames[frames.length - 1]?.(t);
+		}
+		expect(fillStyles[0]).toMatch(/^#fafafa/);
+	});
+
 	it("moves by velocity * dt * 60 per frame: twice the step for twice the dt", () => {
 		const step = (dtMs: number) => {
 			frames.length = 0;
