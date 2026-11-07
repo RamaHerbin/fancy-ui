@@ -66,10 +66,7 @@ function handleRetry() {
 	<div
 		ref="el"
 		:class="
-			cn(
-				'ft-error flex w-full items-start gap-2.5 rounded-md border px-3 py-2 text-sm',
-				className
-			)
+			cn('ft-error flex w-full items-start gap-2.5 rounded-md border px-3 py-2 text-sm', className)
 		"
 		role="alert"
 		:aria-busy="retrying ? 'true' : undefined"
@@ -135,10 +132,7 @@ function handleRetry() {
 		--ft-error-bg,
 		color-mix(
 			in oklab,
-			var(
-					--ft-error-fg,
-					var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
-				)
+			var(--ft-error-fg, var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25))))
 				8%,
 			transparent
 		)
@@ -147,10 +141,7 @@ function handleRetry() {
 		--ft-error-border,
 		color-mix(
 			in oklab,
-			var(
-					--ft-error-fg,
-					var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
-				)
+			var(--ft-error-fg, var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25))))
 				20%,
 			transparent
 		)
@@ -181,7 +172,8 @@ function handleRetry() {
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-error {
-		animation: ft-error-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+		animation: ft-error-in var(--ft-duration-exit, 200ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 
 	.ft-error-dot {

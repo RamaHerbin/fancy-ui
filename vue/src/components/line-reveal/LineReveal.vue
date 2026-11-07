@@ -193,7 +193,7 @@ onMounted(() => {
 	opacity: 0;
 	transform: translateY(105%);
 	transition-property: transform, opacity;
-	transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+	transition-timing-function: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
 .line.revealed {
@@ -203,7 +203,7 @@ onMounted(() => {
 
 @media (prefers-reduced-motion: reduce) {
 	.line {
-		transition-duration: 0.1s !important;
+		transition-duration: 0.1s !important; /* off-token: reduced-motion collapse to a near-instant fade */
 		transition-delay: 0s !important;
 	}
 }

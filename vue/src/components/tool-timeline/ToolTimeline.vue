@@ -80,7 +80,10 @@ function selectEntry(entry: ToolTimelineItemData, index: number) {
 	-->
 	<div
 		ref="rootEl"
-		:class="[cn('ft-tooltimeline w-full text-sm', className), { 'ft-tooltimeline-compact': compact }]"
+		:class="[
+			cn('ft-tooltimeline w-full text-sm', className),
+			{ 'ft-tooltimeline-compact': compact },
+		]"
 	>
 		<ol class="ft-tooltimeline-list" :aria-label="label">
 			<!--
@@ -305,7 +308,7 @@ function selectEntry(entry: ToolTimelineItemData, index: number) {
 @media (prefers-reduced-motion: no-preference) {
 	.ft-tooltimeline-row {
 		animation: ft-tooltimeline-enter var(--ft-tooltimeline-enter-duration)
-			cubic-bezier(0.16, 1, 0.3, 1) both;
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
 	}
 }
 

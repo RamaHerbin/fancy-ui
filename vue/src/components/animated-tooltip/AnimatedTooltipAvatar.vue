@@ -109,6 +109,7 @@ function sink(
 	const still = props.reduced;
 	return {
 		delay: 0,
+		// off-token: short sink exit, a beat longer than the fast rung
 		duration: still ? 120 : 160,
 		easing: (t: number) => t * t,
 		css: (t: number) =>
@@ -263,7 +264,7 @@ const cardRef = composeRefs<HTMLDivElement>(presence.register(sink));
 		linear-gradient(#000 0 0) content-box exclude,
 		linear-gradient(#000 0 0);
 	opacity: 0.35;
-	transition: opacity 300ms var(--_at-ease-inout);
+	transition: opacity var(--ft-duration-base, 300ms) var(--_at-ease-inout);
 }
 
 .at-glow {
@@ -271,7 +272,7 @@ const cardRef = composeRefs<HTMLDivElement>(presence.register(sink));
 	z-index: 0;
 	filter: blur(7px);
 	opacity: 0;
-	transition: opacity 300ms var(--_at-ease-inout);
+	transition: opacity var(--ft-duration-base, 300ms) var(--_at-ease-inout);
 }
 
 .at-active .at-ring {
@@ -306,7 +307,7 @@ const cardRef = composeRefs<HTMLDivElement>(presence.register(sink));
 	-webkit-backdrop-filter: blur(12px) saturate(1.4);
 	backdrop-filter: blur(12px) saturate(1.4);
 	transform-origin: 50% 100%;
-	animation: at-fade 160ms var(--_at-ease-out) both;
+	animation: at-fade var(--ft-duration-fast, 150ms) var(--_at-ease-out) both;
 }
 
 .at-pointer {
@@ -366,18 +367,18 @@ const cardRef = composeRefs<HTMLDivElement>(presence.register(sink));
 
 @media (prefers-reduced-motion: no-preference) {
 	.at-item {
-		transition: transform 380ms var(--_at-ease-out);
+		transition: transform 380ms var(--_at-ease-out); /* off-token: spring-like settle, one gesture */
 	}
 
 	.at-avatar {
-		transition: transform 420ms var(--_at-ease-out);
+		transition: transform 420ms var(--_at-ease-out); /* off-token: spring-like settle, one gesture */
 	}
 
 	.at-ring,
 	.at-glow {
 		transition:
-			opacity 300ms var(--_at-ease-inout),
-			--at-angle 900ms var(--_at-ease-out);
+			opacity var(--ft-duration-base, 300ms) var(--_at-ease-inout),
+			--at-angle 900ms var(--_at-ease-out); /* off-token: spring-like settle, one gesture */
 	}
 
 	.at-active .at-ring,
@@ -386,11 +387,11 @@ const cardRef = composeRefs<HTMLDivElement>(presence.register(sink));
 	}
 
 	.at-tip {
-		transition: transform 240ms var(--_at-ease-out);
+		transition: transform var(--ft-duration-exit, 200ms) var(--_at-ease-out);
 	}
 
 	.at-card {
-		animation: at-rise 260ms var(--_at-ease-rise) both;
+		animation: at-rise var(--ft-duration-base, 300ms) var(--_at-ease-rise) both;
 	}
 
 	.at-glint {
@@ -412,7 +413,7 @@ const cardRef = composeRefs<HTMLDivElement>(presence.register(sink));
 		/* Soft halo so a 1px line still reads as light. */
 		filter: drop-shadow(0 0 2px var(--_at-a)) drop-shadow(0 0 4px var(--_at-b));
 		transform: translateX(-110%);
-		animation: at-sweep 760ms var(--_at-ease-inout) 90ms both;
+		animation: at-sweep 760ms var(--_at-ease-inout) 90ms both; /* off-token: spring-like settle, one gesture */
 	}
 }
 

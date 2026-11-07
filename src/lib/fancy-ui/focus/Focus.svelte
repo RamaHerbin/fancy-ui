@@ -119,7 +119,7 @@
 		font-size: 3rem;
 		font-weight: 900;
 		cursor: pointer;
-		transition: color 0.3s ease;
+		transition: color var(--ft-duration-base, 300ms) ease;
 	}
 
 	.focus-word.active {
@@ -130,7 +130,7 @@
 		.focus-word {
 			transition:
 				filter var(--focus-duration, 0.3s) ease,
-				color 0.3s ease;
+				color var(--ft-duration-base, 300ms) ease;
 		}
 
 		.focus-frame {

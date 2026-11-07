@@ -17,6 +17,7 @@
 @media (prefers-reduced-motion: no-preference) {
 	.container-text-flip .text-flip-letter {
 		animation: text-flip-in ease-in-out forwards;
+		animation-delay: var(--ft-child-delay, 0ms);
 		opacity: 0;
 		filter: blur(10px);
 	}

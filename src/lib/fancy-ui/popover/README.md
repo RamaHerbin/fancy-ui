@@ -132,8 +132,8 @@ out of the trigger rather than out of its own centre. The resolved placement is
 exposed as `data-side` / `data-align` for consumers that want to key their own
 styling off it.
 
-It leaves the same way in reverse: 150 ms again, on the departure curve
-(`JS_EASINGS.in`), collapsing to a `0.96` floor — half the entrance's delta,
+It leaves the same way in reverse: 150 ms again, on the same decelerating curve
+(`JS_EASINGS.out`), collapsing to a `0.96` floor — half the entrance's delta,
 because leaving is a smaller gesture than arriving and a full-depth collapse
 reads as the panel being sucked away rather than simply closing. Both
 directions come from a single bidirectional `transition:`, so a popover

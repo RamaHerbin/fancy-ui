@@ -98,7 +98,7 @@
 	/** The card rises through the middle of the flip and settles; its shadow spreads, then gathers. */
 	function lift() {
 		if (reduced.current) return;
-		const opts = { duration, easing: "cubic-bezier(0.33, 1, 0.68, 1)" };
+		const opts = { duration, easing: "cubic-bezier(0.33, 1, 0.68, 1)" }; // off-token: web animations easing cannot read a custom property
 		liftEl?.animate?.(
 			[
 				{ transform: "translateZ(0) scale(1)" },
@@ -356,7 +356,7 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-flip-card {
 			/* a slight overshoot, so the card lands rather than stops */
-			transition: --fc-angle var(--fc-duration) cubic-bezier(0.34, 1.25, 0.64, 1);
+			transition: --fc-angle var(--fc-duration) cubic-bezier(0.34, 1.25, 0.64, 1); /* off-token: slight overshoot so the card lands rather than stops */
 		}
 	}
 
@@ -369,7 +369,7 @@
 		}
 
 		.ft-flip-card__face {
-			transition: opacity 0.2s ease;
+			transition: opacity var(--ft-duration-exit, 200ms) ease;
 		}
 
 		.ft-flip-card__front,

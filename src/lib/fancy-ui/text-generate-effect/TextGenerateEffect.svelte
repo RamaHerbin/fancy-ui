@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
+	import { staggerDelay } from "../_internals/motion/stagger.js";
 
 	let {
 		words,
@@ -29,11 +30,15 @@
 		const spans = scopeRef.querySelectorAll<HTMLSpanElement>("span");
 
 		const timeout = setTimeout(() => {
+			// off-token: sequence. Word-by-word generation, uncapped; the step is a prop.
 			spans.forEach((span, index) => {
-				const wordTimeout = setTimeout(() => {
-					span.style.opacity = "1";
-					span.style.filter = filter ? "blur(0px)" : "none";
-				}, index * stagger);
+				const wordTimeout = setTimeout(
+					() => {
+						span.style.opacity = "1";
+						span.style.filter = filter ? "blur(0px)" : "none";
+					},
+					staggerDelay(index, spans.length, stagger)
+				);
 
 				// Store timeout ID for cleanup
 				(span as HTMLSpanElement & { _tid?: ReturnType<typeof setTimeout> })._tid = wordTimeout;

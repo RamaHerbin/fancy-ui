@@ -19,6 +19,8 @@ export interface ContainerTextFlipProps {
 import { computed, ref, onMounted, useAttrs, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
+import { STAGGERS } from "../../internals/motion/tokens.js";
 
 defineOptions({ name: "ContainerTextFlip", inheritAttrs: false });
 
@@ -31,6 +33,8 @@ const {
 } = defineProps<ContainerTextFlipProps>();
 
 const attrs = useAttrs();
+// Glyph-scale items: the shortest cap on the ramp.
+const glyphCap = staggerCap(0);
 
 const currentWordIndex = ref(0);
 const currentWord = computed(() => words[currentWordIndex.value] ?? "");
@@ -78,8 +82,8 @@ onMounted(() => {
 					:key="`${currentWord}-${index}`"
 					class="text-flip-letter inline-block"
 					:style="{
-						animationDelay: `${index * 0.02}s`,
 						animationDuration: `${animationDuration}ms`,
+						'--ft-child-delay': `${staggerDelay(index, letters.length, STAGGERS.charBlur, 'first', glyphCap)}ms`,
 					}"
 					>{{ letter === " " ? " " : letter }}</span
 				>
@@ -93,6 +97,7 @@ onMounted(() => {
 @media (prefers-reduced-motion: no-preference) {
 	.text-flip-letter {
 		animation: text-flip-in ease-in-out forwards;
+		animation-delay: var(--ft-child-delay, 0ms);
 		opacity: 0;
 		filter: blur(10px);
 	}

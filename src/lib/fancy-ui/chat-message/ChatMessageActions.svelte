@@ -67,7 +67,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-message-actions {
-			transition: opacity 150ms ease;
+			transition: opacity var(--ft-duration-fast, 150ms) ease;
 		}
 	}
 </style>

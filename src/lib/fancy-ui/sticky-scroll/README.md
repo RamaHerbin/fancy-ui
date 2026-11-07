@@ -69,7 +69,7 @@ Once the layout has stacked, the panel overlays the top of the scrolling items r
 
 - **Reduced motion**: the panel's crossfade collapses to Svelte's own synchronous `duration: 0` fast path — the new panel content simply replaces the old one, no animation runs.
 - **Touch and coarse pointers**: nothing pointer-specific. Activation follows scroll position (via `IntersectionObserver`) and focus, both of which work identically by touch.
-- **Timing**: panel crossfade is `300ms`, arriving on the family's arrival curve and leaving on its departure curve (the JS twins of `--ft-ease-out`/`--ft-ease-in`) — the same direction-aware `preset("fade")` every other component in the set uses. It is sampled in JS, not CSS, so it is not overridable via the `--ft-ease-*` custom properties.
+- **Timing**: panel crossfade is `300ms`, arriving on the family's arrival curve and leaving on the same curve (the JS twin of `--ft-ease-out`; exits decelerate too) — the same direction-aware `preset("fade")` every other component in the set uses. It is sampled in JS, not CSS, so it is not overridable via the `--ft-ease-*` custom properties.
 
 ## Accessibility
 

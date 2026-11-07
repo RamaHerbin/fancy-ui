@@ -199,10 +199,27 @@ const COLOUR_PROP =
 	/^(color|background-color|border-color|outline-color|text-decoration-color|fill|stroke|--tw-[\w-]+)$/;
 const gated = (r: Rule) => r.media.some((m) => NO_PREF.test(m));
 
+/** Split a comma list at its top level only: a `var(--ft-duration-base, 300ms)`
+ * fallback carries a comma of its own and must stay one item. */
+function splitTop(value: string): string[] {
+	const out: string[] = [];
+	let depth = 0;
+	let buf = "";
+	for (const ch of value) {
+		if (ch === "(") depth++;
+		if (ch === ")") depth--;
+		if (ch === "," && depth === 0) {
+			out.push(buf);
+			buf = "";
+		} else buf += ch;
+	}
+	out.push(buf);
+	return out;
+}
+
 /** Is a `transition-property` value colour-only (colour is not motion)? */
 function colourOnly(value: string): boolean {
-	return value
-		.split(",")
+	return splitTop(value)
 		.map((p) => p.trim())
 		.every((p) => COLOUR_PROP.test(p));
 }
@@ -247,8 +264,7 @@ function reduceNeutralised(rules: Rule[]): Set<string> {
 			r.decls.some(
 				([p, v]) =>
 					(p === "animation" && /^none\b/.test(v)) ||
-					(p === "animation-name" &&
-						v.split(",").every((n) => calmKeyframe(n.trim(), keyframes))) ||
+					(p === "animation-name" && splitTop(v).every((n) => calmKeyframe(n.trim(), keyframes))) ||
 					(p === "display" && v === "none")
 			)
 		)
@@ -288,7 +304,7 @@ function ungatedMotionDecls(rules: Rule[]): string[] {
 			if (prop === "transition-property" && !colourOnly(value))
 				out.push(`${r.selector} { ${prop}: ${value} }`);
 			if (prop === "transition") {
-				const first = value.split(",").map((part) => part.trim().split(/\s+/)[0]);
+				const first = splitTop(value).map((part) => part.trim().split(/\s+/)[0]);
 				if (first.some((p) => p && p !== "none" && !COLOUR_PROP.test(p)))
 					out.push(`${r.selector} { transition: ${value} }`);
 			}
@@ -534,6 +550,10 @@ describe("reduced motion snap: component CSS only transitions under no-preferenc
 		const src = readFileSync(resolve(ROOT, "src/lib/fancy-ui/focus/Focus.svelte"), "utf8");
 		const css = styleText("Focus.svelte", src);
 		expect(ungatedMotionDecls(flattenRules(parseCss(css)))).toEqual([]);
+		// A tokenised colour transition: the fallback's comma must not split the list.
+		const tokenised =
+			".x { transition: color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)), background-color var(--ft-duration-fast, 150ms); }";
+		expect(ungatedMotionDecls(flattenRules(parseCss(tokenised)))).toEqual([]);
 		const unwrapped = css.replace(
 			/@media \(prefers-reduced-motion: no-preference\)\s*\{/,
 			"@media screen {"

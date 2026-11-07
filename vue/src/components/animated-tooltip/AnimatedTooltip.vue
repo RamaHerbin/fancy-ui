@@ -155,9 +155,10 @@ function handleFocusOut(): void {
 	--_at-b: var(--at-accent-2, oklch(0.7 0.1 220));
 	--_at-core: color-mix(in oklab, var(--_at-a) 45%, white);
 	--_at-sep: var(--at-separator, var(--background, #ffffff));
-	--_at-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--_at-ease-out: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+	/* off-token: softened overshoot, the tooltip's pop */
 	--_at-ease-rise: cubic-bezier(0.34, 1.32, 0.64, 1);
-	--_at-ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+	--_at-ease-inout: var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	--_at-card-bg: rgba(255, 255, 255, 0.85);
 	--_at-card-line: rgba(0, 0, 0, 0.08);
 	--_at-card-hi: rgba(255, 255, 255, 0.9);

@@ -113,11 +113,13 @@
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-toolcall-body {
-		transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+		transition: grid-template-rows var(--ft-duration-base, 300ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 
 	.ft-toolcall-chevron {
-		transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+		transition: transform var(--ft-duration-exit, 200ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 
 	.ft-toolcall-dot.ft-status-running::after {
@@ -126,7 +128,7 @@
 		inset: 0;
 		border-radius: inherit;
 		background: inherit;
-		animation: ft-toolcall-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+		animation: ft-toolcall-ping 1.6s var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
 	}
 }
 

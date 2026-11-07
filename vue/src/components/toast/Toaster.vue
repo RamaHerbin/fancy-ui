@@ -232,7 +232,7 @@ function onToastLeave(element: Element, done: () => void) {
 		{
 			duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
 			distance: 4,
-			easing: JS_EASINGS.in,
+			easing: JS_EASINGS.out,
 		},
 		{ direction: "out" }
 	);

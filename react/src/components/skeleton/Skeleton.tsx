@@ -11,8 +11,10 @@ import "./skeleton.css";
 /**
  * Props for Skeleton.
  */
-export interface SkeletonProps
-	extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "className"> {
+export interface SkeletonProps extends Omit<
+	HTMLAttributes<HTMLDivElement>,
+	"children" | "className"
+> {
 	/** Bone shape: a block, one or more text lines, or a circular avatar */
 	variant?: "rect" | "text" | "circle";
 	/** Number of text lines to render; only read when `variant="text"`. The
@@ -38,7 +40,7 @@ export interface SkeletonProps
 	className?: string;
 }
 
-// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.in` — a departure
+// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.out` — a departure
 // curve for a departing layer (params below).
 const bonesFade = preset("fade");
 
@@ -127,7 +129,7 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(function Skele
 			? { duration: 0 }
 			: {
 					duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
-					easing: JS_EASINGS.in,
+					easing: JS_EASINGS.out,
 				}
 	);
 

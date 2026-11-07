@@ -15,6 +15,7 @@
 	}
 
 	/** Shared transition duration — must stay in sync with the CSS transition below */
+	// off-token: platform-native card curve pacing
 	export const TRANSITION_MS = 400;
 </script>
 
@@ -154,7 +155,7 @@
 	<img
 		src={card.src}
 		alt={card.title}
-		class="absolute inset-0 h-full w-full object-cover motion-safe:duration-500 hover:scale-105 motion-safe:transition-transform"
+		class="absolute inset-0 h-full w-full object-cover hover:scale-105 motion-safe:transition-transform motion-safe:duration-500"
 		draggable="false"
 	/>
 	<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
@@ -193,7 +194,7 @@
 			border-radius: {fullyExpanded ? '0px' : '1.5rem'};
 			transition: {reducedMotion
 			? 'none'
-			: `top ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), left ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), width ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), height ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), border-radius ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1)`};
+			: /* off-token: platform-native card curve */ `top ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), left ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), width ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), height ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), border-radius ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1)`};
 		"
 		onkeydown={handleOverlayKeydown}
 	>

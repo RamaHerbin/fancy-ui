@@ -168,7 +168,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-source-linked {
-			transition: background-color 150ms ease;
+			transition: background-color var(--ft-duration-fast, 150ms) ease;
 		}
 	}
 </style>

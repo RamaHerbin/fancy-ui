@@ -117,7 +117,7 @@
 		isolation: isolate;
 		background: color-mix(in srgb, var(--gb-bg-color), #fff 8%);
 		animation: gb-spin var(--gb-duration) linear infinite;
-		transition: transform 0.2s ease;
+		transition: transform var(--ft-duration-exit, 200ms) ease;
 	}
 
 	.gradient-button:active {
@@ -174,7 +174,7 @@
 		filter: blur(calc(var(--gb-blur) * 3));
 		mix-blend-mode: screen;
 		opacity: 0.45;
-		transition: opacity 0.3s ease;
+		transition: opacity var(--ft-duration-base, 300ms) ease;
 	}
 
 	.gradient-glow > span {

@@ -585,6 +585,7 @@ export class ImageTrailVariant4 extends BaseVariant {
 			.to(
 				img.DOM.el,
 				{
+					// off-token: trail lifetime, physics not UI
 					duration: 1.5,
 					ease: "power4",
 					x: `+=${dx * 110}`,
@@ -668,6 +669,7 @@ export class ImageTrailVariant5 extends BaseVariant {
 			.to(
 				img.DOM.el,
 				{
+					// off-token: trail lifetime, physics not UI
 					duration: 1.5,
 					ease: "power4",
 					x: `+=${dx * 120}`,
@@ -1057,6 +1059,7 @@ export class ImageTrailVariantFall extends BaseVariant {
 				y: this.mousePos.y - h / 2,
 			})
 			.to(img.DOM.el, { scale: 1, duration: 0.8, ease: "elastic.out(1, 0.3)" }, 0)
+			// off-token: trail lifetime, physics not UI
 			.to(img.DOM.el, { rotation: randomBetween(-360, 360), duration: 1.1, ease: "power1.out" }, 0)
 			// all the way past the bottom edge, gathering speed
 			.to(img.DOM.el, { y: floor * 1.2 + h, duration: 1, ease: "back.in(0.4)" }, 0)

@@ -104,7 +104,7 @@ function ToastSlot({ item, present, appear, onExited }: ToastSlotProps) {
 			: {
 					duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
 					distance: 4,
-					easing: JS_EASINGS.in,
+					easing: JS_EASINGS.out,
 				}
 	);
 

@@ -18,8 +18,8 @@
  */
 
 import type { TransitionConfig } from "svelte/transition";
-import { DURATIONS, JS_EASINGS, STAGGER_CAPS } from "../_internals/motion/tokens.js";
-import { staggerDelay, type StaggerFrom } from "../_internals/motion/stagger.js";
+import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
+import { staggerCap, staggerDelay, type StaggerFrom } from "../_internals/motion/stagger.js";
 
 export interface RollTransitionParams {
 	/**
@@ -53,7 +53,7 @@ export interface RollTransitionParams {
 	 */
 	count: number;
 	/** The `stagger` prop's per-step ms — already collapsed to `0` under
-	 * reduced motion by the component. This file applies `STAGGER_CAPS.text`
+	 * reduced motion by the component. This file applies `staggerCap(0)` (200 ms)
 	 * compression on top, via the shared `staggerDelay` helper (compression,
 	 * never per-cell clipping — see that file). */
 	step: number;
@@ -63,7 +63,7 @@ export interface RollTransitionParams {
 }
 
 function delayFor(params: RollTransitionParams): number {
-	return staggerDelay(params.index, params.count, params.step, params.from, STAGGER_CAPS.text);
+	return staggerDelay(params.index, params.count, params.step, params.from, staggerCap(0));
 }
 
 /**
@@ -107,6 +107,8 @@ export function rollOut(_node: Element, params: RollTransitionParams): Transitio
 	return {
 		duration: params.duration ?? DURATIONS.base,
 		delay: delayFor(params),
+		// off-token: the leaving cell continues the wheel the entering cell finishes;
+		// accelerate-out → decelerate-in is one rotation (the one `in` exit).
 		easing: JS_EASINGS.in,
 		css: (t, u) => cssForRoll(sign, t, u),
 	};

@@ -9,7 +9,23 @@
  * or a transition `delay` param — this file never schedules anything itself.
  */
 
+import { STAGGER_CAP } from "./token-values.js";
+
 export type StaggerFrom = "first" | "last" | "center" | number;
+
+/**
+ * The total-delay ceiling (ms) for a stagger whose items are `itemSizePx`
+ * tall (or wide, along the stagger's axis): `STAGGER_CAP.floor` at or below
+ * `fromPx`, `STAGGER_CAP.ceil` at or above `toPx`, linear in between. Glyphs
+ * and rows get 200 ms, cards 600 ms, a 268 px tile 420 ms. Pass the result
+ * as `staggerDelay`'s `cap`; measure the first child once per layout pass,
+ * never per item.
+ */
+export function staggerCap(itemSizePx: number): number {
+	const { floor, ceil, fromPx, toPx } = STAGGER_CAP;
+	const px = Math.min(toPx - fromPx, Math.max(0, itemSizePx - fromPx));
+	return floor + px * ((ceil - floor) / (toPx - fromPx));
+}
 
 /** How far item `index` sits from the stagger's origin, in item-steps
  * (not ms yet — `staggerDelay` multiplies this by the step). A numeric

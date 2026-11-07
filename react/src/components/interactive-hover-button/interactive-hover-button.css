@@ -8,7 +8,7 @@
 	);
 	/* where the dot sits, vertically centred */
 	--ihb-dot-x: 1.75rem;
-	--ihb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--ihb-ease: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
 .ihb-fill {
@@ -100,7 +100,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
 	.ihb {
-		transition: transform 0.2s var(--ihb-ease);
+		transition: transform var(--ft-duration-exit, 200ms) var(--ihb-ease);
 	}
 
 	.ihb:active {
@@ -108,36 +108,36 @@
 	}
 
 	.ihb-fill {
-		transition: clip-path 0.6s var(--ihb-ease);
+		transition: clip-path var(--ft-duration-entrance, 600ms) var(--ihb-ease);
 	}
 
 	.ihb-rest {
 		transition:
-			opacity 0.3s var(--ihb-ease),
-			transform 0.5s var(--ihb-ease),
-			filter 0.5s var(--ihb-ease);
+			opacity var(--ft-duration-base, 300ms) var(--ihb-ease),
+			/* off-token: roll travel */ transform 0.5s var(--ihb-ease),
+			filter 0.5s var(--ihb-ease); /* off-token: roll travel */
 	}
 
 	.ihb-hover {
 		transition:
-			opacity 0.3s var(--ihb-ease),
-			transform 0.5s var(--ihb-ease);
+			opacity var(--ft-duration-base, 300ms) var(--ihb-ease),
+			transform 0.5s var(--ihb-ease); /* off-token: roll travel */
 	}
 
 	.ihb-arrow {
 		transition:
-			opacity 0.3s var(--ihb-ease),
-			transform 0.5s var(--ihb-ease);
+			opacity var(--ft-duration-base, 300ms) var(--ihb-ease),
+			transform 0.5s var(--ihb-ease); /* off-token: roll travel */
 	}
 
 	/* On the way in, stagger: label a beat after the fill, arrow after it. */
 	.ihb:hover .ihb-hover,
 	.ihb:focus-visible .ihb-hover {
-		transition-delay: 60ms;
+		transition-delay: var(--ft-duration-micro, 80ms);
 	}
 
 	.ihb:hover .ihb-arrow,
 	.ihb:focus-visible .ihb-arrow {
-		transition-delay: 160ms;
+		transition-delay: var(--ft-duration-fast, 150ms);
 	}
 }

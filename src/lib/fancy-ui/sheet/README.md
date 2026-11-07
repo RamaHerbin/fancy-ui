@@ -87,7 +87,7 @@ nothing to configure for the default look.
 
 ## Motion
 
-The panel travels in from its own edge over 300 ms on the shared arrival curve (`DURATIONS.base` and `JS_EASINGS.out` from the motion foundation) and leaves the same way over 200 ms on the departure curve (`DURATIONS.exit`, `JS_EASINGS.in`). The scrim fades on opacity alone over the same two durations: a full-viewport fixed element has no business acquiring a compositing layer for a transform it never uses. Both run one clock, so they arrive and leave together.
+The panel travels in from its own edge over 300 ms on the shared arrival curve (`DURATIONS.base` and `JS_EASINGS.out` from the motion foundation) and leaves the same way over 200 ms on the same decelerating curve (`DURATIONS.exit`, `JS_EASINGS.out` — exits decelerate too, only shorter). The scrim fades on opacity alone over the same two durations: a full-viewport fixed element has no business acquiring a compositing layer for a transform it never uses. Both run one clock, so they arrive and leave together.
 
 The travel is a full 100% of the panel's own size in both directions. Anchored surfaces halve their exit — leaving is a smaller gesture than arriving — but a sheet that slid half-way off the viewport and then vanished reads worse than one that simply clears its edge, so this is the deliberate exception. There is no opacity term on the panel: a sheet leaves by travelling, and fading it as well reads as two gestures fighting.
 

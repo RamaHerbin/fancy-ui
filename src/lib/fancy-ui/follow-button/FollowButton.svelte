@@ -65,6 +65,7 @@
 	import StatusMorph from "../status-morph/StatusMorph.svelte";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import {
 		adopt,
 		announcement,
@@ -202,7 +203,11 @@
 	// measured, so none of it can move the button. `prefersReducedMotion()` is
 	// read once per swap: under reduced motion there is no outgoing layer and the
 	// text snaps.
-	const LEAVE_MS = 80;
+	// The outgoing layer is torn down on its animation's `animationend`, so a
+	// consumer who retimes `--ft-duration-micro` keeps the script in step with
+	// the stylesheet; the timer is only a safety net for an animation that never
+	// runs (an ancestor hidden mid-swap).
+	const LEAVE_FALLBACK_MS = DURATIONS.entrance;
 	let swapped = $state(false);
 	let leaving = $state<string | null>(null);
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -226,8 +231,13 @@
 		leaving = previous;
 		leaveTimer = setTimeout(() => {
 			leaving = null;
-		}, LEAVE_MS);
+		}, LEAVE_FALLBACK_MS);
 	});
+
+	function endLeave() {
+		clearTimeout(leaveTimer);
+		leaving = null;
+	}
 
 	$effect(() => () => clearTimeout(leaveTimer));
 </script>
@@ -308,7 +318,7 @@
 			<span class="ft-follow__ghost" aria-hidden="true">{resolvedLabels.unfollow}</span>
 			<span class="ft-follow__ghost" aria-hidden="true">{errorLabel}</span>
 			{#if leaving !== null}
-				<span class="ft-follow__leave" aria-hidden="true">{leaving}</span>
+				<span class="ft-follow__leave" aria-hidden="true" onanimationend={endLeave}>{leaving}</span>
 			{/if}
 			{#key currentLabel}
 				<span
@@ -382,11 +392,13 @@
 	   text simply snaps and the script never renders the outgoing layer. */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-follow__leave {
-			animation: ft-follow-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+			animation: ft-follow-out var(--ft-duration-micro, 80ms)
+				var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
 		}
 
 		.ft-follow__live[data-swapped] {
-			animation: ft-follow-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+			animation: ft-follow-in var(--ft-duration-fast, 150ms)
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) var(--ft-duration-micro, 80ms) backwards;
 		}
 	}
 

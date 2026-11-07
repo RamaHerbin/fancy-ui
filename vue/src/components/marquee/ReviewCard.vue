@@ -62,8 +62,9 @@ const { img, name, username, body } = defineProps<ReviewCardProps>();
 	background: var(--_shell);
 	border-color: var(--_line);
 	transition:
-		border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-		background-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+		border-color var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+		background-color var(--ft-duration-base, 300ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 /* The source writes `:global(.dark) .review-card`; under the scoped compiler
@@ -85,8 +86,9 @@ const { img, name, username, body } = defineProps<ReviewCardProps>();
 	border-color: color-mix(in oklab, var(--_line) 75%, transparent);
 	box-shadow: inset 0 1px 0 transparent;
 	transition:
-		box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
-		background-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow var(--ft-duration-base, 300ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+		background-color var(--ft-duration-base, 300ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 /* Hover: a quiet top-edge highlight, as if the card caught light from above. */
@@ -109,7 +111,8 @@ const { img, name, username, body } = defineProps<ReviewCardProps>();
 		transparent 70%
 	);
 	opacity: 0;
-	transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+	transition: opacity var(--ft-duration-base, 300ms)
+		var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 .review-card:hover .review-card-sheen {

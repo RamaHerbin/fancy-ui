@@ -220,8 +220,8 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-composer-attachment-bar {
-			transition: width var(--ft-composer-attachment-fill-duration, 220ms)
-				cubic-bezier(0.4, 0, 0.2, 1);
+			transition: width var(--ft-composer-attachment-fill-duration, var(--ft-duration-exit, 200ms))
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 </style>

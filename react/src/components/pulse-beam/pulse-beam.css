@@ -14,7 +14,7 @@
 	inset: 0;
 	border-radius: var(--pb-radius);
 	pointer-events: none;
-	transition: opacity 600ms ease;
+	transition: opacity var(--ft-duration-entrance, 600ms) ease;
 }
 
 /* Filter runs before the mask: the bloom blurs its gradients, then the 1px
@@ -73,8 +73,8 @@
 	-webkit-mask: none;
 	mask: none;
 	transform: scale(0.95, 0.9);
-	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg))
-		brightness(var(--pb-brightness)) saturate(var(--pb-saturation));
+	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg)) brightness(var(--pb-brightness))
+		saturate(var(--pb-saturation));
 }
 
 .pulse-beam[data-variant="outside"] .pulse-beam__bloom {
@@ -97,7 +97,7 @@
 
 .pulse-beam[data-state="fading"] .pulse-beam__layer {
 	opacity: 0;
-	transition-duration: 500ms;
+	transition-duration: var(--ft-duration-entrance, 600ms);
 }
 
 .pulse-beam[data-state="active"] .pulse-beam__layer,

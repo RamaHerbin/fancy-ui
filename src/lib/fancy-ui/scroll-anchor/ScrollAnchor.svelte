@@ -189,7 +189,8 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-scrollanchor-return {
-			animation: ft-scrollanchor-in 180ms cubic-bezier(0.4, 0, 0.2, 1) both;
+			animation: ft-scrollanchor-in var(--ft-duration-exit, 200ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) both;
 		}
 	}
 

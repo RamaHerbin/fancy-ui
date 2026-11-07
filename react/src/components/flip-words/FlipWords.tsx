@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
+import { STAGGERS } from "../../internals/motion/tokens.js";
 import "./flip-words.css";
 
 /**
@@ -21,6 +23,10 @@ export interface FlipWordsProps {
 }
 
 const EXIT_MS = 600;
+// off-token: sequence. Words arrive one after another; the order is the content.
+const WORD_OFFSET_S = 0.3;
+// Glyph-scale items: the shortest cap on the ramp.
+const GLYPH_CAP = staggerCap(0);
 
 export function FlipWords({ words, duration = 3000, className }: FlipWordsProps) {
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -101,7 +107,7 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 					<span
 						key={wordObj.word + wordIndex}
 						className="flip-words-word inline-block whitespace-nowrap"
-						style={{ "--flip-words-word-delay": `${wordIndex * 0.3}s` } as CSSProperties}
+						style={{ "--flip-words-word-delay": `${wordIndex * WORD_OFFSET_S}s` } as CSSProperties}
 					>
 						{wordObj.letters.map((letter, letterIndex) => (
 							<span
@@ -109,7 +115,7 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 								className="flip-words-letter inline-block"
 								style={
 									{
-										"--flip-words-letter-delay": `${wordIndex * 0.3 + letterIndex * 0.05}s`,
+										"--ft-child-delay": `${staggerDelay(letterIndex, wordObj.letters.length, STAGGERS.item, "first", GLYPH_CAP)}ms`,
 									} as CSSProperties
 								}
 							>

@@ -308,7 +308,7 @@ const triggerClasses = computed(() =>
 			color-mix(in oklab, var(--ft-nav-accent) 45%, white)
 		)
 	);
-	--_sweep: var(--ft-step-sweep-duration, 420ms);
+	--_sweep: var(--ft-step-sweep-duration, var(--ft-duration-base, 300ms));
 	/* One beat = how far behind the previous rail the next one lights, so
 	 * a multi-step jump reads as a single run of light. */
 	--_beat: calc(var(--_sweep) * 0.7);
@@ -328,7 +328,7 @@ const triggerClasses = computed(() =>
  * element (`.ft-step-trigger`), so no `box-shadow` here is ever a focus
  * indicator.
  *
- * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout
+ * 150ms = tokens.DURATIONS.fast, var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) = tokens.EASINGS.inout
  */
 .ft-step-bullet,
 .ft-step-connector,
@@ -529,20 +529,21 @@ const triggerClasses = computed(() =>
 	 * check stroke drawing itself behind it. */
 	.ft-step-animate .ft-step-glyph {
 		transform-origin: center;
-		animation: ft-step-flip 200ms var(--_ease-out) calc(var(--ft-step-arrival, 0) * var(--_beat))
-			both;
+		animation: ft-step-flip var(--ft-duration-exit, 200ms) var(--_ease-out)
+			calc(var(--ft-step-arrival, 0) * var(--_beat)) both;
 	}
 	.ft-step-animate .ft-step-check path {
 		stroke-dasharray: 1;
-		animation: ft-step-draw 320ms var(--_ease-out)
-			calc(var(--ft-step-arrival, 0) * var(--_beat) + 60ms) both;
+		animation: ft-step-draw var(--ft-duration-base, 300ms) var(--_ease-out)
+			calc(var(--ft-step-arrival, 0) * var(--_beat) + var(--ft-duration-micro, 80ms)) both;
 	}
 
 	/* The breathing halo — opacity only, no scale — faded in on arrival
 	 * through `filter` so the two animations never fight over `opacity`. */
 	.ft-step-animate .ft-step-bullet-halo::before {
 		animation:
-			ft-step-halo-in 360ms var(--_ease-out) calc(var(--ft-step-arrival, 0) * var(--_beat)) both,
+			ft-step-halo-in var(--ft-duration-base, 300ms) var(--_ease-out)
+				calc(var(--ft-step-arrival, 0) * var(--_beat)) both,
 			ft-step-breathe 1.2s ease-in-out infinite alternate;
 	}
 }

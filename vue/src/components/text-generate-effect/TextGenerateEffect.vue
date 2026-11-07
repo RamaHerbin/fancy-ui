@@ -14,6 +14,7 @@ export interface TextGenerateEffectProps {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { staggerDelay } from "../../internals/motion/stagger.js";
 
 defineOptions({ name: "TextGenerateEffect", inheritAttrs: false });
 
@@ -57,12 +58,16 @@ function startReveal() {
 
 	revealTimeout = setTimeout(() => {
 		revealTimeout = null;
+		// off-token: sequence. Word-by-word generation, uncapped; the step is a prop.
 		spans.forEach((span, index) => {
 			// Store timeout ID for cleanup
-			span._tid = setTimeout(() => {
-				span.style.opacity = "1";
-				span.style.filter = filter ? "blur(0px)" : "none";
-			}, index * stagger);
+			span._tid = setTimeout(
+				() => {
+					span.style.opacity = "1";
+					span.style.filter = filter ? "blur(0px)" : "none";
+				},
+				staggerDelay(index, spans.length, stagger)
+			);
 		});
 	}, delay);
 }

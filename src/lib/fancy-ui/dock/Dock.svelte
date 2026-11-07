@@ -329,14 +329,14 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.dock-spot {
 			transition:
-				transform 140ms var(--_dock-ease),
-				opacity 300ms var(--_dock-ease);
+				transform var(--ft-duration-fast, 150ms) var(--_dock-ease),
+				opacity var(--ft-duration-base, 300ms) var(--_dock-ease);
 		}
 		.dock-rim-light {
-			transition: transform 140ms var(--_dock-ease);
+			transition: transform var(--ft-duration-fast, 150ms) var(--_dock-ease);
 		}
 		.dock-rim {
-			transition: opacity 300ms var(--_dock-ease);
+			transition: opacity var(--ft-duration-base, 300ms) var(--_dock-ease);
 		}
 	}
 

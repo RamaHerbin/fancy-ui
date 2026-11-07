@@ -111,6 +111,7 @@ function fixtureRepo(svelte) {
 	const motion = join(repo, "src", "lib", "fancy-ui", "_internals", "motion");
 	mkdirSync(motion, { recursive: true });
 	writeFileSync(join(motion, "tokens.ts"), TOKENS);
+	writeFileSync(join(motion, "token-values.ts"), TOKENS);
 	const dir = join(repo, "src", "lib", "fancy-ui", "widget");
 	mkdirSync(dir, { recursive: true });
 	writeFileSync(join(dir, "Widget.svelte"), svelte);

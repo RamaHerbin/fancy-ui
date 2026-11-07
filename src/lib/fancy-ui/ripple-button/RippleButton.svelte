@@ -110,7 +110,7 @@
 		"ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden",
 		"bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium",
 		"shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]",
-		"duration-300 ease-out transition-[border-color,background-color] motion-safe:transition-[transform,border-color,background-color]",
+		"transition-[border-color,background-color] duration-300 ease-out motion-safe:transition-[transform,border-color,background-color]",
 		"hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
 		className
 	)}
@@ -175,7 +175,7 @@
 	}
 
 	.ripple-button:hover .ripple-hover::after {
-		animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+		animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite; /* off-token: ripple decelerate */
 	}
 
 	.ripple-button:hover {
@@ -206,7 +206,7 @@
 			color-mix(in srgb, var(--ripple-color) 16%, transparent) 45%,
 			transparent 70%
 		);
-		animation: ripple-bloom var(--ripple-duration, 900ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+		animation: ripple-bloom var(--ripple-duration, 900ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards; /* off-token: ripple decelerate, length comes from the duration prop */
 	}
 
 	/* …and two fine rings, the second a beat behind, like a wave on water. */
@@ -219,7 +219,7 @@
 		border: 2px solid color-mix(in srgb, var(--ripple-color) 90%, transparent);
 		transform: scale(0);
 		opacity: 0;
-		animation: ripple-ring var(--ripple-duration, 900ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+		animation: ripple-ring var(--ripple-duration, 900ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards; /* off-token: ripple decelerate */
 	}
 
 	.ripple-animation::after {
@@ -282,7 +282,7 @@
 	/* The fade is motion: it only runs when the visitor has not asked for less. */
 	@media (prefers-reduced-motion: no-preference) {
 		.ripple-hover {
-			transition: opacity 0.3s ease;
+			transition: opacity var(--ft-duration-base, 300ms) ease;
 		}
 	}
 </style>

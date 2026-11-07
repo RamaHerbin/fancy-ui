@@ -307,8 +307,8 @@ onBeforeUnmount(() => ctx?.setSource(null, "puck"));
 		0 0 0 1px light-dark(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.16)),
 		0 6px 14px -6px rgb(0 0 0 / 0.55);
 	transition:
-		scale 160ms ease-out,
-		box-shadow 160ms ease-out;
+		scale var(--ft-duration-fast, 150ms) ease-out,
+		box-shadow var(--ft-duration-fast, 150ms) ease-out;
 }
 
 .ft-magnet-puck[data-held] .ft-magnet-puck-face {

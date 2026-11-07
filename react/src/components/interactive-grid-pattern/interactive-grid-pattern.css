@@ -2,6 +2,6 @@
    root class, so the slug anchors it to keep the selector out of the global namespace. */
 @media (prefers-reduced-motion: no-preference) {
 	.interactive-grid-pattern .interactive-grid-square:not(:hover) {
-		transition-duration: 1000ms;
+		transition-duration: 1000ms; /* off-token: long fade-out trail behind the pointer */
 	}
 }

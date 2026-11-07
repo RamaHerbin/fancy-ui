@@ -36,6 +36,8 @@ export interface ColourfulTextProps {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { cn } from "../../utils.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
+import { STAGGERS } from "../../internals/motion/tokens.js";
 
 defineOptions({ name: "ColourfulText", inheritAttrs: false });
 
@@ -115,20 +117,37 @@ onMounted(() => {
 });
 
 const chars = computed(() => text.split(""));
+// Glyph-scale items: the shortest cap on the ramp.
+const glyphCap = staggerCap(0);
 </script>
 
 <template>
-	<span :class="cn('colourful-text inline-flex', className)">
+	<span
+		:class="cn('colourful-text inline-flex', className)"
+		:style="{ '--colourful-text-duration': `${duration}s` }"
+	>
 		<span
 			v-for="(char, i) in chars"
 			:key="i"
 			class="colourful-char inline-block"
-			:style="`color:${
-				currentColors[i % currentColors.length] ?? startColor
-			};transition:color ${duration}s ease ${i * 0.05}s,opacity ${duration}s ease ${
-				i * 0.05
-			}s,transform ${duration}s ease ${i * 0.05}s,filter ${duration}s ease ${i * 0.05}s`"
+			:style="{
+				color: currentColors[i % currentColors.length] ?? startColor,
+				'--ft-child-delay': `${staggerDelay(i, chars.length, STAGGERS.item, 'first', glyphCap)}ms`,
+			}"
 			>{{ char === " " ? " " : char }}</span
 		>
 	</span>
 </template>
+
+<style scoped>
+/* A stagger: each glyph's delay is written by the component as
+	   --ft-child-delay (staggerDelay + staggerCap). */
+.colourful-char {
+	/* off-token: prop-driven seconds */
+	transition:
+		color var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms),
+		opacity var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms),
+		transform var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms),
+		filter var(--colourful-text-duration, 0.5s) ease var(--ft-child-delay, 0ms);
+}
+</style>

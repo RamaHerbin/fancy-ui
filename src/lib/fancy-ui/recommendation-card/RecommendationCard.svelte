@@ -366,11 +366,13 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-rec-ring-value {
-			transition: stroke-dashoffset 700ms cubic-bezier(0.4, 0, 0.2, 1);
+			transition: stroke-dashoffset var(--ft-duration-entrance, 600ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 
 		.ft-rec-resolved {
-			animation: ft-rec-resolve-in 240ms cubic-bezier(0.4, 0, 0.2, 1);
+			animation: ft-rec-resolve-in var(--ft-duration-exit, 200ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 

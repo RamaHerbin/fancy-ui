@@ -136,10 +136,10 @@ describe("anchored() — param resolution (pure, no DOM)", () => {
 		expect((config as { tick?: unknown }).tick).toBeUndefined();
 	});
 
-	it("defaults an exit to fast and the departure curve", () => {
+	it("defaults an exit to fast on the same decelerating curve as the entrance", () => {
 		const config = anchored(el(), undefined, { direction: "out" });
 		expect(config.duration).toBe(DURATIONS.fast);
-		expect(config.easing).toBe(JS_EASINGS.in);
+		expect(config.easing).toBe(JS_EASINGS.out);
 	});
 
 	it("treats direction 'both' (one bidirectional directive) as entering", () => {
@@ -150,7 +150,7 @@ describe("anchored() — param resolution (pure, no DOM)", () => {
 
 	it("entering: false overrides direction 'both' — the escape hatch for a single transition: directive", () => {
 		const config = anchored(el(), { entering: false, exitDuration: 42 }, { direction: "both" });
-		expect(config.easing).toBe(JS_EASINGS.in);
+		expect(config.easing).toBe(JS_EASINGS.out);
 		expect(config.duration).toBe(42);
 	});
 
@@ -245,17 +245,29 @@ describe("anchored transition on a mounted surface — WAAPI stub path (non-zero
 		expect(node).not.toBeNull();
 
 		let entered = false;
-		runTransition(node!, specOf(anchored(node!, undefined, { direction: "in" })), 1, undefined, () => {
-			entered = true;
-		});
+		runTransition(
+			node!,
+			specOf(anchored(node!, undefined, { direction: "in" })),
+			1,
+			undefined,
+			() => {
+				entered = true;
+			}
+		);
 		await vi.waitFor(() => expect(entered).toBe(true));
 
 		// The outro: the node leaves only once the exit resolves, across the
 		// stub's chained dummy-then-real animations.
 		let exited = false;
-		runTransition(node!, specOf(anchored(node!, undefined, { direction: "out" })), 0, undefined, () => {
-			exited = true;
-		});
+		runTransition(
+			node!,
+			specOf(anchored(node!, undefined, { direction: "out" })),
+			0,
+			undefined,
+			() => {
+				exited = true;
+			}
+		);
 		expect(container.querySelector('[data-testid="node"]')).not.toBeNull();
 
 		await vi.waitFor(() => expect(exited).toBe(true));
@@ -290,17 +302,29 @@ describe("anchored transition — reduced motion (duration 0, the synchronous fa
 		expect(node).not.toBeNull();
 
 		let entered = false;
-		runTransition(node!, specOf(anchored(node!, undefined, { direction: "in" })), 1, undefined, () => {
-			entered = true;
-		});
+		runTransition(
+			node!,
+			specOf(anchored(node!, undefined, { direction: "in" })),
+			1,
+			undefined,
+			() => {
+				entered = true;
+			}
+		);
 		// Synchronous, not "eventually": a reduced-motion leg finishes inside
 		// the same flush that started it, before paint.
 		expect(entered).toBe(true);
 
 		let exited = false;
-		runTransition(node!, specOf(anchored(node!, undefined, { direction: "out" })), 0, undefined, () => {
-			exited = true;
-		});
+		runTransition(
+			node!,
+			specOf(anchored(node!, undefined, { direction: "out" })),
+			0,
+			undefined,
+			() => {
+				exited = true;
+			}
+		);
 		expect(exited).toBe(true);
 
 		await rerender({ open: false });

@@ -23,7 +23,7 @@
 		 * `prefers-reduced-motion: reduce` (synchronous swap). */
 		duration?: number;
 		/** Per-cell stagger step in ms, before compression — see
-		 * `STAGGER_CAPS.text` (200ms total). Collapsed to `0` under reduced
+		 * `staggerCap(0)` (200ms total). Collapsed to `0` under reduced
 		 * motion, same as `duration`. */
 		stagger?: number;
 		/** Stagger origin, forwarded to the shared `staggerDelay` helper. */
@@ -57,7 +57,8 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
-	import { DURATIONS, STAGGERS, STAGGER_CAPS } from "../_internals/motion/tokens.js";
+	import { DURATIONS, STAGGERS } from "../_internals/motion/tokens.js";
+	import { staggerCap } from "../_internals/motion/stagger.js";
 	import { rollIn, rollOut } from "./roll-transitions.js";
 
 	// The prop default IS the token, not a second hardcoded `300` that could
@@ -250,7 +251,7 @@
 		// (600ms) is the floor this contract names and is exactly what a
 		// default-duration roll — or a reduced-motion one, where
 		// `effDuration` is `0` — needs; a longer `duration` plus the
-		// worst-case stagger spread (`STAGGER_CAPS.text`) can legitimately
+		// worst-case stagger spread (`staggerCap(0)`) can legitimately
 		// run past that floor, and a backstop that fires before the roll it
 		// is meant to safety-net has even finished would cut the animation
 		// itself, so the budget grows past 600ms rather than silently
@@ -269,7 +270,7 @@
 		// expose the real layer under still-animating cells. The window is
 		// sized once, from the duration the roll actually started with.
 		const backstopMs = untrack(() =>
-			Math.max(DURATIONS.entrance, effDuration + STAGGER_CAPS.text + DURATIONS.fast)
+			Math.max(DURATIONS.entrance, effDuration + staggerCap(0) + DURATIONS.fast)
 		);
 		const timeoutId = setTimeout(() => {
 			inFlight = 0;

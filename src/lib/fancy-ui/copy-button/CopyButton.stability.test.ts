@@ -69,7 +69,7 @@ describe("CopyButton width stability and text swap", () => {
 		expect(live(container).className).toContain("sr-only");
 	});
 
-	it("shows the outgoing label for 80 ms while the new one arrives", async () => {
+	it("shows the outgoing label until its exit animation ends", async () => {
 		stubClipboard(vi.fn().mockResolvedValue(undefined));
 		const { container } = render(CopyButton, { props: { value: "x" } });
 		expect(leaving(container)).toBeNull();
@@ -84,6 +84,27 @@ describe("CopyButton width stability and text swap", () => {
 		expect(leaving(container)?.getAttribute("aria-hidden")).toBe("true");
 
 		await vi.advanceTimersByTimeAsync(79);
+		expect(leaving(container)).not.toBeNull();
+		leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		await flush();
+		expect(leaving(container)).toBeNull();
+	});
+
+	it("tears the outgoing label down on a safety timer when its animation never ends", async () => {
+		stubClipboard(vi.fn().mockResolvedValue(undefined));
+		const { container } = render(CopyButton, { props: { value: "x" } });
+		expect(leaving(container)).toBeNull();
+		expect(live(container).hasAttribute("data-swapped")).toBe(false);
+
+		await fireEvent.click(button(container));
+		await flush();
+
+		expect(live(container).textContent).toBe("Copied");
+		expect(live(container).hasAttribute("data-swapped")).toBe(true);
+		expect(leaving(container)?.textContent).toBe("Copy");
+		expect(leaving(container)?.getAttribute("aria-hidden")).toBe("true");
+
+		await vi.advanceTimersByTimeAsync(599);
 		expect(leaving(container)).not.toBeNull();
 		await vi.advanceTimersByTimeAsync(2);
 		expect(leaving(container)).toBeNull();
@@ -185,6 +206,9 @@ describe("CopyButton width stability and text swap", () => {
 		const { container } = render(CopyButton, { props: { value: "x" } });
 		await fireEvent.click(button(container));
 		await flush();
+		// the first swap's outgoing layer has finished leaving
+		leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		await flush();
 		await vi.advanceTimersByTimeAsync(300);
 		expect(live(container).textContent).toBe("Copy failed");
 		expect(leaving(container)).toBeNull();
@@ -193,7 +217,8 @@ describe("CopyButton width stability and text swap", () => {
 		await flush();
 		expect(live(container).textContent).toBe("Copied");
 		expect(leaving(container)?.textContent).toBe("Copy failed");
-		await vi.advanceTimersByTimeAsync(100);
+		leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		await flush();
 		expect(leaving(container)).toBeNull();
 	});
 

@@ -28,9 +28,9 @@ describe("ColourfulText", () => {
 		const { container } = render(ColourfulText, { props: { text: "Hi" } });
 		const chars = container.querySelectorAll(".colourful-char");
 		chars.forEach((char) => {
-			const style = (char as HTMLElement).getAttribute("style") ?? "";
-			expect(style).toContain("color:");
-			expect(style).toContain("transition:");
+			const el = char as HTMLElement;
+			expect(el.style.color).not.toBe("");
+			expect(el.style.getPropertyValue("--ft-child-delay")).toMatch(/ms$/);
 		});
 	});
 
@@ -39,10 +39,10 @@ describe("ColourfulText", () => {
 			props: { text: "AB", duration: 0.5 },
 		});
 		const chars = container.querySelectorAll(".colourful-char");
-		const style0 = (chars[0] as HTMLElement).getAttribute("style") ?? "";
-		const style1 = (chars[1] as HTMLElement).getAttribute("style") ?? "";
-		expect(style0).toContain("0s");
-		expect(style1).toContain("0.05s");
+		expect((chars[0] as HTMLElement).style.getPropertyValue("--ft-child-delay")).toBe("0ms");
+		expect((chars[1] as HTMLElement).style.getPropertyValue("--ft-child-delay")).toBe("50ms");
+		const root = container.querySelector(".colourful-text") as HTMLElement;
+		expect(root.style.getPropertyValue("--colourful-text-duration")).toBe("0.5s");
 	});
 
 	it("applies custom class names", () => {

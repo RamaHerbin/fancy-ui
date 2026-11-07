@@ -1,8 +1,13 @@
-import { useEffect, useState, type HTMLAttributes } from "react";
+import { useEffect, useState, type CSSProperties, type HTMLAttributes } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { staggerCap, staggerDelay } from "../../internals/motion/stagger.js";
+import { STAGGERS } from "../../internals/motion/tokens.js";
 import "./container-text-flip.css";
+
+// Glyph-scale items: the shortest cap on the ramp.
+const GLYPH_CAP = staggerCap(0);
 
 export interface ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> {
 	words?: string[];
@@ -71,10 +76,12 @@ export function ContainerTextFlip({
 							<span
 								key={index}
 								className="text-flip-letter inline-block"
-								style={{
-									animationDelay: `${index * 0.02}s`,
-									animationDuration: `${animationDuration}ms`,
-								}}
+								style={
+									{
+										animationDuration: `${animationDuration}ms`,
+										"--ft-child-delay": `${staggerDelay(index, letters.length, STAGGERS.charBlur, "first", GLYPH_CAP)}ms`,
+									} as CSSProperties
+								}
 							>
 								{letter === " " ? " " : letter}
 							</span>

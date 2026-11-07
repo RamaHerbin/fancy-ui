@@ -511,8 +511,8 @@ onBeforeUnmount(teardownCanvas);
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-voice-dot::after {
-		animation: ft-voice-pulse var(--ft-voice-pulse-duration, 1.6s) cubic-bezier(0, 0, 0.2, 1)
-			infinite;
+		animation: ft-voice-pulse var(--ft-voice-pulse-duration, 1.6s)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
 	}
 }
 

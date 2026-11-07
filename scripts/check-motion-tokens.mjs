@@ -25,7 +25,9 @@
  *
  * What counts as a literal: every `cubic-bezier()`, and a duration written in a
  * `transition` / `animation` declaration (including a multi-line value), in a
- * Tailwind `duration-` / `delay-` class, or in a style string on such a line.
+ * or in a style string on such a line. A Tailwind `duration-` / `delay-` class is
+ * reported as a `utility` count (it cannot reference a token without an arbitrary
+ * value) but is not pinned.
  * Anything inside `var(...)` is skipped (rule 1 owns var fallbacks), as are
  * durations of an `infinite` animation (an ambient loop is not a transition) and
  * values of 1 ms or less (reduced-motion overrides).
@@ -53,7 +55,15 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const TOKENS_PATH = join(repoRoot, "src", "lib", "fancy-ui", "_internals", "motion", "tokens.ts");
+const TOKENS_PATH = join(
+	repoRoot,
+	"src",
+	"lib",
+	"fancy-ui",
+	"_internals",
+	"motion",
+	"token-values.ts"
+);
 const PINS_PATH = join(dirname(fileURLToPath(import.meta.url)), "motion-tokens-pins.json");
 const IGNORE_PATH = join(dirname(fileURLToPath(import.meta.url)), "motion-tokens-ignore.json");
 
@@ -83,7 +93,10 @@ export function toMs(s) {
 }
 
 /**
- * Read DURATIONS, EASINGS, STAGGERS and STAGGER_CAPS out of tokens.ts.
+ * Read DURATIONS, EASINGS, STAGGERS, STAGGER_CAP and HOVER out of token-values.ts.
+ * `caps` holds the cap ramp's two millisecond ends (floor/ceil); its pixel
+ * thresholds are not time values. `hover` maps `in`/`out` to the composite
+ * `<duration> <curve>` string the CSS pair `--ft-hover-*` carries.
  *
  * @param {string} src
  */
@@ -98,18 +111,34 @@ export function parseTokens(src) {
 		);
 	const durations = nums("DURATIONS");
 	const staggers = nums("STAGGERS");
-	const caps = nums("STAGGER_CAPS");
-	const easings = Object.fromEntries(
-		[...block("EASINGS").matchAll(/(\w+)\s*:\s*"cubic-bezier\(([^)]*)\)"/g)].map((m) => [
+	const ramp = nums("STAGGER_CAP");
+	const caps = Object.fromEntries(
+		["floor", "ceil"].filter((k) => ramp[k] !== undefined).map((k) => [k, ramp[k]])
+	);
+	const easingSrc = Object.fromEntries(
+		[...block("EASINGS").matchAll(/(\w+)\s*:\s*"(cubic-bezier\([^)]*\))"/g)].map((m) => [
 			m[1],
-			normCurve(m[2]),
+			m[2],
 		])
+	);
+	const easings = Object.fromEntries(
+		Object.entries(easingSrc).map(([k, v]) => [k, normCurve(v.slice("cubic-bezier(".length, -1))])
+	);
+	const hover = Object.fromEntries(
+		[
+			...block("HOVER").matchAll(
+				/(\w+)\s*:\s*\{\s*duration\s*:\s*"(\w+)"\s*,\s*easing\s*:\s*"(\w+)"/g
+			),
+		]
+			.filter((m) => durations[m[2]] !== undefined && easingSrc[m[3]] !== undefined)
+			.map((m) => [m[1], `${durations[m[2]]}ms ${easingSrc[m[3]]}`])
 	);
 	return {
 		durations,
 		staggers,
 		caps,
 		easings,
+		hover,
 		msSet: new Set([
 			...Object.values(durations),
 			...Object.values(staggers),
@@ -244,7 +273,9 @@ export function tokenVars(s) {
 	// hyphenated misspelling is reported as unknown instead of slipping past the gate.
 	// With or without a fallback: the name is validated either way, the fallback
 	// value only when one is written.
-	for (const m of s.matchAll(/var\(\s*--ft-(duration|ease|stagger)-([a-zA-Z0-9-]+)\s*([,)])/g)) {
+	for (const m of s.matchAll(
+		/var\(\s*--ft-(duration|ease|stagger|hover)-([a-zA-Z0-9-]+)\s*([,)])/g
+	)) {
 		if (m[3] === ")") {
 			found.push({ family: m[1], name: m[2], fallback: null, index: m.index });
 			continue;
@@ -278,7 +309,12 @@ export function fallbackMismatch(v, tokens) {
 			? tokens.easings
 			: v.family === "duration"
 				? tokens.durations
-				: tokens.staggers;
+				: v.family === "hover"
+					? tokens.hover
+					: tokens.staggers;
+	// `--ft-stagger-char-blur` is `STAGGERS.charBlur`: custom properties are kebab-case.
+	if (v.family === "stagger")
+		v = { ...v, name: v.name.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) };
 	if (table[v.name] === undefined)
 		return {
 			expected: "a token declared in tokens.ts",
@@ -290,6 +326,14 @@ export function fallbackMismatch(v, tokens) {
 		const want = tokens.easings[v.name];
 		const m = /^cubic-bezier\(([^)]*)\)$/.exec(fb);
 		return m && normCurve(m[1]) === want ? null : { expected: want, got: fb };
+	}
+	if (v.family === "hover") {
+		// `<duration> <curve>`: compare the time in ms and the curve normalised.
+		const want = tokens.hover[v.name];
+		const m = /^(\S+)\s+cubic-bezier\(([^)]*)\)$/.exec(fb);
+		const wm = /^(\d+)ms cubic-bezier\(([^)]*)\)$/.exec(want);
+		const ok = m && wm && toMs(m[1]) === Number(wm[1]) && normCurve(m[2]) === normCurve(wm[2]);
+		return ok ? null : { expected: want, got: fb };
 	}
 	const want = table[v.name];
 	return toMs(fb) === want ? null : { expected: `${want}ms`, got: fb };
@@ -315,6 +359,7 @@ export function scanText(text, tokens) {
 	const mismatches = [];
 	const bare = [];
 	const off = [];
+	const utility = [];
 	// rule 1 runs on the whole text: a var() may span lines
 	const lineStarts = [0];
 	for (const l of lines) lineStarts.push(lineStarts.at(-1) + l.length + 1);
@@ -368,14 +413,16 @@ export function scanText(text, tokens) {
 		if (inDecl) for (const m of line.matchAll(TIME)) times.push([m[0], toMs(m[0])]);
 		for (const m of line.matchAll(TW_TIME)) {
 			const n = parseFloat(m[2]);
-			times.push([m[0], m[3] === "s" ? n * 1000 : n]);
+			const ms = m[3] === "s" ? n * 1000 : n;
+			if (ms > 1)
+				utility.push({ line: i + 1, kind: "utility", raw: m[0], onToken: tokens.msSet.has(ms) });
 		}
 		for (const [raw, ms] of times) {
 			if (ms === null || ms <= 1) continue;
 			note("duration", raw, tokens.msSet.has(ms));
 		}
 	}
-	return { mismatches, bare, off };
+	return { mismatches, bare, off, utility };
 }
 
 // --- tree walk -----------------------------------------------------------------
@@ -403,7 +450,7 @@ export function measure(root, tokens, ignore) {
 	const trees = {};
 	const mismatches = [];
 	for (const [name, { root: dir, exts }] of Object.entries(TREES)) {
-		const t = { bare: 0, offToken: 0, files: {} };
+		const t = { bare: 0, offToken: 0, utility: 0, files: {} };
 		for (const abs of walk(join(root, dir), exts)) {
 			const rel = relative(root, abs).split("\\").join("/");
 			if (isIgnored(rel, ignore)) continue;
@@ -413,6 +460,7 @@ export function measure(root, tokens, ignore) {
 				t.files[rel] = { bare: r.bare.length, offToken: r.off.length };
 			t.bare += r.bare.length;
 			t.offToken += r.off.length;
+			t.utility += r.utility.length;
 		}
 		trees[name] = t;
 	}
@@ -456,8 +504,12 @@ export const EASINGS = {
 	out: "cubic-bezier(0.16, 1, 0.3, 1)",
 	inout: "cubic-bezier(0.4, 0, 0.2, 1)",
 } as const;
-export const STAGGERS = { char: 15, item: 50 } as const;
-export const STAGGER_CAPS = { text: 200, item: 600 } as const;`;
+export const STAGGERS = { char: 15, charBlur: 20, item: 50 } as const;
+export const STAGGER_CAP = { floor: 200, ceil: 600, fromPx: 48, toPx: 448 } as const;
+export const HOVER = {
+	in: { duration: "fast", easing: "out" },
+	out: { duration: "exit", easing: "out" },
+} as const;`;
 
 export function selfTest() {
 	const fail = (m) => {
@@ -471,9 +523,40 @@ export function selfTest() {
 	const tk = parseTokens(FIXTURE_TOKENS);
 	eq(tk.durations.fast, 150, "parse durations");
 	eq(tk.easings.out, "0.16,1,0.3,1", "parse easings");
+	eq(tk.caps, { floor: 200, ceil: 600 }, "parse the cap ramp's ms ends only");
+	eq(tk.hover.out, "200ms cubic-bezier(0.16, 1, 0.3, 1)", "parse the hover composites");
+	eq(
+		fallbackMismatch(
+			{ family: "hover", name: "in", fallback: "150ms cubic-bezier(0.16,1,0.3,1)" },
+			tk
+		),
+		null,
+		"hover fallback: ms + normalised curve agree"
+	);
+	eq(
+		fallbackMismatch(
+			{ family: "hover", name: "in", fallback: "0.15s cubic-bezier(0.16, 1, 0.3, 1)" },
+			tk
+		),
+		null,
+		"hover fallback: seconds spelling agrees"
+	);
+	eq(
+		fallbackMismatch(
+			{ family: "hover", name: "out", fallback: "150ms cubic-bezier(0.16, 1, 0.3, 1)" },
+			tk
+		)?.expected,
+		"200ms cubic-bezier(0.16, 1, 0.3, 1)",
+		"hover fallback: wrong duration is a mismatch"
+	);
+	eq(
+		fallbackMismatch({ family: "hover", name: "up", fallback: "150ms linear" }, tk)?.unknown,
+		true,
+		"hover fallback: unknown name"
+	);
 	eq(
 		[...tk.msSet].sort((a, b) => a - b),
-		[15, 50, 80, 150, 200, 300, 600],
+		[15, 20, 50, 80, 150, 200, 300, 600],
 		"ms set"
 	);
 	eq(toMs(".15s"), 150, "toMs seconds");
@@ -633,8 +716,31 @@ export function selfTest() {
 	);
 	eq(scan("a{animation-duration: 0.01ms}").off.length, 0, "reduced-motion override skipped");
 	eq(scan("a{width: 151ms}").off.length, 0, "not a transition declaration");
-	eq(scan('<div class="duration-[250ms] delay-150">').off.length, 1, "tailwind off-token");
-	eq(scan('<div class="duration-[250ms] delay-150">').bare.length, 1, "tailwind bare");
+	eq(
+		scan('<div class="duration-[250ms] delay-150">').off.length,
+		0,
+		"tailwind utilities are not off-token"
+	);
+	eq(
+		scan('<div class="duration-[250ms] delay-150">').bare.length,
+		0,
+		"tailwind utilities are not bare"
+	);
+	eq(
+		scan('<div class="duration-[250ms] delay-150">').utility.length,
+		2,
+		"tailwind utilities are reported"
+	);
+	eq(
+		scan("a{transition: x var(--ft-stagger-char-blur, 20ms)}").mismatches,
+		[],
+		"kebab-case stagger name resolves to the camelCase key"
+	);
+	eq(
+		scan("a{transition: x var(--ft-stagger-char-blur, 25ms)}").mismatches.length,
+		1,
+		"kebab-case stagger name still compares its fallback"
+	);
 	eq(
 		scan("a{transition:\n  opacity 151ms ease,\n  color 300ms ease;\n}").off.length,
 		1,
@@ -689,7 +795,9 @@ function main() {
 	const { trees, mismatches } = measure(repoRoot, tokens, ignore);
 	if (argv.includes("--list")) {
 		for (const [name, t] of Object.entries(trees)) {
-			console.log(`${name}: bare ${t.bare}, off-token ${t.offToken}`);
+			console.log(
+				`${name}: bare ${t.bare}, off-token ${t.offToken}, utility ${t.utility} (not pinned)`
+			);
 			for (const [f, c] of Object.entries(t.files))
 				console.log(`  ${f}: bare ${c.bare}, off-token ${c.offToken}`);
 		}

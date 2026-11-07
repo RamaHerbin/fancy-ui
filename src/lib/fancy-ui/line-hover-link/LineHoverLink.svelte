@@ -179,7 +179,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--slide::before {
-			transition: transform 0.3s;
+			transition: transform var(--ft-duration-base, 300ms);
 		}
 	}
 
@@ -209,11 +209,12 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--double::before,
 		.link-hover--double::after {
-			transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1);
+			transition: transform var(--ft-duration-base, 300ms) cubic-bezier(0.7, 0, 0.2, 1); /* off-token: variant signature curve */
 		}
 
 		.link-hover--double:is(:hover, :focus-visible)::before,
 		.link-hover--double:is(:hover, :focus-visible)::after {
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.4, 1, 0.8, 1);
 		}
 	}
@@ -243,15 +244,16 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--grow::before {
-			transition: transform 0.3s cubic-bezier(0.2, 1, 0.8, 1);
+			transition: transform var(--ft-duration-base, 300ms) cubic-bezier(0.2, 1, 0.8, 1); /* off-token: variant signature curve */
 		}
 
 		.link-hover--grow::after {
-			transition: transform 0.4s 0.1s cubic-bezier(0.2, 1, 0.8, 1);
+			transition: transform 0.4s 0.1s cubic-bezier(0.2, 1, 0.8, 1); /* off-token: variant signature curve and timing */
 		}
 
 		.link-hover--grow:is(:hover, :focus-visible)::before,
 		.link-hover--grow:is(:hover, :focus-visible)::after {
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
 		}
 	}
@@ -284,7 +286,7 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--strike::before,
 		.link-hover--strike span {
-			transition: transform 0.3s cubic-bezier(0.4, 1, 0.8, 1);
+			transition: transform var(--ft-duration-base, 300ms) cubic-bezier(0.4, 1, 0.8, 1); /* off-token: variant signature curve */
 		}
 	}
 
@@ -313,12 +315,14 @@
 		.link-hover--fade::before,
 		.link-hover--fade::after {
 			transition-property: transform, opacity;
-			transition-duration: 0.3s;
+			transition-duration: var(--ft-duration-base, 300ms);
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.2, 1, 0.8, 1);
 		}
 
 		.link-hover--fade:is(:hover, :focus-visible)::before,
 		.link-hover--fade:is(:hover, :focus-visible)::after {
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.2, 0, 0.3, 1);
 		}
 
@@ -326,7 +330,7 @@
 		   as a gesture rather than as one line drawn twice. */
 		.link-hover--fade::before,
 		.link-hover--fade:is(:hover, :focus-visible)::after {
-			transition-delay: 0.1s;
+			transition-delay: 0.1s; /* off-token: variant signature timing */
 		}
 
 		.link-hover--fade:is(:hover, :focus-visible)::before {
@@ -354,7 +358,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--pulse:is(:hover, :focus-visible)::before {
-			animation: lineUp 0.3s ease forwards;
+			animation: lineUp var(--ft-duration-base, 300ms) ease forwards;
 		}
 	}
 
@@ -388,12 +392,12 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--pulse::after {
-			transition: opacity 0.3s;
+			transition: opacity var(--ft-duration-base, 300ms);
 			transition-delay: 0s;
 		}
 
 		.link-hover--pulse:is(:hover, :focus-visible)::after {
-			transition-delay: 0.3s;
+			transition-delay: var(--ft-duration-base, 300ms);
 		}
 	}
 
@@ -420,7 +424,7 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--swap::before,
 		.link-hover--swap::after {
-			transition: transform 0.3s;
+			transition: transform var(--ft-duration-base, 300ms);
 		}
 	}
 
@@ -443,7 +447,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--sweep:is(:hover, :focus-visible)::before {
-			animation: coverUp 0.3s ease forwards;
+			animation: coverUp var(--ft-duration-base, 300ms) ease forwards;
 		}
 	}
 
@@ -476,7 +480,7 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--sweep::after {
-			transition: opacity 0.3s;
+			transition: opacity var(--ft-duration-base, 300ms);
 		}
 	}
 
@@ -504,19 +508,22 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover--bounce::before {
 			transition:
-				transform 0.2s,
-				opacity 0.2s;
+				transform var(--ft-duration-exit, 200ms),
+				opacity var(--ft-duration-exit, 200ms);
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.2, 0.57, 0.67, 1.53);
 		}
 
 		.link-hover--bounce span {
-			transition: transform 0.2s 0.05s cubic-bezier(0.2, 0.57, 0.67, 1.53);
+			transition: transform var(--ft-duration-exit, 200ms) var(--ft-stagger-item, 50ms)
+				cubic-bezier(0.2, 0.57, 0.67, 1.53); /* off-token: variant signature curve */
 		}
 
 		.link-hover--bounce:is(:hover, :focus-visible)::before,
 		.link-hover--bounce:is(:hover, :focus-visible) span {
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1);
-			transition-duration: 0.4s;
+			transition-duration: 0.4s; /* off-token: variant signature timing */
 		}
 
 		.link-hover--bounce:is(:hover, :focus-visible) span {
@@ -556,12 +563,13 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover__graphic--arc :global(path) {
-			transition: stroke-dashoffset 0.4s cubic-bezier(0.7, 0, 0.3, 1);
+			transition: stroke-dashoffset 0.4s cubic-bezier(0.7, 0, 0.3, 1); /* off-token: variant signature curve and timing */
 		}
 
 		.link-hover:is(:hover, :focus-visible) .link-hover__graphic--arc :global(path) {
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
-			transition-duration: 0.3s;
+			transition-duration: var(--ft-duration-base, 300ms);
 		}
 	}
 
@@ -581,12 +589,13 @@
 	   straight to `0`, so the stroke is fully drawn, just not drawn *for* you. */
 	@media (prefers-reduced-motion: no-preference) {
 		.link-hover__graphic--scribble :global(path) {
-			transition: stroke-dashoffset 0.6s cubic-bezier(0.7, 0, 0.3, 1);
+			transition: stroke-dashoffset var(--ft-duration-entrance, 600ms) cubic-bezier(0.7, 0, 0.3, 1); /* off-token: variant signature curve */
 		}
 
 		.link-hover:is(:hover, :focus-visible) .link-hover__graphic--scribble :global(path) {
+			/* off-token: variant signature curve */
 			transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
-			transition-duration: 0.3s;
+			transition-duration: var(--ft-duration-base, 300ms);
 		}
 	}
 

@@ -35,7 +35,10 @@ const visible = computed(() => alwaysVisible || (message?.hovered.current ?? fal
 
 <template>
 	<div
-		:class="[cn('ft-message-actions flex items-center gap-0.5', className), { 'ft-visible': visible }]"
+		:class="[
+			cn('ft-message-actions flex items-center gap-0.5', className),
+			{ 'ft-visible': visible },
+		]"
 		role="group"
 		aria-label="Message actions"
 	>
@@ -71,7 +74,7 @@ const visible = computed(() => alwaysVisible || (message?.hovered.current ?? fal
 
 @media (prefers-reduced-motion: no-preference) {
 	.ft-message-actions {
-		transition: opacity 150ms ease;
+		transition: opacity var(--ft-duration-fast, 150ms) ease;
 	}
 }
 </style>

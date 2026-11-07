@@ -148,8 +148,9 @@ function handleChange(event: Event) {
  */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-composer-attachment-slot {
-		animation: ft-composer-attachment-enter var(--ft-composer-attachment-enter-duration, 180ms)
-			cubic-bezier(0.16, 1, 0.3, 1) both;
+		animation: ft-composer-attachment-enter
+			var(--ft-composer-attachment-enter-duration, var(--ft-duration-exit, 200ms))
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
 	}
 
 	@keyframes ft-composer-attachment-enter {

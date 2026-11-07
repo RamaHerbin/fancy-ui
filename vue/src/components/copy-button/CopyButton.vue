@@ -78,6 +78,7 @@ import { cn } from "../../utils.js";
 import { useCopy } from "../../internals/use-copy.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
+import { DURATIONS } from "../../internals/motion/tokens.js";
 import { Button } from "../button/index.js";
 import { StatusMorph, type StatusMorphState } from "../status-morph/index.js";
 
@@ -225,7 +226,11 @@ async function handleClick(event: MouseEvent) {
 // once per swap: under reduced motion there is no outgoing layer and the text
 // snaps. The watch is `pre`-flushed so the outgoing text is in the very render
 // that shows the new one.
-const LEAVE_MS = 80;
+// The outgoing layer is torn down on its animation's `animationend`, so a
+// consumer who retimes `--ft-duration-micro` keeps the script in step with
+// the stylesheet; the timer is only a safety net for an animation that never
+// runs (an ancestor hidden mid-swap).
+const LEAVE_FALLBACK_MS = DURATIONS.entrance;
 const swapped = ref(false);
 const leaving = ref<string | null>(null);
 let leaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -245,8 +250,13 @@ watch(currentLabel, (next, previous) => {
 	leaving.value = previous;
 	leaveTimer = setTimeout(() => {
 		leaving.value = null;
-	}, LEAVE_MS);
+	}, LEAVE_FALLBACK_MS);
 });
+
+function endLeave() {
+	clearTimeout(leaveTimer);
+	leaving.value = null;
+}
 
 onBeforeUnmount(() => clearTimeout(leaveTimer));
 
@@ -348,9 +358,13 @@ watch(
 			<span class="ft-copybtn__ghost" aria-hidden="true">{{ label }}</span>
 			<span class="ft-copybtn__ghost" aria-hidden="true">{{ copiedLabel }}</span>
 			<span class="ft-copybtn__ghost" aria-hidden="true">{{ errorLabel }}</span>
-			<span v-if="leaving !== null" class="ft-copybtn__leave" aria-hidden="true">{{
-				leaving
-			}}</span>
+			<span
+				v-if="leaving !== null"
+				class="ft-copybtn__leave"
+				aria-hidden="true"
+				@animationend="endLeave"
+				>{{ leaving }}</span
+			>
 			<span :key="currentLabel" class="ft-copybtn__live" :data-swapped="swapped ? '' : undefined">{{
 				currentLabel
 			}}</span>
@@ -383,11 +397,13 @@ watch(
    text snaps and the component never renders the outgoing layer. */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-copybtn__leave {
-		animation: ft-copybtn-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+		animation: ft-copybtn-out var(--ft-duration-micro, 80ms)
+			var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
 	}
 
 	.ft-copybtn__live[data-swapped] {
-		animation: ft-copybtn-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+		animation: ft-copybtn-in var(--ft-duration-fast, 150ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) var(--ft-duration-micro, 80ms) backwards;
 	}
 }
 

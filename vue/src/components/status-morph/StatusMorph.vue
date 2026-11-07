@@ -459,12 +459,12 @@ svg[data-state="error"] .ft-statusmorph-cross-b {
 	   above: left as literals rather than forced onto a token that would
 	   change their value. */
 	.ft-statusmorph-cross-a {
-		transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
-			var(--ft-duration-micro, 80ms);
+		transition: stroke-dashoffset var(--ft-duration-fast, 150ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) var(--ft-duration-micro, 80ms);
 	}
 	.ft-statusmorph-cross-b {
-		transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
-			calc(var(--ft-duration-micro, 80ms) * 2);
+		transition: stroke-dashoffset var(--ft-duration-fast, 150ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) calc(var(--ft-duration-micro, 80ms) * 2);
 	}
 	svg[data-state="error"] {
 		animation: ft-statusmorph-shake var(--ft-duration-base, 300ms)

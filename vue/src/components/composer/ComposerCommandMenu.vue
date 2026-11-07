@@ -446,7 +446,7 @@ watch(
 
 @media (prefers-reduced-motion: no-preference) {
 	.ft-composer-command {
-		transition: background-color 120ms ease;
+		transition: background-color var(--ft-duration-fast, 150ms) ease;
 	}
 }
 </style>

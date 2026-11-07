@@ -363,8 +363,8 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 	white-space: nowrap;
 	opacity: 0.4;
 	transition:
-		color 150ms ease,
-		opacity 150ms ease;
+		color var(--ft-duration-fast, 150ms) ease,
+		opacity var(--ft-duration-fast, 150ms) ease;
 }
 
 .tn-item[data-active] .tn-label,

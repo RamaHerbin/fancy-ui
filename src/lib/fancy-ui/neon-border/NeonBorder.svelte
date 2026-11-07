@@ -219,7 +219,7 @@
 
 		/* The tube strikes once on first paint… */
 		.neon-light {
-			animation: neon-ignite 0.9s steps(1, end) both;
+			animation: neon-ignite 0.9s steps(1, end) both; /* off-token: stepped ignition flicker */
 		}
 
 		/* …then hums: a slow breathing of the glow. */

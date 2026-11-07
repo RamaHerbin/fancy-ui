@@ -295,7 +295,8 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-panel-return {
-			animation: ft-panel-return-in 180ms cubic-bezier(0.4, 0, 0.2, 1) both;
+			animation: ft-panel-return-in var(--ft-duration-exit, 200ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) both;
 		}
 	}
 

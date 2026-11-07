@@ -38,10 +38,10 @@ describe("ContainerTextFlip", () => {
 		const { container } = render(<ContainerTextFlip words={["abc"]} />);
 		const letters = container.querySelectorAll(".text-flip-letter");
 		expect(letters.length).toBe(3);
-		const firstDelay = (letters[0] as HTMLElement).style.animationDelay;
-		const secondDelay = (letters[1] as HTMLElement).style.animationDelay;
-		expect(firstDelay).toBe("0s");
-		expect(secondDelay).toBe("0.02s");
+		const firstDelay = (letters[0] as HTMLElement).style.getPropertyValue("--ft-child-delay");
+		const secondDelay = (letters[1] as HTMLElement).style.getPropertyValue("--ft-child-delay");
+		expect(firstDelay).toBe("0ms");
+		expect(secondDelay).toBe("20ms");
 	});
 
 	it("keeps ticking on the original cadence when the words prop identity changes", async () => {

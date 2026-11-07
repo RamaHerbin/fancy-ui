@@ -237,7 +237,7 @@
 		--_tl-surface: var(--background, #fafafa);
 		--_tl-muted: rgba(0, 0, 0, 0.42);
 		--_tl-glow-a: 38%;
-		--_tl-ease: cubic-bezier(0.16, 1, 0.3, 1);
+		--_tl-ease: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 		--_tl-x: 2rem;
 	}
 
@@ -403,12 +403,12 @@
 		font-size: 0.6875rem;
 		letter-spacing: 0.12em;
 		color: var(--_tl-muted);
-		transition: color 260ms ease;
+		transition: color var(--ft-duration-base, 300ms) ease;
 	}
 
 	.tl-heading {
 		color: var(--_tl-muted);
-		transition: color 260ms ease;
+		transition: color var(--ft-duration-base, 300ms) ease;
 	}
 
 	.tl-row[data-state="active"] .tl-heading {
@@ -427,29 +427,29 @@
 	/* ── Motion ───────────────────────────────────────────── */
 	@media (prefers-reduced-motion: no-preference) {
 		.tl-root[data-motion="full"] .tl-head {
-			transition: opacity 500ms var(--_tl-ease);
+			transition: opacity var(--ft-duration-entrance, 600ms) var(--_tl-ease);
 		}
 
 		.tl-root[data-motion="full"] .tl-dot {
 			transition:
-				transform 260ms var(--_tl-ease),
-				border-color 260ms ease,
-				box-shadow 260ms ease;
+				transform var(--ft-duration-base, 300ms) var(--_tl-ease),
+				border-color var(--ft-duration-base, 300ms) ease,
+				box-shadow var(--ft-duration-base, 300ms) ease;
 		}
 
 		.tl-root[data-motion="full"] .tl-dot-core {
 			transition:
-				transform 260ms var(--_tl-ease),
-				opacity 200ms ease;
+				transform var(--ft-duration-base, 300ms) var(--_tl-ease),
+				opacity var(--ft-duration-exit, 200ms) ease;
 		}
 
 		.tl-root[data-motion="full"] .tl-dot[data-lit="true"] .tl-dot-flare {
-			animation: tl-ignite 700ms var(--_tl-ease) both;
+			animation: tl-ignite var(--ft-duration-entrance, 600ms) var(--_tl-ease) both;
 		}
 
 		.tl-root[data-motion="full"] .tl-label-text,
 		.tl-root[data-motion="full"] .tl-content {
-			transition: opacity 300ms var(--_tl-ease);
+			transition: opacity var(--ft-duration-base, 300ms) var(--_tl-ease);
 		}
 	}
 

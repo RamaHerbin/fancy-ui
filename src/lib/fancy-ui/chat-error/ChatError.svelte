@@ -182,7 +182,8 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-error {
-			animation: ft-error-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+			animation: ft-error-in var(--ft-duration-exit, 200ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 
 		.ft-error-dot {

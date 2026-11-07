@@ -294,7 +294,8 @@
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-approval-resolved {
-			animation: ft-approval-resolve-in 240ms cubic-bezier(0.4, 0, 0.2, 1);
+			animation: ft-approval-resolve-in var(--ft-duration-exit, 200ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 

@@ -132,7 +132,7 @@
 		box-shadow:
 			0 0 2px 1px color-mix(in srgb, var(--_meteor-color) 70%, transparent),
 			0 0 8px 2px color-mix(in srgb, var(--_meteor-color) 35%, transparent);
-		animation: meteor-fall 5s cubic-bezier(0.3, 0, 0.9, 1) infinite;
+		animation: meteor-fall 5s cubic-bezier(0.3, 0, 0.9, 1) infinite; /* off-token: physics-like fall that accelerates */
 	}
 
 	:global(.dark) .meteor {

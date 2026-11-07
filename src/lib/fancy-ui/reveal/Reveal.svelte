@@ -44,8 +44,7 @@
 	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { inView } from "../_internals/motion/in-view.js";
-	import { staggerDelay } from "../_internals/motion/stagger.js";
-	import { STAGGER_CAPS } from "../_internals/motion/tokens.js";
+	import { staggerCap, staggerDelay } from "../_internals/motion/stagger.js";
 
 	// Named so the template's `style:--ft-reveal-*` directives can compare a
 	// caller's value against the shipped default and skip the inline write
@@ -57,7 +56,7 @@
 	// matter what the CSS said.
 	const DEFAULT_DURATION = 600; // tokens.DURATIONS.entrance
 	const DEFAULT_DELAY = 0;
-	const DEFAULT_EASING = "cubic-bezier(0.16, 1, 0.3, 1)"; // tokens.EASINGS.out
+	const DEFAULT_EASING = "var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))"; // tokens.EASINGS.out
 	const DEFAULT_DISTANCE = 16;
 
 	let {
@@ -217,8 +216,11 @@
 					(el instanceof HTMLElement || el instanceof SVGElement) &&
 					!el.hasAttribute("data-reveal-skip")
 			);
+			// One layout read per child-list change, never per item: the cap
+			// ramps with item size (rows ≈ 200 ms, cards ≈ 600 ms).
+			const cap = staggerCap(kids[0]?.getBoundingClientRect().height ?? 0);
 			for (let i = 0; i < kids.length; i++) {
-				const ms = staggerDelay(i, kids.length, stagger, from, STAGGER_CAPS.item);
+				const ms = staggerDelay(i, kids.length, stagger, from, cap);
 				kids[i].style.setProperty("--ft-reveal-child-delay", `${ms}ms`);
 			}
 		}

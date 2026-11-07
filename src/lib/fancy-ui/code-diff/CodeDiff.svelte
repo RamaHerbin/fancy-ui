@@ -439,11 +439,13 @@
 	   states with nothing to shorten. */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-body {
-			transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+			transition: grid-template-rows var(--ft-duration-base, 300ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 
 		.ft-chevron {
-			transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+			transition: transform var(--ft-duration-exit, 200ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 </style>

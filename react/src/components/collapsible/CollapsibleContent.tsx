@@ -106,7 +106,7 @@ export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentP
 				{...rest}
 				ref={setRef}
 				id={context?.contentId ?? rest.id}
-				className="ft-collapsible-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--ft-collapsible-duration,240ms)] ease-[cubic-bezier(0.16,1,0.3,1)] data-[state=open]:grid-rows-[1fr] motion-reduce:transition-none"
+				className="ft-collapsible-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--ft-collapsible-duration,240ms)] ease-[var(--ft-ease-out,cubic-bezier(0.16,1,0.3,1))] data-[state=open]:grid-rows-[1fr] motion-reduce:transition-none"
 				data-state={open ? "open" : "closed"}
 				style={hidden ? { ...style, visibility: "hidden" } : style}
 				onTransitionEnd={handleTransitionEnd}

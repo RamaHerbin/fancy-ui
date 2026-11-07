@@ -18,7 +18,7 @@
 	let rotate = $state({ x: 0, y: 0 });
 
 	let cssVars = $derived(
-		`--m-x:${glare.x}%;--m-y:${glare.y}%;--r-x:${rotate.x}deg;--r-y:${rotate.y}deg;--bg-x:${background.x}%;--bg-y:${background.y}%;--duration:300ms;--foil-size:100%;--opacity:0;--radius:48px;--easing:ease;--transition:var(--duration) var(--easing);`
+		`--m-x:${glare.x}%;--m-y:${glare.y}%;--r-x:${rotate.x}deg;--r-y:${rotate.y}deg;--bg-x:${background.x}%;--bg-y:${background.y}%;--duration:var(--ft-duration-base, 300ms);--foil-size:100%;--opacity:0;--radius:48px;--easing:ease;--transition:var(--duration) var(--easing);`
 	);
 
 	function handlePointerMove(event: PointerEvent) {
@@ -68,14 +68,14 @@
 
 <div
 	bind:this={refElement}
-	class="glare-container relative isolate [aspect-ratio:17/21] w-[320px] motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform [contain:layout_style] [perspective:600px] motion-safe:transition-transform"
+	class="glare-container relative isolate [aspect-ratio:17/21] w-[320px] ease-[var(--easing)] will-change-transform [contain:layout_style] [perspective:600px] motion-safe:transition-transform motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)]"
 	style={cssVars}
 	onpointermove={handlePointerMove}
 	onpointerenter={handlePointerEnter}
 	onpointerleave={handlePointerLeave}
 >
 	<div
-		class="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] motion-safe:transition-transform"
+		class="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] motion-safe:transition-transform motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)]"
 	>
 		<div
 			class="grid size-full mix-blend-soft-light [clip-path:inset(0_0_0_0_round_var(--radius))] [grid-area:1/1]"
@@ -87,7 +87,7 @@
 			</div>
 		</div>
 		<div
-			class="will-change-background grid size-full opacity-[var(--opacity)] mix-blend-soft-light motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)] ease-[var(--easing)] [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] motion-safe:transition-opacity"
+			class="will-change-background grid size-full opacity-[var(--opacity)] mix-blend-soft-light ease-[var(--easing)] [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] motion-safe:transition-opacity motion-safe:delay-[var(--delay)] motion-safe:duration-[var(--duration)]"
 		></div>
 		<div
 			class="glare-foil relative grid size-full opacity-[var(--opacity)] [background-blend-mode:hue_hue_hue_overlay] mix-blend-color-dodge will-change-[background] [background:var(--pattern),_var(--rainbow),_var(--diagonal),_var(--shade)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] after:bg-[inherit] after:[background-size:var(--foil-size),_200%_400%,_800%,_200%] after:[background-position:center,_0%_var(--bg-y),_calc(var(--bg-x)*_-1)_calc(var(--bg-y)*_-1),_var(--bg-x)_var(--bg-y)] after:[background-blend-mode:soft-light,_hue,_hard-light] after:mix-blend-exclusion after:content-[''] after:[grid-area:1/1] motion-safe:transition-opacity"

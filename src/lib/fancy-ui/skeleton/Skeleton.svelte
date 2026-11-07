@@ -105,7 +105,7 @@
 		bonesLingering = loading;
 	});
 
-	// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.in` — a departure
+	// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.out` — a departure
 	// curve for a departing layer. `prefersReducedMotion()` is called from the
 	// params expression at the call site rather than stored here: Svelte
 	// re-evaluates a directive's params at the instant the transition starts,
@@ -204,7 +204,7 @@
 					aria-hidden="true"
 					out:bonesFade={{
 						duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
-						easing: JS_EASINGS.in,
+						easing: JS_EASINGS.out,
 					}}
 				>
 					{@render bonesList()}

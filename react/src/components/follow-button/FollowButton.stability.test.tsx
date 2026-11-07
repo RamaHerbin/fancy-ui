@@ -54,7 +54,7 @@ describe("FollowButton width stability and text swap", () => {
 		expect(live(container).hasAttribute("aria-hidden")).toBe(false);
 	});
 
-	it("shows the outgoing label for 80 ms while the new one arrives", async () => {
+	it("shows the outgoing label until its exit animation ends", async () => {
 		const { container } = render(<FollowButton />);
 		expect(leaving(container)).toBeNull();
 		expect(live(container).hasAttribute("data-swapped")).toBe(false);
@@ -68,6 +68,27 @@ describe("FollowButton width stability and text swap", () => {
 		expect(leaving(container)?.getAttribute("aria-hidden")).toBe("true");
 
 		await advance(79);
+		expect(leaving(container)).not.toBeNull();
+		await act(async () => {
+			leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		});
+		expect(leaving(container)).toBeNull();
+	});
+
+	it("tears the outgoing label down on a safety timer when its animation never ends", async () => {
+		const { container } = render(<FollowButton />);
+		expect(leaving(container)).toBeNull();
+		expect(live(container).hasAttribute("data-swapped")).toBe(false);
+
+		await click(button(container));
+		await flush();
+
+		expect(text(container)).toBe("Following");
+		expect(live(container).hasAttribute("data-swapped")).toBe(true);
+		expect(leaving(container)?.textContent).toBe("Follow");
+		expect(leaving(container)?.getAttribute("aria-hidden")).toBe("true");
+
+		await advance(599);
 		expect(leaving(container)).not.toBeNull();
 		await advance(2);
 		expect(leaving(container)).toBeNull();
@@ -90,6 +111,10 @@ describe("FollowButton width stability and text swap", () => {
 		const { container } = render(<FollowButton onToggle={onToggle} resetMs={5000} />);
 		await click(button(container));
 		await flush();
+		// the first swap's outgoing layer has finished leaving
+		await act(async () => {
+			leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		});
 		await advance(300);
 		expect(text(container)).toBe("Try again");
 		expect(leaving(container)).toBeNull();
@@ -97,7 +122,9 @@ describe("FollowButton width stability and text swap", () => {
 		await flush();
 		expect(text(container)).toBe("Following");
 		expect(leaving(container)?.textContent).toBe("Try again");
-		await advance(100);
+		await act(async () => {
+			leaving(container)!.dispatchEvent(new Event("animationend", { bubbles: true }));
+		});
 		expect(leaving(container)).toBeNull();
 	});
 

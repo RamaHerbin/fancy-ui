@@ -394,10 +394,12 @@
 	@keyframes beam-packet {
 		0% {
 			stroke-dashoffset: var(--_o0);
+			/* off-token: sweep curve shaped for the travelling gradient */
 			animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
 		}
 		78% {
 			stroke-dashoffset: var(--_o1);
+			/* off-token: ease-in tail of the sweep, not a UI transition */
 			animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
 		}
 		100% {
@@ -422,12 +424,12 @@
 		74% {
 			opacity: 0;
 			transform: scale(0.6);
-			animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+			animation-timing-function: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 		}
 		84% {
 			opacity: 0.85;
 			transform: scale(1);
-			animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+			animation-timing-function: var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 		100% {
 			opacity: 0;
@@ -441,11 +443,11 @@
 		77% {
 			opacity: 0;
 			transform: scale(0.96);
-			animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+			animation-timing-function: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 		}
 		81% {
 			opacity: 0.7;
-			animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+			animation-timing-function: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 		}
 		100% {
 			opacity: 0;

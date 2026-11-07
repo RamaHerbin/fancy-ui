@@ -2,7 +2,8 @@ import { render, cleanup, waitFor } from "@testing-library/svelte";
 import { tick, mount, unmount as unmountInstance, flushSync } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { REDUCED_MOTION_QUERY } from "../_internals/motion/media-query.svelte.js";
-import { DURATIONS, STAGGER_CAPS } from "../_internals/motion/tokens.js";
+import { DURATIONS } from "../_internals/motion/tokens.js";
+import { staggerCap } from "../_internals/motion/stagger.js";
 import TextRoll from "./TextRoll.svelte";
 import TextRollHarness from "./TextRollHarness.test.svelte";
 import { rollIn, rollOut } from "./roll-transitions.js";
@@ -410,13 +411,13 @@ describe("TextRoll", () => {
 
 	describe("hard timeout backstop", () => {
 		// At the default `duration`/`stagger` props this is
-		// `DURATIONS.base(300) + STAGGER_CAPS.text(200) + DURATIONS.fast(150)`
+		// `DURATIONS.base(300) + staggerCap(0) (200) + DURATIONS.fast(150)`
 		// = 650, which is itself above the 600ms floor — computed here, not
 		// hardcoded, so a deliberate change to any of those three tokens
 		// doesn't leave this test asserting a stale number.
 		const expectedBackstopMs = Math.max(
 			DURATIONS.entrance,
-			DURATIONS.base + STAGGER_CAPS.text + DURATIONS.fast
+			DURATIONS.base + staggerCap(0) + DURATIONS.fast
 		);
 
 		it("returns to idle at the computed backstop even if a cell's transition-end event never fires", async () => {
@@ -619,7 +620,7 @@ describe("TextRoll", () => {
 			expect(rollIn(el, params).duration).toBe(0);
 		});
 
-		it("compresses a late index's delay to the STAGGER_CAPS.text ceiling", () => {
+		it("compresses a late index's delay to the staggerCap(0) ceiling", () => {
 			const params = {
 				direction: "up" as const,
 				duration: 300,
@@ -627,7 +628,7 @@ describe("TextRoll", () => {
 				count: 20,
 				step: 15,
 			};
-			expect(rollIn(el, params).delay).toBeLessThanOrEqual(STAGGER_CAPS.text);
+			expect(rollIn(el, params).delay).toBeLessThanOrEqual(staggerCap(0));
 		});
 	});
 

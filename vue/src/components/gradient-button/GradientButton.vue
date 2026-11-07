@@ -95,7 +95,10 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	callListener(onClick ?? onclick, event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	callListener(
+		onClick ?? onclick,
+		event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	);
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds
@@ -143,7 +146,7 @@ function handleClick(event: MouseEvent) {
 	isolation: isolate;
 	background: color-mix(in srgb, var(--gb-bg-color), #fff 8%);
 	animation: gb-spin var(--gb-duration) linear infinite;
-	transition: transform 0.2s ease;
+	transition: transform var(--ft-duration-exit, 200ms) ease;
 }
 
 .gradient-button:active {
@@ -200,7 +203,7 @@ function handleClick(event: MouseEvent) {
 	filter: blur(calc(var(--gb-blur) * 3));
 	mix-blend-mode: screen;
 	opacity: 0.45;
-	transition: opacity 0.3s ease;
+	transition: opacity var(--ft-duration-base, 300ms) ease;
 }
 
 .gradient-glow > span {

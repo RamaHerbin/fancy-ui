@@ -48,6 +48,7 @@ const contentStyle = computed(() => ({
 	opacity: isInView.value ? "1" : "0",
 	transform: `translateY(${isInView.value ? 0 : 25}px)`,
 	"--box-reveal-duration": `${duration}s`,
+	// off-token: a phase offset after the box slide, not a stagger
 	"--box-reveal-delay": `${delay * 2}s`,
 }));
 

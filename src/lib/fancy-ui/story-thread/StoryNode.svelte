@@ -34,10 +34,10 @@
 		border-radius: 9999px;
 		background: var(--story-thread-faint, color-mix(in oklab, currentColor 22%, transparent));
 		transition:
-			background-color 0.35s ease,
-			border-color 0.35s ease,
-			box-shadow 0.35s ease,
-			scale 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+			background-color var(--ft-duration-base, 300ms) ease,
+			border-color var(--ft-duration-base, 300ms) ease,
+			box-shadow var(--ft-duration-base, 300ms) ease,
+			scale var(--ft-duration-base, 300ms) var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 	.st-node[data-variant="ring"] {
 		width: 14px;

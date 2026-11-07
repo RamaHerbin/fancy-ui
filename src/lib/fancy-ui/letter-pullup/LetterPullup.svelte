@@ -65,7 +65,7 @@
 		.letter-pullup-char {
 			opacity: 0;
 			transform: translateY(100px);
-			animation: letterPullUp 0.5s ease forwards;
+			animation: letterPullUp var(--ft-duration-entrance, 600ms) ease forwards;
 			animation-delay: var(--letter-pullup-delay, 0s);
 		}
 	}

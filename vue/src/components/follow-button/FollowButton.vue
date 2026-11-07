@@ -49,7 +49,11 @@ export interface FollowButtonProps {
 }
 
 /** How long the outgoing label stays on screen, in milliseconds. */
-const LEAVE_MS = 80;
+// The outgoing layer is torn down on its animation's `animationend`, so a
+// consumer who retimes `--ft-duration-micro` keeps the script in step with
+// the stylesheet; the timer is only a safety net for an animation that never
+// runs (an ancestor hidden mid-swap).
+const LEAVE_FALLBACK_MS = DURATIONS.entrance;
 
 /*
  * The inline `style` rides StatusMorph's `$attrs` and lands as an attribute,
@@ -86,6 +90,7 @@ import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
+import { DURATIONS } from "../../internals/motion/tokens.js";
 import { Button } from "../button/index.js";
 import { StatusMorph } from "../status-morph/index.js";
 import {
@@ -262,8 +267,13 @@ watch(currentLabel, (next, previous) => {
 	leaving.value = previous;
 	leaveTimer = setTimeout(() => {
 		leaving.value = null;
-	}, LEAVE_MS);
+	}, LEAVE_FALLBACK_MS);
 });
+
+function endLeave() {
+	clearTimeout(leaveTimer);
+	leaving.value = null;
+}
 
 onBeforeUnmount(() => clearTimeout(leaveTimer));
 </script>
@@ -329,7 +339,13 @@ onBeforeUnmount(() => clearTimeout(leaveTimer));
 			<span class="ft-follow__ghost" aria-hidden="true">{{ resolvedLabels.following }}</span>
 			<span class="ft-follow__ghost" aria-hidden="true">{{ resolvedLabels.unfollow }}</span>
 			<span class="ft-follow__ghost" aria-hidden="true">{{ errorLabel }}</span>
-			<span v-if="leaving !== null" class="ft-follow__leave" aria-hidden="true">{{ leaving }}</span>
+			<span
+				v-if="leaving !== null"
+				class="ft-follow__leave"
+				aria-hidden="true"
+				@animationend="endLeave"
+				>{{ leaving }}</span
+			>
 			<span
 				:key="currentLabel"
 				class="ft-follow__live"
@@ -398,11 +414,13 @@ onBeforeUnmount(() => clearTimeout(leaveTimer));
    text snaps and the component never renders the outgoing layer. */
 @media (prefers-reduced-motion: no-preference) {
 	.ft-follow__leave {
-		animation: ft-follow-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+		animation: ft-follow-out var(--ft-duration-micro, 80ms)
+			var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
 	}
 
 	.ft-follow__live[data-swapped] {
-		animation: ft-follow-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+		animation: ft-follow-in var(--ft-duration-fast, 150ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) var(--ft-duration-micro, 80ms) backwards;
 	}
 }
 
