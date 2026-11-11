@@ -1,5 +1,6 @@
 import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { FakeIntersectionObserver } from "../../test-setup.js";
 import { FireworksHdr } from "./FireworksHdr.js";
 import { startWebGl2Fireworks, STRETCH } from "./webgl2-renderer.js";
 import type { FireworksEngineHandle } from "./webgpu-renderer.js";
@@ -218,6 +219,61 @@ describe("FireworksHdr pointer listener lifecycle (stubbed engine)", () => {
 		unmount();
 
 		expect(removeSpy.mock.calls.some(([type]) => type === "pointerdown")).toBe(false);
+	});
+
+	// The engine used to start its loop unconditionally on activation. It now
+	// asks the visibility gate first, so a component booted in a background tab
+	// stays idle until the tab comes forward.
+	it("does not start the loop when the engine activates in a hidden tab", async () => {
+		engineSeam.override = fakeEngine;
+		const raf = vi.fn(() => 1);
+		vi.stubGlobal("requestAnimationFrame", raf);
+		vi.stubGlobal("cancelAnimationFrame", vi.fn());
+		const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+		try {
+			render(<FireworksHdr />);
+			await act(async () => {});
+			expect(raf).not.toHaveBeenCalled();
+
+			hidden.mockReturnValue(false);
+			document.dispatchEvent(new Event("visibilitychange"));
+			expect(raf).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it("pauses the loop off-screen and resumes it on-screen", async () => {
+		engineSeam.override = fakeEngine;
+		const raf = vi.fn(() => 7);
+		const caf = vi.fn();
+		vi.stubGlobal("requestAnimationFrame", raf);
+		vi.stubGlobal("cancelAnimationFrame", caf);
+		try {
+			render(<FireworksHdr />);
+			await act(async () => {});
+			expect(raf).toHaveBeenCalledTimes(1);
+
+			const io = FakeIntersectionObserver.instances.at(-1)!;
+			io.trigger(false);
+			expect(caf).toHaveBeenCalledWith(7);
+			io.trigger(true);
+			expect(raf).toHaveBeenCalledTimes(2);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it("the handle's cleanup() stops the engine and releases the observers", async () => {
+		engineSeam.override = fakeEngine;
+		const onReady = vi.fn();
+		render(<FireworksHdr onReady={onReady} />);
+		await act(async () => {});
+		expect(onReady).toHaveBeenCalledTimes(1);
+		const io = FakeIntersectionObserver.instances.at(-1)!;
+		expect(io.elements.size).toBe(1);
+		(onReady.mock.calls[0]![0] as { cleanup: () => void }).cleanup();
+		expect(io.elements.size).toBe(0);
 	});
 });
 
@@ -474,9 +530,9 @@ describe("pattern shells", () => {
 		const pts = sample(heartOutline);
 		for (const p of pts) expect(Math.hypot(p.x, p.y)).toBeLessThanOrEqual(1.0001);
 		// Closed: the curve returns to where it started.
-		expect(
-			Math.hypot(pts[0]!.x - heartOutline(1).x, pts[0]!.y - heartOutline(1).y)
-		).toBeLessThan(1e-9);
+		expect(Math.hypot(pts[0]!.x - heartOutline(1).x, pts[0]!.y - heartOutline(1).y)).toBeLessThan(
+			1e-9
+		);
 		// Upright, y-up: a single point at the bottom, two lobes at the top.
 		const lowest = pts.reduce((a, b) => (b.y < a.y ? b : a));
 		expect(Math.abs(lowest.x)).toBeLessThan(0.05);
