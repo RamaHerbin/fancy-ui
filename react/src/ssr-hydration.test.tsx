@@ -45,8 +45,6 @@ import {
 const CANNOT_HYDRATE_UNDER_JSDOM = [
 	// jsdom's canvas has no 2D context (test-setup returns null from getContext).
 	"Confetti",
-	// WebGL context creation fails under jsdom.
-	"NoiseReveal",
 	// Mount effect dereferences a required prop the sweep does not pass.
 	"EditorialEngine",
 	"ReasoningPanel",
