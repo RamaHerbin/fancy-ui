@@ -48,6 +48,15 @@ export interface LiquidTextInitOptions {
 	 * inert from that point on; the wrapper should drop to its static fallback.
 	 */
 	onContextLost?: () => void;
+	/**
+	 * Hand the WebGL context itself back on `destroy()` (`WEBGL_lose_context`),
+	 * on top of deleting every GL object. Defaults to `true`, which is right
+	 * for a host that discards the `<canvas>` with the engine. A host that may
+	 * start a new engine on the *same* canvas element must pass `false`: a
+	 * context lost this way is never handed out again by `getContext`. A failed
+	 * start always drops the context, whatever this says.
+	 */
+	releaseContext?: boolean;
 }
 
 /**
@@ -1081,8 +1090,9 @@ export function createLiquidText(
 				canvas.removeEventListener("webglcontextlost", onContextLostEvent);
 				canvas.removeEventListener("webglcontextrestored", onContextRestored);
 				teardownSim();
-				const loseContext = gl.getExtension("WEBGL_lose_context");
-				loseContext?.loseContext();
+				if (options.releaseContext ?? true) {
+					gl.getExtension("WEBGL_lose_context")?.loseContext();
+				}
 			},
 		};
 	} catch {

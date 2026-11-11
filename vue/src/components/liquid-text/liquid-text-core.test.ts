@@ -428,6 +428,20 @@ describe("liquid-text-core", () => {
 			expect(gl.loseContext).toHaveBeenCalledTimes(1);
 		});
 
+		it("releaseContext: false tears the sim down but keeps the context for a later start", () => {
+			const engine = createLiquidText({ host, canvas }, { ...BASE_OPTIONS, releaseContext: false });
+			engine?.destroy();
+			expect(pendingRaf.size).toBe(0);
+			expect(gl.loseContext).not.toHaveBeenCalled();
+
+			// The same canvas can host a new engine afterwards.
+			const next = createLiquidText({ host, canvas }, { ...BASE_OPTIONS, releaseContext: false });
+			expect(next).not.toBeNull();
+			expect(pendingRaf.size).toBe(1);
+			next?.destroy();
+			expect(gl.loseContext).not.toHaveBeenCalled();
+		});
+
 		it("removes every listener it registered on destroy", () => {
 			const windowRemove = vi.spyOn(window, "removeEventListener");
 			const documentRemove = vi.spyOn(document, "removeEventListener");
