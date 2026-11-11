@@ -194,7 +194,10 @@ describe("NoiseReveal", () => {
 				frames.step();
 				expect(renderer.render).toHaveBeenCalledTimes(2);
 
+				// Back on screen: the loop is queued again and paints on its next frame.
 				act(() => gateObserver().trigger(true));
+				expect(frames.pending).not.toBeNull();
+				frames.step();
 				expect(renderer.render).toHaveBeenCalledTimes(3);
 			} finally {
 				frames.restore();
@@ -237,6 +240,8 @@ describe("NoiseReveal", () => {
 				act(() => {
 					document.dispatchEvent(new Event("visibilitychange"));
 				});
+				expect(frames.pending).not.toBeNull();
+				frames.step();
 				expect(renderer.render).toHaveBeenCalledTimes(2);
 			} finally {
 				restoreHidden();

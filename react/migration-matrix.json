@@ -3382,7 +3382,7 @@
 		"effort": "xhigh",
 		"complexity": "webgl",
 		"deps": {
-			"internals": [],
+			"internals": ["dom/use-element-ref", "dom/use-live-ref", "motion/in-view"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -3395,12 +3395,13 @@
 		"ssrRisk": "low",
 		"exports": ["NoiseReveal"],
 		"loc": 325,
-		"testFiles": ["NoiseReveal.test.ts"],
+		"testFiles": ["NoiseReveal.test.ts", "noise-reveal-core.test.ts", "NoiseReveal.live.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"`class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical.",
-			"The viewport-trigger effect lists `delay` in its dependency array, which the Svelte `$effect` does not track, so changing `delay` after the element has intersected cancels a reveal already waiting out its delay and re-observes; `delay` is a mount-time setting."
+			"The viewport-trigger effect lists `delay` in its dependency array, which the Svelte `$effect` does not track, so changing `delay` after the element has intersected cancels a reveal already waiting out its delay and re-observes; `delay` is a mount-time setting.",
+			"The React wrapper now drives the shared framework-free engine (`noise-reveal-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the scene inline; the core's own test file is copied byte-for-byte as well. The wrapper keeps one React-specific piece: an in-view observer on the host that forwards on-screen changes to the engine as its `visible` option, so the render loop stops while the canvas is scrolled out of view (the Svelte and Vue wrappers do not observe the host; the background-tab pause is the engine's own). A resumed loop paints on its next animation frame rather than synchronously."
 		],
 		"lastFailure": null,
 		"minors": []
