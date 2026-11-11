@@ -409,7 +409,7 @@
 		"effort": "xhigh",
 		"complexity": "canvas2d",
 		"deps": {
-			"internals": [],
+			"internals": ["dom/use-live-ref"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -422,12 +422,17 @@
 		"ssrRisk": "low",
 		"exports": ["FallingStarsBg"],
 		"loc": 165,
-		"testFiles": ["FallingStarsBg.test.ts"],
+		"testFiles": [
+			"FallingStarsBg.test.ts",
+			"bg-falling-stars-core.test.ts",
+			"FallingStarsBg.live.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"Added optional `seed?: number` (default 1) + mulberry32 PRNG replacing every `Math.random()` (star layout and respawn), per PORTING.md's randomisation rule; consequence: two `<FallingStarsBg />` with no seed show an identical sky, where the Svelte side gave each instance a different one.",
-			"`count` re-initialises the starfield in React (it is a dependency of the canvas effect); the Svelte side reads `count` only inside `onMount`, so a later `count` change there is silently ignored. `color` keeps Svelte's behaviour exactly (live, next-frame, no re-seed) via a ref rather than an effect dependency."
+			"`count` re-initialises the starfield in React (it is a dependency of the engine-creation effect, with `seed`); the Svelte side reads `count` only at mount, so a later change there is silently ignored. `color` and the reduced-motion preference reach the running engine through `setOptions`, so neither re-seeds the sky.",
+			"The React wrapper now drives the shared framework-free engine (`bg-falling-stars-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the canvas loop inline, passing the seeded PRNG as the engine's `random` argument; the core's own test file is copied byte-for-byte as well. A reduced-motion change freezes or resumes the same stars, as on Svelte and Vue, where the component used to re-seed the sky from its initial layout."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -1270,13 +1275,14 @@
 		"ssrRisk": "none",
 		"exports": ["Confetti", "ConfettiButton"],
 		"loc": 103,
-		"testFiles": ["Confetti.test.ts"],
+		"testFiles": ["Confetti.test.ts", "confetti-core.test.ts", "Confetti.live.test.ts"],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
 			"`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
 			"Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
-			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved."
+			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
+			"`Confetti` now drives the shared framework-free engine (`confetti-core.ts`, a byte-identical copy of the Svelte core) instead of creating the confetti instance itself; the core's own test file is copied byte-for-byte as well. The ref's `fire()` pushes the current `options` into the engine and then fires, exactly like the Svelte `fire` export."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -1672,7 +1678,7 @@
 		"effort": "xhigh",
 		"complexity": "webgl",
 		"deps": {
-			"internals": [],
+			"internals": ["dom/use-live-ref"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -1685,11 +1691,16 @@
 		"ssrRisk": "low",
 		"exports": ["DisplacementText"],
 		"loc": 226,
-		"testFiles": ["DisplacementText.test.ts"],
+		"testFiles": [
+			"DisplacementText.test.ts",
+			"displacement-text-core.test.ts",
+			"DisplacementText.live.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"`class` prop is renamed `className` (PORTING.md API contract); every other prop name, default and type is unchanged."
+			"`class` prop is renamed `className` (PORTING.md API contract); every other prop name, default and type is unchanged.",
+			"The React wrapper now imports the shared framework-free engine (`displacement-text-core.ts`, a byte-identical copy of the Svelte core) instead of carrying a pasted copy of it inside the component file; the core's own test file is copied byte-for-byte as well."
 		],
 		"lastFailure": null,
 		"minors": []
@@ -1986,12 +1997,17 @@
 		"ssrRisk": "low",
 		"exports": ["FlickeringGrid"],
 		"loc": 157,
-		"testFiles": ["FlickeringGrid.test.ts"],
+		"testFiles": [
+			"FlickeringGrid.test.ts",
+			"flickering-grid-core.test.ts",
+			"FlickeringGrid.live.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"Added `seed?: number` (default `1`) — the source's bare `Math.random()` is replaced by mulberry32 for both the initial square opacities and every flicker change, per PORTING.md's seed rule and matching the sibling MatrixRain port. Consumer-visible: two `<FlickeringGrid />` with no seed now flicker in step (the Svelte side gives each an independent stream), and a remount replays the same sequence. Changing `seed` restarts the grid.",
-			"`class` prop is named `className`, per PORTING.md's API contract. Same position in the same `cn(\"h-full w-full\", className)` call."
+			"`class` prop is named `className`, per PORTING.md's API contract. Same position in the same `cn(\"h-full w-full\", className)` call.",
+			"The React wrapper now drives the shared framework-free engine (`flickering-grid-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the grid loop inline; the core's own test file is copied byte-for-byte as well. Every option is pushed into the running engine, and a reduced-motion change keeps the squares and resumes the loop, as on Svelte and Vue, where the component used to re-seed the grid; only a `seed` change starts a fresh engine."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -2365,10 +2381,16 @@
 		"ssrRisk": "none",
 		"exports": ["GlowingEffect"],
 		"loc": 183,
-		"testFiles": ["GlowingEffect.test.ts"],
+		"testFiles": [
+			"GlowingEffect.test.ts",
+			"glowing-effect-core.test.ts",
+			"GlowingEffect.live.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"The React wrapper now drives the shared framework-free engine (`glowing-effect-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the pointer tracking and angle tween inline. The core's test file is the Vue package's copy, which adds a local `PointerEvent` polyfill for the older jsdom both ports test against."
+		],
 		"lastFailure": null
 	},
 	{
@@ -4545,7 +4567,7 @@
 		"effort": "xhigh",
 		"complexity": "canvas2d",
 		"deps": {
-			"internals": [],
+			"internals": ["dom/use-element-ref", "dom/use-live-ref"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -4558,14 +4580,15 @@
 		"ssrRisk": "low",
 		"exports": ["Sparkles"],
 		"loc": 124,
-		"testFiles": ["Sparkles.test.ts"],
+		"testFiles": ["Sparkles.test.ts", "sparkles-core.test.ts", "Sparkles.live.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"Adds a `seed?: number` prop (default `1`) and generates the particle field with a seeded mulberry32 PRNG instead of `Math.random()`, per PORTING.md's determinism rule - consequence: two `<Sparkles />` with no `seed` render the identical field, whereas the Svelte version gives every instance and every remount a different one. Pass distinct `seed` values to differentiate.",
-			"The mount effect re-inits (regenerates the particle field) when `minSize`, `maxSize`, `speed`, `particleDensity` or `seed` change. The Svelte side reads those five inside `generateParticles()` called from `onMount`, so changing them after mount is a no-op there until a remount. Same precedent as the FallingStarsBg port keying on `count`. `particleColor` is read through a live ref inside the rAF loop (repaints next frame, no re-init) and `background` is a plain inline style, so both behave identically to Svelte.",
+			"The mount effect re-inits (regenerates the particle field) when `minSize`, `maxSize`, `speed`, `particleDensity` or `seed` change. The Svelte side reads those five inside `generateParticles()` called from `onMount`, so changing them after mount is a no-op there until a remount. Same precedent as the FallingStarsBg port keying on `count`. `particleColor` is pushed into the running engine (repaints next frame, no re-init) and `background` is a plain inline style, so both behave identically to Svelte.",
 			"`class` prop becomes `className` (PORTING.md API contract). No `forwardRef` and no rest-prop spread: the Svelte source declares neither a `$bindable` ref nor `...restProps`, and its API surface is the contract.",
-			"No `.css` file is emitted - the Svelte source has no `<style>` block, so there is no port-added root anchor class and no new Tailwind literal. Root and canvas class strings are byte-identical to the Svelte source."
+			"No `.css` file is emitted - the Svelte source has no `<style>` block, so there is no port-added root anchor class and no new Tailwind literal. Root and canvas class strings are byte-identical to the Svelte source.",
+			"The React wrapper now drives the shared framework-free engine (`sparkles-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the particle loop inline, feeding it the seeded mulberry32 stream through the engine's `random` argument; the core's own test file is copied byte-for-byte as well. `particleColor` and the reduced-motion preference are pushed into the running engine: a reduced-motion change repaints a still frame of the same particles or resumes their drift, as on Svelte and Vue, where the component used to regenerate the field."
 		],
 		"lastFailure": null,
 		"minors": [
