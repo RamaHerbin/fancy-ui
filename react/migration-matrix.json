@@ -450,7 +450,7 @@
 		"effort": "medium",
 		"complexity": "pointer",
 		"deps": {
-			"internals": [],
+			"internals": ["dom/use-live-ref"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -463,14 +463,18 @@
 		"ssrRisk": "low",
 		"exports": ["StarsBackground"],
 		"loc": 206,
-		"testFiles": ["StarsBackground.test.ts"],
+		"testFiles": [
+			"StarsBackground.test.ts",
+			"bg-stars-core.test.ts",
+			"StarsBackground.live.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"Added a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's Math.random() star scatter — required by the SSR/hydration rule (PORTING.md, C-7); same seed = same sky.",
 			"Star box-shadows are derived in render (useMemo on starColor+seed) instead of a client-only effect, so stars appear in server-rendered HTML; the Svelte side renders empty shadows until the effect runs.",
 			"Port-added root anchor class `fancy-bg-stars` for the colocated CSS (Svelte compiler-scoped .stars-parallax/.star-layer/.star-field). The bare slug `bg-stars` was avoided deliberately: tailwind-merge classifies `bg-*` tokens as background utilities and would drop the anchor against any consumer bg-* override.",
-			"Per-frame spring transform is written imperatively to the parallax element's style in the rAF loop (per group guidance) instead of re-rendering through state; a stiffness/damping change restarts the loop but spring position/velocity persist in refs, so motion resumes from the in-flight position."
+			"The React wrapper now drives the shared framework-free engine (`bg-stars-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the spring loop inline; the core's own test file is copied byte-for-byte as well. The pointer is read through the engine's native `mousemove` listener on the root rather than a React `onMouseMove` prop, and a `factor` / `stiffness` / `damping` change is pushed into the running engine, so the spring carries on from its in-flight position."
 		],
 		"lastFailure": null
 	},
