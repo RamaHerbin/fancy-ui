@@ -951,10 +951,10 @@
 		"id": "fireworks-hdr/fireworks-hdr-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/fireworks-hdr/fireworks-hdr-core.ts",
-			"react": null,
+			"react": "react/src/components/fireworks-hdr/fireworks-hdr-core.ts",
 			"vue": "vue/src/components/fireworks-hdr/fireworks-hdr-core.ts"
 		}
 	},
@@ -1003,10 +1003,10 @@
 		"id": "liquid-text/liquid-text-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/liquid-text/liquid-text-core.ts",
-			"react": null,
+			"react": "react/src/components/liquid-text/liquid-text-core.ts",
 			"vue": "vue/src/components/liquid-text/liquid-text-core.ts"
 		}
 	},

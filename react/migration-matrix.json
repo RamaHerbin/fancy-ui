@@ -1932,7 +1932,7 @@
 		"effort": "max",
 		"complexity": "webgl",
 		"deps": {
-			"internals": [],
+			"internals": ["dom/use-event-callback"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -1953,7 +1953,13 @@
 		"ssrRisk": "low",
 		"exports": ["FireworksHdr", "heartOutline", "starOutline", "polygonOutline", "outlineBurst"],
 		"loc": 3944,
-		"testFiles": ["fireworks-shared.test.ts", "FireworksHdr.test.ts", "webgl2-renderer.test.ts"],
+		"testFiles": [
+			"fireworks-shared.test.ts",
+			"FireworksHdr.test.ts",
+			"webgl2-renderer.test.ts",
+			"fireworks-hdr-core.test.ts",
+			"FireworksHdr.live.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1961,7 +1967,8 @@
 			"NO `seed` prop was added, deliberately. Every `Math.random()` on the Svelte side lives inside `onMount` (ambient scheduling, hue jitter, shell pick, poisson intervals) and drives an imperatively-painted canvas — no random value ever reaches the rendered markup, which is a static wrapper + `<canvas>`. PORTING.md's seed-prop rule targets render-path randomisation (the Meteors case); adding a seed here would invent API surface the Svelte component does not expose. `createSim({ rng })` remains the injectable-randomness seam and is what the tests use.",
 			"WebGPU types: `webgpu-renderer.ts` is a byte-identical shared core, so like the Svelte module it opens with `/// <reference types=\"@webgpu/types\" />`, resolved by `@webgpu/types` in the package's devDependencies (build-time only, never installed by consumers). TypeScript 5.5+ does not preserve a user-written reference directive in declaration emit, and no public export mentions a GPU type, so the published `.d.ts` stay WebGPU-free. Shader source (WGSL + GLSL) is byte-for-byte verbatim.",
 			"Dev diagnostics: `import.meta.env.DEV` becomes `isDev()` (`dev.ts`), which reads `process.env.NODE_ENV` — the flag every React toolchain already replaces — and returns `false` when no such global exists. Consumer-visible only in that the `[FireworksHdr] …` console warnings appear in dev builds that set NODE_ENV and stay silent in a plain ESM page that sets nothing.",
-			"React StrictMode (dev only) double-invokes effects, so the engine boots, tears down and reboots once at mount; a consumer's `onReady` therefore fires twice under dev StrictMode. Production and non-StrictMode behaviour is unchanged (one boot, one `onReady`)."
+			"React StrictMode (dev only) double-invokes effects, so the engine boots, tears down and reboots once at mount; a consumer's `onReady` therefore fires twice under dev StrictMode. Production and non-StrictMode behaviour is unchanged (one boot, one `onReady`).",
+			"The React wrapper now drives the shared framework-free engine (`fireworks-hdr-core.ts`, a byte-identical copy of the Svelte core): boot, render loop, ambient scheduler, adaptive downgrade, pointer listener, tab-visibility gate and context-loss recovery all live there, and the core's own test file is copied byte-for-byte as well. The wrapper keeps the markup, the mount-time `prefers-reduced-motion` read and the visibility and resize observers, and pushes `quality` / `interactive` through `setOptions`; it passes no `random` argument, so the engine draws from `Math.random`. As in the engine, a component that activates in a hidden tab or off screen no longer starts its render loop until it becomes visible (the previous React code started it unconditionally)."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -3021,7 +3028,7 @@
 		"effort": "xhigh",
 		"complexity": "webgl",
 		"deps": {
-			"internals": ["dom/ssr", "dom/use-live-ref"],
+			"internals": ["dom/ssr", "dom/use-live-ref", "motion/media-query"],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -3041,15 +3048,15 @@
 		"ssrRisk": "low",
 		"exports": ["LiquidText"],
 		"loc": 1194,
-		"testFiles": ["LiquidText.test.ts"],
+		"testFiles": ["LiquidText.test.ts", "liquid-text-core.test.ts", "LiquidText.live.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"`class` prop is `className` (PORTING.md API contract). Every other prop name, default and type is identical to the Svelte surface; no ref is exposed (the Svelte source declares no `$bindable` ref) and no rest props are spread (the Svelte root has none).",
 			"`liquid-text.css`: the `.liquid-text-fallback` rule is anchored as `.liquid-text .liquid-text-fallback` (PORTING.md styling rule 2 — Svelte scoped it at compile time; as flat CSS the bare class would leak). Class names and the `.liquid-text` root rule are unchanged, and the fallback span is always a child of the root, so the computed styling is identical.",
-			"New internal dependency the Svelte side does not have: `useLiveRef` from `internals/dom/use-live-ref.js`. It reproduces Svelte's live `$props()` reads inside the long-lived sim closures (pointer handler, rAF loop, observers), so `interactive`, `forceGain`, `radius`, `dissipation`, `viscosity`, `strength`, `chromaticRatio`, `pauseWhenHidden`, `text` and `fontWeight` still take effect after mount without re-initialising GL. Matrix row lists `deps.internals: []`; it is now `[\"dom/use-live-ref\"]`.",
 			"Test-only: `LiquidText.test.tsx` adds one throwaway `render(...).unmount()` before the listener-balance spies are installed. react-dom attaches its delegated `selectionchange` listener to the owner document the first time any root is created and never removes it; without the warm-up the transposed balance assertion fails when the test is run in isolation (`-t`). No production-code effect.",
-			"The WebGL teardown deliberately diverges: the port does not call `WEBGL_lose_context.loseContext()` on a normal unmount (only on a failed init), because React re-runs the mount effect on the same `<canvas>` under StrictMode and Fast Refresh and a lost context is never re-acquired. Every GL object is still deleted explicitly and the context is reclaimed with the canvas."
+			"The React wrapper now drives the shared framework-free engine (`liquid-text-core.ts`, a byte-identical copy of the Svelte core) instead of carrying the WebGL pipeline inline; the core's own test file is copied byte-for-byte as well. Every simulation prop is pushed into the running engine through `setOptions`, and the fitted font metrics come back through the engine's `onMetrics` callback into React state. The wrapper keeps the layout effects (no flash at the unfitted size), the theme observer, the single resize observer on the root, the mount-time `staticBelow` check and the reduced-motion handling, read through `useReducedMotion()` after a direct `matchMedia` read at mount.",
+			"The wrapper starts the engine with `releaseContext: false`: on a normal unmount every GL object is deleted but the WebGL context itself is kept, where the Svelte and Vue wrappers also drop it through `WEBGL_lose_context`. React re-runs the mount effect on the same `<canvas>` under StrictMode and Fast Refresh, and a context lost that way is never handed out again. A failed start still drops the context."
 		],
 		"lastFailure": null,
 		"minors": []
