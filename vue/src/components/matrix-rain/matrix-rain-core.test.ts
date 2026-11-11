@@ -364,4 +364,74 @@ describe("createMatrixRain", () => {
 		// 300 / 16 => 18 columns, a head + body glyph each per advanced step.
 		expect(fillTexts.length).toBeGreaterThan(36);
 	});
+
+	describe("visible", () => {
+		it("stops the loop while off screen: the queued frame is cancelled, nothing is rescheduled", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+			expect(frames).toHaveLength(1);
+
+			engine.setOptions({ visible: false });
+			expect(cafSpy).toHaveBeenCalledTimes(1);
+			// The stubbed cancel leaves the callback queued: running it anyway must
+			// not put the loop back.
+			tick();
+			expect(frames).toHaveLength(0);
+		});
+
+		it("resumes from the current columns when it comes back, without a relayout", () => {
+			const canvas = makeCanvas();
+			const { fillRects } = attach(canvas);
+			const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+			engine.setOptions({ visible: false });
+			frames.length = 0;
+			fillRects.length = 0;
+
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(1);
+			// No opaque repaint: the trail picks up over what is already there.
+			expect(fillRects.some((r) => r.style === "black")).toBe(false);
+		});
+
+		it("never stacks a second loop when visible is reported again while running", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+			engine.setOptions({ visible: true });
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(1);
+		});
+
+		it("created off screen: lays the canvas out but schedules nothing", () => {
+			const canvas = makeCanvas();
+			const { fillRects } = attach(canvas);
+			createMatrixRain({ canvas }, { visible: false }, () => 0.42);
+			expect(fillRects[0]?.style).toBe("black");
+			expect(frames).toHaveLength(0);
+		});
+
+		it("coming back on screen under reduced motion keeps the still, with no loop", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+			engine.setOptions({ visible: false });
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(0);
+		});
+
+		it("clearing reduced motion while off screen waits for the canvas to be visible", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain(
+				{ canvas },
+				{ reducedMotion: true, visible: false },
+				() => 0.42
+			)!;
+			engine.setOptions({ reducedMotion: false });
+			expect(frames).toHaveLength(0);
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(1);
+		});
+	});
 });

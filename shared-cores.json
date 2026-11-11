@@ -863,10 +863,10 @@
 		"id": "bg-falling-stars/bg-falling-stars-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/bg-falling-stars/bg-falling-stars-core.ts",
-			"react": null,
+			"react": "react/src/components/bg-falling-stars/bg-falling-stars-core.ts",
 			"vue": "vue/src/components/bg-falling-stars/bg-falling-stars-core.ts"
 		}
 	},
@@ -874,10 +874,10 @@
 		"id": "bg-stars/bg-stars-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/bg-stars/bg-stars-core.ts",
-			"react": null,
+			"react": "react/src/components/bg-stars/bg-stars-core.ts",
 			"vue": "vue/src/components/bg-stars/bg-stars-core.ts"
 		}
 	},
@@ -885,10 +885,10 @@
 		"id": "confetti/confetti-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/confetti/confetti-core.ts",
-			"react": null,
+			"react": "react/src/components/confetti/confetti-core.ts",
 			"vue": "vue/src/components/confetti/confetti-core.ts"
 		}
 	},
@@ -896,10 +896,10 @@
 		"id": "flickering-grid/flickering-grid-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/flickering-grid/flickering-grid-core.ts",
-			"react": null,
+			"react": "react/src/components/flickering-grid/flickering-grid-core.ts",
 			"vue": "vue/src/components/flickering-grid/flickering-grid-core.ts"
 		}
 	},
@@ -907,10 +907,10 @@
 		"id": "glowing-effect/glowing-effect-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/glowing-effect/glowing-effect-core.ts",
-			"react": null,
+			"react": "react/src/components/glowing-effect/glowing-effect-core.ts",
 			"vue": "vue/src/components/glowing-effect/glowing-effect-core.ts"
 		}
 	},
@@ -918,10 +918,10 @@
 		"id": "matrix-rain/matrix-rain-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/matrix-rain/matrix-rain-core.ts",
-			"react": null,
+			"react": "react/src/components/matrix-rain/matrix-rain-core.ts",
 			"vue": "vue/src/components/matrix-rain/matrix-rain-core.ts"
 		}
 	},
@@ -929,10 +929,10 @@
 		"id": "sparkles/sparkles-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/sparkles/sparkles-core.ts",
-			"react": null,
+			"react": "react/src/components/sparkles/sparkles-core.ts",
 			"vue": "vue/src/components/sparkles/sparkles-core.ts"
 		}
 	},
@@ -951,10 +951,10 @@
 		"id": "fireworks-hdr/fireworks-hdr-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/fireworks-hdr/fireworks-hdr-core.ts",
-			"react": null,
+			"react": "react/src/components/fireworks-hdr/fireworks-hdr-core.ts",
 			"vue": "vue/src/components/fireworks-hdr/fireworks-hdr-core.ts"
 		}
 	},
@@ -992,10 +992,10 @@
 		"id": "fluid-cursor/fluid-cursor-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/fluid-cursor/fluid-cursor-core.ts",
-			"react": null,
+			"react": "react/src/components/fluid-cursor/fluid-cursor-core.ts",
 			"vue": "vue/src/components/fluid-cursor/fluid-cursor-core.ts"
 		}
 	},
@@ -1003,10 +1003,10 @@
 		"id": "liquid-text/liquid-text-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/liquid-text/liquid-text-core.ts",
-			"react": null,
+			"react": "react/src/components/liquid-text/liquid-text-core.ts",
 			"vue": "vue/src/components/liquid-text/liquid-text-core.ts"
 		}
 	},
@@ -1014,10 +1014,10 @@
 		"id": "displacement-text/displacement-text-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/displacement-text/displacement-text-core.ts",
-			"react": null,
+			"react": "react/src/components/displacement-text/displacement-text-core.ts",
 			"vue": "vue/src/components/displacement-text/displacement-text-core.ts"
 		}
 	},
@@ -1025,10 +1025,10 @@
 		"id": "noise-reveal/noise-reveal-core.ts",
 		"kind": "engine-core",
 		"shared": true,
-		"note": "Framework-free engine extracted in wave 0b; the React wrapper still re-implements it inline (re-wrap is a follow-up), so only Svelte↔Vue are gated for now.",
+		"note": "Framework-free engine extracted in wave 0b; the React wrapper now re-wraps the core too, so Svelte↔React↔Vue are all gated.",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/noise-reveal/noise-reveal-core.ts",
-			"react": null,
+			"react": "react/src/components/noise-reveal/noise-reveal-core.ts",
 			"vue": "vue/src/components/noise-reveal/noise-reveal-core.ts"
 		}
 	},

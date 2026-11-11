@@ -12,7 +12,7 @@ import type { FluidCursorInitOptions, FluidCursorLiveOptions } from "./fluid-cur
  * public surface — the wrapper fills it in from the bundler.
  */
 export interface FluidCursorProps extends Partial<
-	Omit<FluidCursorInitOptions, "dev"> & FluidCursorLiveOptions
+	Omit<FluidCursorInitOptions, "dev" | "releaseContext"> & FluidCursorLiveOptions
 > {
 	class?: HTMLAttributes["class"];
 }

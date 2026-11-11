@@ -1,23 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import { useEffect, useState } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { observeInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { createNoiseReveal, type NoiseRevealEngine } from "./noise-reveal-core.js";
 
-/**
- * NoiseReveal - A WebGL image reveal driven by a Perlin-noise dissolve mask.
- *
- * The mask lives entirely in the fragment shader: domain-warped noise plus a
- * radial gradient that contracts as `uProgress` runs 0 -> 1, clamped and
- * inverted into an alpha value. The vertex shader adds a wave displacement that
- * fades out over the same progress. Reveals once on viewport entry, or under
- * full manual control via `revealed`.
- *
- * The render loop pauses while the canvas is scrolled out of view or its tab is
- * in the background, and resumes from the noise phase it paused at.
- */
 export interface NoiseRevealProps {
 	/** Image URL */
 	src: string;
@@ -35,156 +23,6 @@ export interface NoiseRevealProps {
 	className?: string;
 }
 
-// The three animation helpers the Svelte source imports from the package's
-// shared animation utils, re-typed here: the React package has no port of that
-// module, and `internals/motion/easing.ts` carries a different set of curves.
-// Bodies are identical to the originals.
-
-/** Interpolate between two values */
-function lerp(start: number, end: number, t: number): number {
-	return start + (end - start) * t;
-}
-
-/** Clamp a value between min and max */
-function clamp(value: number, min: number, max: number): number {
-	return Math.min(Math.max(value, min), max);
-}
-
-/** Cubic ease in-out */
-function easeInOutCubic(t: number): number {
-	return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-/** Calculate animation progress based on elapsed time */
-function getProgress(elapsed: number, duration: number): number {
-	return clamp(elapsed / duration, 0, 1);
-}
-
-const vertexShader = `
-		uniform float uProgress;
-		varying vec2 vUv;
-
-		void main() {
-			vec3 newPosition = position;
-
-			float distanceToCenter = distance(vec2(0.5), uv);
-			float wave = (1.0 - uProgress) * sin(distanceToCenter * 20.0 - uProgress * 5.0);
-			newPosition.z += wave;
-
-			gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
-			vUv = uv;
-		}
-	`;
-
-// cnoise: classic 3D Perlin noise by Stefan Gustavson (MIT, github.com/stegu/webgl-noise)
-const fragmentShader = `
-		uniform sampler2D uTexture;
-		uniform float uTime;
-		uniform float uProgress;
-		uniform vec2 uRes;
-		uniform vec2 uImageRes;
-		varying vec2 vUv;
-
-		vec4 permute(vec4 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
-		vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-		vec3 fade(vec3 t) { return t * t * t * (t * (t * 6.0 - 15.0) + 10.0); }
-
-		float cnoise(vec3 P) {
-			vec3 Pi0 = floor(P);
-			vec3 Pi1 = Pi0 + vec3(1.0);
-			Pi0 = mod(Pi0, 289.0);
-			Pi1 = mod(Pi1, 289.0);
-			vec3 Pf0 = fract(P);
-			vec3 Pf1 = Pf0 - vec3(1.0);
-			vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
-			vec4 iy = vec4(Pi0.yy, Pi1.yy);
-			vec4 iz0 = Pi0.zzzz;
-			vec4 iz1 = Pi1.zzzz;
-
-			vec4 ixy = permute(permute(ix) + iy);
-			vec4 ixy0 = permute(ixy + iz0);
-			vec4 ixy1 = permute(ixy + iz1);
-
-			vec4 gx0 = ixy0 / 7.0;
-			vec4 gy0 = fract(floor(gx0) / 7.0) - 0.5;
-			gx0 = fract(gx0);
-			vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
-			vec4 sz0 = step(gz0, vec4(0.0));
-			gx0 -= sz0 * (step(0.0, gx0) - 0.5);
-			gy0 -= sz0 * (step(0.0, gy0) - 0.5);
-
-			vec4 gx1 = ixy1 / 7.0;
-			vec4 gy1 = fract(floor(gx1) / 7.0) - 0.5;
-			gx1 = fract(gx1);
-			vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
-			vec4 sz1 = step(gz1, vec4(0.0));
-			gx1 -= sz1 * (step(0.0, gx1) - 0.5);
-			gy1 -= sz1 * (step(0.0, gy1) - 0.5);
-
-			vec3 g000 = vec3(gx0.x, gy0.x, gz0.x);
-			vec3 g100 = vec3(gx0.y, gy0.y, gz0.y);
-			vec3 g010 = vec3(gx0.z, gy0.z, gz0.z);
-			vec3 g110 = vec3(gx0.w, gy0.w, gz0.w);
-			vec3 g001 = vec3(gx1.x, gy1.x, gz1.x);
-			vec3 g101 = vec3(gx1.y, gy1.y, gz1.y);
-			vec3 g011 = vec3(gx1.z, gy1.z, gz1.z);
-			vec3 g111 = vec3(gx1.w, gy1.w, gz1.w);
-
-			vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
-			g000 *= norm0.x;
-			g010 *= norm0.y;
-			g100 *= norm0.z;
-			g110 *= norm0.w;
-			vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
-			g001 *= norm1.x;
-			g011 *= norm1.y;
-			g101 *= norm1.z;
-			g111 *= norm1.w;
-
-			float n000 = dot(g000, Pf0);
-			float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
-			float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
-			float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
-			float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
-			float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
-			float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
-			float n111 = dot(g111, Pf1);
-
-			vec3 fade_xyz = fade(Pf0);
-			vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
-			vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
-			float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
-			return 2.2 * n_xyz;
-		}
-
-		vec2 CoverUV(vec2 u, vec2 s, vec2 i) {
-			float rs = s.x / s.y;
-			float ri = i.x / i.y;
-			vec2 st = rs < ri ? vec2(i.x * s.y / i.y, s.y) : vec2(s.x, i.y * s.x / i.x);
-			vec2 o = (rs < ri ? vec2((st.x - s.x) / 2.0, 0.0) : vec2(0.0, (st.y - s.y) / 2.0)) / st;
-			return u * s / st + o;
-		}
-
-		void main() {
-			vec2 newUv = CoverUV(vUv, uRes, uImageRes);
-
-			vec2 displacedUv = vUv + cnoise(vec3(vUv * 5.0, uTime * 0.1));
-			float strength = cnoise(vec3(displacedUv * 5.0, uTime * 0.2));
-
-			float radialGradient = distance(vUv, vec2(0.5)) * 12.5 - 7.0 * uProgress;
-			strength += radialGradient;
-
-			strength = clamp(strength, 0.0, 1.0);
-			strength = 1.0 - strength;
-
-			vec3 textureColor = texture2D(uTexture, newUv).rgb;
-
-			float opacityProgress = smoothstep(0.0, 0.7, uProgress);
-
-			gl_FragColor = vec4(textureColor, strength * opacityProgress);
-		}
-	`;
-
 export function NoiseReveal({
 	src,
 	alt,
@@ -196,257 +34,79 @@ export function NoiseReveal({
 }: NoiseRevealProps) {
 	const [container, containerRef] = useElementRef<HTMLDivElement>();
 
-	// State, not a ref: the two trigger effects below must re-run the moment the
-	// render loop publishes its setter, which is exactly what the source's
+	// State, not a ref: the trigger effects below must re-run the moment the
+	// scene effect publishes its engine, which is exactly what the source's
 	// `$state.raw` buys there.
-	const [setTarget, setSetTarget] = useState<((value: number) => void) | null>(null);
+	const [engine, setEngine] = useState<NoiseRevealEngine | null>(null);
 
-	// The source reads `revealed` through `untrack` when it seeds `uProgress`, so
-	// a change to it must never rebuild the scene. A live ref reproduces that;
-	// `revealed` in the dependency array would dispose and re-create the renderer
-	// on every toggle.
+	// The source reads `revealed` and the reduced-motion preference through
+	// `untrack` when it builds the scene, so a change to either must never
+	// rebuild it (that would dispose and re-create the renderer). Live refs
+	// reproduce that; the changes themselves reach the running engine through
+	// `setOptions` below.
 	const revealedRef = useLiveRef(revealed);
-
-	// Live reduced-motion preference. Read inside the running loop through a ref,
-	// so a flip never rebuilds the scene (it would re-create the renderer): the
-	// loop idles after one still frame and `syncReducedRef` wakes it on a flip.
 	const reducedMotion = useReducedMotion();
 	const reducedRef = useLiveRef(reducedMotion);
-	const syncReducedRef = useRef(() => {});
 
-	// The whole scene is built and torn down inside one effect, exactly as the
-	// source's `$effect` does. The dependency array is the set that `$effect`
-	// reads reactively: `src` and `duration` are captured into locals at setup,
-	// and `trigger` decides the seed value — any of the three changing disposes
-	// the old scene and builds a new one.
+	// Scene lifecycle. The dissolve itself lives in the framework-free engine
+	// shared with the Svelte and Vue packages (`noise-reveal-core.ts`, a
+	// byte-identical copy). The dependency array is the set the source's
+	// `$effect` reads reactively: the texture, the tween length and the trigger
+	// — any of the three changing disposes the old scene and builds a new one.
 	useEffect(() => {
 		if (!container) return;
 
-		const _src = src;
-		const _duration = duration;
-
-		const rect = container.getBoundingClientRect();
-		const width = rect.width || 1;
-		const height = rect.height || 1;
-		// Ported as-is: `|| 1` above already excludes 0, so this guard never
-		// fires. Kept so the port and the source stay line-for-line comparable.
-		if (height === 0) return;
-
-		const scene = new THREE.Scene();
-		scene.background = null;
-
-		const cameraDistance = 5;
-		const fov = 50;
-		const camera = new THREE.PerspectiveCamera(fov, width / height, 0.01, 1000);
-		camera.position.set(0, 0, cameraDistance);
-
-		const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-		renderer.setClearColor(0x000000, 0);
-		renderer.setPixelRatio(window.devicePixelRatio);
-		renderer.setSize(width, height, false);
-		renderer.domElement.style.width = "100%";
-		renderer.domElement.style.height = "100%";
-		container.appendChild(renderer.domElement);
-
-		const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
-
-		const material = new THREE.ShaderMaterial({
-			uniforms: {
-				uTexture: { value: null },
-				uTime: { value: 0 },
-				uProgress: { value: trigger === "manual" && revealedRef.current ? 1 : 0 },
-				uRes: { value: new THREE.Vector2(1, 1) },
-				uImageRes: { value: new THREE.Vector2(1, 1) },
-			},
-			vertexShader,
-			fragmentShader,
-			transparent: true,
-		});
-
-		const plane = new THREE.Mesh(geometry, material);
-		scene.add(plane);
-
-		// Scale the unit plane to exactly fill the camera frustum at z=0.
-		// Non-null assertions on `uniforms`: the type definitions declare it as a
-		// string index signature, so `noUncheckedIndexedAccess` widens every read
-		// to `| undefined`. Every key below is declared in the literal above.
-		const fitPlane = (w: number, h: number) => {
-			const visibleH = 2 * Math.tan((fov * Math.PI) / 360) * cameraDistance;
-			const visibleW = visibleH * (w / h);
-			plane.scale.set(visibleW, visibleH, 1);
-			(material.uniforms.uRes!.value as THREE.Vector2).set(visibleW, visibleH);
-		};
-		fitPlane(width, height);
-
-		// Re-enters the loop when it is idle. Reduced motion renders one still
-		// frame, then waits for a wake: a target change, the texture landing, a
-		// resize or a preference flip. Assigned once the loop below exists.
-		let wake = () => {};
-
-		let texture: THREE.Texture | null = null;
-		new THREE.TextureLoader().load(_src, (loaded) => {
-			loaded.colorSpace = THREE.SRGBColorSpace;
-			texture = loaded;
-			material.uniforms.uTexture!.value = loaded;
-			const image = loaded.image as HTMLImageElement;
-			(material.uniforms.uImageRes!.value as THREE.Vector2).set(
-				image.naturalWidth || 1,
-				image.naturalHeight || 1
-			);
-			// The texture lands asynchronously: an idle loop must repaint, otherwise
-			// a reduced-motion user would see a blank plane.
-			wake();
-		});
-
-		let progress = material.uniforms.uProgress!.value as number;
-		const tween = { from: progress, to: progress, start: 0, active: false };
-
-		const target = (value: number) => {
-			if (value === tween.to) return;
-			tween.to = value;
-			if (reducedRef.current) {
-				progress = value;
-				tween.active = false;
-			} else {
-				tween.from = progress;
-				tween.start = performance.now();
-				tween.active = true;
+		const instance = createNoiseReveal(
+			{ container },
+			{
+				src,
+				duration,
+				trigger,
+				revealed: revealedRef.current,
+				reducedMotion: reducedRef.current,
 			}
-			wake();
-		};
-		setSetTarget(() => target);
+		);
+		// No WebGL context: the host stays an empty box, as on the other packages.
+		if (!instance) return;
+		setEngine(instance);
 
-		const handleResize = () => {
-			const r = container.getBoundingClientRect();
-			if (r.height === 0) return;
-			camera.aspect = r.width / r.height;
-			camera.updateProjectionMatrix();
-			renderer.setSize(r.width, r.height, false);
-			fitPlane(r.width, r.height);
-			// setSize cleared the drawing buffer; repaint if the loop is idle.
-			wake();
-		};
-
-		window.addEventListener("resize", handleResize);
-
-		const clock = new THREE.Clock();
-		// Clock time that elapsed while the loop was stopped. Subtracted from uTime
-		// so a resumed loop carries on from the noise phase it paused at instead of
-		// jumping forward by the length of the pause.
-		let pausedTime = 0;
-		let stoppedAt: number | null = null;
-
-		// A queued frame is the loop's only "is it running" state, so `0` is the idle
-		// sentinel — a real frame id is never 0. `start()` is therefore safe to call
-		// again while the loop is already running, and it paints the frame it starts
-		// with synchronously, exactly as the first `animate()` call did.
-		let animationId = 0;
-		const animate = () => {
-			if (tween.active) {
-				const t = getProgress(performance.now() - tween.start, _duration * 1000);
-				progress = lerp(tween.from, tween.to, easeInOutCubic(t));
-				if (t >= 1) tween.active = false;
-			}
-			material.uniforms.uProgress!.value = progress;
-			// Reduced motion freezes the grain: uTime keeps its last value.
-			if (!reducedRef.current) {
-				material.uniforms.uTime!.value = clock.getElapsedTime() - pausedTime;
-			}
-			renderer.render(scene, camera);
-			// One still frame under reduced motion, then idle (0 = no queued frame).
-			animationId = reducedRef.current && !tween.active ? 0 : requestAnimationFrame(animate);
-		};
-
-		const start = () => {
-			if (animationId !== 0) return;
-			if (stoppedAt !== null) {
-				pausedTime += clock.getElapsedTime() - stoppedAt;
-				stoppedAt = null;
-			}
-			animate();
-		};
-
-		const stop = () => {
-			if (animationId === 0) return;
-			cancelAnimationFrame(animationId);
-			animationId = 0;
-			stoppedAt = clock.getElapsedTime();
-		};
-
-		start();
-
-		syncReducedRef.current = () => {
-			// Snap an in-flight tween to its destination, then repaint/resume.
-			if (reducedRef.current && tween.active) {
-				progress = tween.to;
-				tween.active = false;
-			}
-			wake();
-		};
-
-		// Every frame evaluates the noise twice per fragment at the device pixel ratio,
-		// so a canvas that is off screen or in a background tab is pure cost. The mask
-		// is computed from scratch each frame and keeps no state to rebuild, so the
-		// loop can stop there and pick up where it left off. `threshold: 0` — any
-		// sliver on screen counts as visible — and `once: false`, because this has to
-		// keep reporting both ways.
-		//
-		// The loop still starts immediately rather than waiting for the first observer
-		// callback: that callback lands a task later, and a canvas that is already on
-		// screen should not hold a blank frame until then.
-		let onScreen = true;
-		const handleVisibility = () => {
-			if (document.hidden) stop();
-			else if (onScreen) start();
-		};
-		document.addEventListener("visibilitychange", handleVisibility);
-		wake = () => {
-			if (onScreen && !document.hidden) start();
-		};
-
+		// Every frame evaluates the noise twice per fragment at the device pixel
+		// ratio, so a canvas that is off screen is pure cost: the engine stops its
+		// loop while `visible` is false and picks up where it left off (it handles
+		// a background tab by itself). `threshold: 0` — any sliver on screen counts
+		// as visible — and `once: false`, because this has to keep reporting both
+		// ways. The loop starts before the first observer callback, which lands a
+		// task later: a canvas already on screen never holds a blank frame.
 		const inViewHandle = observeInView(container, {
 			once: false,
 			threshold: 0,
-			onChange: (intersecting) => {
-				onScreen = intersecting;
-				if (intersecting && !document.hidden) start();
-				else stop();
-			},
+			onChange: (intersecting) => instance.setOptions({ visible: intersecting }),
 		});
 
 		return () => {
-			syncReducedRef.current = () => {};
-			wake = () => {};
-			setSetTarget(null);
-			window.removeEventListener("resize", handleResize);
-			document.removeEventListener("visibilitychange", handleVisibility);
+			setEngine(null);
 			inViewHandle.destroy();
-			stop();
-			if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
-			renderer.dispose();
-			geometry.dispose();
-			material.dispose();
-			texture?.dispose();
+			instance.destroy();
 		};
-	}, [container, src, duration, trigger, revealedRef]);
+	}, [container, src, duration, trigger, revealedRef, reducedRef]);
 
-	// Reduced motion flip: snap/repaint (reduced) or resume the loop (cleared).
+	// Reduced motion: one still frame, the grain freezes, target changes snap.
 	useEffect(() => {
-		syncReducedRef.current();
-	}, [reducedMotion]);
+		engine?.setOptions({ reducedMotion });
+	}, [engine, reducedMotion]);
 
 	// Viewport trigger: reveal once on first intersection
 	useEffect(() => {
-		if (trigger !== "view" || !container || !setTarget) return;
+		if (trigger !== "view" || !container || !engine) return;
 
-		const set = setTarget;
+		const instance = engine;
 		let timeoutId = 0;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				for (const entry of entries) {
 					if (entry.isIntersecting) {
 						observer.disconnect();
-						timeoutId = window.setTimeout(() => set(1), delay * 1000);
+						timeoutId = window.setTimeout(() => instance.setOptions({ target: 1 }), delay * 1000);
 					}
 				}
 			},
@@ -459,13 +119,13 @@ export function NoiseReveal({
 			observer.disconnect();
 			clearTimeout(timeoutId);
 		};
-	}, [trigger, container, setTarget, delay]);
+	}, [trigger, container, engine, delay]);
 
 	// Manual trigger: follow the `revealed` prop both ways
 	useEffect(() => {
-		if (trigger !== "manual" || !setTarget) return;
-		setTarget(revealed ? 1 : 0);
-	}, [trigger, setTarget, revealed]);
+		if (trigger !== "manual" || !engine) return;
+		engine.setOptions({ target: revealed ? 1 : 0 });
+	}, [trigger, engine, revealed]);
 
 	return (
 		<div
