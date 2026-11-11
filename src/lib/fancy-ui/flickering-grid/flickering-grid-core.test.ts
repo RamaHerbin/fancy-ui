@@ -132,7 +132,7 @@ describe("createFlickeringGrid", () => {
 		tick(16);
 		expect(draws.fillRectCalls).toBe(80);
 		engine!.setInView(false);
-		tick(32); // the already-queued frame fires and bails out
+		tick(32); // nothing left to fire: the queued frame was cancelled
 		expect(draws.fillRectCalls).toBe(80);
 		expect(pending.size).toBe(0);
 	});
@@ -145,7 +145,7 @@ describe("createFlickeringGrid", () => {
 		expect(draws.fillRectCalls).toBe(80);
 
 		engine!.setInView(false);
-		tick(32); // stale frame fires off-screen and schedules nothing
+		tick(32); // off screen: nothing is queued
 		expect(pending.size).toBe(0);
 
 		engine!.setInView(true); // scrolled back into view
@@ -155,16 +155,32 @@ describe("createFlickeringGrid", () => {
 		expect(pending.size).toBe(1);
 	});
 
-	it("schedules unconditionally on repeated setInView(true), as the original observer did", () => {
-		const { container, canvas } = makeElements();
+	it("runs a single loop when setInView(true) is reported twice in a row", () => {
+		const { container, canvas, draws } = makeElements();
 		const engine = createFlickeringGrid({ container, canvas }, {});
 		engine!.setInView(true);
 		engine!.setInView(true);
-		// The original callback was `if (isInView) requestAnimationFrame(animate)`
-		// with no de-duplication, so two consecutive intersecting callbacks
-		// stacked two loops. Fidelity law: preserve that, do not "fix" it.
-		expect(rafSpy).toHaveBeenCalledTimes(2);
-		expect(pending.size).toBe(2);
+		// Scheduling on every intersecting callback stacked a second loop, which
+		// then ran for good: twice the flicker rate, twice the paint cost.
+		expect(rafSpy).toHaveBeenCalledTimes(1);
+		expect(pending.size).toBe(1);
+		tick(16);
+		expect(draws.fillRectCalls).toBe(80);
+		expect(pending.size).toBe(1);
+	});
+
+	it("runs a single loop when the grid leaves and re-enters within one frame", () => {
+		const { container, canvas, draws } = makeElements();
+		const engine = createFlickeringGrid({ container, canvas }, {});
+		engine!.setInView(true);
+		engine!.setInView(false);
+		// The queued frame is cancelled, not left to bail out on its own.
+		expect(pending.size).toBe(0);
+		engine!.setInView(true);
+		expect(pending.size).toBe(1);
+		tick(16);
+		expect(draws.fillRectCalls).toBe(80);
+		expect(pending.size).toBe(1);
 	});
 
 	it("setOptions merges live options without resizing the grid", () => {
