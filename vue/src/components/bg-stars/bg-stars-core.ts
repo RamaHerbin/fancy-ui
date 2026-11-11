@@ -42,6 +42,12 @@ export interface BgStarsEngine {
 const DEFAULT_FACTOR = 0.05;
 const DEFAULT_STIFFNESS = 50;
 const DEFAULT_DAMPING = 20;
+/**
+ * Sub-pixel: under this the spring neither moves the layer nor sits visibly
+ * away from its target, so the loop parks instead of writing the same
+ * transform every frame for the page's whole life.
+ */
+const REST_EPSILON = 0.01;
 
 /**
  * Pure helper that builds a CSS `box-shadow` value describing `count`
@@ -67,7 +73,10 @@ export function generateStars(
 /**
  * Creates the parallax-spring engine: a pointer listener on `host` feeds a
  * spring target, a rAF loop integrates it, and the result is written as a
- * CSS transform directly onto `parallax`. Never returns null today — there
+ * CSS transform directly onto `parallax`. The loop only runs while there is
+ * something to integrate: it parks once the spring has settled on its target
+ * and while the page is in a background tab, and a new pointer target or the
+ * tab coming back wakes it. Never returns null today — there
  * is no canvas/WebGL context to fail on — but the signature matches the
  * shared engine contract for consistency with the other cores.
  */
@@ -97,12 +106,12 @@ export function createBgStars(
 	}
 
 	function tick(): void {
+		rafId = null;
 		// Reduced motion: no parallax travel. Snap the spring to rest, write it
 		// once, then idle until the preference flips back.
 		if (reducedMotion) {
 			springX = springY = targetX = targetY = velocityX = velocityY = 0;
 			applyTransform();
-			rafId = null;
 			return;
 		}
 
@@ -116,9 +125,45 @@ export function createBgStars(
 		springX += velocityX;
 		springY += velocityY;
 
+		const atRest =
+			Math.abs(velocityX) < REST_EPSILON &&
+			Math.abs(velocityY) < REST_EPSILON &&
+			Math.abs(targetX - springX) < REST_EPSILON &&
+			Math.abs(targetY - springY) < REST_EPSILON;
+
+		if (atRest) {
+			// Land exactly on the target so the parked transform matches the
+			// one the loop would have converged to.
+			velocityX = velocityY = 0;
+			springX = targetX;
+			springY = targetY;
+		}
+
 		applyTransform();
 
+		if (!atRest) rafId = requestAnimationFrame(tick);
+	}
+
+	/**
+	 * Wake the loop. Idempotent: a second wake while a frame is already
+	 * queued, or while the page is in a background tab, changes nothing. Under
+	 * reduced motion the spring never runs.
+	 */
+	function start(): void {
+		if (rafId !== null || destroyed || reducedMotion || document.hidden) return;
 		rafId = requestAnimationFrame(tick);
+	}
+
+	function stop(): void {
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+	}
+
+	function handleVisibilityChange(): void {
+		if (document.hidden) stop();
+		else start();
 	}
 
 	function handleMouseMove(e: MouseEvent): void {
@@ -127,11 +172,13 @@ export function createBgStars(
 		const centerY = window.innerHeight / 2;
 		targetX = -(e.clientX - centerX) * factor;
 		targetY = -(e.clientY - centerY) * factor;
+		start();
 	}
 
 	el.host.addEventListener("mousemove", handleMouseMove);
+	document.addEventListener("visibilitychange", handleVisibilityChange);
 	applyTransform();
-	if (!reducedMotion) rafId = requestAnimationFrame(tick);
+	start();
 
 	return {
 		setOptions(next) {
@@ -143,13 +190,10 @@ export function createBgStars(
 				reducedMotion = next.reducedMotion;
 				if (reducedMotion) {
 					// Settle immediately instead of waiting for the next frame.
-					if (rafId !== null) {
-						cancelAnimationFrame(rafId);
-						rafId = null;
-					}
+					stop();
 					tick();
-				} else if (rafId === null) {
-					rafId = requestAnimationFrame(tick);
+				} else {
+					start();
 				}
 			}
 		},
@@ -160,10 +204,8 @@ export function createBgStars(
 			if (destroyed) return;
 			destroyed = true;
 			el.host.removeEventListener("mousemove", handleMouseMove);
-			if (rafId !== null) {
-				cancelAnimationFrame(rafId);
-				rafId = null;
-			}
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			stop();
 		},
 	};
 }
