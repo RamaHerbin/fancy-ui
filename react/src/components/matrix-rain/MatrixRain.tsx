@@ -4,6 +4,7 @@ import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { observeInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { createMatrixRain, type MatrixRainEngine } from "./matrix-rain-core.js";
 
 /**
  * MatrixRain - Canvas2D "digital rain" background
@@ -40,9 +41,6 @@ export interface MatrixRainProps {
 	seed?: number;
 }
 
-const GLYPHS =
-	"アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&";
-
 /**
  * mulberry32 — a tiny deterministic PRNG, standing in for the source's bare
  * `Math.random()`. Seeding costs nothing visually (the same uniform
@@ -60,12 +58,23 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
-// Steps simulated (no rAF) before the single reduced-motion paint. One step
-// advances every column by a row, so ~80 steps is a few screen heights of drops:
-// every column has fallen, left its fade trail and (2.5% per step once below the
-// bottom) restarted, which is the dense wall the live loop settles into. The
-// stream is seeded, so the still stays deterministic.
-const STILL_PRE_ROLL_STEPS = 80;
+/**
+ * `density` in the shared engine's convention.
+ *
+ * This component documents `density` as "higher = more, narrower columns": the
+ * column pitch is `glyphSize / density`. The shared engine multiplies instead
+ * (`glyphSize * density`, so a higher value spreads the columns out), which is
+ * the behaviour the Svelte and Vue packages ship. The reciprocal turns one into
+ * the other, so each package keeps the behaviour it has always had. The floor
+ * mirrors the one this component always applied to its own value.
+ *
+ * Known edge: above `density = 10` the engine's own floor on the converted
+ * value (0.1) caps the column count, where this component used to keep adding
+ * columns less than two pixels apart.
+ */
+function toEngineDensity(density: number): number {
+	return 1 / Math.max(0.1, density);
+}
 
 export function MatrixRain({
 	color = "#00ff41",
@@ -78,223 +87,67 @@ export function MatrixRain({
 }: MatrixRainProps) {
 	const [canvas, canvasRef] = useElementRef<HTMLCanvasElement>();
 
-	// Read inside the running loop only. The Svelte `$effect` reads these three
-	// exclusively from `draw()`, which runs from a rAF callback and is therefore
-	// outside its tracking context — so they must NOT tear the loop down and
-	// restart it when they change. `glyphSize` and `density` are read
-	// synchronously by `init()` in the effect body, which is why they ARE effect
-	// dependencies below: changing either genuinely re-columns the rain.
-	const colorRef = useLiveRef(color);
-	const speedRef = useLiveRef(speed);
-	const fadeOpacityRef = useLiveRef(fadeOpacity);
+	// The rain itself lives in the framework-free engine shared with the Svelte
+	// and Vue packages (`matrix-rain-core.ts`, a byte-identical copy).
+	const engineRef = useRef<MatrixRainEngine | null>(null);
 
-	// Component-scoped in the source (`let frameCount = 0`), so it survives a
-	// re-init rather than restarting the `speed < 1` frame-skip phase.
-	const frameCountRef = useRef(0);
+	// Per-frame appearance. The engine reads these on every frame, so a change
+	// is pushed into the running engine (second effect below) and must NOT tear
+	// the loop down. The live ref only supplies their value when an engine starts.
+	const appearanceRef = useLiveRef({ color, speed, fadeOpacity });
 
 	// Reduced motion: one still frame instead of the rAF loop. A flip restarts the
 	// effect below; the same `seed` re-seeds the same columns.
 	const reducedMotion = useReducedMotion();
 
-	// Set by the effect below while it holds an idle still frame, so a colour or
-	// fade change can lay that still out again without tearing the effect down.
-	const repaintStillRef = useRef<(() => void) | null>(null);
-	const stillStyleRef = useRef({ color, fadeOpacity });
-
+	// A new engine — and with it a freshly seeded stream — whenever the layout
+	// (`glyphSize`, `density`), the `seed` or the motion preference changes.
 	useEffect(() => {
 		if (!canvas) return;
 
-		const context = canvas.getContext("2d");
-		if (!context) return;
-		// Re-bound with an explicit non-null type: `draw()` is a hoisted function
-		// declaration, and TypeScript does not carry the null check above into one.
-		const ctx: CanvasRenderingContext2D = context;
+		const engine = createMatrixRain(
+			{ canvas },
+			{
+				...appearanceRef.current,
+				glyphSize,
+				density: toEngineDensity(density),
+				reducedMotion,
+			},
+			mulberry32(seed)
+		);
+		// No 2D context (a canvas that cannot paint): nothing to run.
+		if (!engine) return;
+		engineRef.current = engine;
 
-		const random = mulberry32(seed);
-
-		const safeGlyphSize = Math.max(1, glyphSize);
-		const safeDensity = Math.max(0.1, density);
-		// Horizontal distance between two columns. `density` is documented as
-		// "higher = more, narrower columns", so it DIVIDES the glyph width here:
-		// doubling it halves the pitch, which both doubles the column count and
-		// packs the streams tighter. The Svelte source multiplies instead, which
-		// makes a higher density produce fewer, wider columns — the opposite of
-		// what its own README describes. Deliberate divergence: the contract wins.
-		const columnPitch = safeGlyphSize / safeDensity;
-
-		let columns: number[] = [];
-		let canvasW = 0;
-		let canvasH = 0;
-		let rafId = 0;
-
-		// `charAt` rather than `GLYPHS[i]`: index-identical for every character
-		// in the set, and typed `string` under `noUncheckedIndexedAccess`.
-		function randomGlyph(): string {
-			return GLYPHS.charAt(Math.floor(random() * GLYPHS.length));
-		}
-
-		function init(w: number, h: number) {
-			const colCount = Math.max(1, Math.floor(w / columnPitch));
-			columns = Array.from({ length: colCount }, () => Math.floor(random() * (h / safeGlyphSize)));
-		}
-
-		function step(advanceNow = false) {
-			const w = canvasW;
-			const h = canvasH;
-
-			const currentColor = colorRef.current;
-			const currentSpeed = speedRef.current;
-			const currentFadeOpacity = fadeOpacityRef.current;
-
-			// Fade trail
-			ctx.fillStyle = `rgba(0, 0, 0, ${currentFadeOpacity})`;
-			ctx.fillRect(0, 0, w, h);
-
-			ctx.font = `${glyphSize}px monospace`;
-			ctx.shadowBlur = 8;
-			ctx.shadowColor = currentColor;
-
-			const rowsPerFrame = Math.max(1, currentSpeed);
-			frameCountRef.current++;
-
-			// Only advance every N frames to control speed below 1x
-			const shouldAdvance =
-				advanceNow ||
-				currentSpeed >= 1 ||
-				frameCountRef.current % Math.round(1 / currentSpeed) === 0;
-
-			if (shouldAdvance) {
-				for (let i = 0; i < columns.length; i++) {
-					const row = columns[i] as number;
-					const x = i * columnPitch;
-					const y = row * glyphSize;
-
-					// Head character (bright white)
-					ctx.fillStyle = "#ffffff";
-					ctx.fillText(randomGlyph(), x, y);
-
-					// Body glyph one step behind (dimmer)
-					if (row > 1) {
-						ctx.fillStyle = currentColor;
-						ctx.fillText(randomGlyph(), x, y - glyphSize);
-					}
-
-					// Reset column when it exits bottom, with random delay
-					if (y > h && random() > 0.975) {
-						columns[i] = 0;
-					} else {
-						columns[i] = row + rowsPerFrame;
-					}
-				}
-			}
-
-			ctx.shadowBlur = 0;
-		}
-
-		function draw() {
-			step();
-			// One frame under reduced motion only if the preference flipped while a
-			// frame was queued: paint it, then idle.
-			if (reducedMotion) {
-				rafId = 0;
-				return;
-			}
-			rafId = requestAnimationFrame(draw);
-		}
-
-		// Pre-rolls the simulation, then leaves the canvas holding one still frame.
-		// Every pre-roll step advances the rain: the live frame-skip cadence that
-		// slows sub-1x speeds would otherwise skip all of them (speed 0.01 advances
-		// once per 100 frames) and leave the still black.
-		function paintStill() {
-			for (let i = 0; i < STILL_PRE_ROLL_STEPS; i++) step(true);
-		}
-
-		// A queued frame is the loop's only "is it running" state, so `0` is the
-		// idle sentinel — a real frame id is never 0. `start()` is therefore
-		// safe to call again while the loop is already running.
-		function start() {
-			if (rafId !== 0) return;
-			rafId = requestAnimationFrame(draw);
-		}
-
-		function stop() {
-			if (rafId === 0) return;
-			cancelAnimationFrame(rafId);
-			rafId = 0;
-		}
-
-		// Set canvas size to container size with HiDPI scaling
-		const resize = () => {
-			const dpr = window.devicePixelRatio || 1;
-			canvasW = canvas.clientWidth;
-			canvasH = canvas.clientHeight;
-			canvas.width = Math.floor(canvasW * dpr);
-			canvas.height = Math.floor(canvasH * dpr);
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			ctx.fillStyle = "black";
-			ctx.fillRect(0, 0, canvasW, canvasH);
-			init(canvasW, canvasH);
-			// The repaint above wiped the canvas; an idle (reduced-motion) loop has
-			// no queued frame to refill it, so paint the still frame now.
-			if (reducedMotion) paintStill();
-		};
-
-		// Under reduced motion `resize()` paints the one still frame itself.
-		resize();
-
-		if (reducedMotion) {
-			repaintStillRef.current = () => {
-				ctx.fillStyle = "black";
-				ctx.fillRect(0, 0, canvasW, canvasH);
-				init(canvasW, canvasH);
-				paintStill();
-			};
-		}
-
-		const observer = new ResizeObserver(resize);
+		const observer = new ResizeObserver(() => engine.resize());
 		observer.observe(canvas);
 
-		if (!reducedMotion) start();
-
-		// A rain used as a page background is off screen most of the time, and
-		// every frame it paints there costs a full-canvas `fillRect` plus two
-		// shadow-blurred `fillText` per column for nothing. Pause the loop while
-		// the canvas is out of view and resume it on the way back: the trail is
-		// an accumulation of fades over whatever is already on the canvas, so
-		// resuming from the current column state needs no re-init and shows no
-		// seam. `threshold: 0` — any sliver on screen counts as visible — and
-		// `once: false`, because this has to keep reporting both ways.
-		//
-		// The loop still starts immediately rather than waiting for the first
-		// observer callback: that callback lands a task later, and a background
-		// that is already on screen should not hold a blank canvas until then.
+		// A rain used as a page background is off screen most of the time, so the
+		// engine stops its loop while `visible` is false and resumes from the
+		// column state it left off at. `threshold: 0` — any sliver on screen
+		// counts as visible — and `once: false`, because this has to keep
+		// reporting both ways. The loop starts before the first observer
+		// callback, which lands a task later: a background that is already on
+		// screen never holds a blank canvas until then.
 		const inViewHandle = observeInView(canvas, {
 			once: false,
 			threshold: 0,
-			onChange: (intersecting) => {
-				if (intersecting) {
-					if (!reducedMotion) start();
-				} else stop();
-			},
+			onChange: (intersecting) => engine.setOptions({ visible: intersecting }),
 		});
 
 		return () => {
-			repaintStillRef.current = null;
-			stop();
+			if (engineRef.current === engine) engineRef.current = null;
 			inViewHandle.destroy();
 			observer.disconnect();
+			engine.destroy();
 		};
-	}, [canvas, glyphSize, density, seed, reducedMotion, colorRef, speedRef, fadeOpacityRef]);
+	}, [canvas, glyphSize, density, seed, reducedMotion, appearanceRef]);
 
-	// A colour or fade change is state, not motion: under reduce there is no loop
-	// to pick it up, so repaint the idle still frame with the new values.
+	// Applied in place, no relayout. Under reduced motion there is no loop to
+	// pick a colour or fade change up, so the engine lays its still out again.
 	useEffect(() => {
-		const prev = stillStyleRef.current;
-		if (prev.color === color && prev.fadeOpacity === fadeOpacity) return;
-		stillStyleRef.current = { color, fadeOpacity };
-		repaintStillRef.current?.();
-	}, [color, fadeOpacity]);
+		engineRef.current?.setOptions({ color, speed, fadeOpacity });
+	}, [color, speed, fadeOpacity]);
 
 	return <canvas ref={canvasRef} className={cn("block h-full w-full bg-black", className)} />;
 }

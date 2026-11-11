@@ -3150,7 +3150,7 @@
 		"effort": "xhigh",
 		"complexity": "canvas2d",
 		"deps": {
-			"internals": ["dom/use-element-ref", "dom/use-live-ref"],
+			"internals": ["dom/use-element-ref", "dom/use-live-ref", "motion/in-view"],
 			"motion": ["in-view"],
 			"sound": false,
 			"components": []
@@ -3163,12 +3163,13 @@
 		"ssrRisk": "low",
 		"exports": ["MatrixRain"],
 		"loc": 131,
-		"testFiles": ["MatrixRain.test.ts"],
+		"testFiles": ["MatrixRain.test.ts", "matrix-rain-core.test.ts", "MatrixRain.live.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"New prop `seed?: number` (default 1), absent on the Svelte side: both `Math.random()` call sites (column initialisation in `init()` and glyph picking in `randomGlyph()`) are driven by a seeded mulberry32 stream, per PORTING.md's seed-prop rule. Same uniform distribution, so no visual change; two `<MatrixRain />` with no seed now start out alike where two Svelte instances did not.",
-			"The PRNG stream restarts when the effect re-runs (a `glyphSize`, `density` or `seed` change), whereas the Svelte source draws from the process-global `Math.random()` stream continuously across re-inits. Not observable — the distribution is identical either way."
+			"The React wrapper now drives the shared framework-free engine (`matrix-rain-core.ts`, a byte-identical copy of the Svelte core) instead of re-implementing the rain inline; the core's own test file is copied byte-for-byte as well. A `glyphSize`, `density`, `seed` or reduced-motion change starts a fresh engine with a freshly seeded stream (the Svelte wrapper relayouts in place and keeps drawing from the same stream), while `color`, `speed` and `fadeOpacity` are pushed into the running engine. The wrapper also observes the canvas and forwards on-screen changes as the engine's `visible` option, so the loop stops while the rain is scrolled out of view.",
+			"`density` keeps its documented meaning here (higher = more, narrower columns; column pitch `glyphSize / density`): the wrapper hands the shared engine the reciprocal, since the engine multiplies (`glyphSize * density`) as the Svelte and Vue packages do. One edge follows from the engine's own floor on that value: above `density = 10` the column count is capped, where the component used to keep adding columns less than two pixels apart."
 		],
 		"lastFailure": null,
 		"minors": []
