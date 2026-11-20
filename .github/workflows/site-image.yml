@@ -1,0 +1,85 @@
+name: Site image
+
+# Builds the self-hosted image of the documentation site (Dockerfile) and, on
+# main, publishes it and asks the host to roll it out.
+#
+#   pull request  build only, when a file the image depends on changes: proves
+#                 the Dockerfile still builds, pushes nothing
+#   push to main  build, push ghcr.io/<owner>/fancy-ui-site:latest and :<sha>,
+#                 then call the deploy hook if one is configured
+#   manual        same as a push to main, from the chosen ref
+#
+# The site build peaks above 4 GB of memory, more than the host has to spare
+# next to what it serves, so the image is built here and the host only pulls.
+#
+# Nothing here touches the npm packages: publishing is release.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - server/**
+      - svelte.config.js
+      - vercel.json
+      - .github/workflows/site-image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: site-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: Build the site image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/fancy-ui-site" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.image.outputs.name }}:latest
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The hook is the host's own per-application deploy URL; it is matched
+      # against the tag named in the payload. Without the secret the image is
+      # published and nothing is rolled out.
+      - name: Ask the host to roll out the new image
+        if: github.event_name != 'pull_request'
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.SITE_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "No SITE_DEPLOY_HOOK_URL secret: image published, rollout skipped."
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error --max-time 60 \
+            -X POST "$DEPLOY_HOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: registry_package" \
+            -d '{"registry_package":{"package_version":{"container_metadata":{"tag":{"name":"latest"}}}}}'

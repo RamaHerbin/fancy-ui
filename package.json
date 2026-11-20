@@ -142,6 +142,7 @@
 		"@storybook/addon-svelte-csf": "^5.1.2",
 		"@storybook/sveltekit": "^10.4.6",
 		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-node": "^5.5.8",
 		"@sveltejs/adapter-vercel": "^6.3.4",
 		"@sveltejs/kit": "^2.49.1",
 		"@sveltejs/package": "^2.5.7",
