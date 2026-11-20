@@ -424,6 +424,7 @@ export default {
 	"error.report": "Zgłoś niedziałający link",
 	"comp.previewFailed": "Nie udało się wczytać tego podglądu.",
 	"demo.noPreview": "Ten komponent nie ma jeszcze podglądu.",
+	"demo.replay": "Odtwórz ponownie",
 	"demo.notFound": "Nie znaleziono komponentu.",
 	"recipes.steps": "Kroki",
 	"recipes.pitfalls": "Typowe pułapki",

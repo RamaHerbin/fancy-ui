@@ -1,5 +1,6 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { createRawSnippet, tick } from "svelte";
 import ConfettiButton from "./ConfettiButton.svelte";
 import confetti from "canvas-confetti";
 
@@ -63,5 +64,31 @@ describe("ConfettiButton contract", () => {
 		await fireEvent.click(screen.getByRole("button"));
 		expect(onclick).not.toHaveBeenCalled();
 		expect(confetti).not.toHaveBeenCalled();
+	});
+});
+
+describe("ConfettiButton nested interactive content", () => {
+	const nested = (html: string) =>
+		createRawSnippet(() => ({
+			render: () => html,
+		}));
+
+	it("warns in development when a button is nested inside it", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		render(ConfettiButton, {
+			props: { children: nested("<button type='button'>inner</button>") } as never,
+		});
+		await tick();
+		expect(warn).toHaveBeenCalledTimes(1);
+		expect(warn.mock.calls[0]?.[0]).toContain("[ConfettiButton]");
+		warn.mockRestore();
+	});
+
+	it("does not warn for plain content", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		render(ConfettiButton, { props: { children: nested("<span>plain</span>") } as never });
+		await tick();
+		expect(warn).not.toHaveBeenCalled();
+		warn.mockRestore();
 	});
 });

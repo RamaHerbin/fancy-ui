@@ -222,6 +222,17 @@ describe("noise-reveal-core / lifecycle", () => {
 		engine?.destroy();
 	});
 
+	it("draws nothing until the texture has loaded, then shows the plane", () => {
+		vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		// No texture yet: a visible plane would sample black and flash a slab.
+		expect(mock.mesh.visible).toBe(false);
+		const [, onLoad] = mock.loader.load.mock.calls[0];
+		onLoad({ colorSpace: "", image: { naturalWidth: 10, naturalHeight: 10 }, dispose: vi.fn() });
+		expect(mock.mesh.visible).toBe(true);
+		engine?.destroy();
+	});
+
 	it("sizes the image uniform from the loaded texture", () => {
 		vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
 		const engine = createNoiseReveal({ container: makeHost() }, init());

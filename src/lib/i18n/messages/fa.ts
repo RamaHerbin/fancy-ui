@@ -421,6 +421,7 @@ export default {
 	"error.report": "گزارش پیوند خراب",
 	"comp.previewFailed": "بارگذاری این پیش‌نمایش ممکن نشد.",
 	"demo.noPreview": "هنوز پیش‌نمایشی برای این کامپوننت وجود ندارد.",
+	"demo.replay": "پخش دوباره",
 	"demo.notFound": "کامپوننت پیدا نشد.",
 	"recipes.steps": "گام‌ها",
 	"recipes.pitfalls": "دام‌های رایج",

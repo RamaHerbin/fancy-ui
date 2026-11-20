@@ -4,5 +4,7 @@ import { DatePicker } from "fancy-ui-vue";
 </script>
 
 <template>
-	<DatePicker label="Date" placeholder="Pick a date" />
+	<div class="w-full max-w-sm px-6">
+		<DatePicker label="Date" placeholder="Pick a date" />
+	</div>
 </template>

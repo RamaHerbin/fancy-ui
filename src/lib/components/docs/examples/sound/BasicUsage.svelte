@@ -103,7 +103,7 @@
 	}
 </script>
 
-<div data-sound-lab class="w-full max-w-3xl text-left">
+<div data-sound-lab class="max-h-[28rem] w-full max-w-3xl overflow-y-auto px-4 py-1 text-left">
 	<!-- Control bar. No aria-live: this example is mounted twice on the page
 	     (the docs preview and the examples list), and a live region would
 	     announce the same state change twice. -->

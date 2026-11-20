@@ -377,6 +377,18 @@
 	}
 
 	/*
+	 * The outline variant's border is the shared `--border` token, which is a
+	 * faint 8% white in dark. Lift it there only; the copied and failed skins
+	 * below keep their own border colours.
+	 */
+	:global(.ft-copybtn.border-border:not(.ft-copybtn--copied):not(.ft-copybtn--failed)) {
+		border-color: light-dark(
+			var(--border),
+			color-mix(in oklab, var(--foreground) 40%, transparent)
+		);
+	}
+
+	/*
 	 * `--ft-status-done` / `--ft-status-error` are the family's actual
 	 * "operation landed" and "operation failed" vocabulary — the same tokens
 	 * ToolCall, ToolTimeline, AgentPlan, SubagentList, CodeDiff, ApprovalCard,

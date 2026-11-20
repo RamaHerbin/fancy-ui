@@ -37,7 +37,7 @@
 	{#each circles as circle, i (i)}
 		<div
 			class={cn(
-				"animate-ripple-circle absolute rounded-full shadow-xl motion-reduce:animate-none",
+				"animate-ripple-circle border-foreground absolute rounded-full shadow-xl motion-reduce:animate-none",
 				circleClass
 			)}
 			style="width: {circle.size}px; height: {circle.size}px; opacity: {circle.opacity}; animation-delay: {circle.delay}ms; border-style: {circle.borderStyle}; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); border-width: 1px;"

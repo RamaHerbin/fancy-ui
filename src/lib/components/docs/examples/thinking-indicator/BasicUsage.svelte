@@ -6,7 +6,7 @@
 	const startedAt = Date.now();
 </script>
 
-<div class="flex w-full flex-col items-start gap-6">
+<div class="flex w-full max-w-sm flex-col items-start gap-6 px-6">
 	<ThinkingIndicator status="Reading files" since={startedAt} />
 
 	<ThinkingIndicator variant="pill" status="Searching the web" since={startedAt - 8000} />

@@ -414,6 +414,7 @@ export default {
 	"error.report": "깨진 링크 신고",
 	"comp.previewFailed": "이 미리보기를 불러오지 못했습니다.",
 	"demo.noPreview": "이 컴포넌트의 미리보기는 아직 없습니다.",
+	"demo.replay": "다시 재생",
 	"demo.notFound": "컴포넌트를 찾을 수 없습니다.",
 	"recipes.steps": "단계",
 	"recipes.pitfalls": "자주 하는 실수",

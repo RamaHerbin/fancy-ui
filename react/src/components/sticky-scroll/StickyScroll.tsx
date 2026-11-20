@@ -1,4 +1,4 @@
-import { forwardRef, memo, useRef, useState } from "react";
+import { forwardRef, memo, useEffect, useRef, useState } from "react";
 import type { ForwardedRef, HTMLAttributes, ReactElement, ReactNode, RefAttributes } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
@@ -43,7 +43,8 @@ interface BaseProps<T> {
  * Props for StickyScroll
  */
 export interface StickyScrollProps<T>
-	extends Omit<HTMLAttributes<HTMLDivElement>, keyof BaseProps<unknown> | "children">,
+	extends
+		Omit<HTMLAttributes<HTMLDivElement>, keyof BaseProps<unknown> | "children">,
 		BaseProps<T> {}
 
 // The library's ONE bidirectional preset, reused here for the panel
@@ -200,7 +201,22 @@ function StickyScrollImpl<T>(
 
 	const reduced = useReducedMotion();
 	const effectiveCrossfade = crossfade && !reduced;
-	const panelDuration = effectiveCrossfade ? DURATIONS.base : 0;
+	// The observers report which row sits on the centre line a frame or two after
+	// mount. That first report is the layout settling, not a scroll: swapping the
+	// panel with a fade would show the first row's panel for a beat and then dissolve
+	// into the right one. Until two frames have passed the swap is instant.
+	const [settled, setSettled] = useState(false);
+	useEffect(() => {
+		let second = 0;
+		const first = requestAnimationFrame(() => {
+			second = requestAnimationFrame(() => setSettled(true));
+		});
+		return () => {
+			cancelAnimationFrame(first);
+			cancelAnimationFrame(second);
+		};
+	}, []);
+	const panelDuration = effectiveCrossfade && settled ? DURATIONS.base : 0;
 
 	// Guards two edge cases at once: an empty `items` list (nothing to
 	// index), and `activeIndex` drifting out of range if the caller shrinks
@@ -208,8 +224,7 @@ function StickyScrollImpl<T>(
 	// silently rewritten here — only the INDEX USED FOR RENDERING the panel is
 	// clamped, so a caller reading `activeIndex` back always sees exactly what
 	// they (or the last intersection) set.
-	const panelIndex =
-		items.length > 0 ? Math.min(Math.max(activeIndex, 0), items.length - 1) : 0;
+	const panelIndex = items.length > 0 ? Math.min(Math.max(activeIndex, 0), items.length - 1) : 0;
 
 	// Identity-stable, like the source's module-instance `setActive`: a row
 	// that receives it as a prop is not re-rendered just because the parent

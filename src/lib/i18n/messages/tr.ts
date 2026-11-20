@@ -424,6 +424,7 @@ export default {
 	"error.report": "Bozuk bağlantıyı bildir",
 	"comp.previewFailed": "Bu önizleme yüklenemedi.",
 	"demo.noPreview": "Bu bileşen için henüz önizleme yok.",
+	"demo.replay": "Yeniden oynat",
 	"demo.notFound": "Bileşen bulunamadı.",
 	"recipes.steps": "Adımlar",
 	"recipes.pitfalls": "Sık yapılan hatalar",

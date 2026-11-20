@@ -47,7 +47,7 @@ const circles = computed(() =>
 			:key="i"
 			:class="
 				cn(
-					'animate-ripple-circle absolute rounded-full shadow-xl motion-reduce:animate-none',
+					'animate-ripple-circle border-foreground absolute rounded-full shadow-xl motion-reduce:animate-none',
 					circleClass
 				)
 			"

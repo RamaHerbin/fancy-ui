@@ -25,7 +25,8 @@ const ContextProbe = defineComponent({
 	name: "ButtonGroupContextProbe",
 	setup() {
 		const context = inject(BUTTON_GROUP_CONTEXT.key, undefined);
-		return () => h("span", { "data-testid": "context-orientation" }, context?.orientation ?? "none");
+		return () =>
+			h("span", { "data-testid": "context-orientation" }, context?.orientation ?? "none");
 	},
 });
 
@@ -34,7 +35,9 @@ const Harness = defineComponent({
 	props: { orientation: { type: String as () => ButtonGroupOrientation, required: false } },
 	setup(props) {
 		return () =>
-			h(ButtonGroup, { orientation: props.orientation, label: "Probed group" }, () => h(ContextProbe));
+			h(ButtonGroup, { orientation: props.orientation, label: "Probed group" }, () =>
+				h(ContextProbe)
+			);
 	},
 });
 
@@ -106,7 +109,7 @@ describe("ButtonGroup", () => {
 		const root = group(container);
 
 		expect(root.className).toContain("border");
-		expect(root.className).toContain("border-border");
+		expect(root.className).toContain("light-dark(var(--border)");
 		expect(root.className).toContain("rounded-lg");
 		// No `overflow: hidden`: the first/last child already inherit the
 		// container's own radius exactly (checked below), so nothing renders
@@ -129,7 +132,9 @@ describe("ButtonGroup", () => {
 		expect(source).toMatch(/\.ft-button-group :deep\(> \*\) \{[^}]*border-style:\s*none/);
 		expect(source).toMatch(/\.ft-button-group :deep\(> \*\) \{[^}]*border-radius:\s*0/);
 		// ...the divider runs left-to-right by default...
-		expect(source).toMatch(/:not\(\[data-orientation="vertical"\]\) :deep\(> \* \+ \*\) \{[^}]*border-left/);
+		expect(source).toMatch(
+			/:not\(\[data-orientation="vertical"\]\) :deep\(> \* \+ \*\) \{[^}]*border-left/
+		);
 		// ...and top-to-bottom once the orientation flips.
 		expect(source).toMatch(/\[data-orientation="vertical"\] :deep\(> \* \+ \*\) \{[^}]*border-top/);
 		// The container's rounded ends are restored on the first and last

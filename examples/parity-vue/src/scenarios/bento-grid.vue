@@ -35,7 +35,7 @@ const well =
 </script>
 
 <template>
-	<BentoGrid>
+	<BentoGrid class="md:auto-rows-[14rem]">
 		<BentoGridItem class="md:col-span-2">
 			<template #header>
 				<div :class="`relative flex min-h-[5.5rem] flex-1 flex-col overflow-hidden ${well}`">

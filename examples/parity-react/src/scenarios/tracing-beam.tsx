@@ -3,14 +3,14 @@ import { TracingBeam } from "fancy-ui-react";
 
 export default function Scenario() {
 	return (
-		<TracingBeam>
-			<div className="max-w-2xl space-y-16">
+		<TracingBeam className="max-w-2xl px-4">
+			<div className="max-w-2xl space-y-8">
 				<div>
 					<span className="mb-2 block text-xs font-semibold tracking-wider text-emerald-500 uppercase">
 						v0.1
 					</span>
 					<h2 className="mb-3 text-xl font-semibold">The First Sketch</h2>
-					<p className="text-muted-foreground leading-relaxed">
+					<p className="text-muted-foreground text-sm leading-relaxed">
 						It started as a folder of throwaway components and a single button that looked good in
 						every theme. No tokens, no docs site, just a designer and an engineer arguing about
 						border radius until 2am. That argument became the first commit.
@@ -22,7 +22,7 @@ export default function Scenario() {
 						v0.5
 					</span>
 					<h2 className="mb-3 text-xl font-semibold">Everything Learns to Move</h2>
-					<p className="text-muted-foreground leading-relaxed">
+					<p className="text-muted-foreground text-sm leading-relaxed">
 						Static components gave way to a proper motion layer: spring-based transitions, shared
 						layout animations, and a reduced-motion fallback for every single one of them. This is
 						also when the team agreed on a rule that stuck — nothing animates without a reason.
@@ -34,7 +34,7 @@ export default function Scenario() {
 						v1.0
 					</span>
 					<h2 className="mb-3 text-xl font-semibold">Launch Day</h2>
-					<p className="text-muted-foreground leading-relaxed">
+					<p className="text-muted-foreground text-sm leading-relaxed">
 						The API stabilized, the docs got real examples instead of placeholders, and the
 						changelog finally had a version worth calling stable. Version 1.0 shipped quietly on a
 						Tuesday, which felt right for something that took over a year of small decisions to get

@@ -63,7 +63,7 @@ export default function Scenario() {
 				visible={visible}
 				onSelect={select}
 				label="Follow-up prompts"
-				className="mt-1"
+				className="mt-1 min-h-[4.5rem] content-start"
 			/>
 		</div>
 	);

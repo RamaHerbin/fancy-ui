@@ -85,12 +85,23 @@
 		animationFrameId = requestAnimationFrame(tick);
 	}
 
-	let formattedValue = $derived(
-		new Intl.NumberFormat("en-US", {
+	function format(n: number): string {
+		return new Intl.NumberFormat("en-US", {
 			minimumFractionDigits: decimalPlaces,
 			maximumFractionDigits: decimalPlaces,
-		}).format(Number(displayValue.toFixed(decimalPlaces)))
-	);
+		}).format(Number(n.toFixed(decimalPlaces)));
+	}
+
+	let formattedValue = $derived(format(displayValue));
+
+	// The widest the number gets on its way from where it starts to where it ends.
+	// Drawn as an invisible line under the digits, so the box is already its final
+	// width on the first frame and nothing recentres while it counts.
+	let widest = $derived.by(() => {
+		const from = format(initialValue);
+		const to = format(direction === "down" ? 0 : value);
+		return to.length > from.length ? to : from;
+	});
 
 	onMount(() => {
 		const observer = new IntersectionObserver(
@@ -132,7 +143,11 @@
 
 <span
 	bind:this={spanRef}
-	class={cn("number-ticker inline-block text-black tabular-nums dark:text-white", className)}
+	data-final={widest}
+	class={cn(
+		"number-ticker inline-block text-end text-black tabular-nums after:invisible after:block after:h-0 after:overflow-hidden after:content-[attr(data-final)] dark:text-white",
+		className
+	)}
 >
 	{formattedValue}
 </span>

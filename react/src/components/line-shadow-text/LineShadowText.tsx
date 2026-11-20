@@ -22,7 +22,7 @@ export interface LineShadowTextProps {
 
 export function LineShadowText({
 	text,
-	shadowColor = "black",
+	shadowColor = "light-dark(black, white)",
 	as = "span",
 	className,
 }: LineShadowTextProps) {

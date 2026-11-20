@@ -41,9 +41,9 @@ export const GLOW_BORDER_PRESETS: Record<GlowBorderPreset, { dark: Palette; ligh
 			shadow: "#2a2d33",
 		},
 		light: {
-			tints: ["#5b636d", "#d9669a", "#2fa89a", "#7a62e6", "#c99a2e"],
-			body: "#9aa3ad",
-			shadow: "#e3e6ea",
+			tints: ["#3b4450", "#e0357c", "#0a9c88", "#6a42e8", "#d98a0a"],
+			body: "#7e8896",
+			shadow: "#c4cad3",
 		},
 	},
 	silver: {

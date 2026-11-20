@@ -104,8 +104,8 @@ function resolveCurrentColor(color: string, el: Element): string {
 }
 
 export function Sparkles({
-	background = "#0d47a1",
-	particleColor = "#ffffff",
+	background = "transparent",
+	particleColor = "currentColor",
 	minSize = 1,
 	maxSize = 3,
 	speed = 4,

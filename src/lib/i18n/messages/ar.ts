@@ -415,6 +415,7 @@ export default {
 	"error.report": "الإبلاغ عن رابط معطّل",
 	"comp.previewFailed": "تعذّر تحميل هذه المعاينة.",
 	"demo.noPreview": "لا تتوفّر معاينة لهذا المكوّن بعد.",
+	"demo.replay": "إعادة التشغيل",
 	"demo.notFound": "لم يُعثر على المكوّن.",
 	"recipes.steps": "الخطوات",
 	"recipes.pitfalls": "أخطاء شائعة",

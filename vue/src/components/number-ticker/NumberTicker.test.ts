@@ -81,6 +81,17 @@ describe("NumberTicker", () => {
 		expect(ticker).toBeTruthy();
 	});
 
+	it("reserves the final width: the widest formatted value rides on data-final, visible text stays clean", () => {
+		const up = render(NumberTicker, { props: { value: 1234, decimalPlaces: 1 } });
+		const upTicker = up.container.querySelector(".number-ticker") as HTMLElement;
+		expect(upTicker.dataset.final).toBe("1,234.0");
+		expect(upTicker.textContent?.trim()).toBe("0.0");
+		cleanup();
+		const down = render(NumberTicker, { props: { value: 1234, direction: "down" } });
+		const downTicker = down.container.querySelector(".number-ticker") as HTMLElement;
+		expect(downTicker.dataset.final).toBe("1,234");
+	});
+
 	it("displays initial value for direction up as 0", () => {
 		const { container } = render(NumberTicker, {
 			props: { value: 100, direction: "up" },

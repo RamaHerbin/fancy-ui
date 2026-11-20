@@ -67,6 +67,7 @@ Create `examples/parity-react/src/scenarios/<slug>.tsx` (default export, no prop
 
 - `hover` / `sweep` / `click`: fractions of the stage box, with the same gesture semantics as `scripts/lib/stage-capture.mjs`. They add a pointer pass (`-hover` shots), whose moments count from the end of the gesture.
 - `skip`: leave the slug out, with the reason in the log, for example when it is inherently non-deterministic.
+- `viewport`: `[width, height]` of the browser window for this slug (default 1000×700). `[800, 500]` makes the window the stage, so a panel anchored to the window edge (bottom drawer, right sheet, top command menu) lands inside the photographed box instead of off it.
 - `moments`: override `--moments` for this slug.
 - `restMs`: how long the pointer rests after a `hover`, on the fake clock (default 350). A short one (for example 100) photographs a 150 ms `fast` hover flip while it is still turning. `applyPointerHint` in `scripts/lib/stage-capture.mjs` honours it too.
 

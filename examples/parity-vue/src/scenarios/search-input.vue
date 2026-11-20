@@ -5,5 +5,7 @@ import { SearchInput } from "fancy-ui-vue";
 </script>
 
 <template>
-	<SearchInput label="Search" placeholder="Search components" />
+	<div class="w-full max-w-sm px-6">
+		<SearchInput label="Search" placeholder="Search components" />
+	</div>
 </template>

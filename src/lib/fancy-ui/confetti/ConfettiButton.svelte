@@ -6,6 +6,7 @@
 	import type { Options as ConfettiOptions } from "canvas-confetti";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { soundFeedback } from "../sound/sound-feedback.js";
+	import { isDev } from "../_internals/env.js";
 
 	type BaseProps = {
 		options?: ConfettiOptions;
@@ -30,6 +31,18 @@
 		onclick,
 		...restProps
 	}: Props = $props();
+
+	let el = $state<HTMLButtonElement | null>(null);
+
+	// Dev-only: the component already renders a <button>, so interactive children
+	// nest invalid markup (and React reports a hydration error for it).
+	$effect(() => {
+		if (isDev && el?.querySelector('button, a[href], input, [role="button"]')) {
+			console.warn(
+				"[ConfettiButton] An interactive element (button, link, input or role=button) is nested inside the ConfettiButton, which already renders a <button>. Nested interactive content is invalid HTML and breaks hydration and keyboard behaviour. Pass plain text or non-interactive markup as children instead."
+			);
+		}
+	});
 
 	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 	// off (and never the default click → press, which `handleClick` already plays).
@@ -65,6 +78,7 @@
 </script>
 
 <button
+	bind:this={el}
 	use:soundFeedback={hoverFeedback}
 	class={className}
 	{type}

@@ -135,6 +135,18 @@
 		});
 	}
 
+	/**
+	 * A resize is reported before the frame is painted, so the opening snap is redone
+	 * here at once: waiting for the next animation frame would show the transcript a
+	 * few pixels short of its latest turn on the first paint.
+	 */
+	function handleResize(): void {
+		const el = scrollEl;
+		if (el && !touched && !empty) snap(el, "instant");
+		syncStuck();
+		handleMutation();
+	}
+
 	function jumpToLatest(): void {
 		const el = scrollEl;
 		if (!el) return;
@@ -185,7 +197,7 @@
 		// go on claiming the reader is at the end.
 		let resize: ResizeObserver | null = null;
 		if (contentEl && typeof ResizeObserver !== "undefined") {
-			resize = new ResizeObserver(handleMutation);
+			resize = new ResizeObserver(handleResize);
 			resize.observe(contentEl);
 		}
 

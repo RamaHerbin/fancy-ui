@@ -107,7 +107,7 @@ describe("ButtonGroup", () => {
 		const root = group(container);
 
 		expect(root.className).toContain("border");
-		expect(root.className).toContain("border-border");
+		expect(root.className).toContain("light-dark(var(--border)");
 		expect(root.className).toContain("rounded-lg");
 		// No `overflow: hidden`: the first/last child already inherit the
 		// container's own radius exactly (checked below), so nothing renders

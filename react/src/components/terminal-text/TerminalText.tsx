@@ -267,21 +267,36 @@ export function TerminalText({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [glitch, reducedMotion]);
 
+	// The finished transcript, caret row included, drawn invisibly to hold the size.
+	const ghost = (lines ?? []).join("\n") + (cursor ? `\n${cursorChar}` : "");
+
 	return (
-		<div className={cn("terminal-text font-mono text-sm leading-relaxed", className)}>
-			{displayedLines.map((line, i) => (
-				<div key={i} className="min-h-[1.4em]">
-					<span>{line}</span>
-					{cursor && i === displayedLines.length - 1 && !done ? (
+		// The block is as big as the finished transcript from the first frame: the full
+		// text (and the caret row) is laid out invisibly in the same grid cell as the
+		// typed lines, so typing never grows the block or moves it inside a centred
+		// parent.
+		<div
+			data-ghost={ghost}
+			className={cn(
+				"terminal-text grid font-mono text-sm leading-relaxed after:invisible after:col-start-1 after:row-start-1 after:whitespace-pre-wrap after:content-[attr(data-ghost)]",
+				className
+			)}
+		>
+			<div className="col-start-1 row-start-1">
+				{displayedLines.map((line, i) => (
+					<div key={i} className="min-h-[1.4em]">
+						<span>{line}</span>
+						{cursor && i === displayedLines.length - 1 && !done ? (
+							<span className="cursor-blink">{cursorChar}</span>
+						) : null}
+					</div>
+				))}
+				{cursor && done ? (
+					<div className="min-h-[1.4em]">
 						<span className="cursor-blink">{cursorChar}</span>
-					) : null}
-				</div>
-			))}
-			{cursor && done ? (
-				<div className="min-h-[1.4em]">
-					<span className="cursor-blink">{cursorChar}</span>
-				</div>
-			) : null}
+					</div>
+				) : null}
+			</div>
 		</div>
 	);
 }

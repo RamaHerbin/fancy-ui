@@ -113,7 +113,10 @@ export default function Scenario() {
 	else statusText = `Sound on · ${Math.round(sound.volume * 100)}%`;
 
 	return (
-		<div data-sound-lab className="w-full max-w-3xl text-left">
+		<div
+			data-sound-lab
+			className="max-h-[28rem] w-full max-w-3xl overflow-y-auto px-4 py-1 text-left"
+		>
 			<style>{`
 .ft-sound-lab-card {
 	--ft-sound-lab-accent: var(--ft-accent, light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75)));

@@ -30,7 +30,7 @@ builders — pure), `pulse-beam-loop.ts` (one shared rAF for every instance),
 
 ## How it animates
 
-A module-level `requestAnimationFrame` loop (throttled to ~30fps) writes 17 custom
+A module-level `requestAnimationFrame` loop (budgeted at a ~30 fps write rate; no measurement is published, see `scripts/perf/README.md` for the frame-time instruments) writes 17 custom
 properties on each active host — shape scales `--pb-bw{1,2,3}` / `--pb-bh{1,2,3}`,
 drifts `--pb-bx*` / `--pb-by*`, a global height scale `--pb-gh`, four corner alphas
 `--pb-op-{tl,tr,bl,br}` — plus `--pb-hue`. Every value is a cosine between two bounds
