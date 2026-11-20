@@ -21,12 +21,10 @@ describe("LetterPullup", () => {
 	it("applies staggered animation delays", () => {
 		const { container } = render(<LetterPullup words="AB" delay={0.1} />);
 		const chars = container.querySelectorAll(".letter-pullup-char");
-		const style0 = (chars[0] as HTMLElement).getAttribute("style") ?? "";
-		const style1 = (chars[1] as HTMLElement).getAttribute("style") ?? "";
-		expect(style0).toContain("animation-delay");
-		expect(style0).toMatch(/animation-delay:\s*0s/);
-		expect(style1).toContain("animation-delay");
-		expect(style1).toMatch(/animation-delay:\s*0\.1s/);
+		const delay = (i: number) =>
+			(chars[i] as HTMLElement).style.getPropertyValue("--letter-pullup-delay");
+		expect(delay(0)).toBe("0s");
+		expect(delay(1)).toBe("0.1s");
 	});
 
 	it("applies custom class names", () => {
@@ -37,11 +35,12 @@ describe("LetterPullup", () => {
 		});
 	});
 
-	it("has pull-up animation style", () => {
+	it("keeps the motion out of inline styles", () => {
 		const { container } = render(<LetterPullup words="X" />);
 		const char = container.querySelector(".letter-pullup-char");
 		const style = (char as HTMLElement).getAttribute("style") ?? "";
-		expect(style).toContain("letterPullUp");
+		expect(style).not.toContain("animation");
+		expect(style).not.toContain("opacity");
 	});
 
 	it("renders correct text content", () => {

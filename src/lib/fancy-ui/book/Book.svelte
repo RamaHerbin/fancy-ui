@@ -49,9 +49,10 @@
 	)}
 >
 	<div
-		style="width: {sizeMap[size].width}; transition: transform {duration}ms ease"
+		style="width: {sizeMap[size].width}"
+		style:--book-duration="{duration}ms"
 		class={cn(
-			"relative aspect-[3/4] [transform-style:preserve-3d]",
+			"book-cover relative aspect-[3/4] [transform-style:preserve-3d]",
 			isStatic
 				? "[transform:rotateY(-30deg)]"
 				: "[transform:rotateY(0deg)] group-hover:[transform:rotateY(-30deg)]",
@@ -92,3 +93,13 @@
 		></div>
 	</div>
 </div>
+
+<style>
+	/* The hover angle is the state; only the tween that turns the cover is motion,
+	   so under reduced motion the cover lands on its angle at once. */
+	@media (prefers-reduced-motion: no-preference) {
+		.book-cover {
+			transition: transform var(--book-duration, 1000ms) ease;
+		}
+	}
+</style>

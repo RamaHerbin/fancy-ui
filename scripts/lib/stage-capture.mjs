@@ -45,7 +45,7 @@ export async function encodeWebp(encoderPage, png, { width, height, maxBytes, qu
  *
  * @param {import("@playwright/test").Page} page
  * @param {import("@playwright/test").Locator} stage
- * @param {{ hover?: [number, number], sweep?: boolean }} hint
+ * @param {{ hover?: [number, number], sweep?: boolean, restMs?: number }} hint
  */
 export async function applyPointerHint(page, stage, hint = {}) {
 	if (!hint.hover && !hint.sweep) return;
@@ -59,7 +59,7 @@ export async function applyPointerHint(page, stage, hint = {}) {
 	} else {
 		await page.mouse.move(...at(0.2, 0.2));
 		await page.mouse.move(...at(...hint.hover), { steps: 12 });
-		await page.waitForTimeout(350);
+		await page.waitForTimeout(hint.restMs ?? 350);
 	}
 }
 

@@ -12,7 +12,7 @@ A before/after image comparison slider split by a blade of light.
 - **Glass handle**: a frosted bead with a ring of light round it
 - **Keyboard**: arrow keys move by 2%, Shift+arrows and Page Up/Down by 10%, Home/End jump to the ends
 - **Soft return**: in hover mode the seam glides back to its resting place when the pointer leaves
-- **Reduced motion**: no pulses, no trail, no glide
+- **Reduced motion**: no pulses, no trail, no glide, stars static
 - **Touch support**: Works on mobile devices
 
 ## Props
@@ -112,6 +112,10 @@ A before/after image comparison slider split by a blade of light.
 
 <StarField starsCount={60} class="absolute inset-0" />
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the divider's pulses, trail and glide stay off, and `StarField` keeps its stars in place at their resting brightness instead of twinkling and drifting. Dragging, keyboard control and `onpercentagechange` are unchanged.
 
 ## Implementation Notes
 

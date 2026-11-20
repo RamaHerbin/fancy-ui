@@ -39,3 +39,7 @@ Animated starfield background with parallax mouse tracking.
 - Spring transition options (`stiffness`, `damping`) are separate props instead of a config object
 - Uses CSS `@keyframes` instead of motion-v for the scroll animation
 - Manual spring physics implementation via `requestAnimationFrame`
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the three star layers stop scrolling and the pointer parallax is switched off: the field rests still at its origin and the spring loop idles. Clearing the preference restores both.

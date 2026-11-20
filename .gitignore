@@ -28,6 +28,8 @@ src/lib/portfolio/
 test-results/
 # Visual parity captures (scripts/parity)
 .parity/
+.parity-*/
+.audit-out/
 playwright-report/
 
 # Content (builder data, local only)

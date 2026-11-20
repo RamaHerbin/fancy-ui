@@ -14,3 +14,7 @@ Concentric pulsing circles with a ripple wave animation.
 | `waveSpeed` | `number` | `80` | Animation delay between circles (ms) |
 | `numberOfCircles` | `number` | `7` | Number of circles |
 | `class` | `string` | `''` | Additional CSS classes |
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the rings stay still at full size, with the same spacing and fading opacity. Without a reduce preference they pulse as before.

@@ -22,3 +22,7 @@ Canvas-based grid of squares with flickering opacity. Uses ResizeObserver, Inter
   <FlickeringGrid color="#6366f1" maxOpacity={0.5} flickerChance={0.2} />
 </div>
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the squares stop flickering: while the grid is in view it paints one still frame at the opacities it was seeded with, then idles. Clearing the preference resumes the flicker.

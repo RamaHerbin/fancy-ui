@@ -12,15 +12,15 @@ describe("TextGenerateEffect", () => {
 	it("words start hidden with blur", () => {
 		const { container } = render(<TextGenerateEffect words="fade in" />);
 		const spans = container.querySelectorAll("span");
-		expect(spans[0]!.style.opacity).toBe("0");
-		expect(spans[0]!.style.filter).toContain("blur(10px)");
+		expect(spans[0]!.style.opacity).toBe("");
+		expect(spans[0]!.style.getPropertyValue("--tge-blur")).toContain("blur(10px)");
 	});
 
 	it("words start hidden without blur when filter is false", () => {
 		const { container } = render(<TextGenerateEffect words="no blur" filter={false} />);
 		const spans = container.querySelectorAll("span");
-		expect(spans[0]!.style.opacity).toBe("0");
-		expect(spans[0]!.style.filter).toBe("none");
+		expect(spans[0]!.style.opacity).toBe("");
+		expect(spans[0]!.style.getPropertyValue("--tge-blur")).toBe("none");
 	});
 
 	it("reveals words after stagger delay", async () => {
@@ -31,12 +31,12 @@ describe("TextGenerateEffect", () => {
 		// Flush the outer setTimeout(fn, 0) + first word setTimeout(fn, 0)
 		await vi.advanceTimersByTimeAsync(1);
 		expect(spans[0]!.style.opacity).toBe("1");
-		expect(spans[1]!.style.opacity).toBe("0");
+		expect(spans[1]!.style.opacity).toBe("");
 
 		// After 100ms — second word
 		await vi.advanceTimersByTimeAsync(100);
 		expect(spans[1]!.style.opacity).toBe("1");
-		expect(spans[2]!.style.opacity).toBe("0");
+		expect(spans[2]!.style.opacity).toBe("");
 
 		// After 200ms — third word
 		await vi.advanceTimersByTimeAsync(100);
@@ -51,7 +51,7 @@ describe("TextGenerateEffect", () => {
 		const spans = container.querySelectorAll("span");
 
 		await vi.advanceTimersByTimeAsync(499);
-		expect(spans[0]!.style.opacity).toBe("0");
+		expect(spans[0]!.style.opacity).toBe("");
 
 		await vi.advanceTimersByTimeAsync(2);
 		expect(spans[0]!.style.opacity).toBe("1");
@@ -65,16 +65,16 @@ describe("TextGenerateEffect", () => {
 		expect(wrapper.className).toContain("my-class");
 	});
 
-	it("sets custom duration in transition style", () => {
+	it("sets the custom duration as a custom property", () => {
 		const { container } = render(<TextGenerateEffect words="fast" duration={0.3} />);
 		const span = container.querySelector("span") as HTMLElement;
-		expect(span.style.transition).toContain("0.3s");
+		expect(span.style.getPropertyValue("--tge-duration")).toBe("0.3s");
 	});
 
 	it("picks up a filter change made mid-reveal", async () => {
 		vi.useFakeTimers();
 		const { container, rerender } = render(
-			<TextGenerateEffect words="one two three" stagger={100} />,
+			<TextGenerateEffect words="one two three" stagger={100} />
 		);
 		const spans = container.querySelectorAll("span");
 
@@ -94,7 +94,7 @@ describe("TextGenerateEffect", () => {
 	it("picks up a stagger change made before the reveal starts", async () => {
 		vi.useFakeTimers();
 		const { container, rerender } = render(
-			<TextGenerateEffect words="one two three" delay={500} stagger={100} />,
+			<TextGenerateEffect words="one two three" delay={500} stagger={100} />
 		);
 		const spans = container.querySelectorAll("span");
 
@@ -105,7 +105,7 @@ describe("TextGenerateEffect", () => {
 
 		// The old 100ms spacing would have revealed the second word by now.
 		await vi.advanceTimersByTimeAsync(100);
-		expect(spans[1]!.style.opacity).toBe("0");
+		expect(spans[1]!.style.opacity).toBe("");
 
 		await vi.advanceTimersByTimeAsync(900);
 		expect(spans[1]!.style.opacity).toBe("1");
