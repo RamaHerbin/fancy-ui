@@ -25,6 +25,7 @@ export interface ThinkingIndicatorProps {
 <script setup lang="ts">
 import { computed, onMounted, onScopeDispose, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 import { createElapsed, formatElapsed } from "../../internals/elapsed.js";
 
 defineOptions({ name: "ThinkingIndicator", inheritAttrs: false });
@@ -43,6 +44,7 @@ const {
 const slots = defineSlots<{ done?(): unknown }>();
 
 const el = useTemplateRef<HTMLDivElement>("el");
+useOffscreenPause(el);
 defineExpose({ ref: el });
 
 // Seeded at zero rather than from `since`: reading the wall clock here would
@@ -186,6 +188,12 @@ function showDone(): boolean {
 	.ft-thinking-dot-live::after {
 		animation: ft-thinking-pulse var(--ft-thinking-pulse-duration) cubic-bezier(0, 0, 0.2, 1)
 			infinite;
+	}
+
+	/* Out of view: freeze the label sweep and the dot pulse. */
+	[data-ft-offscreen] .ft-thinking-shimmer,
+	[data-ft-offscreen] .ft-thinking-dot-live::after {
+		animation-play-state: paused;
 	}
 }
 

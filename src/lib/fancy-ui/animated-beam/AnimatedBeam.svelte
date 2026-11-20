@@ -94,6 +94,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 	import type { AnimatedBeamProps } from "./types";
 
 	let {
@@ -217,6 +218,7 @@
 	viewBox="0 0 {svgDimensions.width} {svgDimensions.height}"
 	data-duration={cycle.toFixed(3)}
 	style="--_dur:{cycle.toFixed(3)}s;"
+	use:offscreenPause
 >
 	<defs>
 		<linearGradient
@@ -414,6 +416,13 @@
 	}
 	.bloom-ring {
 		animation-name: beam-ring;
+	}
+
+	/* Out of view: freeze the packet and both bloom shapes. */
+	:global([data-ft-offscreen]) .packet-layer,
+	:global([data-ft-offscreen]) .bloom-disc,
+	:global([data-ft-offscreen]) .bloom-ring {
+		animation-play-state: paused;
 	}
 
 	/* The head lands at 78%: the halo swells behind the node, then lets go. */

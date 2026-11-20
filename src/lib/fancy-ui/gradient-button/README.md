@@ -43,3 +43,7 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 - The button's own background (a lighter mix of `bgColor`) shows through the ring where the beam isn't, as a hairline border.
 - `prefers-reduced-motion`: the beam stops at a fixed angle. Disabled: 50% opacity, beam paused.
 - The CSS variables (`--gb-colors`, `--gb-duration`, `--gb-border-width`, `--gb-border-radius`, `--gb-blur`, `--gb-bg-color`) are still set inline.
+
+## Performance
+
+The beam on the border pauses while the button is out of view.

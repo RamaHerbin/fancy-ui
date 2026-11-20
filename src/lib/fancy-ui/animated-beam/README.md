@@ -44,3 +44,7 @@ With `prefers-reduced-motion: reduce` there are no packets and no bloom. The fib
 - The whole SVG is `aria-hidden="true"` and `pointer-events-none`; put the meaning in the connected elements.
 - Give the connected elements a higher `z-index` than the beam (for example `relative z-10`) so the fibre ends and the bloom sit behind them.
 - Horizontal, vertical and diagonal links all work: the packet follows the path itself.
+
+## Performance
+
+The travelling packet and the landing bloom pause while the beam is out of view.

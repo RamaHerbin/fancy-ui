@@ -1,5 +1,6 @@
-import { useMemo, type CSSProperties } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./meteors.css";
 
 /**
@@ -107,11 +108,20 @@ export function Meteors({
 	const speedC = Number.isFinite(speed) && speed > 0 ? speed : 1;
 	const angleC = Number.isFinite(angle) ? angle : 215;
 
+	// Fragment component: no root of its own, so the first meteor watches the
+	// container they all sit in.
+	const [host, setHost] = useState<Element | null>(null);
+	const bindFirst = useCallback((el: HTMLSpanElement | null) => {
+		setHost(el?.parentElement ?? null);
+	}, []);
+	useOffscreenPause(host);
+
 	return (
 		<>
 			{meteors.map((meteor, i) => (
 				<span
 					key={i}
+					ref={i === 0 ? bindFirst : undefined}
 					className={cn(
 						"meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full opacity-0",
 						meteor.flare && "meteor--flare",

@@ -4,6 +4,7 @@ import { useFancyId } from "../../internals/use-id.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./animated-beam.css";
 
 /**
@@ -221,6 +222,8 @@ export function AnimatedBeam({
 	const fibreStyle: CSSProperties | undefined = pathColor ? { stroke: pathColor } : undefined;
 
 	const [geo, setGeo] = useState<BeamGeometry>(EMPTY_GEOMETRY);
+	const [svgNode, setSvgNode] = useState<SVGSVGElement | null>(null);
+	useOffscreenPause(svgNode);
 	const { pathD, flowD, ends, landingRadius } = geo;
 
 	/** Where the light lands — the far end of the flow. */
@@ -322,6 +325,7 @@ export function AnimatedBeam({
 
 	return (
 		<svg
+			ref={setSvgNode}
 			fill="none"
 			aria-hidden="true"
 			width={geo.width}

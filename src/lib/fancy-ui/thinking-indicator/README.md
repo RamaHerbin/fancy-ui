@@ -62,3 +62,7 @@ One consequence worth knowing: the internal stopwatch **freezes at its last tick
 - Shimmer colours are expressed relative to `currentColor` (`--ft-thinking-shimmer-base` is a `color-mix` fade of it, `--ft-thinking-shimmer-highlight` is `currentColor` itself), so one set of values reads correctly in both light and dark themes. `--ft-thinking-shimmer-duration` and `--ft-thinking-pulse-duration` are overridable on the root.
 - The row is a `role="status"` / `aria-live="polite"` region. The ticking `<time>` carries `aria-hidden="true"` **while running**, because a per-second counter inside a polite live region would otherwise be announced once per second; it becomes readable again the moment the activity stops. The `datetime` attribute is an ISO 8601 duration (`PT65S`), so the value is machine-readable rather than decorative.
 - Conditional styling hooks (`ft-thinking-shimmer`, `ft-thinking-dot-live`) are applied with `class:` directives rather than through `cn()`, so the Svelte compiler can see the classes are used and does not prune their scoped rules.
+
+## Performance
+
+The label sweep and the dot pulse pause while the indicator is out of view.

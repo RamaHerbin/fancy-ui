@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
+import { subscribe } from "../../internals/motion/ticker.js";
 import { createEditorialEngine } from "./engine.js";
 import "./editorial-engine.css";
 
@@ -80,7 +81,7 @@ export function EditorialEngine({
 	useEffect(() => {
 		const layer = layerRef.current;
 		if (layer === null) return;
-		const options = { headline, body, pullquotes, fontFamily };
+		const options = { headline, body, pullquotes, fontFamily, subscribe };
 		let destroy: (() => void) | null = null;
 		let cancelled = false;
 

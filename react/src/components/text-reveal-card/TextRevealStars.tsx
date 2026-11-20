@@ -1,5 +1,6 @@
-import { memo, useMemo, type CSSProperties } from "react";
+import { memo, useMemo, useState, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./text-reveal-stars.css";
 
 /**
@@ -90,11 +91,17 @@ export const TextRevealStars = memo(function TextRevealStars({
 	// the Svelte source's `$derived` tracks. A plain render-time call would
 	// reshuffle the field on every unrelated re-render.
 	const stars = useMemo(() => createStars(starsCount, seed), [starsCount, seed]);
+	const [node, setNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(node);
 
 	return (
 		// `text-reveal-stars` is port-added: the CSS anchor class for the
 		// compiler-scoped `.star-animate` rule (see text-reveal-stars.css).
-		<div className="text-reveal-stars absolute inset-0" style={{ containerType: "size" }}>
+		<div
+			ref={setNode}
+			className="text-reveal-stars absolute inset-0"
+			style={{ containerType: "size" }}
+		>
 			{stars.map((star, i) => (
 				<span
 					key={i}

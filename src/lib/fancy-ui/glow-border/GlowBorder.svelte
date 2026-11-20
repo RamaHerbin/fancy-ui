@@ -121,6 +121,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	let {
 		class: className = "",
@@ -162,6 +163,7 @@
 	)}
 	style={styles}
 	aria-hidden="true"
+	use:offscreenPause
 >
 	<span class="glow-border__halo"><span></span></span>
 	<span class="glow-border__metal"></span>
@@ -258,6 +260,11 @@
 			gb-flow-1 var(--glow-duration) linear infinite,
 			gb-flow-2 calc(var(--glow-duration) * 1.7) linear infinite reverse,
 			gb-glint calc(var(--glow-duration) * 0.4) linear infinite;
+	}
+
+	/* Out of view: freeze all three loops. */
+	.animate-glow:global([data-ft-offscreen]) {
+		animation-play-state: paused;
 	}
 
 	@keyframes gb-flow-1 {

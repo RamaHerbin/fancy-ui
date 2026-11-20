@@ -5,9 +5,20 @@
 
 import * as THREE from "three";
 
+/**
+ * Frame subscription, injected by the wrapper (it is the shared frame ticker).
+ * Injected rather than imported so this file stays byte-identical in every
+ * package tree, whatever the relative path to the ticker is there.
+ */
+export type FrameSubscribe = (opts: { el?: Element; onFrame(dt: number, now: number): void }) => {
+	setPaused(paused: boolean): void;
+	unsubscribe(): void;
+};
+
 export interface DisplacementTextElements {
 	/** Host the renderer canvas is appended to; also the pointer/raycast surface. */
 	container: HTMLElement;
+	subscribe: FrameSubscribe;
 }
 
 /** Read once, when the engine is created — changing them later has no effect. */
@@ -258,7 +269,7 @@ export function createDisplacementText(
 	elements: DisplacementTextElements,
 	options: DisplacementTextInitOptions & DisplacementTextLiveOptions
 ): DisplacementTextEngine | null {
-	const { container } = elements;
+	const { container, subscribe } = elements;
 	const { onContextLost } = options;
 
 	let opts: ResolvedOptions = { ...DEFAULTS };
@@ -352,12 +363,35 @@ export function createDisplacementText(
 
 	container.appendChild(renderer.domElement);
 
+	// Render on demand: the scene has no time uniform, so a frame is only worth
+	// drawing after something changed (pointer, texture, size, pixel ratio). The
+	// subscription is parked once a frame has nothing left to show, and woken by
+	// `invalidate()`. The shared ticker adds the viewport and visibility gates.
+	let dirty = true;
+	const sub = subscribe({
+		el: container,
+		onFrame: () => {
+			if (released) return;
+			if (!dirty) {
+				sub.setPaused(true);
+				return;
+			}
+			dirty = false;
+			renderer.render(scene, camera);
+		},
+	});
+	const invalidate = () => {
+		dirty = true;
+		sub.setPaused(false);
+	};
+
 	const raycaster = new THREE.Raycaster();
 	const pointer = new THREE.Vector2();
 
 	/** Swap in a freshly rasterized texture and release the old one. */
 	function retexture(nextColor: string) {
 		const tex = createTextTexture(opts.text, opts.fontSize, opts.font, nextColor);
+		invalidate();
 		// `uTexture` is one of the two uniforms declared just above — always present.
 		shaderMaterial.uniforms.uTexture!.value = tex;
 		textTexture.dispose();
@@ -372,7 +406,10 @@ export function createDisplacementText(
 		raycaster.setFromCamera(pointer, camera);
 		const [hit] = raycaster.intersectObject(hitPlane);
 		// `uDisplacement` is one of the two uniforms declared just above — always present.
-		if (hit) (shaderMaterial.uniforms.uDisplacement!.value as THREE.Vector3).copy(hit.point);
+		if (hit) {
+			(shaderMaterial.uniforms.uDisplacement!.value as THREE.Vector3).copy(hit.point);
+			invalidate();
+		}
 	};
 
 	container.addEventListener("pointermove", onPointerMove);
@@ -385,16 +422,10 @@ export function createDisplacementText(
 		camera.right = CAMERA_DISTANCE * a;
 		camera.updateProjectionMatrix();
 		renderer.setSize(r.width, r.height, false);
+		invalidate();
 	};
 
 	window.addEventListener("resize", handleResize);
-
-	let animationId = 0;
-	const animate = () => {
-		animationId = requestAnimationFrame(animate);
-		renderer.render(scene, camera);
-	};
-	animate();
 
 	const observer = new MutationObserver(() => {
 		const next = resolveTextColor(opts);
@@ -431,7 +462,7 @@ export function createDisplacementText(
 		renderer.domElement.removeEventListener("webglcontextlost", onContextLostEvent);
 		window.removeEventListener("resize", handleResize);
 		container.removeEventListener("pointermove", onPointerMove);
-		cancelAnimationFrame(animationId);
+		sub.unsubscribe();
 		if (observing) observer.disconnect();
 		observing = false;
 		if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
@@ -465,6 +496,7 @@ export function createDisplacementText(
 
 			if (merged.maxDpr !== prev.maxDpr) {
 				renderer.setPixelRatio(resolvePixelRatio(window.devicePixelRatio, merged.maxDpr));
+				invalidate();
 				handleResize();
 			}
 			syncObserver();

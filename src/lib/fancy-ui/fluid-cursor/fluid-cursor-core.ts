@@ -1357,7 +1357,7 @@ export function createFluidCursor(
 		}
 
 		function scaleByPixelRatio(input: number) {
-			const pixelRatio = window.devicePixelRatio || 1;
+			const pixelRatio = Math.min(2, window.devicePixelRatio || 1);
 			return Math.floor(input * pixelRatio);
 		}
 

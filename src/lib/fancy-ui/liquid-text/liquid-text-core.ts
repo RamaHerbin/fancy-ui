@@ -810,7 +810,7 @@ export function createLiquidText(
 		}
 
 		function rasterizeText() {
-			const dpr = window.devicePixelRatio || 1;
+			const dpr = Math.min(2, window.devicePixelRatio || 1);
 			const w = Math.max(1, Math.round(cssWidth * dpr));
 			const h = Math.max(1, Math.round(cssHeight * dpr));
 			if (!textCanvas) textCanvas = document.createElement("canvas");
@@ -838,7 +838,7 @@ export function createLiquidText(
 
 		function resizeAll() {
 			fitFontSize();
-			const dpr = window.devicePixelRatio || 1;
+			const dpr = Math.min(2, window.devicePixelRatio || 1);
 			cssWidth = host.clientWidth || 1;
 			cssHeight = Math.round(displayFontSize * HEIGHT_RATIO) || 1;
 			const pxW = Math.max(1, Math.round(cssWidth * dpr));

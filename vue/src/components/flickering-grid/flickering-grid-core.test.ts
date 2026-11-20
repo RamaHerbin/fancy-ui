@@ -155,16 +155,36 @@ describe("createFlickeringGrid", () => {
 		expect(pending.size).toBe(1);
 	});
 
-	it("schedules unconditionally on repeated setInView(true), as the original observer did", () => {
+	it("does not stack a second loop on repeated setInView(true)", () => {
 		const { container, canvas } = makeElements();
 		const engine = createFlickeringGrid({ container, canvas }, {});
 		engine!.setInView(true);
 		engine!.setInView(true);
-		// The original callback was `if (isInView) requestAnimationFrame(animate)`
-		// with no de-duplication, so two consecutive intersecting callbacks
-		// stacked two loops. Fidelity law: preserve that, do not "fix" it.
-		expect(rafSpy).toHaveBeenCalledTimes(2);
-		expect(pending.size).toBe(2);
+		expect(rafSpy).toHaveBeenCalledTimes(1);
+		expect(pending.size).toBe(1);
+	});
+
+	it("cancels the pending frame on setInView(false)", () => {
+		const { container, canvas } = makeElements();
+		const engine = createFlickeringGrid({ container, canvas }, {});
+		engine!.setInView(true);
+		expect(pending.size).toBe(1);
+		engine!.setInView(false);
+		expect(cafSpy).toHaveBeenCalledTimes(1);
+		expect(pending.size).toBe(0);
+	});
+
+	it("caps the backing-store scale at 2", () => {
+		vi.stubGlobal("devicePixelRatio", 3);
+		try {
+			const { container, canvas } = makeElements();
+			createFlickeringGrid({ container, canvas }, {});
+			// container 100x80 -> 200x160 backing store at the capped ratio of 2
+			expect(canvas.width).toBe(200);
+			expect(canvas.height).toBe(160);
+		} finally {
+			vi.unstubAllGlobals();
+		}
 	});
 
 	it("setOptions merges live options without resizing the grid", () => {

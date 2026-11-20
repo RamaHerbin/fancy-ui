@@ -181,6 +181,18 @@ describe("noise-reveal-core / lifecycle", () => {
 		engine?.destroy();
 	});
 
+	it("caps the renderer pixel ratio at 2", () => {
+		vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		vi.stubGlobal("devicePixelRatio", 3);
+		try {
+			const engine = createNoiseReveal({ container: makeHost() }, init());
+			expect(mock.renderer.setPixelRatio).toHaveBeenCalledWith(2);
+			engine?.destroy();
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
 	it("keeps the camera and plane constants", () => {
 		const raf = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
 		const host = makeHost(800, 400);

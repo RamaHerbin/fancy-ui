@@ -62,3 +62,7 @@ With `prefers-reduced-motion: reduce` nothing travels and nothing fades in: the 
 ## Accessibility
 
 The root and every layer are decorative: the root carries `aria-hidden="true"` and `pointer-events: none`.
+
+## Performance
+
+The comet pauses while the component is out of view.

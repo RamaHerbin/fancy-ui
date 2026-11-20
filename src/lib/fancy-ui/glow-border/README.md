@@ -44,3 +44,7 @@ The parent needs `position: relative` (the ring is an `absolute inset-0` overlay
 - **Halo** (`.glow-border__halo`): the glint on a wider ring, blurred by its parent wrapper so the blur applies after the mask and falls off softly on both sides of the edge.
 - **Themes**: every palette has a dark and a light version, both passed as CSS variables; `.dark` on an ancestor switches to the bright one. Light pages get deeper tones and a fainter halo, so the metal still reads on white.
 - `prefers-reduced-motion`: nothing turns; the metal and the glint rest at fixed angles.
+
+## Performance
+
+The flowing metal, its second field and the glint pause while the border is out of view.

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { subscribe, type TickerSubscription } from "../../internals/motion/ticker.js";
 
 /**
  * FallingStarsBg - Canvas-based 3D starfield background
@@ -157,12 +158,14 @@ export function FallingStarsBg({
 		let stars: Star[] = [];
 		let ctx: CanvasRenderingContext2D | null = null;
 		let dpr = 1;
-		let rafId = 0;
+		// Created lazily so a reduced-motion mount never requests a frame; parked,
+		// not removed, while the still frame is shown.
+		let sub: TickerSubscription | null = null;
 
 		function resizeCanvas() {
 			if (!canvas) return;
 
-			dpr = window.devicePixelRatio || 1;
+			dpr = Math.min(2, window.devicePixelRatio || 1);
 			const width = Math.max(1, Math.floor(canvas.clientWidth));
 			const height = Math.max(1, Math.floor(canvas.clientHeight));
 
@@ -240,12 +243,8 @@ export function FallingStarsBg({
 				}
 			}
 
-			// One still frame under reduced motion: paint, then idle.
-			if (reducedMotion) {
-				rafId = 0;
-				return;
-			}
-			rafId = requestAnimationFrame(loop);
+			// One still frame under reduced motion: paint, then park.
+			if (reducedMotion) sub?.setPaused(true);
 		}
 
 		resizeCanvas();
@@ -266,7 +265,7 @@ export function FallingStarsBg({
 			loop();
 			repaintRef.current = loop;
 		} else {
-			rafId = requestAnimationFrame(loop);
+			sub = subscribe({ el: canvas, onFrame: loop });
 		}
 
 		// Resizing wipes the bitmap; an idle (reduced-motion) loop must repaint.
@@ -283,7 +282,7 @@ export function FallingStarsBg({
 		const themeObserver =
 			typeof MutationObserver !== "undefined"
 				? new MutationObserver(() => {
-						if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(colorRef.current)) loop();
+						if (reducedMotion && CURRENT_COLOR.test(colorRef.current)) loop();
 					})
 				: null;
 		themeObserver?.observe(document.documentElement, {
@@ -294,7 +293,7 @@ export function FallingStarsBg({
 		return () => {
 			repaintRef.current = null;
 			themeObserver?.disconnect();
-			if (rafId) cancelAnimationFrame(rafId);
+			sub?.unsubscribe();
 			resizeObserver.disconnect();
 		};
 	}, [count, seed, reducedMotion]);

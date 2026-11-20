@@ -157,7 +157,7 @@ export function createFlickeringGrid(
 	const resolveColor = createColorResolver(el.container);
 
 	function setupCanvas(w: number, h: number) {
-		dpr = window.devicePixelRatio || 1;
+		dpr = Math.min(2, window.devicePixelRatio || 1);
 		el.canvas.width = w * dpr;
 		el.canvas.height = h * dpr;
 		el.canvas.style.width = `${w}px`;
@@ -264,14 +264,18 @@ export function createFlickeringGrid(
 			}
 		},
 		setInView(nextIsInView) {
-			// Faithful to the original IntersectionObserver callback: assign, then
-			// schedule unconditionally while in view (no de-duplication guard — the
-			// original stacked a second loop if two `isIntersecting: true` callbacks
-			// arrived in a row, and, above all, always restarted on re-entry).
+			// One loop at a time: a second consecutive `true` must not stack another
+			// frame chain, and leaving the viewport cancels the pending frame (and
+			// clears its id) so re-entry always restarts the loop.
 			if (destroyed) return;
 			isInView = nextIsInView;
 			if (isInView) {
-				animationFrameId = requestAnimationFrame(animate);
+				if (animationFrameId === undefined) {
+					animationFrameId = requestAnimationFrame(animate);
+				}
+			} else if (animationFrameId !== undefined) {
+				cancelAnimationFrame(animationFrameId);
+				animationFrameId = undefined;
 			}
 		},
 		resize() {

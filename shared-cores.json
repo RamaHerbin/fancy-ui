@@ -359,6 +359,17 @@
 		}
 	},
 	{
+		"id": "_internals/motion/offscreen-pause.ts",
+		"kind": "action",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (built on in-view) and is the Vue core verbatim; the React module is a hook on observeInView and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/offscreen-pause.ts",
+			"react": null,
+			"vue": "vue/src/internals/motion/offscreen-pause.ts"
+		}
+	},
+	{
 		"id": "_internals/motion/media-query.svelte.ts",
 		"kind": "rune-module",
 		"shared": false,
@@ -387,6 +398,16 @@
 			"svelte": "src/lib/fancy-ui/_internals/motion/raf.ts",
 			"react": "react/src/internals/motion/raf.ts",
 			"vue": "vue/src/internals/motion/raf.ts"
+		}
+	},
+	{
+		"id": "_internals/motion/ticker.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/ticker.ts",
+			"react": "react/src/internals/motion/ticker.ts",
+			"vue": "vue/src/internals/motion/ticker.ts"
 		}
 	},
 	{

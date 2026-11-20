@@ -1,9 +1,11 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import type { StreamStatus } from "../../internals/ai-types.js";
 import { StreamingText } from "../streaming-text/StreamingText.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./artifact-card.css";
 
 /**
@@ -91,9 +93,13 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 		className,
 		sound = false,
 	},
-	ref,
+	ref
 ) {
 	const playCue = useSoundCue(sound);
+
+	const [node, setNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(node);
+	const composedRef = useComposedRefs(ref, setNode);
 
 	const isStreaming = status === "streaming";
 	const isError = status === "error";
@@ -151,11 +157,11 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 	 */
 	return (
 		<div
-			ref={ref}
+			ref={composedRef}
 			className={cn(
 				"ft-artifact border-border bg-card relative w-full overflow-hidden rounded-lg border",
 				onOpen && "hover:border-foreground/25 cursor-pointer transition-colors",
-				className,
+				className
 			)}
 			data-status={status}
 			onClick={onOpen ? open : undefined}
@@ -167,7 +173,10 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 			{isStreaming ? <span className="ft-artifact-sweep" aria-hidden="true" /> : null}
 
 			<div className="flex items-start gap-2.5 px-3 py-2.5">
-				<span className="ft-artifact-icon text-muted-foreground mt-0.5 flex-none" aria-hidden="true">
+				<span
+					className="ft-artifact-icon text-muted-foreground mt-0.5 flex-none"
+					aria-hidden="true"
+				>
 					<svg
 						className="size-4"
 						viewBox="0 0 24 24"
