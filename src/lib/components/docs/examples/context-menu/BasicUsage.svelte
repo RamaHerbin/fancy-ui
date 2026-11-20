@@ -9,7 +9,7 @@
 </script>
 
 <ContextMenu sound>
-	<ContextMenuTrigger>
+	<ContextMenuTrigger focusable>
 		<div
 			class="border-border text-muted-foreground flex h-[140px] w-full items-center justify-center rounded-[10px] border border-dashed text-[13px]"
 		>

@@ -77,7 +77,7 @@ const entries: Record<
 						</p>
 					</div>
 					<div
-						class="text-muted-foreground/80 flex items-center justify-between px-3.5 pt-2 pb-1 font-mono text-[10.5px] tracking-wide"
+						class="text-muted-foreground flex items-center justify-between px-3.5 pt-2 pb-1 font-mono text-[10.5px] tracking-wide"
 					>
 						<span>{{ item.label }}.0</span>
 						<span>{{ entries[item.id].changes }} changes</span>

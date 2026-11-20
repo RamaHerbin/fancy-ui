@@ -177,7 +177,7 @@ function handleChange(event: Event) {
 			<span
 				v-if="showValue"
 				class="ft-slider-bubble border-input bg-background pointer-events-none absolute -top-1 -translate-x-1/2 -translate-y-full rounded-md border px-2 py-0.5 font-mono text-[11px] whitespace-nowrap"
-				:style="{ left: `${fraction * 100}%`, color: 'var(--ft-slider-accent-end)' }"
+				:style="{ left: `${fraction * 100}%`, color: 'var(--ft-slider-bubble-fg)' }"
 				aria-hidden="true"
 			>
 				{{ clampedValue }}
@@ -247,6 +247,7 @@ function handleChange(event: Event) {
 	 * oklch(0.7196 0.1305 223.96). Light mode takes the darker end.
 	 */
 	--ft-slider-accent-end: light-dark(oklch(0.7196 0.1305 223.96), oklch(0.8001 0.1345 225.49));
+	--ft-slider-bubble-fg: var(--foreground, currentColor);
 }
 
 /*

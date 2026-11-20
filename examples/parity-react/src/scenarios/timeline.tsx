@@ -70,7 +70,7 @@ export default function Scenario() {
 								</h4>
 								<p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{entry.body}</p>
 							</div>
-							<div className="text-muted-foreground/80 flex items-center justify-between px-3.5 pt-2 pb-1 font-mono text-[10.5px] tracking-wide">
+							<div className="text-muted-foreground flex items-center justify-between px-3.5 pt-2 pb-1 font-mono text-[10.5px] tracking-wide">
 								<span>{item.label}.0</span>
 								<span>{entry.changes} changes</span>
 							</div>

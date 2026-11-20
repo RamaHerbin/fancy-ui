@@ -175,7 +175,7 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 				</span>
 			) : null}
 			{description ? (
-				<span className="ft-step-description text-muted-foreground/80 text-[11px] leading-snug">
+				<span className="ft-step-description text-muted-foreground text-[11px] leading-snug">
 					{description}
 				</span>
 			) : null}

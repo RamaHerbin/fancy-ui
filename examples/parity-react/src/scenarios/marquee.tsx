@@ -52,7 +52,7 @@ export default function Scenario() {
 					<p className="text-[13px] font-medium tracking-[-0.01em] text-zinc-900 dark:text-zinc-100">
 						What people say
 					</p>
-					<span className="rounded-full border border-black/[.08] px-2.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:border-white/[.08]">
+					<span className="rounded-full border border-black/[.08] px-2.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:border-white/[.08] dark:text-zinc-400">
 						hover to brake
 					</span>
 				</div>

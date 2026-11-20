@@ -95,6 +95,20 @@ Clickable, so a reader can jump between steps directly:
 | `class`       | `string`                | —       | Additional CSS classes                                                |
 | `ref`         | `HTMLLIElement \| null` | `null`  | Bindable element reference                                            |
 
+## Accessibility
+
+- The track is a `role="list"` and the active step carries
+  `aria-current="step"`. Step state is also written in the status text, not
+  only the bullet colour or glyph.
+- A clickable step renders a native `<button>`, so it is reachable with Tab and
+  activates with Enter or Space; a non-clickable step is plain text with no
+  focus stop.
+- Bullets, glyphs and connector rails are `aria-hidden`; the title and
+  description are the accessible text. The small description text keeps 4.5:1
+  contrast against the page.
+- Motion is described in the Motion section below and is gated on
+  `prefers-reduced-motion`.
+
 ## Sound
 
 Set `sound` on `Stepper` to play the `select` cue whenever a clickable step moves the active step to a different one, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
