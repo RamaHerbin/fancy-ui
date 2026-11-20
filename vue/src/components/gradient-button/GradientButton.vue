@@ -208,9 +208,14 @@ function handleClick(event: MouseEvent) {
 	padding: calc(var(--gb-blur) * 1.75);
 }
 
-.gradient-button:hover .gradient-glow,
 .gradient-button:focus-visible .gradient-glow {
 	opacity: 0.8;
+}
+
+@media (hover: hover) {
+	.gradient-button:hover .gradient-glow {
+		opacity: 0.8;
+	}
 }
 
 .gradient-button:focus-visible {

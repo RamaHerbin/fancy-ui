@@ -56,6 +56,7 @@
 		children,
 		onclick,
 		onpointermove,
+		onpointerleave,
 		sound = false,
 		...restProps
 	}: RippleButtonProps = $props();
@@ -89,6 +90,15 @@
 		onpointermove?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 
+	// Leaving drops the pointer position, so the keyboard-focus glow is centred
+	// again (the CSS fallback) instead of parked where the pointer last was.
+	function handlePointerLeave(event: PointerEvent) {
+		const el = event.currentTarget as HTMLButtonElement;
+		el.style.removeProperty("--ripple-x");
+		el.style.removeProperty("--ripple-y");
+		onpointerleave?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
+
 	function createRipple(event: MouseEvent) {
 		if (!buttonRef) return;
 
@@ -110,7 +120,7 @@
 		"ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden",
 		"bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium",
 		"shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]",
-		"duration-300 ease-out transition-[border-color,background-color] motion-safe:transition-[transform,border-color,background-color]",
+		"transition-[border-color,background-color] duration-300 ease-out motion-safe:transition-[transform,border-color,background-color]",
 		"hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
 		className
 	)}
@@ -118,6 +128,7 @@
 	data-rippling={ripples.length > 0 ? "" : undefined}
 	onclick={handleClick}
 	onpointermove={handlePointerMove}
+	onpointerleave={handlePointerLeave}
 	{...restProps}
 >
 	<div class="relative z-10">
@@ -170,16 +181,32 @@
 		transform: scale(0.2);
 	}
 
-	.ripple-button:hover .ripple-hover {
+	/* Keyboard focus gets the same glow and ring, centred; hover only where it exists. */
+	.ripple-button:focus-visible .ripple-hover {
 		opacity: 1;
 	}
 
-	.ripple-button:hover .ripple-hover::after {
+	.ripple-button:focus-visible .ripple-hover::after {
+		/* off-token: the idle ring keeps the ripple's own ease, like its hover twin */
 		animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 	}
 
-	.ripple-button:hover {
+	.ripple-button:focus-visible {
 		border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+	}
+
+	@media (hover: hover) {
+		.ripple-button:hover .ripple-hover {
+			opacity: 1;
+		}
+
+		.ripple-button:hover .ripple-hover::after {
+			animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+		}
+
+		.ripple-button:hover {
+			border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+		}
 	}
 
 	@keyframes ripple-idle {
@@ -254,7 +281,8 @@
 
 	/* Reduced motion: no expansion, just a brief glow where you pressed. */
 	@media (prefers-reduced-motion: reduce) {
-		.ripple-button:hover .ripple-hover::after {
+		.ripple-button:hover .ripple-hover::after,
+		.ripple-button:focus-visible .ripple-hover::after {
 			animation: none;
 		}
 

@@ -52,3 +52,7 @@ With `prefers-reduced-motion: reduce`, the arrow and the pill snap straight to t
 - The engine is framework-free and lives in `smooth-cursor-core.ts`. It owns the rAF loop, both springs, the label leash and tilt, the idle timer, the `document` pointer listeners, and hiding and restoring the native cursor. The wrapper owns the markup, the snippet, `class` and the reduced-motion query.
 - The loop sleeps once both springs settle on the pointer and wakes on the next move. The first frame after it wakes integrates at most one 60 Hz step.
 - The whole layer is `aria-hidden` and `pointer-events: none`. The pill is plain text inside that layer.
+
+## Pointer motion is decorative
+
+The pointer-driven motion here is decorative: it only enhances the effect, and all content and controls stay fully usable without it (keyboard, touch, or a pointer that never moves). This follows the escape clause in the shared interaction contract.

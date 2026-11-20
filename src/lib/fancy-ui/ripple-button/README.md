@@ -38,6 +38,12 @@ Set `sound` to play the `press` cue on activation, through the shared sound cont
 
 It is opt-in and silent by default: nothing plays unless both `sound` is set on the button **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks a native click. The cue plays once per click alongside the ripple; the ripple's own removal timeout never triggers a second cue.
 
+## Accessibility
+
+- A native `<button>`: Enter and Space press it and start the ripple from the centre.
+- The hover glow and pulsing ring are a preview, not the only path: keyboard focus (`:focus-visible`) shows the same glow and the same tinted border. The glow sits at the middle of the button unless the pointer is over it. The hover version only runs where hover exists (`@media (hover: hover)`), so touch screens never get a stuck state; a tap still ripples.
+- Reduced motion keeps the glow and drops the pulsing ring, for hover and focus alike.
+
 ## Implementation notes
 
 - `onclick` is intercepted, not overwritten: the component's own `handleClick` always creates the ripple first, then calls the caller's `onclick` (if provided) with the original event — passing `onclick` works exactly as it would on a plain `<button>`.
@@ -46,5 +52,5 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 - `rippleColor` is exposed as `--ripple-color`; everything is tinted from it through `color-mix()`. `data-rippling` is set on the button while any ripple runs, and tints the border.
 - Each ripple is tracked in a `ripples` array with a monotonic key and removed via `setTimeout(duration)` after the animation finishes — rapid repeated clicks stack concurrent ripples rather than restarting one.
 - `duration` is threaded into the CSS animation via the `--ripple-duration` custom property, so the visual animation and the removal timeout always stay in sync.
-- **Hover**: `pointermove` writes `--ripple-x` / `--ripple-y` on the button (no re-render; a consumer `onpointermove` is still called). `.ripple-hover` is a radial glow at that point, and its `::after` is a 72 px ring that pulses from it every 1.8 s while hovered. The border takes a lighter tint of `rippleColor` on hover.
+- **Hover**: `pointermove` writes `--ripple-x` / `--ripple-y` on the button (no re-render; a consumer `onpointermove` is still called), and `pointerleave` removes them again so the glow falls back to the centre (a consumer `onpointerleave` is still called). `.ripple-hover` is a radial glow at that point, and its `::after` is a 72 px ring that pulses from it every 1.8 s while hovered. The border takes a lighter tint of `rippleColor` on hover.
 - `prefers-reduced-motion`: no expansion and no rings, only a brief glow that fades where you pressed; on hover the glow follows the pointer but the ring does not pulse.

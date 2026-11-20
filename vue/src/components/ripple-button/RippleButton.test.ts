@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen, cleanup, fireEvent } from "@testing-library/vue";
 import { nextTick } from "vue";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
@@ -40,6 +42,22 @@ describe("RippleButton", () => {
 		} finally {
 			vi.useRealTimers();
 		}
+	});
+
+	it("drops the pointer position on leave so the focus glow is centred again", async () => {
+		const onPointerleave = vi.fn();
+		render(RippleButton, { attrs: { onPointerleave } });
+		const button = screen.getByRole("button");
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		await fireEvent(
+			button,
+			new MouseEvent("pointermove", { clientX: 60, clientY: 30, bubbles: true })
+		);
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("50px");
+		await fireEvent(button, new MouseEvent("pointerleave"));
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("");
+		expect(button.style.getPropertyValue("--ripple-y")).toBe("");
+		expect(onPointerleave).toHaveBeenCalledTimes(1);
 	});
 
 	it("tracks the pointer for the hover glow and forwards a consumer onpointermove", async () => {
@@ -225,5 +243,22 @@ describe("RippleButton consumer style and slot", () => {
 	it("renders the optional default slot", () => {
 		render(RippleButton, { slots: { default: "Tap" } });
 		expect(screen.getByRole("button").textContent).toContain("Tap");
+	});
+});
+
+describe("RippleButton hover and focus", () => {
+	/** The component stylesheet, whatever the framework keeps it in. */
+	const css = readFileSync(resolve(__dirname, "./RippleButton.vue"), "utf8");
+
+	it("gives the hover glow a keyboard-focus twin outside any media gate", () => {
+		const ungated = css.replace(/@media \(hover: hover\) \{[\s\S]*?\n\t?\}\n/g, "");
+		expect(ungated).toMatch(/\.ripple-button:focus-visible \.ripple-hover \{\s*opacity: 1;/);
+	});
+
+	it("keeps :hover motion inside (hover: hover)", () => {
+		const gated = css.match(/@media \(hover: hover\) \{([\s\S]*?)\n\t?\}\n/)?.[1] ?? "";
+		expect(gated).toContain(".ripple-button:hover .ripple-hover {");
+		const ungated = css.replace(/@media \(hover: hover\) \{[\s\S]*?\n\t?\}\n/g, "");
+		expect(ungated).not.toMatch(/\.ripple-button:hover \.ripple-hover \{\s*opacity: 1/);
 	});
 });

@@ -72,13 +72,21 @@
 	);
 }
 
-.shimmer-button:hover .shimmer-button__spot {
+.shimmer-button:focus-visible .shimmer-button__spot {
 	opacity: 1;
 }
 
+@media (hover: hover) {
+	.shimmer-button:hover .shimmer-button__spot {
+		opacity: 1;
+	}
+}
+
 /* The pointer takes over from the sweep while hovering. */
-.shimmer-button:hover .shimmer-button__sheen {
-	opacity: 0;
+@media (hover: hover) {
+	.shimmer-button:hover .shimmer-button__sheen {
+		opacity: 0;
+	}
 }
 
 .shimmer-button:focus-visible {
