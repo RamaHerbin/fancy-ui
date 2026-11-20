@@ -36,6 +36,7 @@
 		clearFilters,
 		facetCounts,
 		parseFilters,
+		searchTerms,
 		serializeFilters,
 		toggleFacet,
 		type Facet,
@@ -43,6 +44,7 @@
 	} from "$lib/inspiration/query.js";
 	import type { Reference, Sort } from "$lib/inspiration/types.js";
 	import { createSavedState } from "$lib/stores/saved.svelte.js";
+	import type { UnderstoodChip, Understanding } from "$lib/server/understand.js";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -115,16 +117,153 @@
 		navigate({ ...filters, q: query }, filters.q !== "");
 	}
 
+	// ─── Reading a sentence as filters ──────────────────────────────────────
+	// A sentence of a few words ("a button that glows on hover") goes to the
+	// interpreter on Enter; a confident answer becomes facets + a subject word,
+	// shown as "Understood as …" with a way back to the exact words. Without
+	// the interpreter (no key, error, slow) the words are searched as usual.
+	const INTERPRET_MIN_TERMS = 3;
+	const INTERPRET_TIMEOUT_MS = 2500;
+
+	interface Understood {
+		sentence: string;
+		chips: UnderstoodChip[];
+		before: Filters;
+	}
+	let understood = $state<Understood | null>(null);
+	let interpreting = $state(false);
+	let interpretController: AbortController | undefined;
+	/** Bumped by every cancellation, so a late reply knows it is out of date. */
+	let interpretSeq = 0;
+
+	/**
+	 * `applied`: the reading became filters. `fallback`: no usable reading
+	 * (timeout, error, empty), search the words. `stale`: the visitor moved on
+	 * (another action, a navigation, leaving the page), do nothing.
+	 */
+	type Interpretation = "applied" | "fallback" | "stale";
+
+	const wantsInterpretation = (text: string) => searchTerms(text).length >= INTERPRET_MIN_TERMS;
+
+	function cancelInterpretation() {
+		interpretSeq++;
+		interpretController?.abort();
+		interpretController = undefined;
+		interpreting = false;
+	}
+
+	async function interpret(
+		sentence: string,
+		base: Filters,
+		replaceState: boolean
+	): Promise<Interpretation> {
+		cancelInterpretation();
+		const seq = interpretSeq;
+		const controller = new AbortController();
+		interpretController = controller;
+		const timer = setTimeout(() => controller.abort(), INTERPRET_TIMEOUT_MS);
+		interpreting = true;
+		const stale = () => seq !== interpretSeq;
+		try {
+			const response = await fetch("/api/inspiration/understand", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ query: sentence }),
+				signal: controller.signal,
+			});
+			if (stale()) return "stale";
+			if (!response.ok) return "fallback";
+			const body = (await response.json()) as { understanding?: Understanding };
+			if (stale()) return "stale";
+			const reading = body.understanding;
+			if (!reading || reading.chips.length === 0) return "fallback";
+			const next: Filters = {
+				...base,
+				interaction: [...new Set([...base.interaction, ...reading.interaction])].sort(),
+				style: [...new Set([...base.style, ...reading.style])].sort(),
+				q: reading.subject ?? "",
+			};
+			understood = { sentence, chips: reading.chips, before: base };
+			query = next.q;
+			navigate(next, replaceState);
+			return "applied";
+		} catch {
+			// A cancellation bumped the sequence; only the timeout or an error falls back.
+			return stale() ? "stale" : "fallback";
+		} finally {
+			clearTimeout(timer);
+			if (!stale()) {
+				interpreting = false;
+				interpretController = undefined;
+			}
+		}
+	}
+
+	async function submitQuery() {
+		cancelSearch();
+		forgetUnderstanding();
+		const sentence = query.trim();
+		const result = wantsInterpretation(sentence)
+			? await interpret(sentence, filters, false)
+			: "fallback";
+		if (result === "fallback") commitQuery();
+	}
+
+	/** Back to the words as typed, without the facets the interpreter added. */
+	function useExactWords() {
+		if (!understood) return;
+		const { sentence, before } = understood;
+		forgetUnderstanding();
+		query = sentence;
+		navigate({ ...before, q: sentence }, true);
+	}
+
+	// Arriving from the home search (`?ask=1`): read the sentence once, then
+	// drop the flag so a reload or a shared link stays a plain search.
+	let askHandled = false;
+	$effect(() => {
+		if (!ready || askHandled) return;
+		askHandled = true;
+		if (page.url.searchParams.get("ask") !== "1") return;
+		const sentence = filters.q;
+		const base = filters;
+		void (async () => {
+			const result = wantsInterpretation(sentence)
+				? await interpret(sentence, base, true)
+				: "fallback";
+			// A newer navigation already dropped the flag: leave the visitor's state alone.
+			if (result !== "fallback") return;
+			goto(`/inspiration${serializeFilters(filters)}`, {
+				replaceState: true,
+				keepFocus: true,
+				noScroll: true,
+			});
+		})();
+	});
+
+	// Any change the visitor makes afterwards is theirs, not the interpreter's:
+	// a reading still pending is dropped, never applied over it.
+	function forgetUnderstanding() {
+		understood = null;
+		cancelInterpretation();
+	}
+
+	$effect(() => () => cancelInterpretation());
+
 	function onQueryInput() {
+		forgetUnderstanding();
 		clearTimeout(searchTimer);
 		searchTimer = setTimeout(commitQuery, SEARCH_DEBOUNCE_MS);
 	}
 
 	$effect(() => cancelSearch);
 
-	// Leaving (a card, the header, Back): a search still pending must not
-	// pull the visitor back to the gallery.
-	beforeNavigate(cancelSearch);
+	// Leaving (a card, the header, Back): a search or a reading still pending
+	// must not pull the visitor back to the gallery.
+	beforeNavigate(() => {
+		cancelSearch();
+		cancelInterpretation();
+	});
 
 	// The URL changed under the field (Back/Forward, the home search, the
 	// header link): show its query. Our own writes are skipped, so typing is
@@ -138,10 +277,12 @@
 	});
 
 	function onToggle(facet: Facet, value: string) {
+		forgetUnderstanding();
 		return navigate({ ...toggleFacet(filters, facet, value as never), q: query });
 	}
 
 	function onSort(sort: Sort) {
+		forgetUnderstanding();
 		navigate({ ...filters, sort, q: query });
 	}
 
@@ -161,6 +302,7 @@
 		const index = activeChips(filters).findIndex(
 			(other) => other.facet === chip.facet && other.value === chip.value
 		);
+		forgetUnderstanding();
 		let done: Promise<void>;
 		if (chip.facet === "q") {
 			query = "";
@@ -174,6 +316,7 @@
 	}
 
 	function onClear() {
+		forgetUnderstanding();
 		query = "";
 		void refocusAfter(navigate(clearFilters(filters)), 0);
 	}
@@ -202,12 +345,31 @@
 			{total}
 			shown={results.length}
 			{onQueryInput}
-			onQuerySubmit={commitQuery}
+			onQuerySubmit={submitQuery}
 			{onToggle}
 			{onSort}
 			{onRemove}
 			{onClear}
 		/>
+
+		<p class="understood" aria-live="polite">
+			{#if interpreting}
+				<span class="fx-mono label">Reading your request…</span>
+			{:else if understood}
+				<span class="fx-mono label">Understood as</span>
+				{#each understood.chips as chip (chip.facet + chip.value)}
+					<span class="chip" title="Confidence {Math.round(chip.confidence * 100)}%"
+						>{chip.label}<span class="fx-mono conf" aria-hidden="true"
+							>{Math.round(chip.confidence * 100)}%</span
+						><span class="sr-only">, confidence {Math.round(chip.confidence * 100)} percent</span
+						></span
+					>
+				{/each}
+				<button type="button" class="exact" onclick={useExactWords}
+					>Search the exact words instead</button
+				>
+			{/if}
+		</p>
 
 		<section class="results" aria-label="References">
 			{#if results.length === 0}
@@ -276,7 +438,57 @@
 	}
 
 	.results {
-		margin-top: 24px;
+		margin-top: 16px;
+	}
+
+	.understood {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 10px;
+		min-height: 28px;
+		margin-top: 12px;
+		font-size: 13px;
+		color: var(--fx-ink-2);
+	}
+
+	.understood .label {
+		font-size: 11px;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--fx-ink-3);
+	}
+
+	.understood .chip {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 6px;
+		padding: 3px 10px;
+		border-radius: 999px;
+		color: var(--fx-ink);
+		box-shadow: inset 0 0 0 1px var(--fx-hairline-strong);
+	}
+
+	.understood .conf {
+		font-size: 10.5px;
+		color: var(--fx-ink-3);
+	}
+
+	.understood .exact {
+		color: var(--fx-ink-2);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+
+	.understood .exact:hover {
+		color: var(--fx-ink);
+	}
+
+	@media (pointer: coarse) {
+		.understood .exact {
+			min-height: 40px;
+		}
 	}
 
 	.more {
