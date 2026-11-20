@@ -279,7 +279,9 @@ function handleChange(event: Event) {
 		var(--ft-slider-accent) calc(var(--ft-slider-glint) * min(1, var(--ft-slider-sweep) * 5) * 90%),
 		transparent
 	);
+	/* off-token: ambient sweep curve, slow-in and slow-out so the comet never snaps at either end */
 	animation: ft-slider-sweep 1.6s cubic-bezier(0.45, 0, 0.25, 1) infinite paused;
+	/* off-token: glint fade, tuned against the 240ms thumb spring it accompanies */
 	transition: --ft-slider-glint 260ms ease-out;
 }
 .ft-slider:not(:disabled):is(:hover, :focus-visible, :active) {
@@ -364,9 +366,10 @@ function handleChange(event: Event) {
 	box-shadow:
 		0 0 6px 1px color-mix(in oklab, var(--ft-slider-accent) 55%, transparent),
 		0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
-	transition:
-		transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
-		box-shadow 200ms ease-out;
+	transition-property: transform, box-shadow;
+	/* off-token: spring settle, longer than `exit` so the overshoot reads */
+	transition-duration: 240ms, var(--ft-duration-exit, 200ms);
+	transition-timing-function: var(--ft-ease-overshoot, cubic-bezier(0.34, 1.56, 0.64, 1)), ease-out;
 }
 .ft-slider::-moz-range-thumb {
 	width: 12px;
@@ -377,9 +380,10 @@ function handleChange(event: Event) {
 	box-shadow:
 		0 0 6px 1px color-mix(in oklab, var(--ft-slider-accent) 55%, transparent),
 		0 0 18px 4px color-mix(in oklab, var(--ft-slider-accent) 22%, transparent);
-	transition:
-		transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
-		box-shadow 200ms ease-out;
+	transition-property: transform, box-shadow;
+	/* off-token: spring settle, longer than `exit` so the overshoot reads */
+	transition-duration: 240ms, var(--ft-duration-exit, 200ms);
+	transition-timing-function: var(--ft-ease-overshoot, cubic-bezier(0.34, 1.56, 0.64, 1)), ease-out;
 }
 
 .ft-slider:not(:disabled):hover::-webkit-slider-thumb,
@@ -408,7 +412,8 @@ function handleChange(event: Event) {
 
 /* The value bubble lifts a little while the thumb is held. */
 .ft-slider-bubble {
-	transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	/* off-token: same spring settle as the thumb it follows */
+	transition: transform 240ms var(--ft-ease-overshoot, cubic-bezier(0.34, 1.56, 0.64, 1));
 }
 .ft-slider-wrap:has(.ft-slider:not(:disabled):active) .ft-slider-bubble {
 	transform: translateY(-4px) scale(1.06);
