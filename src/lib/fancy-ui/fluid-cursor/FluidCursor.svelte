@@ -19,7 +19,9 @@
 	 * re-reading, and the effect below forwards them. `dev` is not part of the
 	 * public surface — the wrapper fills it in from the bundler.
 	 */
-	interface Props extends Partial<Omit<FluidCursorInitOptions, "dev"> & FluidCursorLiveOptions> {
+	interface Props extends Partial<
+		Omit<FluidCursorInitOptions, "dev" | "releaseContext"> & FluidCursorLiveOptions
+	> {
 		class?: string;
 	}
 

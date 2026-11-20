@@ -40,6 +40,15 @@ describe("generateStars", () => {
 });
 
 describe("createBgStars", () => {
+	// Every engine listens on `document`; one left alive would keep answering
+	// the visibility events of the tests that follow.
+	const engines: Array<NonNullable<ReturnType<typeof createBgStars>>> = [];
+	const create: typeof createBgStars = (...args) => {
+		const engine = createBgStars(...args);
+		if (engine) engines.push(engine);
+		return engine;
+	};
+
 	let rafSpy: ReturnType<typeof vi.spyOn>;
 	let cafSpy: ReturnType<typeof vi.spyOn>;
 
@@ -51,6 +60,7 @@ describe("createBgStars", () => {
 	});
 
 	afterEach(() => {
+		for (const engine of engines.splice(0)) engine.destroy();
 		rafSpy.mockRestore();
 		cafSpy.mockRestore();
 		document.body.innerHTML = "";
@@ -58,25 +68,25 @@ describe("createBgStars", () => {
 
 	it("never returns null (no context/API to fail on for a DOM-transform engine)", () => {
 		const el = makeElements();
-		const engine = createBgStars(el, {});
+		const engine = create(el, {});
 		expect(engine).not.toBeNull();
 	});
 
 	it("starts the rAF loop on creation", () => {
 		const el = makeElements();
-		createBgStars(el, {});
+		create(el, {});
 		expect(rafSpy).toHaveBeenCalled();
 	});
 
 	it("applies an initial transform to the parallax element", () => {
 		const el = makeElements();
-		createBgStars(el, {});
+		create(el, {});
 		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
 	});
 
 	it("setOptions applies each live key without throwing", () => {
 		const el = makeElements();
-		const engine = createBgStars(el, { factor: 0.05, stiffness: 50, damping: 20 })!;
+		const engine = create(el, { factor: 0.05, stiffness: 50, damping: 20 })!;
 		expect(() => engine.setOptions({ factor: 0.1 })).not.toThrow();
 		expect(() => engine.setOptions({ stiffness: 80 })).not.toThrow();
 		expect(() => engine.setOptions({ damping: 40 })).not.toThrow();
@@ -90,7 +100,7 @@ describe("createBgStars", () => {
 			return 1 as unknown as number;
 		});
 		// Mild stiffness/no damping-driven oscillation: one tick moves toward the target.
-		createBgStars(el, { factor: 1, stiffness: 50, damping: 20 });
+		create(el, { factor: 1, stiffness: 50, damping: 20 });
 
 		Object.defineProperty(window, "innerWidth", { value: 1000, configurable: true });
 		Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
@@ -106,7 +116,7 @@ describe("createBgStars", () => {
 
 	it("resize is safe to call before and after destroy", () => {
 		const el = makeElements();
-		const engine = createBgStars(el, {})!;
+		const engine = create(el, {})!;
 		expect(() => engine.resize()).not.toThrow();
 		engine.destroy();
 		expect(() => engine.resize()).not.toThrow();
@@ -114,7 +124,7 @@ describe("createBgStars", () => {
 
 	it("destroy cancels the rAF loop and is idempotent", () => {
 		const el = makeElements();
-		const engine = createBgStars(el, {})!;
+		const engine = create(el, {})!;
 		engine.destroy();
 		expect(cafSpy).toHaveBeenCalledTimes(1);
 		expect(() => engine.destroy()).not.toThrow();
@@ -128,7 +138,7 @@ describe("createBgStars", () => {
 			tick = cb;
 			return 1 as unknown as number;
 		});
-		const engine = createBgStars(el, { factor: 1, stiffness: 1000, damping: 0 })!;
+		const engine = create(el, { factor: 1, stiffness: 1000, damping: 0 })!;
 		engine.destroy();
 
 		const before = el.parallax.style.transform;
@@ -141,14 +151,14 @@ describe("createBgStars", () => {
 
 	it("setOptions after destroy does not throw", () => {
 		const el = makeElements();
-		const engine = createBgStars(el, {})!;
+		const engine = create(el, {})!;
 		engine.destroy();
 		expect(() => engine.setOptions({ factor: 0.2 })).not.toThrow();
 	});
 	it("reducedMotion parks the parallax at rest, ignores the pointer, and resumes when cleared", () => {
 		const el = makeElements();
 		rafSpy.mockClear();
-		const engine = createBgStars(el, { factor: 1, reducedMotion: true })!;
+		const engine = create(el, { factor: 1, reducedMotion: true })!;
 		expect(rafSpy).not.toHaveBeenCalled();
 		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
 
@@ -167,5 +177,121 @@ describe("createBgStars", () => {
 		engine.setOptions({ reducedMotion: true });
 		expect(cafSpy).toHaveBeenCalled();
 		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
+	});
+
+	describe("idle behaviour", () => {
+		/** A frame queue the test drains by hand, so "no frame pending" is observable. */
+		function stubFrames() {
+			let nextId = 0;
+			const queue = new Map<number, FrameRequestCallback>();
+			rafSpy.mockImplementation((cb: FrameRequestCallback) => {
+				queue.set(++nextId, cb);
+				return nextId;
+			});
+			cafSpy.mockImplementation((id: number) => {
+				queue.delete(id);
+			});
+			return {
+				get pending() {
+					return queue.size;
+				},
+				/** Run up to `max` frames; returns how many actually ran. */
+				drain(max: number) {
+					let ran = 0;
+					while (ran < max && queue.size > 0) {
+						const [id, cb] = queue.entries().next().value!;
+						queue.delete(id);
+						cb(0);
+						ran++;
+					}
+					return ran;
+				},
+			};
+		}
+
+		function withHidden(run: (setHidden: (value: boolean) => void) => void) {
+			let hidden = false;
+			Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden });
+			try {
+				run((value) => {
+					hidden = value;
+					document.dispatchEvent(new Event("visibilitychange"));
+				});
+			} finally {
+				delete (document as unknown as { hidden?: boolean }).hidden;
+			}
+		}
+
+		it("parks once the spring is at rest instead of scheduling frames forever", () => {
+			const frames = stubFrames();
+			create(makeElements(), {});
+			const ran = frames.drain(200);
+			expect(ran).toBeLessThan(200);
+			expect(frames.pending).toBe(0);
+		});
+
+		it("wakes on a pointer move, then lands exactly on the target and parks again", () => {
+			const frames = stubFrames();
+			const el = makeElements();
+			create(el, { factor: 0.05 });
+			frames.drain(200);
+			expect(frames.pending).toBe(0);
+
+			Object.defineProperty(window, "innerWidth", { value: 1000, configurable: true });
+			Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+			el.host.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0, bubbles: true }));
+			expect(frames.pending).toBe(1);
+			// A second move while a frame is queued does not stack a second loop.
+			el.host.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0, bubbles: true }));
+			expect(frames.pending).toBe(1);
+
+			const ran = frames.drain(2000);
+			expect(ran).toBeLessThan(2000);
+			expect(frames.pending).toBe(0);
+			expect(el.parallax.style.transform).toBe("translate(25px, 20px)");
+		});
+
+		it("does not run while the page is hidden, and resumes when it is shown", () => {
+			const frames = stubFrames();
+			const el = makeElements();
+			create(el, {});
+			frames.drain(200);
+			withHidden((setHidden) => {
+				setHidden(true);
+				el.host.dispatchEvent(
+					new MouseEvent("mousemove", { clientX: 0, clientY: 0, bubbles: true })
+				);
+				expect(frames.pending).toBe(0);
+				setHidden(false);
+				expect(frames.pending).toBe(1);
+			});
+		});
+
+		it("cancels the pending frame when the page is hidden mid-flight", () => {
+			const frames = stubFrames();
+			const el = makeElements();
+			create(el, {});
+			frames.drain(200);
+			el.host.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0, bubbles: true }));
+			expect(frames.pending).toBe(1);
+			withHidden((setHidden) => {
+				setHidden(true);
+				expect(frames.pending).toBe(0);
+			});
+		});
+
+		it("destroy removes the visibility listener: a later show schedules nothing", () => {
+			const frames = stubFrames();
+			const el = makeElements();
+			const engine = create(el, {})!;
+			el.host.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0, bubbles: true }));
+			engine.destroy();
+			expect(frames.pending).toBe(0);
+			withHidden((setHidden) => {
+				setHidden(true);
+				setHidden(false);
+				expect(frames.pending).toBe(0);
+			});
+		});
 	});
 });

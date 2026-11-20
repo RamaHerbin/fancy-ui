@@ -294,4 +294,23 @@ describe("FlickeringGrid", () => {
 			expect(fill.fillStyle).toMatch(/^rgba\(10, 20, 30,/);
 		}
 	});
+
+	it("two intersecting callbacks in a row keep a single loop, and nothing runs after unmount", () => {
+		stubCanvas2d();
+		stubResizeObserver();
+		const raf = stubRaf();
+
+		const { unmount } = render(<FlickeringGrid width={40} height={20} />);
+		act(() => latestIntersectionObserver().trigger(true));
+		act(() => latestIntersectionObserver().trigger(true));
+		expect(raf.pending).toBe(1);
+
+		act(() => raf.flush(16));
+		expect(raf.pending).toBe(1);
+
+		unmount();
+		act(() => raf.flush(32));
+		act(() => raf.flush(48));
+		expect(raf.pending).toBe(0);
+	});
 });

@@ -3,6 +3,7 @@ import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { createSparkles, type SparklesEngine } from "./sparkles-core.js";
 
 /**
  * Sparkles - canvas-based floating particle sparkle effect
@@ -39,17 +40,6 @@ export interface SparklesProps {
 	seed?: number;
 }
 
-interface Particle {
-	x: number;
-	y: number;
-	size: number;
-	opacity: number;
-	vx: number;
-	vy: number;
-	phase: number;
-	phaseSpeed: number;
-}
-
 /**
  * mulberry32 - a tiny deterministic PRNG, standing in for the source's bare
  * `Math.random()`. Same uniform distribution, so the field looks identical, but
@@ -67,42 +57,6 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
-const CURRENT_COLOR = /^\s*currentcolor\s*$/i;
-
-/**
- * Resolve `currentColor` to a `#rrggbb` string from `el`'s computed text colour
- * (the particle loop appends a hex alpha byte, so it needs hex). The common
- * `rgb()`/`rgba()` serialisation is parsed directly; newer spaces are
- * rasterised through a 1x1 canvas. Any other value is returned unchanged.
- */
-function resolveCurrentColor(color: string, el: Element): string {
-	if (!CURRENT_COLOR.test(color)) return color;
-	const computed = getComputedStyle(el).color;
-	let r = 0;
-	let g = 0;
-	let b = 0;
-	const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(computed);
-	if (m) {
-		r = Math.round(+m[1]!);
-		g = Math.round(+m[2]!);
-		b = Math.round(+m[3]!);
-	} else if (computed) {
-		try {
-			const probe = document.createElement("canvas");
-			probe.width = probe.height = 1;
-			const pctx = probe.getContext("2d", { willReadFrequently: true });
-			if (pctx) {
-				pctx.fillStyle = computed;
-				pctx.fillRect(0, 0, 1, 1);
-				[r = 0, g = 0, b = 0] = pctx.getImageData(0, 0, 1, 1).data;
-			}
-		} catch {
-			// keep the black fallback
-		}
-	}
-	return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
-}
-
 export function Sparkles({
 	background = "#0d47a1",
 	particleColor = "#ffffff",
@@ -115,143 +69,41 @@ export function Sparkles({
 }: SparklesProps) {
 	const [container, containerRef] = useElementRef<HTMLDivElement>();
 	const [canvas, canvasRef] = useElementRef<HTMLCanvasElement>();
+	const engineRef = useRef<SparklesEngine | null>(null);
 
-	// Read inside the running loop only. The source's `updateAndDraw` reads
-	// `particleColor` through the rune getter on every frame, so a colour change
-	// must repaint on the next frame rather than tear the field down and re-seed
-	// it. The other five props are read synchronously by `generateParticles()`,
-	// which is why they are effect dependencies below.
-	const particleColorRef = useLiveRef(particleColor);
-
-	// Reduced motion: one still frame instead of the rAF loop. A flip restarts the
-	// effect below; the same `seed` re-seeds the same particles.
+	// Mount-time values the engine reads once; a change to either must not rebuild
+	// the field (colour and reduced motion are pushed through `setOptions` below).
 	const reducedMotion = useReducedMotion();
-	// Set by the effect while the loop is idle, so a colour change can repaint it.
-	const repaintRef = useRef<(() => void) | null>(null);
-	useEffect(() => {
-		repaintRef.current?.();
-	}, [particleColor]);
+	const particleColorRef = useLiveRef(particleColor);
+	const reducedMotionRef = useLiveRef(reducedMotion);
 
+	// The five props that shape the field are init-only in the engine, so they
+	// (and `seed`) stay dependencies: changing one regenerates the field.
 	useEffect(() => {
 		if (!container || !canvas) return;
 
-		const random = mulberry32(seed);
+		const engine = createSparkles(
+			{ canvas, container },
+			{
+				minSize,
+				maxSize,
+				speed,
+				particleDensity,
+				particleColor: particleColorRef.current,
+				reducedMotion: reducedMotionRef.current,
+			},
+			mulberry32(seed)
+		);
+		engineRef.current = engine;
 
-		let ctx: CanvasRenderingContext2D | null = null;
-		let particles: Particle[] = [];
-		let rafId = 0;
-		// Kept alongside the backing store because the context transform below
-		// puts the draw calls in CSS-pixel space while `canvas.width` counts
-		// device pixels; the draw site divides by it to stay in the same space.
-		let dpr = 1;
-
-		function resizeCanvas() {
-			if (!canvas || !container) return;
-			dpr = window.devicePixelRatio || 1;
-			const rect = container.getBoundingClientRect();
-			canvas.width = rect.width * dpr;
-			canvas.height = rect.height * dpr;
-			ctx = canvas.getContext("2d");
-			if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			// Resizing wiped the bitmap; an idle (reduced-motion) loop has no queued
-			// frame to refill it.
-			if (reducedMotion && particles.length > 0) updateAndDraw();
-		}
-
-		function generateParticles() {
-			particles = [];
-			for (let i = 0; i < particleDensity; i++) {
-				const baseSpeed = 0.05;
-				const speedVariance = random() * 0.3 + 0.7;
-				particles.push({
-					x: random() * 100,
-					y: random() * 100,
-					size: random() * (maxSize - minSize) + minSize,
-					opacity: random() * 0.5 + 0.3,
-					vx: (random() - 0.5) * baseSpeed * speedVariance * speed,
-					vy: ((random() - 0.5) * baseSpeed - baseSpeed * 0.3) * speedVariance * speed,
-					phase: random() * Math.PI * 2,
-					phaseSpeed: 0.015,
-				});
-			}
-		}
-
-		function updateAndDraw() {
-			// Local alias, because `ctx` is reassigned by `resizeCanvas` and
-			// TypeScript will not carry a null check on an outer `let` into the
-			// draw calls below. Same value, same guard as the source.
-			const context = ctx;
-			if (!context || !canvas) return;
-			context.clearRect(0, 0, canvas.width, canvas.height);
-			const fill = resolveCurrentColor(particleColorRef.current, canvas);
-
-			for (const p of particles) {
-				p.x += p.vx;
-				p.y += p.vy;
-				if (p.x < -2) p.x = 102;
-				if (p.x > 102) p.x = -2;
-				if (p.y < -2) p.y = 102;
-				if (p.y > 102) p.y = -2;
-				p.phase = (p.phase + p.phaseSpeed) % (Math.PI * 2);
-				const opacity = 0.3 + (Math.sin(p.phase) * 0.3 + 0.3);
-
-				context.beginPath();
-				context.arc(
-					(p.x / 100) * (canvas.width / dpr),
-					(p.y / 100) * (canvas.height / dpr),
-					p.size,
-					0,
-					Math.PI * 2
-				);
-				context.fillStyle = `${fill}${Math.floor(opacity * 255)
-					.toString(16)
-					.padStart(2, "0")}`;
-				context.fill();
-			}
-
-			// One still frame under reduced motion: paint, then idle.
-			if (reducedMotion) {
-				rafId = 0;
-				return;
-			}
-			rafId = requestAnimationFrame(updateAndDraw);
-		}
-
-		ctx = canvas.getContext("2d");
-		resizeCanvas();
-		generateParticles();
-		if (reducedMotion) {
-			updateAndDraw();
-			repaintRef.current = updateAndDraw;
-		} else {
-			rafId = requestAnimationFrame(updateAndDraw);
-		}
-
-		const resizeObserver = new ResizeObserver(resizeCanvas);
+		// The engine does not own the observer: a size change re-fits the canvas.
+		const resizeObserver = new ResizeObserver(() => engine?.resize());
 		resizeObserver.observe(container);
 
-		// Under reduced motion no frame re-reads `currentColor`, so a theme switch
-		// (a class flip on <html>, the way dark mode is usually toggled) would leave
-		// the still frame in the old colour. Repaint the idle frame when that
-		// happens; the live loop already picks the new colour up on its next frame.
-		const themeObserver =
-			typeof MutationObserver !== "undefined"
-				? new MutationObserver(() => {
-						if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(particleColorRef.current)) {
-							updateAndDraw();
-						}
-					})
-				: null;
-		themeObserver?.observe(document.documentElement, {
-			attributes: true,
-			attributeFilter: ["class"],
-		});
-
 		return () => {
-			repaintRef.current = null;
-			themeObserver?.disconnect();
-			cancelAnimationFrame(rafId);
 			resizeObserver.disconnect();
+			engine?.destroy();
+			if (engineRef.current === engine) engineRef.current = null;
 		};
 	}, [
 		container,
@@ -261,9 +113,16 @@ export function Sparkles({
 		speed,
 		particleDensity,
 		seed,
-		reducedMotion,
 		particleColorRef,
+		reducedMotionRef,
 	]);
+
+	// Live options. On mount these repeat what the engine started with, which is
+	// a no-op for it; a later flip repaints the still frame or resumes the drift
+	// without re-seeding the field.
+	useEffect(() => {
+		engineRef.current?.setOptions({ particleColor, reducedMotion });
+	}, [particleColor, reducedMotion]);
 
 	return (
 		<div

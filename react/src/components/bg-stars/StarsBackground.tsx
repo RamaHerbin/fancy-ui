@@ -1,13 +1,8 @@
-import {
-	useEffect,
-	useMemo,
-	useRef,
-	type CSSProperties,
-	type MouseEvent,
-	type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 import "./bg-stars.css";
 
 export interface StarsBackgroundProps {
@@ -65,16 +60,6 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
-function generateStars(count: number, color: string, random: () => number): string {
-	const shadows: string[] = [];
-	for (let i = 0; i < count; i++) {
-		const x = Math.floor(random() * 4000) - 2000;
-		const y = Math.floor(random() * 4000) - 2000;
-		shadows.push(`${x}px ${y}px ${color}`);
-	}
-	return shadows.join(", ");
-}
-
 export function StarsBackground({
 	factor = 0.05,
 	speed = 50,
@@ -98,118 +83,40 @@ export function StarsBackground({
 		];
 	}, [starColor, seed]);
 
-	// Spring animation state. Per-frame values never round-trip through React
-	// state — the loop writes `transform` straight onto the parallax element,
-	// exactly where the Svelte template binds `style:transform`.
+	// The parallax spring lives in the framework-free engine shared with the
+	// Svelte and Vue packages (`bg-stars-core.ts`, a byte-identical copy): it
+	// listens for the pointer on the root, integrates the spring and writes
+	// `transform` straight onto the parallax element, so per-frame values never
+	// round-trip through React state. It parks once settled and while the page
+	// is in a background tab.
+	const rootEl = useRef<HTMLDivElement | null>(null);
 	const parallaxEl = useRef<HTMLDivElement | null>(null);
-	const target = useRef({ x: 0, y: 0 });
-	const velocity = useRef({ x: 0, y: 0 });
-	const spring = useRef({ x: 0, y: 0 });
-	// Wakes the spring loop back up. The loop parks itself once the spring has
-	// settled, so a new pointer target has to restart it. Assigned by the
-	// effect below; a no-op while the component is unmounted.
-	const wakeSpring = useRef(() => {});
+	const engineRef = useRef<BgStarsEngine | null>(null);
 
-	// Reduced motion: no parallax travel. The pointer is ignored and the spring
-	// parks at rest; a flip back restarts the loop through the effect below.
+	// Reduced motion: no parallax travel. The engine ignores the pointer and
+	// parks the spring at rest; a flip back resumes it.
 	const reducedMotion = useReducedMotion();
 
-	function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
-		if (reducedMotion) return;
-		const centerX = window.innerWidth / 2;
-		const centerY = window.innerHeight / 2;
-		target.current.x = -(e.clientX - centerX) * factor;
-		target.current.y = -(e.clientY - centerY) * factor;
-		wakeSpring.current();
-	}
+	// Start values for the engine. Not a dependency of the effect below: every
+	// one of them is a live option, so a change is pushed into the running
+	// engine and the spring carries on from its in-flight position.
+	const optionsRef = useLiveRef({ factor, stiffness, damping, reducedMotion });
 
-	// The spring loop. Spring position and velocity live in refs, so a restart
-	// on a stiffness/damping change (its only actual inputs) resumes from the
-	// in-flight position instead of snapping back to rest.
 	useEffect(() => {
-		// Sub-pixel: under this the spring neither moves the layer nor sits
-		// visibly away from its target, so the loop parks instead of writing
-		// the same transform every frame for the page's whole life.
-		const REST_EPSILON = 0.01;
-		let animationFrame = 0;
-
-		function updateSpring() {
-			animationFrame = 0;
-
-			// Simple spring physics
-			const forceX = (target.current.x - spring.current.x) * (stiffness / 1000);
-			const forceY = (target.current.y - spring.current.y) * (stiffness / 1000);
-
-			velocity.current.x = velocity.current.x * (1 - damping / 100) + forceX;
-			velocity.current.y = velocity.current.y * (1 - damping / 100) + forceY;
-
-			spring.current.x += velocity.current.x;
-			spring.current.y += velocity.current.y;
-
-			const atRest =
-				Math.abs(velocity.current.x) < REST_EPSILON &&
-				Math.abs(velocity.current.y) < REST_EPSILON &&
-				Math.abs(target.current.x - spring.current.x) < REST_EPSILON &&
-				Math.abs(target.current.y - spring.current.y) < REST_EPSILON;
-
-			if (atRest) {
-				// Land exactly on the target so the parked transform matches
-				// the one the loop would have converged to.
-				velocity.current.x = 0;
-				velocity.current.y = 0;
-				spring.current.x = target.current.x;
-				spring.current.y = target.current.y;
-			}
-
-			if (parallaxEl.current) {
-				parallaxEl.current.style.transform = `translate(${spring.current.x}px, ${spring.current.y}px)`;
-			}
-
-			if (!atRest) {
-				animationFrame = requestAnimationFrame(updateSpring);
-			}
-		}
-
-		function start() {
-			// Idempotent: a second wake while a frame is already queued, or
-			// while the page is in a background tab, changes nothing. Under
-			// reduced motion the spring never runs.
-			if (animationFrame !== 0 || document.hidden || reducedMotion) return;
-			animationFrame = requestAnimationFrame(updateSpring);
-		}
-
-		function stop() {
-			if (animationFrame !== 0) {
-				cancelAnimationFrame(animationFrame);
-				animationFrame = 0;
-			}
-		}
-
-		function handleVisibilityChange() {
-			if (document.hidden) {
-				stop();
-			} else {
-				start();
-			}
-		}
-
-		wakeSpring.current = start;
-		if (reducedMotion) {
-			// Settle at rest once and idle: no travel, nothing scheduled.
-			target.current.x = target.current.y = 0;
-			velocity.current.x = velocity.current.y = 0;
-			spring.current.x = spring.current.y = 0;
-			if (parallaxEl.current) parallaxEl.current.style.transform = "translate(0px, 0px)";
-		}
-		start();
-		document.addEventListener("visibilitychange", handleVisibilityChange);
-
+		const host = rootEl.current;
+		const parallax = parallaxEl.current;
+		if (!host || !parallax) return;
+		const engine = createBgStars({ host, parallax }, optionsRef.current);
+		engineRef.current = engine;
 		return () => {
-			wakeSpring.current = () => {};
-			stop();
-			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			engine?.destroy();
+			if (engineRef.current === engine) engineRef.current = null;
 		};
-	}, [stiffness, damping, reducedMotion]);
+	}, [optionsRef]);
+
+	useEffect(() => {
+		engineRef.current?.setOptions({ factor, stiffness, damping, reducedMotion });
+	}, [factor, stiffness, damping, reducedMotion]);
 
 	// Derived CSS custom properties for animation durations
 	const layer1Duration = `${speed}s`;
@@ -226,7 +133,7 @@ export function StarsBackground({
 				"fancy-bg-stars relative size-full overflow-hidden bg-[radial-gradient(ellipse_at_bottom,_#262626_0%,_#000_100%)]",
 				className
 			)}
-			onMouseMove={handleMouseMove}
+			ref={rootEl}
 		>
 			<div ref={parallaxEl} className="stars-parallax" style={{ transform: "translate(0px, 0px)" }}>
 				{/* Star Layer 1 (smallest, fastest) */}

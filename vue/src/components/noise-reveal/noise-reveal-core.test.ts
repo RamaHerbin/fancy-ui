@@ -21,6 +21,8 @@ const mock = {
 	geometry: null as any,
 	loader: null as any,
 	failRenderer: false,
+	/** What the mocked `THREE.Clock` reports, in seconds. */
+	time: 0,
 };
 
 // Three.js uses WebGL which is not available in jsdom — mock the module
@@ -65,7 +67,7 @@ vi.mock("three", () => {
 		return instance;
 	}
 	function Clock() {
-		return { getElapsedTime: vi.fn(() => 0) };
+		return { getElapsedTime: vi.fn(() => mock.time) };
 	}
 	function WebGLRenderer() {
 		if (mock.failRenderer) throw new Error("Error creating WebGL context.");
@@ -437,5 +439,141 @@ describe("noise-reveal-core / reduced motion loop", () => {
 		engine?.destroy();
 		engine?.setOptions({ reducedMotion: false });
 		expect(raf).not.toHaveBeenCalled();
+	});
+});
+
+describe("noise-reveal-core / visibility pausing", () => {
+	/** A frame queue drained by hand, so "is a frame pending" is observable. */
+	function stubFrames() {
+		let nextId = 0;
+		const queue = new Map<number, FrameRequestCallback>();
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+			queue.set(++nextId, cb);
+			return nextId;
+		});
+		vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id) => {
+			queue.delete(id);
+		});
+		return {
+			get pending() {
+				return queue.size;
+			},
+			step() {
+				const [id, cb] = queue.entries().next().value!;
+				queue.delete(id);
+				cb(0);
+			},
+		};
+	}
+
+	function setHidden(hidden: boolean) {
+		Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden });
+		document.dispatchEvent(new Event("visibilitychange"));
+	}
+
+	beforeEach(() => {
+		mock.time = 0;
+	});
+
+	afterEach(() => {
+		delete (document as unknown as { hidden?: boolean }).hidden;
+		mock.time = 0;
+		vi.restoreAllMocks();
+		document.body.innerHTML = "";
+	});
+
+	it("stops the loop while the host is off screen and resumes it on the way back", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		expect(frames.pending).toBe(1);
+
+		engine?.setOptions({ visible: false });
+		expect(frames.pending).toBe(0);
+
+		engine?.setOptions({ visible: true });
+		expect(frames.pending).toBe(1);
+		engine?.destroy();
+	});
+
+	it("never stacks a second loop when visible is reported again while running", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		engine?.setOptions({ visible: true });
+		engine?.setOptions({ visible: false });
+		engine?.setOptions({ visible: true });
+		engine?.setOptions({ visible: true });
+		expect(frames.pending).toBe(1);
+		engine?.destroy();
+	});
+
+	it("stops the loop while the tab is hidden and resumes it when it comes back", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		setHidden(true);
+		expect(frames.pending).toBe(0);
+		setHidden(false);
+		expect(frames.pending).toBe(1);
+		engine?.destroy();
+	});
+
+	it("stays stopped until both the host and the tab are visible", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		engine?.setOptions({ visible: false });
+		setHidden(true);
+		setHidden(false);
+		expect(frames.pending).toBe(0);
+		engine?.setOptions({ visible: true });
+		expect(frames.pending).toBe(1);
+		engine?.destroy();
+	});
+
+	it("a target set while paused is picked up on resume, not by a hidden frame", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init({ reducedMotion: true }));
+		engine?.setOptions({ visible: false });
+		engine?.setOptions({ target: 1 });
+		expect(frames.pending).toBe(0);
+		engine?.setOptions({ visible: true });
+		expect(frames.pending).toBe(1);
+		frames.step();
+		expect(mock.material.uniforms.uProgress.value).toBe(1);
+		engine?.destroy();
+	});
+
+	it("resumes from the noise phase it paused at", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		mock.time = 2;
+		frames.step();
+		expect(mock.material.uniforms.uTime.value).toBe(2);
+
+		engine?.setOptions({ visible: false });
+		mock.time = 12;
+		engine?.setOptions({ visible: true });
+		frames.step();
+		// Ten seconds off screen are not ten seconds of grain.
+		expect(mock.material.uniforms.uTime.value).toBe(2);
+		mock.time = 13;
+		frames.step();
+		expect(mock.material.uniforms.uTime.value).toBe(3);
+		engine?.destroy();
+	});
+
+	it("started off screen: paints one still frame and schedules nothing", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init({ visible: false }));
+		expect(mock.renderer.render).toHaveBeenCalledTimes(1);
+		expect(frames.pending).toBe(0);
+		engine?.destroy();
+	});
+
+	it("destroy removes the visibility listener: a later show schedules nothing", () => {
+		const frames = stubFrames();
+		const engine = createNoiseReveal({ container: makeHost() }, init());
+		engine?.destroy();
+		setHidden(true);
+		setHidden(false);
+		expect(frames.pending).toBe(0);
 	});
 });

@@ -151,6 +151,8 @@ describe("FallingStarsBg", () => {
 	// path are what a port breaks silently.
 
 	it("observes the canvas, then stops the loop and disconnects on unmount", () => {
+		// The engine fails quiet without a 2D context, so give it one.
+		const recorder = installCanvasRecorder();
 		const cancel = vi.spyOn(globalThis, "cancelAnimationFrame");
 		const { container, unmount } = render(<FallingStarsBg />);
 		const canvas = container.querySelector("canvas");
@@ -163,6 +165,7 @@ describe("FallingStarsBg", () => {
 
 		expect(cancel).toHaveBeenCalled();
 		expect(observer?.disconnect).toHaveBeenCalled();
+		recorder.restore();
 	});
 
 	it("draws each star with the requested colour, three glow layers deep", () => {

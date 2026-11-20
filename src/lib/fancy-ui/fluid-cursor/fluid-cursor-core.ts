@@ -91,6 +91,15 @@ export interface FluidCursorInitOptions {
 	 * bundler's dev flag; the core stays free of bundler-injected globals.
 	 */
 	dev?: boolean;
+	/**
+	 * Hand the WebGL context itself back on `destroy()` (`WEBGL_lose_context`),
+	 * on top of deleting every GL object. Defaults to `true`, which is right
+	 * for a host that discards the `<canvas>` with the engine. A host that may
+	 * start a new engine on the *same* canvas element must pass `false`: a
+	 * context lost this way is never handed out again by `getContext`. Not a
+	 * component prop — the wrapper decides, like `dev`.
+	 */
+	releaseContext?: boolean;
 }
 
 /**
@@ -113,13 +122,16 @@ export interface FluidCursorLiveOptions {
 	/** Re-read by `generateColor()`: every frame, every splat, every click. */
 	fluidColors?: string[];
 	/**
-	 * Re-read by the rect cache, the pointer→canvas mapping, the splat radius
-	 * correction and the teardown's listener removal.
+	 * Re-read by the rect cache, the pointer→canvas mapping and the splat
+	 * radius correction. The `resize` / `scroll` listeners that refresh the
+	 * rect cache are registered from the mount-time value, and the teardown
+	 * removes exactly what was registered.
 	 */
 	contained: boolean;
 	/**
-	 * Re-read by the teardown only: the pointer listeners are registered from
-	 * the mount-time value, and removed only while this is still true.
+	 * Mount-only in effect: the pointer listeners are registered from the
+	 * mount-time value and the teardown removes exactly those, whatever the
+	 * value is by then. Accepted here so a wrapper can forward it uniformly.
 	 */
 	interactive: boolean;
 	/**
@@ -205,6 +217,7 @@ export function createFluidCursor(
 		ditherPixelSize,
 		ditherLevels,
 		dev = false,
+		releaseContext = true,
 	} = options;
 
 	// Mutable on purpose: these six stand in for the prop getters the
@@ -609,6 +622,10 @@ export function createFluidCursor(
 		) {
 			const texture = gl.createTexture();
 			if (!texture) return false;
+			// The probe pair is scratch, but it is a real allocation: register
+			// it like every other GL object rather than leaving it to the
+			// context loss, which a host keeping its canvas never triggers.
+			glDisposers.push(() => gl.deleteTexture(texture));
 
 			gl.bindTexture(gl.TEXTURE_2D, texture);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -619,6 +636,7 @@ export function createFluidCursor(
 
 			const fbo = gl.createFramebuffer();
 			if (!fbo) return false;
+			glDisposers.push(() => gl.deleteFramebuffer(fbo));
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
@@ -1365,7 +1383,12 @@ export function createFluidCursor(
 		function updateCanvasRectCache() {
 			if (contained && canvas) canvasRectCache = canvas.getBoundingClientRect();
 		}
-		if (contained) {
+		// Snapshot of what gets registered: `contained` / `interactive` are live
+		// options, and the teardown has to undo the registration that actually
+		// happened, not the one their current value would have asked for.
+		const listensForRect = contained;
+		const listensForPointer = interactive;
+		if (listensForRect) {
 			window.addEventListener("resize", updateCanvasRectCache, { passive: true });
 			window.addEventListener("scroll", updateCanvasRectCache, { passive: true });
 			updateCanvasRectCache();
@@ -1695,6 +1718,9 @@ export function createFluidCursor(
 			dye.swap();
 		}
 
+		// Pending frame of the splatOnMount arc, so the teardown can cancel it:
+		// the chain would otherwise keep drawing into a destroyed engine.
+		let splatFrameId = 0;
 		function multipleSplats(steps: number) {
 			// Simulate a cursor sweep along a random arc — each step on its own frame
 			// so the velocity field has time to evolve between injections.
@@ -1720,9 +1746,9 @@ export function createFluidCursor(
 					color
 				);
 				i++;
-				if (i < steps) requestAnimationFrame(step);
+				splatFrameId = i < steps ? requestAnimationFrame(step) : 0;
 			}
-			requestAnimationFrame(step);
+			splatFrameId = requestAnimationFrame(step);
 		}
 
 		function correctRadius(radius: number) {
@@ -1868,7 +1894,7 @@ export function createFluidCursor(
 		}
 
 		// Add event listeners
-		if (interactive) {
+		if (listensForPointer) {
 			window.addEventListener("mousedown", handleMouseDown);
 			window.addEventListener("mouseup", handlePointerUp);
 			document.body.addEventListener("mousemove", handleFirstMouseMove);
@@ -1916,7 +1942,8 @@ export function createFluidCursor(
 			cancelAnimationFrame(animationFrameId);
 			if (observer) observer.disconnect();
 			if (autoSplatTimer) clearInterval(autoSplatTimer);
-			if (interactive) {
+			cancelAnimationFrame(splatFrameId);
+			if (listensForPointer) {
 				window.removeEventListener("mousedown", handleMouseDown);
 				window.removeEventListener("mouseup", handlePointerUp);
 				document.body.removeEventListener("mousemove", handleFirstMouseMove);
@@ -1927,22 +1954,23 @@ export function createFluidCursor(
 				window.removeEventListener("touchend", handlePointerUp);
 				window.removeEventListener("touchcancel", handlePointerUp);
 			}
-			if (contained) {
+			if (listensForRect) {
 				window.removeEventListener("resize", updateCanvasRectCache);
 				window.removeEventListener("scroll", updateCanvasRectCache);
 			}
-			// Hand the GPU memory back, then the context itself. Unlike the React
-			// port, a Svelte unmount discards the <canvas> — nothing will call
-			// getContext on it again — so a lost context costs nothing, while a
-			// live one would hold a slot in the browser's context budget until
-			// GC. Guarded: the singleton runs the previous instance's cleanup
-			// when a newer one mounts, and the component runs it again on its
-			// own unmount.
+			// Hand the GPU memory back, then — unless the host keeps its canvas —
+			// the context itself. A host that discards the <canvas> with the
+			// engine loses nothing, while a live context would hold a slot in
+			// the browser's context budget until GC. A host that restarts on the
+			// same element (`releaseContext: false`) keeps the context: a lost
+			// one is never handed out again. Guarded: the singleton runs the
+			// previous instance's cleanup when a newer one mounts, and the
+			// component runs it again on its own unmount.
 			if (glDisposed) return;
 			glDisposed = true;
 			for (const dispose of glDisposers) dispose();
 			glDisposers.length = 0;
-			gl.getExtension("WEBGL_lose_context")?.loseContext();
+			if (releaseContext) gl.getExtension("WEBGL_lose_context")?.loseContext();
 		}
 
 		// Register before notifying: a throwing callback must not cost us the

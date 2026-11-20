@@ -34,6 +34,16 @@ export interface MatrixRainLiveOptions {
 	 * flip back to false resumes the loop.
 	 */
 	reducedMotion?: boolean;
+	/**
+	 * Whether the canvas is on screen, as observed by the wrapper (the core owns
+	 * no IntersectionObserver). Defaults to `true`. While `false` the loop is
+	 * stopped: a rain used as a page background is off screen most of the time,
+	 * and every frame it paints there costs a full-canvas `fillRect` plus two
+	 * shadow-blurred `fillText` per column for nothing. The trail is an
+	 * accumulation of fades over whatever is already on the canvas, so resuming
+	 * from the current column state needs no re-init and shows no seam.
+	 */
+	visible?: boolean;
 }
 
 export interface MatrixRainEngine {
@@ -56,6 +66,7 @@ const DEFAULTS: Required<MatrixRainLiveOptions> = {
 	glyphSize: 16,
 	fadeOpacity: 0.05,
 	reducedMotion: false,
+	visible: true,
 };
 
 // Explicit key-by-key merge: an `undefined` value must fall back to the current
@@ -72,6 +83,7 @@ function merge(
 		glyphSize: next.glyphSize ?? base.glyphSize,
 		fadeOpacity: next.fadeOpacity ?? base.fadeOpacity,
 		reducedMotion: next.reducedMotion ?? base.reducedMotion,
+		visible: next.visible ?? base.visible,
 	};
 }
 
@@ -189,7 +201,7 @@ export function createMatrixRain(
 		step();
 		// A frame still pending when the preference flips to reduce finishes, then
 		// idles (setOptions wakes the loop on the way back).
-		if (opts.reducedMotion) {
+		if (opts.reducedMotion || !opts.visible) {
 			rafId = null;
 			return;
 		}
@@ -198,7 +210,7 @@ export function createMatrixRain(
 
 	// resize() already paints the one still frame when reduced motion is on.
 	resize();
-	if (!opts.reducedMotion) rafId = requestAnimationFrame(draw);
+	if (!opts.reducedMotion && opts.visible) rafId = requestAnimationFrame(draw);
 
 	return {
 		setOptions(next) {
@@ -222,7 +234,14 @@ export function createMatrixRain(
 				initColumns(canvasW, canvasH);
 				paintStill();
 			}
-			if (prev.reducedMotion && !opts.reducedMotion && rafId === null) {
+			if (!opts.visible && rafId !== null) {
+				// Off screen: drop the queued frame instead of painting it unseen.
+				cancelAnimationFrame(rafId);
+				rafId = null;
+			}
+			// Motion allowed and on screen is the only state with a running loop,
+			// so an idle one here was parked by reduced motion or by `visible`.
+			if (!opts.reducedMotion && opts.visible && rafId === null) {
 				rafId = requestAnimationFrame(draw);
 			}
 		},

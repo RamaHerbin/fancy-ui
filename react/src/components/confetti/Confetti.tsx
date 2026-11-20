@@ -1,11 +1,11 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
-import confettiModule from "canvas-confetti";
 import type {
 	GlobalOptions as ConfettiGlobalOptions,
 	Options as ConfettiOptions,
-	CreateTypes as ConfettiInstance,
 } from "canvas-confetti";
+import { createConfetti } from "./confetti-core.js";
+import type { ConfettiEngine } from "./confetti-core.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { ConfettiReactContext } from "./context.js";
 import type { ConfettiContextValue } from "./context.js";
@@ -47,12 +47,9 @@ export interface ConfettiProps {
  * `$props()` and has no `...restProps`.
  */
 export const Confetti = forwardRef<ConfettiHandle, ConfettiProps>(
-	(
-		{ options = {}, globalOptions = {}, manualStart = false, className = "", children },
-		ref
-	) => {
+	({ options = {}, globalOptions = {}, manualStart = false, className = "", children }, ref) => {
 		const canvasRef = useRef<HTMLCanvasElement | null>(null);
-		const instanceRef = useRef<ConfettiInstance | null>(null);
+		const engineRef = useRef<ConfettiEngine | null>(null);
 
 		// `fire` closes over the *current* `options` on the Svelte side because
 		// `options` is reactive there. Live refs reproduce that without rebuilding
@@ -62,38 +59,43 @@ export const Confetti = forwardRef<ConfettiHandle, ConfettiProps>(
 		const globalOptionsRef = useLiveRef(globalOptions);
 		const manualStartRef = useLiveRef(manualStart);
 
-		const fire = useCallback((opts: ConfettiOptions = {}) => {
-			instanceRef.current?.({ ...optionsRef.current, ...opts });
-		}, [optionsRef]);
+		const fire = useCallback(
+			(opts: ConfettiOptions = {}) => {
+				// Pushed at call time, not from an effect, so a same-tick
+				// `options` change followed by `fire()` bursts with the new value.
+				engineRef.current?.setOptions({ options: optionsRef.current });
+				engineRef.current?.fire(opts);
+			},
+			[optionsRef]
+		);
 
 		useImperativeHandle(ref, () => ({ fire }), [fire]);
 
 		const context = useMemo<ConfettiContextValue>(() => ({ fire }), [fire]);
 
-		// The counterpart of `onMount` + its returned teardown. `fire` is stable,
-		// so this runs exactly once; `globalOptions` and `manualStart` are read
+		// The counterpart of `onMount` + its returned teardown. The deps are
+		// stable refs, so this runs exactly once; `globalOptions` and `manualStart` are read
 		// through their live refs because the Svelte source reads them once, at
 		// mount, and never re-creates the instance when they change.
 		useEffect(() => {
 			const canvas = canvasRef.current;
 			if (!canvas) return;
 
-			instanceRef.current = confettiModule.create(canvas, {
-				...globalOptionsRef.current,
-				resize: true,
-			});
-
-			if (!manualStartRef.current) {
-				fire();
-			}
+			const engine = createConfetti(
+				{ canvas },
+				{
+					globalOptions: globalOptionsRef.current,
+					manualStart: manualStartRef.current,
+					options: optionsRef.current,
+				}
+			);
+			engineRef.current = engine;
 
 			return () => {
-				if (instanceRef.current) {
-					instanceRef.current.reset();
-					instanceRef.current = null;
-				}
+				engine?.destroy();
+				if (engineRef.current === engine) engineRef.current = null;
 			};
-		}, [fire, globalOptionsRef, manualStartRef]);
+		}, [globalOptionsRef, manualStartRef, optionsRef]);
 
 		return (
 			<ConfettiReactContext.Provider value={context}>
