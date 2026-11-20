@@ -10,7 +10,7 @@ function componentSlugsOf(entries: readonly Reference[]): string[] {
 }
 
 export const load: PageServerLoad = () => {
-	const picks = featured(6);
+	const picks = featured(11);
 	return {
 		featured: picks,
 		collections: collections(),

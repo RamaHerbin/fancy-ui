@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"onComplete on the true → false edge",
 		],
 	},
-	curatedRank: 18,
+	curatedRank: 26,
 	collections: ["ai-interfaces"],
 	components: [{ slug: "streaming-text", relation: "exact" }],
 	demo: {

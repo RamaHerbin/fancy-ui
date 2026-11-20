@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"`navigator.vibrate` is ignored on iOS, so haptics can never be the only feedback. `pointercancel` releases the squash when a press turns into a scroll. Only the CSS transition is gated under reduced motion.",
 		clues: ["pointerdown / pointerup pairing", "pointercancel", "navigator.vibrate pattern"],
 	},
-	curatedRank: 29,
+	curatedRank: 36,
 	collections: ["micro-interactions"],
 	components: [{ slug: "pressable", relation: "exact" }],
 	demo: {

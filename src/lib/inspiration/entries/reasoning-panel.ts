@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"timer from `since`",
 		],
 	},
-	curatedRank: 20,
+	curatedRank: 28,
 	collections: ["ai-interfaces"],
 	components: [{ slug: "reasoning-panel", relation: "exact" }],
 	demo: {

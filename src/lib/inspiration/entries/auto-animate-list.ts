@@ -31,7 +31,7 @@ const entry: ExternalReference = {
 			"one call per container",
 		],
 	},
-	curatedRank: 37,
+	curatedRank: 44,
 	collections: ["micro-interactions"],
 	components: [
 		{

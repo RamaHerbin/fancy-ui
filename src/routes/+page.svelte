@@ -142,7 +142,7 @@
 						frameworks={frameworksOf(entry)}
 						index={i}
 						paused={motion.paused}
-						eager={i < 3}
+						eager={i < 4}
 						priority={i === 0}
 					/>
 				{/each}
@@ -210,9 +210,10 @@
 		padding: 0 40px 96px;
 	}
 
+	/* Four across on desktop: the previews fill rows of four. */
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 24px;
 		margin-top: 8px;
 	}

@@ -97,7 +97,7 @@ describe("inspiration catalog", () => {
 
 	it("has enough published entries for the gallery and the homepage", () => {
 		expect(PUBLISHED.length).toBeGreaterThanOrEqual(18);
-		expect(featured(6)).toHaveLength(6);
+		expect(featured(11)).toHaveLength(11);
 	});
 
 	it("keeps media.json and the posters on disk in sync", () => {

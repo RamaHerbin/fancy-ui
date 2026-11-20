@@ -33,7 +33,7 @@ const entry: ExternalReference = {
 			"seeded rough strokes",
 		],
 	},
-	curatedRank: 41,
+	curatedRank: 48,
 	components: [
 		{
 			slug: "animated-beam",

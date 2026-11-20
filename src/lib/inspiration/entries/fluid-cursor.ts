@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"pause when hidden",
 		],
 	},
-	curatedRank: 22,
+	curatedRank: 2,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "fluid-cursor", relation: "exact" }],
 	demo: {

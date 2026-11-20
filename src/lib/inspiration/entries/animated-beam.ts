@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"duration derived from a seed",
 		],
 	},
-	curatedRank: 13,
+	curatedRank: 22,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "animated-beam", relation: "exact" }],
 	demo: {

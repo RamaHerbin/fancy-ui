@@ -29,7 +29,7 @@ const entry: FancyUIReference = {
 			"presets: chromatic / silver / gold",
 		],
 	},
-	curatedRank: 2,
+	curatedRank: 8,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "glow-border", relation: "exact" }],
 	demo: {

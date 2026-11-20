@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"The default box is 40px tall; size it with `class`. All motion lives under `no-preference`, so reduced motion gets static beams. An always-on glow competes with content — one per view.",
 		clues: ["conic-gradient rotation", "mask to border", "half / full animation"],
 	},
-	curatedRank: 6,
+	curatedRank: 15,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "neon-border", relation: "exact" }],
 	demo: {
