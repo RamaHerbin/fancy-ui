@@ -67,12 +67,13 @@ jobs:
           cache-to: type=gha,mode=max
 
       # The hook is the host's own per-application deploy URL; it is matched
-      # against the tag named in the payload. Without the secret the image is
+      # against the image and tag named in the payload. Without the secret the image is
       # published and nothing is rolled out.
       - name: Ask the host to roll out the new image
         if: github.event_name != 'pull_request'
         env:
           DEPLOY_HOOK_URL: ${{ secrets.SITE_DEPLOY_HOOK_URL }}
+          IMAGE: ${{ steps.image.outputs.name }}
         run: |
           if [ -z "$DEPLOY_HOOK_URL" ]; then
             echo "No SITE_DEPLOY_HOOK_URL secret: image published, rollout skipped."
@@ -82,4 +83,4 @@ jobs:
             -X POST "$DEPLOY_HOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: registry_package" \
-            -d '{"registry_package":{"package_version":{"container_metadata":{"tag":{"name":"latest"}}}}}'
+            -d "{\"registry_package\":{\"package_version\":{\"package_url\":\"$IMAGE:latest\",\"container_metadata\":{\"tag\":{\"name\":\"latest\"}}}}}"
