@@ -5,8 +5,9 @@ optional bubble that tracks it and optional end labels for the bounds.
 
 ## Components
 
-- `Slider` - A real range input with a purple-to-cyan gradient fill and a
-  glowing thumb, keeping every native keyboard and pointer behaviour intact
+- `Slider` - A real range input whose fill is a single beam of light — it
+  fades in from the left and brightens into a softly glowing thumb — keeping
+  every native keyboard and pointer behaviour intact
 
 ## Usage
 
@@ -68,19 +69,19 @@ Any other attribute or listener (`aria-*`, `data-*`, `form`, `onfocus`, `onblur`
 
 ## Theming
 
-The fill gradient's two stops have no semantic tokens, so they are declared
-locally with `light-dark()` fallbacks — the same shape every other control in
-this wave uses for its accent:
+The fill has one colour, with no semantic token of its own, so it is declared
+locally with a `light-dark()` fallback — warm white on dark surfaces,
+near-black ink on light ones:
 
 ```css
 .my-form {
-	--ft-accent: oklch(0.55 0.2 300);
+	--ft-accent: oklch(0.8 0.12 75);
 }
 ```
 
-Set `--ft-accent` higher up the tree to retint the purple end of every
-`Slider` beneath it; the cyan end (`--ft-slider-accent-end`, `#42cfff` in dark
-mode) is local to the component and not exposed as a variable to override.
+Set `--ft-accent` higher up the tree to retint every `Slider` beneath it: the
+fill's tail, the thumb and its glow, and the value bubble all follow it. The
+resting rail reads `--color-input` when the theme defines it.
 
 ## Sound
 
@@ -111,7 +112,8 @@ from this component's own prop or a surrounding `FormField`.
   current fraction (`(value - min) / (max - min)`) is computed once in script
   and published as the `--ft-slider-fill` custom property; WebKit's
   `::-webkit-slider-runnable-track` paints both the filled and unfilled
-  colours in one hard-stop gradient off that property, while Firefox paints
+  colours in one gradient off that property (a transparent-to-accent tail, then
+  the resting rail), while Firefox paints
   the filled portion as a separate `::-moz-range-progress` layer since
   `::-moz-range-track` has no equivalent hook.
 - `::-webkit-slider-thumb` and `::-moz-range-thumb` are written as two
@@ -128,12 +130,11 @@ from this component's own prop or a surrounding `FormField`.
   input's own `aria-valuenow` (and `aria-valuemin`/`aria-valuemax`) already
   carry those numbers to assistive tech, so the visible echoes are muted to
   avoid double announcements.
-- `--ft-slider-accent` and `--ft-slider-accent-end` are declared on the outer
-  wrapper, not on the input itself, so the value bubble — a sibling `<span>`,
-  not a descendant of the input — can inherit the same cyan for its text
-  colour instead of a second hardcoded value. Custom properties inherit down
-  the whole subtree but not sideways between siblings, which is what forces
-  them up a level.
+- `--ft-slider-accent` is declared on the outer wrapper, not on the input
+  itself, so the value bubble — a sibling `<span>`, not a descendant of the
+  input — can inherit the same colour for its text instead of a second
+  hardcoded value. Custom properties inherit down the whole subtree but not
+  sideways between siblings, which is what forces it up a level.
 - **`value` is clamped to `[min, max]`, not passed straight through.** A
   native range input clamps its own displayed/dragged value silently, but a
   `value` prop set out of range — or left there after `max` shrinks below it
