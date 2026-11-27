@@ -44,7 +44,9 @@ describe("createBgStars", () => {
 	let cafSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
-		rafSpy = vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation(() => 1 as unknown as number);
+		rafSpy = vi
+			.spyOn(globalThis, "requestAnimationFrame")
+			.mockImplementation(() => 1 as unknown as number);
 		cafSpy = vi.spyOn(globalThis, "cancelAnimationFrame").mockImplementation(() => {});
 	});
 
@@ -92,7 +94,9 @@ describe("createBgStars", () => {
 
 		Object.defineProperty(window, "innerWidth", { value: 1000, configurable: true });
 		Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
-		el.host.dispatchEvent(new MouseEvent("mousemove", { clientX: 600, clientY: 500, bubbles: true }));
+		el.host.dispatchEvent(
+			new MouseEvent("mousemove", { clientX: 600, clientY: 500, bubbles: true })
+		);
 
 		expect(tick).toBeDefined();
 		tick!(0);
@@ -128,7 +132,9 @@ describe("createBgStars", () => {
 		engine.destroy();
 
 		const before = el.parallax.style.transform;
-		el.host.dispatchEvent(new MouseEvent("mousemove", { clientX: 999, clientY: 999, bubbles: true }));
+		el.host.dispatchEvent(
+			new MouseEvent("mousemove", { clientX: 999, clientY: 999, bubbles: true })
+		);
 		if (tick) tick(0);
 		expect(el.parallax.style.transform).toBe(before);
 	});
@@ -138,5 +144,28 @@ describe("createBgStars", () => {
 		const engine = createBgStars(el, {})!;
 		engine.destroy();
 		expect(() => engine.setOptions({ factor: 0.2 })).not.toThrow();
+	});
+	it("reducedMotion parks the parallax at rest, ignores the pointer, and resumes when cleared", () => {
+		const el = makeElements();
+		rafSpy.mockClear();
+		const engine = createBgStars(el, { factor: 1, reducedMotion: true })!;
+		expect(rafSpy).not.toHaveBeenCalled();
+		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
+
+		Object.defineProperty(window, "innerWidth", { value: 1000, configurable: true });
+		Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+		el.host.dispatchEvent(
+			new MouseEvent("mousemove", { clientX: 600, clientY: 500, bubbles: true })
+		);
+		expect(rafSpy).not.toHaveBeenCalled();
+		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
+
+		engine.setOptions({ reducedMotion: false });
+		expect(rafSpy).toHaveBeenCalledTimes(1);
+
+		// Flipping to reduced mid-flight settles at once and cancels the pending frame.
+		engine.setOptions({ reducedMotion: true });
+		expect(cafSpy).toHaveBeenCalled();
+		expect(el.parallax.style.transform).toBe("translate(0px, 0px)");
 	});
 });

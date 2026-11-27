@@ -8,3 +8,13 @@
 		transform: translateY(0);
 	}
 }
+
+/* Resting state is the ungated default: visible, in place. */
+@media (prefers-reduced-motion: no-preference) {
+	.letter-pullup .letter-pullup-char {
+		opacity: 0;
+		transform: translateY(100px);
+		animation: letterPullUp 0.5s ease forwards;
+		animation-delay: var(--letter-pullup-delay, 0s);
+	}
+}

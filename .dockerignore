@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+.parity
+.svelte-kit
+.vercel
+.design-sync
+node_modules
+**/node_modules
+build
+dist
+**/dist
+test-results
+playwright-report
+coverage

@@ -17,3 +17,7 @@ Character scramble effect. Displays text that scrambles through random uppercase
 <HyperText text="Hover me!" />
 <HyperText text="Auto animate" animateOnLoad />
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the text is shown whole and never scrambled, on load and on hover, and the characters do not fade in one after another. The preference is read each time the effect would start, so changing it takes effect on the next hover.

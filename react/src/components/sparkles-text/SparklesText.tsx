@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { cn } from "../../utils.js";
 import "./sparkles-text.css";
 
@@ -56,10 +57,7 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
-function generateStar(
-	random: () => number,
-	colors: { first: string; second: string }
-): Sparkle {
+function generateStar(random: () => number, colors: { first: string; second: string }): Sparkle {
 	const x = `${random() * 100}%`;
 	const y = `${random() * 100}%`;
 	const color = random() > 0.5 ? colors.first : colors.second;
@@ -93,7 +91,12 @@ export function SparklesText({
 	// closure does, without restarting the interval when colors change.
 	const colorsRef = useLiveRef(colors);
 
+	// Reduced motion holds the field still: the timer is not armed, and a flip
+	// back re-arms it because the effect depends on the preference.
+	const reducedMotion = useReducedMotion();
+
 	useEffect(() => {
+		if (reducedMotion) return;
 		// Regeneration happens only after mount, so it never has to agree with
 		// the server; a second seeded stream keeps it deterministic anyway.
 		const random = mulberry32(seed + 1);
@@ -108,7 +111,8 @@ export function SparklesText({
 			);
 		}, 100);
 		return () => clearInterval(intervalId);
-	}, [seed]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [seed, reducedMotion]);
 
 	return (
 		<div className={cn("sparkles-text text-6xl font-bold", className)}>
@@ -122,9 +126,7 @@ export function SparklesText({
 								left: sparkle.x,
 								top: sparkle.y,
 								"--sparkle-scale": `${sparkle.scale}`,
-								animation: `sparkleAnim 0.8s ease-in-out ${sparkle.delay}s infinite`,
-								transform: "scale(0) rotate(75deg)",
-								opacity: 0,
+								"--sparkles-text-delay": `${sparkle.delay}s`,
 							} as CSSProperties
 						}
 						width="21"

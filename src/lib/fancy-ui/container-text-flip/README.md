@@ -22,3 +22,7 @@ Native attributes and listeners go to the root `<p>`. `class` keeps its current 
   interval={2500}
 />
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the words stop flipping and the first word stays visible, with no blur-in on its letters. The preference is read live, so the cycle starts again if it changes back.
