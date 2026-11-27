@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.18.1
+
+_The still release._
+
+A small one, about people who ask their system for less motion. Twenty components that kept moving under `prefers-reduced-motion` now rest: the canvases paint one frame and stop, the text effects show their final state, the loops hold still. Nothing changes for anyone who has not set that preference.
+
+### Patch Changes
+
+- 32a6cc5: FallingStarsBg, FlickeringGrid, MatrixRain, Sparkles, StarsBackground and NoiseReveal now honour `prefers-reduced-motion`, at mount and when the preference changes: the canvases paint one still frame and stop scheduling animation frames, StarsBackground rests still with its pointer parallax off, and NoiseReveal freezes its grain while still jumping to the new reveal state. Without a reduce preference nothing changes.
+- d3eab02: AnimatedLogoCloud, Ripple, Compare's StarField and TextRevealCard's TextRevealStars now honour `prefers-reduced-motion`: the logo strip (every logo wrapped and centred, no edge fade), the rings and the stars rest still, the TextRevealCard reveal snaps back on leave instead of easing, and everything runs as before without a reduce preference. AnimatedLogoCloud also pauses while focus is inside it, and the TextRevealStars drift now moves through `transform` rather than `top`/`left`; the picture without a reduce preference is unchanged.
+- 02500be: LetterPullup, TextGenerateEffect, BoxReveal, HyperText, SparklesText, Book, AnimatedTestimonials, FlipWords, ContainerTextFlip and TerminalText now honour `prefers-reduced-motion`, at mount and when the preference changes: the text, letters and cover rest in their final state, the word cyclers and the sparkle field stop, HyperText shows its whole text instead of scrambling, and TerminalText shows every line after `delay` (still calling `onComplete`, once) with a steady caret, snapping to all lines if the preference flips mid-stream and ignoring a flip after it finished. AnimatedTestimonials swaps the quote in the same tick as a previous or next press under a reduce preference, and also pauses autoplay while focus is inside it in the Svelte and Vue ports, as the React port already did. Without a reduce preference the pictures and timings are unchanged.
+
 ## 0.18.0
 
 _The low-light release._
