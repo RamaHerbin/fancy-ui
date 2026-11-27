@@ -7,7 +7,9 @@
 	import { afterNavigate } from "$app/navigation";
 	import { applyForRoute } from "$lib/stores";
 
-	if (browser && !dev) {
+	// The analytics script is served by the serverless platform itself; a
+	// self-hosted build (VITE_SELF_HOST=1) has no such endpoint to load it from.
+	if (browser && !dev && import.meta.env.VITE_SELF_HOST !== "1") {
 		injectAnalytics();
 	}
 
