@@ -33,6 +33,7 @@ export interface SparklesProps {
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { createSparkles, type SparklesEngine } from "./sparkles-core.js";
 
 defineOptions({ name: "Sparkles", inheritAttrs: false });
@@ -52,12 +53,16 @@ const canvasRef = useTemplateRef<HTMLCanvasElement>("canvasRef");
 let engine: SparklesEngine | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
+// Live preference. Called before `onMounted` so its own mount hook (which starts the
+// media query) runs first and the first frame already knows.
+const reducedMotion = useReducedMotion();
+
 onMounted(() => {
 	if (!canvasRef.value || !containerRef.value) return;
 
 	engine = createSparkles(
 		{ canvas: canvasRef.value, container: containerRef.value },
-		{ minSize, maxSize, speed, particleDensity, particleColor }
+		{ minSize, maxSize, speed, particleDensity, particleColor, reducedMotion: reducedMotion.value }
 	);
 
 	resizeObserver = new ResizeObserver(() => engine?.resize());
@@ -74,6 +79,15 @@ onBeforeUnmount(() => {
 watch(
 	() => particleColor,
 	(color) => engine?.setOptions({ particleColor: color }),
+	{ flush: "post" }
+);
+
+// Reduced motion: one still frame; the loop wakes when the preference clears.
+watch(
+	reducedMotion,
+	(next) => {
+		engine?.setOptions({ reducedMotion: next });
+	},
 	{ flush: "post" }
 );
 </script>

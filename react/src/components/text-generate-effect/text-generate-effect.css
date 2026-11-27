@@ -1,0 +1,12 @@
+/* The resting state is the ungated default: every word visible and sharp.
+   The hidden start and the fade belong to the no-preference gate; the
+   reveal timers write opacity/filter inline, which wins inside the gate. */
+@media (prefers-reduced-motion: no-preference) {
+	.text-generate-effect .tge-word {
+		opacity: 0;
+		filter: var(--tge-blur, none);
+		transition:
+			opacity var(--tge-duration, 0.7s),
+			filter var(--tge-duration, 0.7s);
+	}
+}

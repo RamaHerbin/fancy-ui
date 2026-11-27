@@ -29,21 +29,15 @@ describe("SparklesText", () => {
 		expect(wrapper?.className).toContain("my-sparkle");
 	});
 
-	it("sparkle SVGs have animation styles", () => {
+	it("sparkle SVGs carry their stagger as a custom property", () => {
 		const { container } = render(<SparklesText text="X" sparklesCount={1} />);
 		const star = container.querySelector(".sparkles-star");
-		const style = (star as HTMLElement)?.getAttribute("style") ?? "";
-		expect(style).toContain("animation");
-		expect(style).toContain("sparkleAnim");
+		expect((star as HTMLElement).style.getPropertyValue("--sparkles-text-delay")).toMatch(/s$/);
 	});
 
 	it("uses custom colors on sparkle paths", () => {
 		const { container } = render(
-			<SparklesText
-				text="X"
-				sparklesCount={20}
-				colors={{ first: "#FF0000", second: "#00FF00" }}
-			/>
+			<SparklesText text="X" sparklesCount={20} colors={{ first: "#FF0000", second: "#00FF00" }} />
 		);
 		const paths = container.querySelectorAll(".sparkles-star path");
 		const fills = Array.from(paths).map((p) => p.getAttribute("fill"));
@@ -60,26 +54,18 @@ describe("SparklesText", () => {
 		vi.useFakeTimers();
 		try {
 			const { container, rerender } = render(
-				<SparklesText
-					text="X"
-					sparklesCount={4}
-					colors={{ first: "#FF0000", second: "#FF0000" }}
-				/>
+				<SparklesText text="X" sparklesCount={4} colors={{ first: "#FF0000", second: "#FF0000" }} />
 			);
 			rerender(
-				<SparklesText
-					text="X"
-					sparklesCount={4}
-					colors={{ first: "#0000FF", second: "#0000FF" }}
-				/>
+				<SparklesText text="X" sparklesCount={4} colors={{ first: "#0000FF", second: "#0000FF" }} />
 			);
 			// Every star's lifespan is below 15, and one tick every 100ms removes
 			// 0.1, so 200 ticks regenerate the whole field at least once.
 			act(() => {
 				vi.advanceTimersByTime(20000);
 			});
-			const fills = Array.from(container.querySelectorAll(".sparkles-star path")).map(
-				(p) => p.getAttribute("fill")
+			const fills = Array.from(container.querySelectorAll(".sparkles-star path")).map((p) =>
+				p.getAttribute("fill")
 			);
 			expect(fills.length).toBe(4);
 			expect(fills.every((f) => f === "#0000FF")).toBe(true);

@@ -21,6 +21,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 
 	let { text, duration = 800, animateOnLoad = false, class: className }: HyperTextProps = $props();
 
@@ -67,6 +68,13 @@
 
 	function triggerAnimation() {
 		iterations = 0;
+		// One-shot read at the interaction (or at mount): under reduced motion the
+		// text is shown whole and never scrambled.
+		if (prefersReducedMotion()) {
+			stopAnimation();
+			displayText = text.split("");
+			return;
+		}
 		startAnimation();
 	}
 
@@ -87,8 +95,7 @@
 		{#each displayText as letter, i (i)}
 			<span
 				class={cn("hyper-text-char inline-block font-mono", letter === " " ? "w-3" : "")}
-				style="animation:hyperFadeIn 0.3s ease forwards;animation-delay:{i *
-					(duration / (text.length * 10))}ms;opacity:0"
+				style:--hyper-text-delay="{i * (duration / (text.length * 10))}ms"
 			>
 				{letter.toUpperCase()}
 			</span>
@@ -107,6 +114,15 @@
 				opacity: 1;
 				transform: translateY(0);
 			}
+		}
+	}
+
+	/* Resting state is the ungated default: every character visible, in place. */
+	@media (prefers-reduced-motion: no-preference) {
+		.hyper-text-char {
+			opacity: 0;
+			animation: hyperFadeIn 0.3s ease forwards;
+			animation-delay: var(--hyper-text-delay, 0s);
 		}
 	}
 </style>

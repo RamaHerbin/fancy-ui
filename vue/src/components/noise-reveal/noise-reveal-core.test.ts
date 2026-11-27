@@ -411,3 +411,31 @@ describe("noise-reveal-core / resize and destroy", () => {
 		expect(mock.renderer.dispose).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe("noise-reveal-core / reduced motion loop", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+		document.body.innerHTML = "";
+	});
+
+	it("renders one still frame, idles, and wakes on setTarget and on resume", () => {
+		const raf = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		const engine = createNoiseReveal({ container: makeHost() }, init({ reducedMotion: true }));
+		// The synchronous first frame ran; nothing was scheduled after it.
+		expect(raf).not.toHaveBeenCalled();
+		expect(mock.renderer.render).toHaveBeenCalledTimes(1);
+		expect(mock.material.uniforms.uTime.value).toBe(0);
+
+		engine?.setOptions({ target: 1 });
+		expect(raf).toHaveBeenCalledTimes(1);
+		engine?.destroy();
+	});
+
+	it("does not wake a destroyed engine", () => {
+		const raf = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+		const engine = createNoiseReveal({ container: makeHost() }, init({ reducedMotion: true }));
+		engine?.destroy();
+		engine?.setOptions({ reducedMotion: false });
+		expect(raf).not.toHaveBeenCalled();
+	});
+});

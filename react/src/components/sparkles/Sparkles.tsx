@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 
 /**
  * Sparkles - canvas-based floating particle sparkle effect
@@ -122,6 +123,15 @@ export function Sparkles({
 	// which is why they are effect dependencies below.
 	const particleColorRef = useLiveRef(particleColor);
 
+	// Reduced motion: one still frame instead of the rAF loop. A flip restarts the
+	// effect below; the same `seed` re-seeds the same particles.
+	const reducedMotion = useReducedMotion();
+	// Set by the effect while the loop is idle, so a colour change can repaint it.
+	const repaintRef = useRef<(() => void) | null>(null);
+	useEffect(() => {
+		repaintRef.current?.();
+	}, [particleColor]);
+
 	useEffect(() => {
 		if (!container || !canvas) return;
 
@@ -143,6 +153,9 @@ export function Sparkles({
 			canvas.height = rect.height * dpr;
 			ctx = canvas.getContext("2d");
 			if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			// Resizing wiped the bitmap; an idle (reduced-motion) loop has no queued
+			// frame to refill it.
+			if (reducedMotion && particles.length > 0) updateAndDraw();
 		}
 
 		function generateParticles() {
@@ -196,22 +209,61 @@ export function Sparkles({
 				context.fill();
 			}
 
+			// One still frame under reduced motion: paint, then idle.
+			if (reducedMotion) {
+				rafId = 0;
+				return;
+			}
 			rafId = requestAnimationFrame(updateAndDraw);
 		}
 
 		ctx = canvas.getContext("2d");
 		resizeCanvas();
 		generateParticles();
-		rafId = requestAnimationFrame(updateAndDraw);
+		if (reducedMotion) {
+			updateAndDraw();
+			repaintRef.current = updateAndDraw;
+		} else {
+			rafId = requestAnimationFrame(updateAndDraw);
+		}
 
 		const resizeObserver = new ResizeObserver(resizeCanvas);
 		resizeObserver.observe(container);
 
+		// Under reduced motion no frame re-reads `currentColor`, so a theme switch
+		// (a class flip on <html>, the way dark mode is usually toggled) would leave
+		// the still frame in the old colour. Repaint the idle frame when that
+		// happens; the live loop already picks the new colour up on its next frame.
+		const themeObserver =
+			typeof MutationObserver !== "undefined"
+				? new MutationObserver(() => {
+						if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(particleColorRef.current)) {
+							updateAndDraw();
+						}
+					})
+				: null;
+		themeObserver?.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["class"],
+		});
+
 		return () => {
+			repaintRef.current = null;
+			themeObserver?.disconnect();
 			cancelAnimationFrame(rafId);
 			resizeObserver.disconnect();
 		};
-	}, [container, canvas, minSize, maxSize, speed, particleDensity, seed, particleColorRef]);
+	}, [
+		container,
+		canvas,
+		minSize,
+		maxSize,
+		speed,
+		particleDensity,
+		seed,
+		reducedMotion,
+		particleColorRef,
+	]);
 
 	return (
 		<div

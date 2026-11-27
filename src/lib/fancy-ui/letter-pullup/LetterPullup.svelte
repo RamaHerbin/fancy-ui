@@ -35,8 +35,7 @@
 				"letter-pullup-char inline-block text-center text-4xl font-bold tracking-[-0.02em] text-black drop-shadow-sm md:leading-[5rem] dark:text-white",
 				className
 			)}
-			style="animation:letterPullUp 0.5s ease forwards;animation-delay:{index *
-				delay}s;opacity:0;transform:translateY(100px)"
+			style:--letter-pullup-delay="{index * delay}s"
 		>
 			{#if letter === " "}
 				&nbsp;
@@ -58,6 +57,16 @@
 				opacity: 1;
 				transform: translateY(0);
 			}
+		}
+	}
+
+	/* Resting state is the ungated default: visible, in place. */
+	@media (prefers-reduced-motion: no-preference) {
+		.letter-pullup-char {
+			opacity: 0;
+			transform: translateY(100px);
+			animation: letterPullUp 0.5s ease forwards;
+			animation-delay: var(--letter-pullup-delay, 0s);
 		}
 	}
 </style>

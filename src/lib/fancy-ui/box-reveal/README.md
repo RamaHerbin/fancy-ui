@@ -24,3 +24,7 @@ Native attributes and listeners go to the root `<div>`. `class` keeps its curren
   <p>Custom color and speed</p>
 </BoxReveal>
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the box does not slide and the content does not fade up: when the block scrolls into view the content is shown and the box is gone in a single step, with no transition.

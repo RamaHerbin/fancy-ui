@@ -24,8 +24,8 @@ export interface TextRevealStarsProps {
 interface StarData {
 	top: string;
 	left: string;
-	targetTop: string;
-	targetLeft: string;
+	driftX: string;
+	driftY: string;
 	opacity: number;
 	duration: number;
 }
@@ -52,14 +52,27 @@ function mulberry32(seed: number): () => number {
 function createStars(starsCount: number, seed: number): StarData[] {
 	const random = mulberry32(seed);
 	const randomMove = () => random() * 4 - 2;
-	return Array.from({ length: starsCount }, () => ({
-		top: `calc(${random() * 100}% + ${randomMove()}px)`,
-		left: `calc(${random() * 100}% + ${randomMove()}px)`,
-		targetTop: `calc(${random() * 100}% + ${randomMove()}px)`,
-		targetLeft: `calc(${random() * 100}% + ${randomMove()}px)`,
-		opacity: random(),
-		duration: random() * 10 + 20,
-	}));
+	return Array.from({ length: starsCount }, () => {
+		// Four position draws, kept in this order: start top/left, then the target.
+		const topPct = random() * 100;
+		const topMove = randomMove();
+		const leftPct = random() * 100;
+		const leftMove = randomMove();
+		const targetTopPct = random() * 100;
+		const targetTopMove = randomMove();
+		const targetLeftPct = random() * 100;
+		const targetLeftMove = randomMove();
+		return {
+			top: `calc(${topPct}% + ${topMove}px)`,
+			left: `calc(${leftPct}% + ${leftMove}px)`,
+			// The drift is a transform (compositor) rather than animated top/left.
+			// Percent deltas resolve against the size-container wrapper.
+			driftX: `calc(${targetLeftPct - leftPct}cqw + ${targetLeftMove - leftMove}px)`,
+			driftY: `calc(${targetTopPct - topPct}cqh + ${targetTopMove - topMove}px)`,
+			opacity: random(),
+			duration: random() * 10 + 20,
+		};
+	});
 }
 
 /**
@@ -81,7 +94,7 @@ export const TextRevealStars = memo(function TextRevealStars({
 	return (
 		// `text-reveal-stars` is port-added: the CSS anchor class for the
 		// compiler-scoped `.star-animate` rule (see text-reveal-stars.css).
-		<div className="text-reveal-stars absolute inset-0">
+		<div className="text-reveal-stars absolute inset-0" style={{ containerType: "size" }}>
 			{stars.map((star, i) => (
 				<span
 					key={i}
@@ -93,8 +106,8 @@ export const TextRevealStars = memo(function TextRevealStars({
 						{
 							top: star.top,
 							left: star.left,
-							"--target-top": star.targetTop,
-							"--target-left": star.targetLeft,
+							"--drift-x": star.driftX,
+							"--drift-y": star.driftY,
 							"--star-opacity": star.opacity,
 							animationDuration: `${star.duration}s`,
 						} as CSSProperties
