@@ -6022,5 +6022,48 @@
 			"Rendering, the lens and the wave live in the shared `sun-switch-core.ts` and `pixel-wave-core.ts`, byte-identical to the Svelte copies; the component creates the painter in an effect and forwards props, reduced motion and visibility to it."
 		],
 		"lastFailure": null
+	},
+	{
+		"slug": "optical-disc",
+		"sveltePath": "src/lib/fancy-ui/optical-disc",
+		"reactPath": "react/src/components/optical-disc",
+		"status": "ported",
+		"wave": "C",
+		"tier": 1,
+		"group": "graphics",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "webgl",
+		"deps": {
+			"internals": ["media-query", "use-live-ref", "optical-disc-core"],
+			"motion": [],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [
+			"WebGL",
+			"requestAnimationFrame",
+			"ResizeObserver",
+			"IntersectionObserver",
+			"matchMedia",
+			"pointer-events"
+		],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["OpticalDisc"],
+		"loc": 124,
+		"testFiles": ["optical-disc-core.test.ts", "OpticalDisc.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`class` → `className` (PORTING.md).",
+			"The engine is created with `releaseContext: false`: Strict Mode and Fast Refresh run the mount effect twice on the same `<canvas>`, and a lost WebGL context cannot be restored. Svelte and Vue keep the default and lose the context on unmount.",
+			"The stand-in disc is rendered conditionally from a `ready` state instead of reading the engine reference in the template, since a ref change does not re-render."
+		],
+		"lastFailure": null,
+		"minors": []
 	}
 ]

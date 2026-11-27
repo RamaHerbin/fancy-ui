@@ -68,6 +68,7 @@ export * from "./displacement-text/index.js";
 export * from "./matrix-rain/index.js";
 export * from "./terminal-text/index.js";
 export * from "./noise-reveal/index.js";
+export * from "./optical-disc/index.js";
 export * from "./line-reveal/index.js";
 export * from "./editorial-engine/index.js";
 export * from "./liquid-text/index.js";
