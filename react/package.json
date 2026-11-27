@@ -19,7 +19,7 @@
 		"tailwindcss"
 	],
 	"type": "module",
-	"homepage": "https://github.com/RamaHerbin/fancy-ui/tree/main/react",
+	"homepage": "https://fancy-ui.rama.app",
 	"bugs": {
 		"url": "https://github.com/RamaHerbin/fancy-ui/issues"
 	},

@@ -70,12 +70,21 @@
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="theme-color" content="#0a0a0a" />
-		<script
-			defer
-			src="https://stats.rama.app/p.js"
-			data-website-id="052d9c71-4c0e-4a4f-94aa-9a88faf1af9d"
-			data-domains="fancy-ui.rama.app"
-		></script>
+		<script>
+			// Analytics count people. A browser driven by automation (the test
+			// suites, the production health sweep, most headless crawlers) reports
+			// navigator.webdriver, and never loads the tracker. data-domains keeps
+			// local and preview hosts out as well.
+			(function () {
+				if (navigator.webdriver) return;
+				var tracker = document.createElement("script");
+				tracker.defer = true;
+				tracker.src = "https://stats.rama.app/p.js";
+				tracker.setAttribute("data-website-id", "052d9c71-4c0e-4a4f-94aa-9a88faf1af9d");
+				tracker.setAttribute("data-domains", "fancy-ui.rama.app");
+				document.head.appendChild(tracker);
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
