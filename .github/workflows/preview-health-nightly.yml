@@ -7,7 +7,10 @@ name: Preview health (nightly)
 #               (failures there are classed GPU_ONLY)
 #   production  the live site, swept as it is served; nothing is built, the
 #               slug list comes from the checked-out main, which is what the
-#               site is built from
+#               site is built from. Manual only: it loads every component page
+#               twice from the CDN with a cold cache, which a nightly schedule
+#               turns into a large share of the hosting plan's monthly request
+#               allowance. Run it after a release, with the `production` input.
 #
 # The pull-request sweep (projects gpu and gpu-light-rm on the PR's own build)
 # is the preview-health job in ci.yml. See tests/e2e/preview-health.spec.ts and
@@ -18,6 +21,11 @@ on:
     # 03:17 UTC: off the hour, when scheduled runs queue the least.
     - cron: "17 3 * * *"
   workflow_dispatch:
+    inputs:
+      production:
+        description: Also sweep the live site (hundreds of cold page loads against the CDN)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -29,7 +37,7 @@ concurrency:
 jobs:
   no-gpu:
     name: No GPU (develop build)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Until every WebGL demo has a fallback: GPU_ONLY failures are expected here today.
     continue-on-error: true
     timeout-minutes: 45
@@ -91,7 +99,9 @@ jobs:
 
   production:
     name: Production site
-    runs-on: ubuntu-latest
+    # Never on the schedule: see the header.
+    if: github.event_name == 'workflow_dispatch' && inputs.production
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       # Sweep the deployed site: no build, no local server.

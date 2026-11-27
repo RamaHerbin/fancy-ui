@@ -41,7 +41,7 @@ const letters = computed(() => words.split(""));
 					className
 				)
 			"
-			:style="`animation:letterPullUp 0.5s ease forwards;animation-delay:${index * delay}s;opacity:0;transform:translateY(100px)`"
+			:style="{ '--letter-pullup-delay': `${index * delay}s` }"
 			><template v-if="letter === ' '">&nbsp;</template
 			><template v-else>{{ letter }}</template></span
 		>
@@ -57,6 +57,18 @@ const letters = computed(() => words.split(""));
 	100% {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+</style>
+
+<style scoped>
+/* Resting state is the ungated default: visible, in place. */
+@media (prefers-reduced-motion: no-preference) {
+	.letter-pullup-char {
+		opacity: 0;
+		transform: translateY(100px);
+		animation: letterPullUp 0.5s ease forwards;
+		animation-delay: var(--letter-pullup-delay, 0s);
 	}
 }
 </style>

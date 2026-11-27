@@ -7,6 +7,7 @@ import {
 	type ReactNode,
 } from "react";
 import { cn } from "../../utils.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import "./bg-stars.css";
 
 export interface StarsBackgroundProps {
@@ -109,7 +110,12 @@ export function StarsBackground({
 	// effect below; a no-op while the component is unmounted.
 	const wakeSpring = useRef(() => {});
 
+	// Reduced motion: no parallax travel. The pointer is ignored and the spring
+	// parks at rest; a flip back restarts the loop through the effect below.
+	const reducedMotion = useReducedMotion();
+
 	function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
+		if (reducedMotion) return;
 		const centerX = window.innerWidth / 2;
 		const centerY = window.innerHeight / 2;
 		target.current.x = -(e.clientX - centerX) * factor;
@@ -166,8 +172,9 @@ export function StarsBackground({
 
 		function start() {
 			// Idempotent: a second wake while a frame is already queued, or
-			// while the page is in a background tab, changes nothing.
-			if (animationFrame !== 0 || document.hidden) return;
+			// while the page is in a background tab, changes nothing. Under
+			// reduced motion the spring never runs.
+			if (animationFrame !== 0 || document.hidden || reducedMotion) return;
 			animationFrame = requestAnimationFrame(updateSpring);
 		}
 
@@ -187,6 +194,13 @@ export function StarsBackground({
 		}
 
 		wakeSpring.current = start;
+		if (reducedMotion) {
+			// Settle at rest once and idle: no travel, nothing scheduled.
+			target.current.x = target.current.y = 0;
+			velocity.current.x = velocity.current.y = 0;
+			spring.current.x = spring.current.y = 0;
+			if (parallaxEl.current) parallaxEl.current.style.transform = "translate(0px, 0px)";
+		}
 		start();
 		document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -195,7 +209,7 @@ export function StarsBackground({
 			stop();
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
 		};
-	}, [stiffness, damping]);
+	}, [stiffness, damping, reducedMotion]);
 
 	// Derived CSS custom properties for animation durations
 	const layer1Duration = `${speed}s`;
@@ -214,11 +228,7 @@ export function StarsBackground({
 			)}
 			onMouseMove={handleMouseMove}
 		>
-			<div
-				ref={parallaxEl}
-				className="stars-parallax"
-				style={{ transform: "translate(0px, 0px)" }}
-			>
+			<div ref={parallaxEl} className="stars-parallax" style={{ transform: "translate(0px, 0px)" }}>
 				{/* Star Layer 1 (smallest, fastest) */}
 				<div className="star-layer" style={{ "--duration": layer1Duration } as CSSProperties}>
 					<div

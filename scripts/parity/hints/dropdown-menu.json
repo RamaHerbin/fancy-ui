@@ -1,1 +1,10 @@
-{ "click": [0.5, 0.5] }
+{
+	"click": [0.5, 0.5],
+	"states": {
+		"open": {
+			"steps": [{ "click": { "role": "button", "name": "Options" } }],
+			"expect": [{ "role": "menu", "in": "page" }]
+		},
+		"close": { "from": "open", "expect": [{ "role": "button", "name": "Options" }] }
+	}
+}

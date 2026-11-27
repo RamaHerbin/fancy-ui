@@ -34,3 +34,7 @@ Native attributes and listeners (`id`, `aria-*`, `data-*`, `onclick`...) go to e
   <BookDescription>A short description of the book.</BookDescription>
 </Book>
 ```
+
+## Reduced motion
+
+With `prefers-reduced-motion: reduce` the cover still opens on hover (or sits open when `isStatic` is set) but lands on its angle at once instead of turning over `duration`. The state is unchanged, only the tween is dropped.

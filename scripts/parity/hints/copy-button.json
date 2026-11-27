@@ -6,11 +6,15 @@
 		},
 		"copied": {
 			"steps": [{ "clipboard": "ok" }, { "click": { "role": "button", "name": "Copy" } }],
-			"expect": [{ "role": "button", "name": "Copied" }]
+			"expect": [{ "role": "button", "name": "Copied" }],
+			"moments": [0, 80, 300, 600, 1200],
+			"noSettle": true
 		},
 		"failed": {
 			"steps": [{ "clipboard": "denied" }, { "click": { "role": "button", "name": "Copy" } }],
-			"expect": [{ "role": "button", "name": "Copy failed" }]
+			"expect": [{ "role": "button", "name": "Copy failed" }],
+			"moments": [0, 80, 300, 600, 1200],
+			"noSettle": true
 		}
 	}
 }
