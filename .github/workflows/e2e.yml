@@ -89,7 +89,7 @@ jobs:
   # sharded: each shard starts its own dev server and takes a quarter of the tests.
   a11y:
     name: Accessibility gate (shard ${{ matrix.shard }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
