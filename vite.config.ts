@@ -17,6 +17,15 @@ export default defineConfig({
 		__VUE_PKG_VERSION__: JSON.stringify(vuePkg.version)
 	},
 	plugins: [tailwindcss(), sveltekit()],
+	server: {
+		watch: {
+			// Agent worktrees live under .claude/worktrees/, inside this root: a
+			// sibling session's `svelte-kit sync` there rewrites a tsconfig that
+			// this watcher would otherwise treat as ours, clearing the cache and
+			// forcing a full reload mid-request (500s until restart).
+			ignored: ['**/.claude/**']
+		}
+	},
 	test: {
 		environment: 'jsdom',
 		include: ['src/**/*.test.ts'],
