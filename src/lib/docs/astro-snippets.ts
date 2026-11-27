@@ -27,8 +27,8 @@ export const ASTRO_VERSIONS = {
  * accepts a measurement within ASTRO_COST_TOLERANCE of these values.
  */
 export const ASTRO_ISLAND_COST = {
-	wrappedKB: 88,
-	wrappedGzipKB: 32,
+	wrappedKB: 101,
+	wrappedGzipKB: 37,
 	barrelMB: 1.66,
 	barrelGzipKB: 481,
 } as const;
