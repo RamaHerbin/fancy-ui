@@ -20,7 +20,7 @@
 		"tailwindcss"
 	],
 	"type": "module",
-	"homepage": "https://github.com/RamaHerbin/fancy-ui/tree/main/vue",
+	"homepage": "https://fancy-ui.rama.app",
 	"bugs": {
 		"url": "https://github.com/RamaHerbin/fancy-ui/issues"
 	},
