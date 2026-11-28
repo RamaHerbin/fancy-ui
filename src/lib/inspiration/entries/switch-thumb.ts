@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			'A native checkbox with `role="switch"`, so Space toggles it and the state is announced. Travel is gated by reduced motion.',
 		clues: ["translateX on :checked", "colour transition", "size tokens", "role=switch"],
 	},
-	curatedRank: 27,
+	curatedRank: 34,
 	collections: ["micro-interactions"],
 	components: [{ slug: "switch", relation: "exact" }],
 	demo: {

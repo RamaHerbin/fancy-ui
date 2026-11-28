@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"A canvas 2D loop, paused off-screen by an IntersectionObserver. The HDR light is a WebGPU layer with extended tone mapping that only starts when the display reports HDR; elsewhere nothing changes. Reduced motion draws one settled frame. On touch only the idle drift shows.",
 		clues: ["canvas tiles", "per-tile intensity buffer", "trail decay", "HDR light above white"],
 	},
-	curatedRank: 15,
+	curatedRank: 5,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "mosaic-glow", relation: "exact" }],
 	demo: {

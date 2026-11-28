@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Full tablist / tab / tabpanel roles with roving focus. Manual activation suits panels that are expensive to render. The slide lives under `no-preference`.",
 		clues: ["measured trigger rect", "transform on a shared indicator", "roving tabindex"],
 	},
-	curatedRank: 26,
+	curatedRank: 33,
 	collections: ["micro-interactions"],
 	components: [{ slug: "tabs", relation: "exact" }],
 	demo: {

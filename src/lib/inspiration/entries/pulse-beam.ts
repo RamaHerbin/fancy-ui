@@ -24,7 +24,7 @@ const entry: FancyUIReference = {
 			"One shared rAF loop drives every instance and an IntersectionObserver pauses it off-screen. Reduced motion keeps the layers lit but frozen. `tone` is a prop, not theme-aware: set it to `light` on light pages.",
 		clues: ["mask padding", "hue-rotate", "IntersectionObserver pause", "inner / outside variant"],
 	},
-	curatedRank: 1,
+	curatedRank: 7,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "pulse-beam", relation: "exact" }],
 	demo: {

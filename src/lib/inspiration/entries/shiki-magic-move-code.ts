@@ -32,7 +32,7 @@ const entry: ExternalReference = {
 			"stagger by line",
 		],
 	},
-	curatedRank: 40,
+	curatedRank: 47,
 	components: [
 		{
 			slug: "code-diff",

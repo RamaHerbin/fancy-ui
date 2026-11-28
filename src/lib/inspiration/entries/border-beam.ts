@@ -29,7 +29,7 @@ const entry: FancyUIReference = {
 			"anchor = % of the perimeter",
 		],
 	},
-	curatedRank: 4,
+	curatedRank: 13,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "border-beam", relation: "exact" }],
 	demo: {

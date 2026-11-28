@@ -28,7 +28,7 @@ const entry: FancyUIReference = {
 			"ResizeObserver rebuilds the map",
 		],
 	},
-	curatedRank: 3,
+	curatedRank: 12,
 	collections: ["glass-and-glow"],
 	components: [{ slug: "liquid-glass", relation: "exact" }],
 	demo: {

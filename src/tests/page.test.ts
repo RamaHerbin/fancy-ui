@@ -56,10 +56,10 @@ describe("+page.svelte", () => {
 		).toBeInTheDocument();
 	});
 
-	it("shows six preview cards with sized posters", () => {
+	it("shows eleven preview cards with sized posters", () => {
 		const { container } = renderPage();
 		const cards = container.querySelectorAll("[data-preview-card]");
-		expect(cards).toHaveLength(6);
+		expect(cards).toHaveLength(11);
 		for (const card of cards) {
 			const img = card.querySelector("img");
 			expect(img).not.toBeNull();

@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Every glyph carries a spoken status label. Passing `onSelect` turns rows into buttons. Nested `substeps` count as steps of their own in the total.",
 		clues: ["status → glyph", "done / total + bar", "nested substeps", "rows keyed by id"],
 	},
-	curatedRank: 21,
+	curatedRank: 29,
 	collections: ["ai-interfaces"],
 	components: [{ slug: "agent-plan", relation: "exact" }],
 	demo: {

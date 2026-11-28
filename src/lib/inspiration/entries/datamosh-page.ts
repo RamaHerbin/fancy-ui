@@ -23,7 +23,7 @@ const entry: FancyUIReference = {
 			"Canvas 2D bands over the page; a strong glitch is a lot of flashing, so keep it brief. The component honours reduced motion. Await the swap before resolving the cover.",
 		clues: ["cover / reveal promise API", "canvas bands", "contained mode"],
 	},
-	curatedRank: 34,
+	curatedRank: 6,
 	components: [{ slug: "datamosh-transition", relation: "exact" }],
 	demo: {
 		module: "datamosh-page",
