@@ -39,8 +39,9 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # For pull_request_target, check out the actual head commit (not base)
           ref: ${{ github.event.pull_request.head.sha }}
@@ -48,11 +49,11 @@ jobs:
       # Same pnpm major as release.yml, which needs 11 to publish through npm
       # trusted publishing: the install and the scripts CI checks are then the
       # ones the release job runs. Every job in this file and e2e.yml uses it.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -149,15 +150,15 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -169,7 +170,7 @@ jobs:
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -191,7 +192,7 @@ jobs:
       # too: it also carries the notes (slow spinners).
       - name: Upload the shard summary
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: preview-health-shard-${{ matrix.shard }}
           path: test-results/preview-health.json
@@ -200,7 +201,7 @@ jobs:
 
       - name: Upload the failing-stage screenshots
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: preview-health-results-shard-${{ matrix.shard }}
           path: test-results/
@@ -227,16 +228,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       # The merge script is plain Node: no install.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: preview-health-shard-*
           path: shard-summaries
@@ -248,7 +249,7 @@ jobs:
 
       - name: Upload the merged summary
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: preview-health
           path: test-results/preview-health.json
@@ -272,16 +273,17 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -393,16 +395,17 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -460,16 +463,17 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -531,16 +535,17 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -588,15 +593,15 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -617,7 +622,7 @@ jobs:
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -660,21 +665,33 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          # Full history: the gate compares this branch with its base.
+          fetch-depth: 0
 
       - name: Check for changeset
         # Only required for PRs targeting develop (feature/fix branches).
-        # PRs targeting main directly (infra, CI) and the automated "Version Packages" PR are exempt.
-        if: github.base_ref == 'develop' && github.head_ref != 'changeset-release/main'
+        # PRs targeting main directly (infra, CI), the automated "Version Packages" PR and
+        # automated dependency updates are exempt.
+        if: github.base_ref == 'develop' && github.head_ref != 'changeset-release/main' && github.actor != 'dependabot[bot]'
+        # A changeset already waiting on the base branch does not count: only
+        # one this branch adds does. Changesets are consumed on main, so several
+        # sit on develop between releases.
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          if ! ls .changeset/*.md 2>/dev/null | grep -qv README.md; then
-            echo "❌ No changeset file found. Run 'pnpm changeset' and commit the generated file."
+          git fetch --quiet origin "$BASE_REF"
+          added=$(git diff --name-only --diff-filter=A "origin/$BASE_REF...HEAD" -- '.changeset/*.md' | grep -v '^\.changeset/README\.md$' || true)
+          if [ -z "$added" ]; then
+            echo "❌ This branch adds no changeset. Run 'pnpm changeset' (or 'pnpm changeset --empty') and commit the generated file."
             exit 1
           fi
-          echo "✅ Changeset file present."
+          echo "✅ Changeset added by this branch:"
+          echo "$added"
 
   consumers:
     name: Consumers (shard ${{ matrix.shard }})
@@ -713,15 +730,15 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           check-latest: true
@@ -735,7 +752,7 @@ jobs:
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -751,7 +768,7 @@ jobs:
         id: week
         run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.npm
           key: consumers-npm-${{ runner.os }}-${{ steps.week.outputs.week }}-${{ hashFiles('examples/consumers/*/package.json') }}

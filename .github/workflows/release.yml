@@ -7,30 +7,34 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
-permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
+permissions: {}
 
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-latest
+    # Publishing only ever happens from main, including a manual run.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
       # pnpm 11 publishes through npm's trusted publishing: with no auth token
-      # configured it exchanges this job's OIDC id-token (permissions above) for
+      # configured it exchanges this job's OIDC id-token (this job's permissions) for
       # a short-lived publish token, so no npm secret lives in this repo.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11
 
       # No `registry-url` on purpose: setup-node would write an .npmrc whose
       # _authToken points at an env var that no longer exists.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -47,7 +51,7 @@ jobs:
 
       - run: pnpm --filter fancy-ui-vue run build
 
-      - uses: changesets/action@v1
+      - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1
         with:
           # Creates/updates the "Version Packages" PR instead of pushing directly to main.
           # This prevents Vercel from triggering a deploy on every changeset commit.
