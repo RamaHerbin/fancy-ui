@@ -190,23 +190,31 @@ describe("ApprovalCard", () => {
 
 	it("announces the verdict through a live region that was already there", async () => {
 		const { container } = render(<ApprovalCard title={TITLE} />);
-		const live = container.querySelector('[aria-live="polite"]') as HTMLElement;
+		const live = container.querySelector('[role="status"]') as HTMLElement;
 		expect(live).not.toBeNull();
 
 		await fireEvent.click(approve(container));
 
 		// Same element, new contents: a region that appears alongside its own text
 		// is routinely missed.
-		expect(container.querySelector('[aria-live="polite"]')).toBe(live);
+		expect(container.querySelector('[role="status"]')).toBe(live);
 		expect(live.textContent).toContain("Approved");
 	});
 
-	it("disables both buttons and marks the card busy while the consumer works", () => {
+	it("keeps both buttons focusable and marks them busy while the consumer works", async () => {
 		const { container } = render(<ApprovalCard title={TITLE} busy />);
 
-		expect(approve(container).disabled).toBe(true);
-		expect(deny(container).disabled).toBe(true);
+		expect(approve(container).disabled).toBe(false);
+		expect(deny(container).disabled).toBe(false);
+		expect(approve(container).getAttribute("aria-busy")).toBe("true");
+		expect(deny(container).getAttribute("aria-busy")).toBe("true");
 		expect(root(container).getAttribute("aria-busy")).toBe("true");
+
+		// Focus stays on the button that was pressed, and the press is ignored.
+		approve(container).focus();
+		await fireEvent.click(approve(container));
+		expect(document.activeElement).toBe(approve(container));
+		expect(root(container).dataset.state).toBe("pending");
 	});
 
 	it("says nothing about busyness when it is not busy", () => {
@@ -214,6 +222,7 @@ describe("ApprovalCard", () => {
 
 		expect(root(container).getAttribute("aria-busy")).toBeNull();
 		expect(approve(container).disabled).toBe(false);
+		expect(approve(container).getAttribute("aria-busy")).toBeNull();
 	});
 
 	it("moves focus to the verdict once the buttons that held it are gone", async () => {
@@ -320,8 +329,8 @@ describe("ApprovalCard", () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(<ApprovalCard title={TITLE} sound busy />);
 
-			// Both buttons are disabled while busy; a synthetic dispatch bypasses
-			// jsdom's own disabled handling to prove the guard inside decide()
+			// Both buttons stay focusable while busy; a synthetic dispatch bypasses
+			// jsdom's default click handling to prove the guard inside decide()
 			// itself, not merely the native attribute.
 			approve(container).dispatchEvent(
 				new MouseEvent("click", { bubbles: true, cancelable: true })

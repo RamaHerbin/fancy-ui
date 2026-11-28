@@ -218,7 +218,7 @@ const triggerClasses = computed(() =>
 					</span>
 					<span
 						v-if="description"
-						class="ft-step-description text-muted-foreground/80 text-[11px] leading-snug"
+						class="ft-step-description text-muted-foreground text-[11px] leading-snug"
 					>
 						{{ description }}
 					</span>
@@ -269,7 +269,7 @@ const triggerClasses = computed(() =>
 					</span>
 					<span
 						v-if="description"
-						class="ft-step-description text-muted-foreground/80 text-[11px] leading-snug"
+						class="ft-step-description text-muted-foreground text-[11px] leading-snug"
 					>
 						{{ description }}
 					</span>

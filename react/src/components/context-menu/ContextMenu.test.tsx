@@ -46,6 +46,7 @@ interface HarnessProps {
 	onOpenChange?: (open: boolean) => void;
 	onSelect?: (label: string) => void;
 	triggerDisabled?: boolean;
+	triggerFocusable?: boolean;
 	withSubmenu?: boolean;
 	subItems?: ItemSpec[];
 	sound?: boolean;
@@ -70,13 +71,14 @@ function Harness({
 	onOpenChange,
 	onSelect,
 	triggerDisabled = false,
+	triggerFocusable = false,
 	withSubmenu = false,
 	subItems = [],
 	sound: soundProp = false,
 }: HarnessProps) {
 	return (
 		<ContextMenu open={open} onOpenChange={onOpenChange} sound={soundProp}>
-			<ContextMenuTrigger disabled={triggerDisabled}>
+			<ContextMenuTrigger disabled={triggerDisabled} focusable={triggerFocusable}>
 				<div data-testid="region">Right-click me</div>
 			</ContextMenuTrigger>
 			<ContextMenuContent>
@@ -432,6 +434,31 @@ describe("ContextMenu", () => {
 
 		fireEvent.keyDown(menu()!, { key: "Tab" });
 		await waitFor(() => expect(menu()).toBeNull());
+	});
+
+	it("the focusable trigger is a tab stop and opens from the Menu key", async () => {
+		const { container } = render(<Harness items={ITEMS} triggerFocusable />);
+		const el = region(container);
+		expect(el.getAttribute("tabindex")).toBe("0");
+		expect(el.getAttribute("aria-description")).toContain("Menu key");
+
+		el.focus();
+		expect(document.activeElement).toBe(el);
+
+		// The Menu key and Shift+F10 dispatch `contextmenu` at the focused element
+		// with `button: 0`, never the right mouse button's `2`.
+		await fireEvent.contextMenu(document.activeElement as HTMLElement, {
+			button: 0,
+			clientX: 0,
+			clientY: 0,
+		});
+		expect(menu()).not.toBeNull();
+	});
+
+	it("the trigger is not a tab stop unless asked to be", () => {
+		const { container } = render(<Harness items={ITEMS} />);
+		expect(region(container).hasAttribute("tabindex")).toBe(false);
+		expect(region(container).hasAttribute("aria-description")).toBe(false);
 	});
 
 	it("a disabled trigger leaves the native menu alone and never opens", () => {

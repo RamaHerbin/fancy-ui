@@ -46,7 +46,7 @@ Fancy UI (FancyUI): animated UI components for **Svelte 5**, **React** and **Vue
 - **Svelte 5 runes** &mdash; built with `$state`, `$derived`, `$effect` and `$props`; snippets, no legacy syntax
 - **React and Vue editions** &mdash; [`fancy-ui-react`](./react/README.md) (React 18 and 19) and [`fancy-ui-vue`](./vue/README.md) (Vue 3.5+) ship the same components under the same names, ported from the Svelte source and kept at parity by CI
 - **Tailwind CSS v4** &mdash; one CSS import, theme tokens, light and dark themes
-- **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, canvas and WebGL work deferred to mount
+- **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected across all core components and most effects; a handful of text and background effects still animate under reduced motion and are being fixed, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and a `soundFeedback` action; silent until the user turns it on
 - **AI-ready docs** &mdash; `llms.txt`, a Markdown page per component and a JSON registry, so coding agents use the library correctly
 - **Tested** &mdash; 4,500+ unit tests with Vitest and Testing Library

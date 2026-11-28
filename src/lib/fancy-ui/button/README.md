@@ -73,6 +73,18 @@ The library's foundational push-button: six variants, three sizes, a loading sta
 
 Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded to the rendered `<button>`, or to the `<a>` once `href` is set. They are spread first: `disabled`, `loading`, the inert-link `tabindex` / `aria-disabled` and the button `type` always win, and `onclick` stays behind the activation guard. Capture-phase listeners (`onclickcapture`) are not gated by `disabled` / `loading`: the Svelte and React ports do not guard them, while the Vue port strips them while inert (a native disabled `<button>` blocks real clicks anyway).
 
+## Accessibility
+
+- A native `<button>` (or an `<a>` when `href` is set), so Enter, Space and
+  the default focus order come for free. The focus ring is a 3px
+  `focus-visible` ring, never removed.
+- An icon-only button needs `label`, which becomes `aria-label`.
+- `loading` is `aria-busy`, and the leading cell is `aria-hidden` while the
+  spinner swaps in. The button stays focusable and presses are ignored.
+- On an `<a>`, a blocked press (`disabled` or `loading`) sets `aria-disabled`
+  and prevents navigation instead of removing the href.
+- The soft destructive variant keeps 4.5:1 text contrast in both themes.
+
 ## Theming
 
 Five of the six variants read the theme's own `primary` / `secondary` / `border` / `accent` / `destructive` tokens, so they follow whatever palette the page already declares. `accent` is the exception: the brand purple has no semantic Tailwind token, so it is a scoped CSS custom property with a `light-dark()` fallback instead:
