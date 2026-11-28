@@ -93,6 +93,7 @@
 	"navigation-menu": true,
 	"neon-border": true,
 	"noise-reveal": true,
+	"optical-disc": false,
 	"number-input": true,
 	"number-ticker": true,
 	"pagination": true,

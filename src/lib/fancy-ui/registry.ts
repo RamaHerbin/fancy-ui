@@ -3759,6 +3759,84 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"optical-disc": {
+		name: "OpticalDisc",
+		slug: "optical-disc",
+		description:
+			"A spinning disc drawn by one WebGL shader: a printed label on one side, a mirror on the other whose diffraction grating splits each highlight into wedges of colour",
+		category: "media",
+		group: "fancy",
+		status: "done",
+		credits: [
+			{
+				source: "Nils Landrodie (diffraction disc study)",
+				url: "https://www.linkedin.com/posts/nils-landrodie_exploration-of-the-day-for-a-cool-internal-ugcPost-7529197301983076352-RVp4/",
+			},
+		],
+		tags: ["media", "disc", "webgl", "shader", "diffraction", "iridescent", "3d", "drag"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				description: "Image printed on the label side. Omit for the built-in blank label",
+			},
+			{
+				name: "alt",
+				type: "string",
+				description:
+					"Accessible name. Without it the disc is decorative and hidden from assistive tech",
+			},
+			{
+				name: "spin",
+				type: "number",
+				default: "9",
+				description: "Seconds per full turn. 0 keeps the disc still; negative turns the other way",
+			},
+			{
+				name: "angle",
+				type: "number",
+				default: "-24",
+				description: "Starting angle in degrees. 0 faces the label to the viewer, 180 the mirror",
+			},
+			{
+				name: "tilt",
+				type: "number",
+				default: "14",
+				description: "Lean of the spin axis toward the viewer, in degrees",
+			},
+			{
+				name: "iridescence",
+				type: "number",
+				default: "1",
+				description: "Strength of the diffraction colours. 0 leaves a plain mirror",
+			},
+			{
+				name: "pitch",
+				type: "number",
+				default: "1600",
+				description: "Track pitch in nanometres. Smaller spreads the colours wider",
+			},
+			{
+				name: "labelColor",
+				type: "string",
+				default: '"#f2f1ee"',
+				description: "Label paper colour, #rgb or #rrggbb",
+			},
+			{
+				name: "tint",
+				type: "string",
+				default: '"#6f9ef0"',
+				description: "Tint of the clear hub, #rgb or #rrggbb",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Drag to turn the disc",
+			},
+		],
+	},
+
 	"liquid-text": {
 		name: "LiquidText",
 		slug: "liquid-text",

@@ -1033,6 +1033,16 @@
 		}
 	},
 	{
+		"id": "optical-disc/optical-disc-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/optical-disc/optical-disc-core.ts",
+			"react": "react/src/components/optical-disc/optical-disc-core.ts",
+			"vue": "vue/src/components/optical-disc/optical-disc-core.ts"
+		}
+	},
+	{
 		"id": "datamosh-transition/datamosh-transition-core.ts",
 		"kind": "engine-core",
 		"shared": true,

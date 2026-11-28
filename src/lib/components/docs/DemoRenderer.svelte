@@ -98,6 +98,7 @@
 		"smooth-cursor",
 		"liquid-glass",
 		"noise-reveal",
+		"optical-disc",
 		"line-reveal",
 		"editorial-engine",
 		"frosted-glass",

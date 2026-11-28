@@ -619,6 +619,21 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Toggle the reveal manually with the revealed prop.",
 		},
 	],
+	"optical-disc": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"A disc turning on its own. Drag it sideways to spin it by hand and watch the colours fan out on the mirror side.",
+		},
+		{
+			name: "CustomLabel",
+			title: "Custom Label",
+			description:
+				"Any image becomes the printed side. A still disc, facing the viewer, turns on drag.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"line-reveal": [
 		{
 			name: "BasicUsage",

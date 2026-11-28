@@ -112,6 +112,7 @@ export * from "./components/navbar/index.js";
 export * from "./components/navigation-menu/index.js";
 export * from "./components/neon-border/index.js";
 export * from "./components/noise-reveal/index.js";
+export * from "./components/optical-disc/index.js";
 export * from "./components/number-input/index.js";
 export * from "./components/number-ticker/index.js";
 export * from "./components/pagination/index.js";
