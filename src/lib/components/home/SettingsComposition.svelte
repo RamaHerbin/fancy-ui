@@ -103,11 +103,7 @@
 		box-shadow: inset 0 0 0 1px var(--fx-hairline);
 	}
 
-	/* One-hue fill on --ft-accent. Set here, on the wrap's own rule: the
-	   library declares the cyan end on that element, so an inherited value
-	   from an ancestor never reaches it. */
 	.settings :global(.ft-slider-wrap) {
-		--ft-slider-accent-end: var(--ft-slider-accent);
 		/* The resting track reads the theme's input colour, a pale slate here:
 		   a hairline keeps the ink fill legible against it. */
 		--color-input: var(--fx-hairline-strong);
