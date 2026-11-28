@@ -69,3 +69,11 @@ storybook-static
 # i18n-parse.d.mts stays tracked: svelte-check needs it without a prior package run.
 scripts/lib/*.d.mts
 !scripts/lib/i18n-parse.d.mts
+
+# design-sync
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+react/.design-sync/
