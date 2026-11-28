@@ -208,6 +208,15 @@ export interface NoiseRevealLiveOptions {
 	target?: number;
 	/** `prefers-reduced-motion` as read by the wrapper: target changes jump instead of tweening. */
 	reducedMotion?: boolean;
+	/**
+	 * Whether the host is on screen, as observed by the wrapper (the core owns
+	 * no IntersectionObserver). Defaults to `true`. While `false` the loop is
+	 * stopped — every frame evaluates the noise twice per fragment at the device
+	 * pixel ratio, so an off-screen canvas is pure cost — and it resumes from
+	 * the noise phase it paused at. A background tab pauses it the same way,
+	 * which the core tracks by itself.
+	 */
+	visible?: boolean;
 }
 
 export interface NoiseRevealEngine {
@@ -304,6 +313,7 @@ export function createNoiseReveal(
 
 	let destroyed = false;
 	let reducedMotion = options.reducedMotion ?? false;
+	let visible = options.visible ?? true;
 	let progress = uniforms.uProgress.value;
 	const tween = { from: progress, to: progress, start: 0, active: false };
 
@@ -336,13 +346,38 @@ export function createNoiseReveal(
 	window.addEventListener("resize", handleResize);
 
 	const clock = new THREE.Clock();
+	// Clock time that elapsed while the loop was paused (off screen or in a
+	// background tab). Subtracted from uTime so a resumed loop carries on from
+	// the noise phase it paused at instead of jumping forward by the pause.
+	let pausedTime = 0;
+	let pausedAt: number | null = null;
+	const canRun = () => visible && !document.hidden;
+
 	let animationId = 0;
 	// Re-enter the loop when it is idle (reduced motion renders one still frame,
-	// then waits for a wake: target change, texture load, resize, preference flip).
+	// then waits for a wake: target change, texture load, resize, preference flip)
+	// or paused. A no-op while the host is off screen or the tab is hidden: the
+	// pending work is picked up by the wake that ends the pause.
 	function wake() {
-		if (destroyed || animationId !== 0) return;
+		if (destroyed || animationId !== 0 || !canRun()) return;
+		if (pausedAt !== null) {
+			pausedTime += clock.getElapsedTime() - pausedAt;
+			pausedAt = null;
+		}
 		animationId = requestAnimationFrame(animate);
 	}
+	function pause() {
+		if (animationId !== 0) {
+			cancelAnimationFrame(animationId);
+			animationId = 0;
+		}
+		if (pausedAt === null) pausedAt = clock.getElapsedTime();
+	}
+	const handleVisibilityChange = () => {
+		if (canRun()) wake();
+		else pause();
+	};
+	document.addEventListener("visibilitychange", handleVisibilityChange);
 	const animate = () => {
 		animationId = 0;
 		if (tween.active) {
@@ -352,9 +387,15 @@ export function createNoiseReveal(
 		}
 		uniforms.uProgress.value = progress;
 		// Reduced motion freezes the grain: uTime keeps its last value.
-		if (!reducedMotion) uniforms.uTime.value = clock.getElapsedTime();
+		if (!reducedMotion) uniforms.uTime.value = clock.getElapsedTime() - pausedTime;
 		renderer.render(scene, camera);
 		if (reducedMotion && !tween.active) return;
+		if (!canRun()) {
+			// Started off screen or in a background tab: this one frame is the
+			// still the host shows until it becomes visible.
+			if (pausedAt === null) pausedAt = clock.getElapsedTime();
+			return;
+		}
 		animationId = requestAnimationFrame(animate);
 	};
 	animate();
@@ -374,12 +415,18 @@ export function createNoiseReveal(
 				wake();
 			}
 			if (next.target !== undefined) setTarget(next.target);
+			if (next.visible !== undefined && next.visible !== visible) {
+				visible = next.visible;
+				if (canRun()) wake();
+				else pause();
+			}
 		},
 		resize: handleResize,
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
 			window.removeEventListener("resize", handleResize);
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
 			cancelAnimationFrame(animationId);
 			if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
 			renderer.dispose();

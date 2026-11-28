@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
+import { createGlowingEffect, type GlowingEffectEngine } from "./glowing-effect-core.js";
 
 export interface GlowingEffectProps {
 	/** Blur amount for the glow. */
@@ -26,24 +28,6 @@ export interface GlowingEffectProps {
 	borderWidth?: number;
 }
 
-/** Read live on every tween step; missing `matchMedia` means "no preference". */
-function prefersReducedMotion(): boolean {
-	return (
-		typeof window !== "undefined" &&
-		typeof window.matchMedia === "function" &&
-		window.matchMedia("(prefers-reduced-motion: reduce)").matches
-	);
-}
-
-interface MotionState {
-	lastPosition: { x: number; y: number };
-	animationFrameId: number;
-	angleAnimationFrameId: number;
-	currentAngle: number;
-	targetAngle: number;
-	animating: boolean;
-}
-
 export function GlowingEffect({
 	blur = 0,
 	inactiveZone = 0.7,
@@ -57,22 +41,12 @@ export function GlowingEffect({
 	borderWidth = 1,
 }: GlowingEffectProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const motionRef = useRef<MotionState>({
-		lastPosition: { x: 0, y: 0 },
-		animationFrameId: 0,
-		angleAnimationFrameId: 0,
-		currentAngle: 0,
-		targetAngle: 0,
-		animating: false,
-	});
-	// Live mirror of the props the frame handlers read, so a mounted listener
-	// always sees the latest values (the Svelte closures read reactive props).
-	const liveRef = useRef({ inactiveZone, proximity, movementDuration });
-	useEffect(() => {
-		liveRef.current = { inactiveZone, proximity, movementDuration };
-	});
+	// Latest values for the engine: the mount effect reads them once, and the
+	// effect below pushes later changes into the running engine.
+	const live = useLiveRef({ inactiveZone, proximity, movementDuration });
+	const engineRef = useRef<GlowingEffectEngine | null>(null);
 	// `disabled` is read once at mount, mirroring the Svelte onMount: toggling
-	// it later does not attach/detach listeners on either side.
+	// it later does not create or destroy the engine on either side.
 	const disabledAtMount = useRef(disabled);
 
 	const containerStyle = {
@@ -89,105 +63,22 @@ export function GlowingEffect({
 	} as CSSProperties;
 
 	useEffect(() => {
-		if (disabledAtMount.current) return;
+		const container = containerRef.current;
+		if (disabledAtMount.current || !container) return;
 
-		const state = motionRef.current;
-
-		function animateAngle() {
-			// Reduced motion: the arc snaps to the target (a duration of 0). The
-			// state is still produced, only the glide is dropped.
-			// Otherwise lerp speed is inversely proportional to movementDuration.
-			const speed = prefersReducedMotion()
-				? 1
-				: 0.08 / Math.max(liveRef.current.movementDuration, 0.1);
-			state.currentAngle = state.currentAngle + (state.targetAngle - state.currentAngle) * speed;
-
-			if (containerRef.current) {
-				containerRef.current.style.setProperty("--start", String(state.currentAngle));
-			}
-
-			if (Math.abs(state.targetAngle - state.currentAngle) > 0.1) {
-				state.angleAnimationFrameId = requestAnimationFrame(animateAngle);
-			} else {
-				state.currentAngle = state.targetAngle;
-				if (containerRef.current) {
-					containerRef.current.style.setProperty("--start", String(state.currentAngle));
-				}
-				state.animating = false;
-			}
-		}
-
-		function handleMove(e?: { x: number; y: number }) {
-			if (!containerRef.current) return;
-
-			if (state.animationFrameId) {
-				cancelAnimationFrame(state.animationFrameId);
-			}
-
-			state.animationFrameId = requestAnimationFrame(() => {
-				const container = containerRef.current;
-				if (!container) return;
-
-				const { left, top, width, height } = container.getBoundingClientRect();
-				const mouseX = e?.x ?? state.lastPosition.x;
-				const mouseY = e?.y ?? state.lastPosition.y;
-
-				if (e) {
-					state.lastPosition = { x: mouseX, y: mouseY };
-				}
-
-				const center: [number, number] = [left + width * 0.5, top + height * 0.5];
-				const distanceFromCenter = Math.hypot(mouseX - center[0], mouseY - center[1]);
-				const inactiveRadius = 0.5 * Math.min(width, height) * liveRef.current.inactiveZone;
-
-				if (distanceFromCenter < inactiveRadius) {
-					container.style.setProperty("--active", "0");
-					return;
-				}
-
-				const { proximity: liveProximity } = liveRef.current;
-				const isActive =
-					mouseX > left - liveProximity &&
-					mouseX < left + width + liveProximity &&
-					mouseY > top - liveProximity &&
-					mouseY < top + height + liveProximity;
-
-				container.style.setProperty("--active", isActive ? "1" : "0");
-
-				if (!isActive) return;
-
-				const rawTarget = (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) / Math.PI + 90;
-
-				// Shortest-path angle difference
-				const angleDiff = ((rawTarget - state.currentAngle + 180) % 360) - 180;
-				state.targetAngle = state.currentAngle + angleDiff;
-
-				if (!state.animating) {
-					state.animating = true;
-					animateAngle();
-				}
-			});
-		}
-
-		function handlePointerMove(e: PointerEvent) {
-			handleMove(e);
-		}
-
-		function handleScroll() {
-			handleMove();
-		}
-
-		window.addEventListener("scroll", handleScroll, { passive: true });
-		document.body.addEventListener("pointermove", handlePointerMove, { passive: true });
+		const engine = createGlowingEffect({ container }, live.current);
+		engineRef.current = engine;
 
 		return () => {
-			if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
-			if (state.angleAnimationFrameId) cancelAnimationFrame(state.angleAnimationFrameId);
-			state.animating = false;
-			window.removeEventListener("scroll", handleScroll);
-			document.body.removeEventListener("pointermove", handlePointerMove);
+			engine?.destroy();
+			engineRef.current = null;
 		};
-	}, []);
+	}, [live]);
+
+	// Live proximity/tween props reach the running engine without recreating it.
+	useEffect(() => {
+		engineRef.current?.setOptions({ inactiveZone, proximity, movementDuration });
+	}, [inactiveZone, proximity, movementDuration]);
 
 	return (
 		<>

@@ -206,9 +206,12 @@ export function createFlickeringGrid(
 	}
 
 	function animate(time: number) {
-		// `destroyed` is the only addition to the original guard: it stops any frame
-		// still queued at teardown (including one from a stacked loop, which the
-		// original leaked past unmount) as the engine contract requires.
+		// This callback is the pending frame: clear the id first, so "undefined"
+		// always means "no frame queued" and setInView can tell a running loop
+		// from an idle one.
+		animationFrameId = undefined;
+		// `destroyed` stops any frame still queued at teardown, as the engine
+		// contract requires.
 		if (!isInView || destroyed) return;
 
 		const deltaTime = (time - lastTime) / 1000;
@@ -219,7 +222,6 @@ export function createFlickeringGrid(
 		// flips back or the grid re-enters the viewport.
 		if (opts.reducedMotion) {
 			drawGrid();
-			animationFrameId = undefined;
 			return;
 		}
 
@@ -264,13 +266,20 @@ export function createFlickeringGrid(
 			}
 		},
 		setInView(nextIsInView) {
-			// Faithful to the original IntersectionObserver callback: assign, then
-			// schedule unconditionally while in view (no de-duplication guard — the
-			// original stacked a second loop if two `isIntersecting: true` callbacks
-			// arrived in a row, and, above all, always restarted on re-entry).
 			if (destroyed) return;
 			isInView = nextIsInView;
-			if (isInView) {
+			if (!isInView) {
+				// Off screen: drop the queued frame instead of letting it run.
+				if (animationFrameId !== undefined) {
+					cancelAnimationFrame(animationFrameId);
+					animationFrameId = undefined;
+				}
+				return;
+			}
+			// One loop at most. An observer can report "intersecting" twice in a
+			// row (or leave and re-enter within a frame); scheduling every time
+			// stacked a second loop, which doubled the flicker rate for good.
+			if (animationFrameId === undefined) {
 				animationFrameId = requestAnimationFrame(animate);
 			}
 		},

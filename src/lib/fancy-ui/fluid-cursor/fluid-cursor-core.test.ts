@@ -81,6 +81,8 @@ interface FakeGl {
 	gl: unknown;
 	calls: GlCall[];
 	loseContext: ReturnType<typeof vi.fn>;
+	/** How many objects each `create*` entry point handed out. */
+	created: Record<"texture" | "framebuffer" | "buffer" | "shader" | "program", number>;
 }
 
 /**
@@ -103,6 +105,11 @@ function createFakeGl(): FakeGl {
 		return value;
 	};
 	const loseContext = vi.fn();
+	const created = { texture: 0, framebuffer: 0, buffer: 0, shader: 0, program: 0 };
+	const make = (kind: keyof typeof created) => {
+		created[kind]++;
+		return { kind };
+	};
 
 	const target: Record<string, unknown> = {
 		drawingBufferWidth: 300,
@@ -113,11 +120,11 @@ function createFakeGl(): FakeGl {
 		getActiveUniform: (_program: unknown, index: number) => ({ name: UNIFORM_NAMES[index] }),
 		getUniformLocation: (_program: unknown, name: string) => name,
 		checkFramebufferStatus: () => constantFor("FRAMEBUFFER_COMPLETE"),
-		createTexture: () => ({ kind: "texture" }),
-		createFramebuffer: () => ({ kind: "framebuffer" }),
-		createBuffer: () => ({ kind: "buffer" }),
-		createShader: () => ({ kind: "shader" }),
-		createProgram: () => ({ kind: "program" }),
+		createTexture: () => make("texture"),
+		createFramebuffer: () => make("framebuffer"),
+		createBuffer: () => make("buffer"),
+		createShader: () => make("shader"),
+		createProgram: () => make("program"),
 	};
 
 	const gl = new Proxy(target, {
@@ -135,7 +142,7 @@ function createFakeGl(): FakeGl {
 		},
 	});
 
-	return { gl, calls, loseContext };
+	return { gl, calls, loseContext, created };
 }
 
 function createFakeCanvas(gl: unknown): HTMLCanvasElement {
@@ -249,6 +256,46 @@ describe("createFluidCursor", () => {
 			for (const event of ["mousedown", "mouseup", "mousemove", "touchstart", "touchmove"]) {
 				expect(removed).toContain(event);
 			}
+		});
+
+		it("destroy cancels the splatOnMount arc, which would otherwise outlive the engine", () => {
+			let frameId = 0;
+			const callbacks = new Map<number, FrameRequestCallback>();
+			vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
+				callbacks.set(++frameId, callback);
+				return frameId;
+			});
+			vi.spyOn(globalThis, "cancelAnimationFrame").mockImplementation((id) => {
+				callbacks.delete(id);
+			});
+			engine = createFluidCursor({ canvas }, { ...defaults, splatOnMount: true });
+			// The render loop's frame and the arc's first step are both pending.
+			expect(callbacks.size).toBe(2);
+			engine!.destroy();
+			expect(callbacks.size).toBe(0);
+		});
+
+		it("destroy deletes the format-probe scratch texture and framebuffer too", () => {
+			engine = createFluidCursor({ canvas }, { ...defaults });
+			const count = (name: string) => fake.calls.filter((call) => call.name === name).length;
+			const created = { textures: fake.created.texture, framebuffers: fake.created.framebuffer };
+			expect(created.textures).toBeGreaterThan(0);
+			engine!.destroy();
+			expect(count("deleteTexture")).toBe(created.textures);
+			expect(count("deleteFramebuffer")).toBe(created.framebuffers);
+		});
+
+		it("releaseContext: false frees every GL object but keeps the context alive", () => {
+			engine = createFluidCursor({ canvas }, { ...defaults, releaseContext: false });
+			const count = (name: string) => fake.calls.filter((call) => call.name === name).length;
+			engine!.destroy();
+			expect(count("deleteTexture")).toBe(fake.created.texture);
+			expect(count("deleteProgram")).toBe(fake.created.program);
+			expect(fake.loseContext).not.toHaveBeenCalled();
+			// The same canvas can host a new engine afterwards.
+			const next = createFluidCursor({ canvas }, { ...defaults, releaseContext: false });
+			expect(next).not.toBeNull();
+			next!.destroy();
 		});
 
 		it("resize is safe before and after destroy", () => {
@@ -370,14 +417,38 @@ describe("createFluidCursor", () => {
 			);
 		});
 
-		it("interactive: teardown honours the current value, not the mount one", () => {
-			// Faithful to the component, whose `cleanup()` re-read the prop: the
-			// listeners registered at mount are only removed while it is true.
+		it("interactive: teardown removes the listeners registered at mount, whatever the value is by then", () => {
+			// The listeners come from the mount-time value. A teardown keyed on
+			// the current one left all of them on `window` after a true → false
+			// flip, pointing at a destroyed engine.
 			const removeSpy = vi.spyOn(window, "removeEventListener");
 			engine = createFluidCursor({ canvas }, { ...defaults, interactive: true });
 			engine!.setOptions({ interactive: false });
 			engine!.destroy();
-			expect(removeSpy.mock.calls.map(([event]) => event)).not.toContain("mousedown");
+			const removed = removeSpy.mock.calls.map(([event]) => event);
+			for (const event of ["mousedown", "mouseup", "mousemove", "touchstart", "touchmove"]) {
+				expect(removed).toContain(event);
+			}
+		});
+
+		it("contained: teardown removes the rect listeners registered at mount, whatever the value is by then", () => {
+			const removeSpy = vi.spyOn(window, "removeEventListener");
+			engine = createFluidCursor({ canvas }, { ...defaults, contained: true });
+			engine!.setOptions({ contained: false });
+			engine!.destroy();
+			const removed = removeSpy.mock.calls.map(([event]) => event);
+			expect(removed).toContain("resize");
+			expect(removed).toContain("scroll");
+		});
+
+		it("contained: a later true never removes listeners that were not registered", () => {
+			const removeSpy = vi.spyOn(window, "removeEventListener");
+			engine = createFluidCursor({ canvas }, { ...defaults, contained: false });
+			engine!.setOptions({ contained: true });
+			engine!.destroy();
+			const removed = removeSpy.mock.calls.map(([event]) => event);
+			expect(removed).not.toContain("resize");
+			expect(removed).not.toContain("scroll");
 		});
 
 		it("allowMultiple: accepted without touching the GPU", () => {

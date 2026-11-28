@@ -1,0 +1,437 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { createMatrixRain } from "./matrix-rain-core.js";
+
+function makeCanvas(w = 300, h = 150) {
+	const canvas = document.createElement("canvas");
+	Object.defineProperty(canvas, "clientWidth", { value: w, configurable: true });
+	Object.defineProperty(canvas, "clientHeight", { value: h, configurable: true });
+	return canvas;
+}
+
+type RectCall = { style: string; args: number[] };
+type TextCall = { style: string; text: string; x: number; y: number; font: string; shadow: string };
+
+/** Recording 2d context: captures the style state at the moment of each call. */
+function makeFakeCtx() {
+	const fillRects: RectCall[] = [];
+	const fillTexts: TextCall[] = [];
+	const setTransform = vi.fn();
+	const ctx = {
+		fillStyle: "",
+		font: "",
+		shadowBlur: 0,
+		shadowColor: "",
+		setTransform,
+		fillRect: (...args: number[]) => {
+			fillRects.push({ style: String(ctx.fillStyle), args });
+		},
+		fillText: (text: string, x: number, y: number) => {
+			fillTexts.push({
+				style: String(ctx.fillStyle),
+				text,
+				x,
+				y,
+				font: ctx.font,
+				shadow: ctx.shadowColor,
+			});
+		},
+	};
+	return { ctx, fillRects, fillTexts, setTransform };
+}
+
+function attach(canvas: HTMLCanvasElement) {
+	const fake = makeFakeCtx();
+	vi.spyOn(canvas, "getContext").mockReturnValue(fake.ctx as never);
+	return fake;
+}
+
+describe("createMatrixRain", () => {
+	let frames: FrameRequestCallback[] = [];
+	let nextId = 1;
+	let cafSpy: ReturnType<typeof vi.spyOn>;
+
+	/** Run the single frame the engine has scheduled. */
+	function tick() {
+		const cb = frames.shift();
+		if (!cb) throw new Error("no animation frame is scheduled");
+		cb(0);
+	}
+
+	beforeEach(() => {
+		frames = [];
+		nextId = 1;
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb: FrameRequestCallback) => {
+			frames.push(cb);
+			return nextId++;
+		});
+		cafSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it("returns null when the 2d context is unavailable (jsdom has no canvas backend)", () => {
+		expect(createMatrixRain({ canvas: makeCanvas() }, {})).toBeNull();
+	});
+
+	it("paints the opaque black background and starts the loop on creation", () => {
+		const canvas = makeCanvas();
+		const { fillRects, setTransform } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, {}, () => 0.42);
+		expect(engine).not.toBeNull();
+
+		expect(setTransform).toHaveBeenCalledWith(1, 0, 0, 1, 0, 0);
+		expect(canvas.width).toBe(300);
+		expect(canvas.height).toBe(150);
+		expect(fillRects).toEqual([{ style: "black", args: [0, 0, 300, 150] }]);
+		expect(frames).toHaveLength(1);
+	});
+
+	it("draws one frame with the documented defaults (fade 0.05, 16px monospace, glow 8, #00ff41)", () => {
+		const canvas = makeCanvas();
+		const { ctx, fillRects, fillTexts } = attach(canvas);
+
+		createMatrixRain({ canvas }, {}, () => 0.42);
+		fillRects.length = 0;
+		tick();
+
+		// Fade trail rectangle first, with the default fadeOpacity.
+		expect(fillRects[0]).toEqual({ style: "rgba(0, 0, 0, 0.05)", args: [0, 0, 300, 150] });
+
+		// 300 / 16 => 18 columns; each draws a white head plus a coloured body.
+		expect(fillTexts).toHaveLength(36);
+		const head = fillTexts[0]!;
+		const body = fillTexts[1]!;
+		expect(head.style).toBe("#ffffff");
+		expect(head.font).toBe("16px monospace");
+		expect(head.shadow).toBe("#00ff41");
+		expect(head.x).toBe(0);
+		// floor(0.42 * (150 / 16)) = 3 rows down => y = 48, body one glyph above.
+		expect(head.y).toBe(48);
+		expect(body.style).toBe("#00ff41");
+		expect(body.y).toBe(32);
+		expect(fillTexts[2]!.x).toBe(16);
+
+		// The glow is switched off again at the end of the frame, and the next
+		// frame is scheduled.
+		expect(ctx.shadowBlur).toBe(0);
+		expect(frames).toHaveLength(1);
+	});
+
+	it("advances each column by max(1, speed) rows per frame", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+
+		createMatrixRain({ canvas }, { speed: 3 }, () => 0.42);
+		tick();
+		fillTexts.length = 0;
+		tick();
+
+		// 3 rows advanced from y = 48 => 48 + 3 * 16 = 96.
+		expect(fillTexts[0]!.y).toBe(96);
+	});
+
+	it("setOptions applies every live key to the next frame", () => {
+		const canvas = makeCanvas();
+		const { fillRects, fillTexts } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		engine.setOptions({
+			color: "#ff00ff",
+			speed: 2,
+			density: 0.5,
+			glyphSize: 20,
+			fadeOpacity: 0.1,
+		});
+
+		fillRects.length = 0;
+		fillTexts.length = 0;
+		tick();
+
+		expect(fillRects[0]).toEqual({ style: "rgba(0, 0, 0, 0.1)", args: [0, 0, 300, 150] });
+		const head = fillTexts[0]!;
+		expect(head.font).toBe("20px monospace");
+		expect(head.shadow).toBe("#ff00ff");
+		expect(fillTexts[1]!.style).toBe("#ff00ff");
+		// 300 / (20 * 0.5) = 30 columns, spaced by glyphSize * density = 10px.
+		expect(fillTexts).toHaveLength(60);
+		expect(fillTexts[2]!.x).toBe(10);
+	});
+
+	it("relayouts only when glyphSize or density changes", () => {
+		const canvas = makeCanvas();
+		const { fillRects, setTransform } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		expect(setTransform).toHaveBeenCalledTimes(1);
+		fillRects.length = 0;
+
+		// Per-frame appearance props never repaint or re-randomise the columns.
+		engine.setOptions({ color: "#ff0000", speed: 4, fadeOpacity: 0.2 });
+		expect(setTransform).toHaveBeenCalledTimes(1);
+		expect(fillRects).toEqual([]);
+
+		// Re-sending identical layout values is a no-op too.
+		engine.setOptions({ glyphSize: 16, density: 1 });
+		expect(setTransform).toHaveBeenCalledTimes(1);
+
+		// A real layout change repaints black and rebuilds the grid.
+		engine.setOptions({ glyphSize: 32 });
+		expect(setTransform).toHaveBeenCalledTimes(2);
+		expect(fillRects).toEqual([{ style: "black", args: [0, 0, 300, 150] }]);
+
+		engine.setOptions({ density: 2 });
+		expect(setTransform).toHaveBeenCalledTimes(3);
+	});
+
+	it("keeps the sub-1x advance cadence running across a relayout", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+
+		// speed 0.5 => advance only on even frame counts.
+		const engine = createMatrixRain({ canvas }, { speed: 0.5 }, () => 0.42)!;
+
+		tick();
+		expect(fillTexts).toHaveLength(0); // frame 1: 1 % 2 !== 0
+
+		// A relayout must not reset the frame counter (it was component-scope
+		// state that survived the wrapper's effect re-run before the extraction).
+		engine.setOptions({ glyphSize: 16, density: 1.5 });
+
+		tick();
+		expect(fillTexts.length).toBeGreaterThan(0); // frame 2: 2 % 2 === 0
+	});
+
+	it("ignores an explicit undefined instead of dropping back to nothing", () => {
+		const canvas = makeCanvas();
+		const { fillRects, fillTexts } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, { color: "#123456" }, () => 0.42)!;
+		engine.setOptions({ color: undefined, fadeOpacity: undefined });
+
+		fillRects.length = 0;
+		fillTexts.length = 0;
+		tick();
+
+		expect(fillRects[0]!.style).toBe("rgba(0, 0, 0, 0.05)");
+		expect(fillTexts[0]!.shadow).toBe("#123456");
+	});
+
+	it("uses the injected random() rather than Math.random", () => {
+		const canvas = makeCanvas();
+		attach(canvas);
+		const mathRandom = vi.spyOn(Math, "random");
+
+		const random = vi.fn(() => 0.42);
+		createMatrixRain({ canvas }, {}, random);
+		tick();
+
+		expect(random).toHaveBeenCalled();
+		expect(mathRandom).not.toHaveBeenCalled();
+	});
+
+	it("destroy cancels the loop, stops drawing and is idempotent", () => {
+		const canvas = makeCanvas();
+		const { fillRects, fillTexts } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		const pending = frames[0]!;
+
+		engine.destroy();
+		expect(cafSpy).toHaveBeenCalledTimes(1);
+		expect(cafSpy).toHaveBeenCalledWith(1);
+
+		engine.destroy();
+		expect(cafSpy).toHaveBeenCalledTimes(1);
+
+		// Even if a cancelled frame still fires, it neither draws nor reschedules.
+		fillRects.length = 0;
+		fillTexts.length = 0;
+		frames.length = 0;
+		pending(0);
+		expect(fillRects).toEqual([]);
+		expect(fillTexts).toEqual([]);
+		expect(frames).toEqual([]);
+	});
+
+	it("resize is safe before and after destroy, and setOptions is inert once destroyed", () => {
+		const canvas = makeCanvas();
+		const { fillRects, setTransform } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+		fillRects.length = 0;
+
+		expect(() => engine.resize()).not.toThrow();
+		expect(setTransform).toHaveBeenCalledTimes(2);
+
+		engine.destroy();
+		expect(() => engine.resize()).not.toThrow();
+		expect(() => engine.setOptions({ glyphSize: 64 })).not.toThrow();
+		expect(setTransform).toHaveBeenCalledTimes(2);
+	});
+
+	it("clamps degenerate glyphSize/density (min 1px, min 0.1 density)", () => {
+		const canvas = makeCanvas(30, 15);
+		const { fillTexts } = attach(canvas);
+
+		expect(() =>
+			createMatrixRain({ canvas }, { density: 0, glyphSize: 0 }, () => 0.42)
+		).not.toThrow();
+		tick();
+
+		// floor(30 / (1 * 0.1)) = 300 columns, each drawing a head glyph.
+		// floor(0.42 * (15 / 1)) = 6 rows down => y = 0 with glyphSize 0.
+		expect(fillTexts.filter((t) => t.style === "#ffffff")).toHaveLength(300);
+	});
+	it("reducedMotion paints one still frame, schedules nothing, and resumes when cleared", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+
+		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+		expect(frames).toHaveLength(0);
+		// 300 / 16 => 18 columns; one simulated step draws a head + body per column
+		// (36 glyphs). The still pre-rolls the seeded simulation before its single
+		// paint, so it holds many steps' worth of glyphs, not just the t=0 frame.
+		expect(fillTexts.length).toBeGreaterThan(36);
+
+		// Layout changes repaint a frame instead of leaving a blank canvas.
+		fillTexts.length = 0;
+		engine.setOptions({ glyphSize: 32 });
+		expect(frames).toHaveLength(0);
+		expect(fillTexts.length).toBeGreaterThan(0);
+
+		engine.setOptions({ reducedMotion: false });
+		expect(frames).toHaveLength(1);
+		tick();
+		expect(frames).toHaveLength(1);
+
+		// Flipping back to reduced lets the pending frame finish, then idles.
+		engine.setOptions({ reducedMotion: true });
+		tick();
+		expect(frames).toHaveLength(0);
+	});
+
+	it("reducedMotion pre-rolls the still into trails: a seeded rain is denser than the t=0 frame", () => {
+		const t0 = makeCanvas();
+		const t0Fake = attach(t0);
+		// Without reduced motion the first frame is the t=0 frame.
+		createMatrixRain({ canvas: t0 }, {}, () => 0.42)!;
+		tick();
+		const t0Count = t0Fake.fillTexts.length;
+		frames.length = 0;
+
+		const still = makeCanvas();
+		const stillFake = attach(still);
+		createMatrixRain({ canvas: still }, { reducedMotion: true }, () => 0.42)!;
+		expect(frames).toHaveLength(0);
+		expect(stillFake.fillTexts.length).toBeGreaterThan(t0Count);
+		// Every pre-roll step lays its own fade-trail rectangle over the last.
+		expect(stillFake.fillRects.filter((r) => r.style.startsWith("rgba")).length).toBeGreaterThan(1);
+	});
+
+	it("reducedMotion repaints the idle still when colour or fadeOpacity changes", () => {
+		const canvas = makeCanvas();
+		const { fillRects, fillTexts } = attach(canvas);
+		const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+
+		fillRects.length = 0;
+		fillTexts.length = 0;
+		engine.setOptions({ color: "#ff0000" });
+		expect(frames).toHaveLength(0);
+		expect(fillRects[0]?.style).toBe("black");
+		expect(fillTexts.some((t) => t.style === "#ff0000")).toBe(true);
+
+		fillRects.length = 0;
+		engine.setOptions({ fadeOpacity: 0.2 });
+		expect(frames).toHaveLength(0);
+		expect(fillRects.some((r) => r.style === "rgba(0, 0, 0, 0.2)")).toBe(true);
+
+		// An unchanged value does not repaint.
+		fillRects.length = 0;
+		engine.setOptions({ color: "#ff0000", fadeOpacity: 0.2 });
+		expect(fillRects).toHaveLength(0);
+	});
+
+	it("reducedMotion pre-rolls the still at a sub-1x speed instead of leaving it black", () => {
+		const canvas = makeCanvas();
+		const { fillTexts } = attach(canvas);
+		// The live cadence advances once every 100 frames at this speed; the
+		// pre-roll must not depend on it.
+		createMatrixRain({ canvas }, { speed: 0.01, reducedMotion: true }, () => 0.42);
+		expect(frames).toHaveLength(0);
+		// 300 / 16 => 18 columns, a head + body glyph each per advanced step.
+		expect(fillTexts.length).toBeGreaterThan(36);
+	});
+
+	describe("visible", () => {
+		it("stops the loop while off screen: the queued frame is cancelled, nothing is rescheduled", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+			expect(frames).toHaveLength(1);
+
+			engine.setOptions({ visible: false });
+			expect(cafSpy).toHaveBeenCalledTimes(1);
+			// The stubbed cancel leaves the callback queued: running it anyway must
+			// not put the loop back.
+			tick();
+			expect(frames).toHaveLength(0);
+		});
+
+		it("resumes from the current columns when it comes back, without a relayout", () => {
+			const canvas = makeCanvas();
+			const { fillRects } = attach(canvas);
+			const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+			engine.setOptions({ visible: false });
+			frames.length = 0;
+			fillRects.length = 0;
+
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(1);
+			// No opaque repaint: the trail picks up over what is already there.
+			expect(fillRects.some((r) => r.style === "black")).toBe(false);
+		});
+
+		it("never stacks a second loop when visible is reported again while running", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain({ canvas }, {}, () => 0.42)!;
+			engine.setOptions({ visible: true });
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(1);
+		});
+
+		it("created off screen: lays the canvas out but schedules nothing", () => {
+			const canvas = makeCanvas();
+			const { fillRects } = attach(canvas);
+			createMatrixRain({ canvas }, { visible: false }, () => 0.42);
+			expect(fillRects[0]?.style).toBe("black");
+			expect(frames).toHaveLength(0);
+		});
+
+		it("coming back on screen under reduced motion keeps the still, with no loop", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain({ canvas }, { reducedMotion: true }, () => 0.42)!;
+			engine.setOptions({ visible: false });
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(0);
+		});
+
+		it("clearing reduced motion while off screen waits for the canvas to be visible", () => {
+			const canvas = makeCanvas();
+			attach(canvas);
+			const engine = createMatrixRain(
+				{ canvas },
+				{ reducedMotion: true, visible: false },
+				() => 0.42
+			)!;
+			engine.setOptions({ reducedMotion: false });
+			expect(frames).toHaveLength(0);
+			engine.setOptions({ visible: true });
+			expect(frames).toHaveLength(1);
+		});
+	});
+});
