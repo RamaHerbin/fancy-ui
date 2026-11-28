@@ -7,7 +7,10 @@ import {
 	BorderBeam,
 	DisplacementText,
 	FluidCursor,
+	MatrixRain,
 	MosaicGlow,
+	NeonBorder,
+	Sparkles,
 	Toaster,
 	dismissToast,
 	toast,
@@ -21,6 +24,10 @@ const COMPONENTS: Record<string, { Component: any; props: Record<string, unknown
 	"border-beam": { Component: BorderBeam, props: {} },
 	"displacement-text": { Component: DisplacementText, props: { text: "Hover Me", fontSize: 64 } },
 	"mosaic-glow": { Component: MosaicGlow, props: {} },
+	"matrix-rain": { Component: MatrixRain, props: {} },
+	sparkles: { Component: Sparkles, props: {} },
+	// The CSS-pause witness: an animated tube whose loops stop out of view.
+	"neon-border": { Component: NeonBorder, props: {} },
 };
 
 const live: { box: HTMLElement; root: Root | null; ids: string[] }[] = [];

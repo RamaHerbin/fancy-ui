@@ -74,6 +74,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPauseParent } from "../_internals/motion/offscreen-pause.js";
 
 	let {
 		count = 20,
@@ -87,6 +88,12 @@
 	const meteors = $derived(meteorField(count, seed));
 	const speedC = $derived(Number.isFinite(speed) && speed > 0 ? speed : 1);
 	const angleC = $derived(Number.isFinite(angle) ? angle : 215);
+
+	// Fragment component: no root of its own, so the first meteor watches the
+	// container they all sit in.
+	function pauseHost(node: Element, first: boolean) {
+		return first ? offscreenPauseParent(node) : undefined;
+	}
 
 	function styleFor(m: Meteor): string {
 		const scale = 0.55 + m.depth * 0.9; // size of the head
@@ -118,6 +125,7 @@
 		)}
 		style={styleFor(meteor)}
 		aria-hidden="true"
+		use:pauseHost={i === 0}
 	></span>
 {/each}
 
@@ -178,6 +186,11 @@
 	/* A flare: the meteor swells and brightens just before it burns out. */
 	.meteor--flare {
 		animation-name: meteor-fall-flare;
+	}
+
+	/* Out of view: freeze every meteor. The attribute sits on the container the meteors live in. */
+	:global([data-ft-offscreen]) .meteor {
+		animation-play-state: paused;
 	}
 
 	@keyframes meteor-fall-flare {

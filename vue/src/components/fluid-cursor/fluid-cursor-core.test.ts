@@ -213,6 +213,18 @@ describe("createFluidCursor", () => {
 			expect((onReady.mock.calls[0]![0] as FluidCursorHandle).renderLevel).toBe("webgl-sdr");
 		});
 
+		it("caps the display canvas scale at a pixel ratio of 2", () => {
+			vi.stubGlobal("devicePixelRatio", 3);
+			try {
+				engine = createFluidCursor({ canvas }, { ...defaults });
+				// clientWidth 300 x clientHeight 150 at the capped ratio of 2
+				expect(canvas.width).toBe(600);
+				expect(canvas.height).toBe(300);
+			} finally {
+				vi.unstubAllGlobals();
+			}
+		});
+
 		it("setOptions with no keys changes nothing and issues no GL call", () => {
 			engine = createFluidCursor({ canvas }, { ...defaults });
 			const before = fake.calls.length;

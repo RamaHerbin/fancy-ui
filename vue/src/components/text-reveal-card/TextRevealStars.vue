@@ -18,12 +18,16 @@ export interface TextRevealStarsProps {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/use-offscreen-pause.js";
 
 defineOptions({ name: "TextRevealStars", inheritAttrs: false });
 
 const { starsCount = 130, class: className = "", seed = 1 } = defineProps<TextRevealStarsProps>();
+
+const root = ref<HTMLElement | null>(null);
+useOffscreenPause(root);
 
 interface StarData {
 	top: string;
@@ -78,7 +82,7 @@ const stars = computed<StarData[]>(() => {
 </script>
 
 <template>
-	<div class="absolute inset-0" style="container-type: size">
+	<div ref="root" class="absolute inset-0" style="container-type: size">
 		<span
 			v-for="(star, i) in stars"
 			:key="i"
@@ -130,6 +134,11 @@ const stars = computed<StarData[]>(() => {
 	.star-animate {
 		opacity: 0;
 		animation: star-drift linear infinite;
+	}
+
+	/* Out of view: freeze the drift. */
+	[data-ft-offscreen] .star-animate {
+		animation-play-state: paused;
 	}
 }
 </style>

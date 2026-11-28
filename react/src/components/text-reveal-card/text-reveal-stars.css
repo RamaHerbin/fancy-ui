@@ -28,4 +28,9 @@
 		opacity: 0;
 		animation: star-drift linear infinite;
 	}
+
+	/* Out of view: freeze the drift. */
+	.text-reveal-stars[data-ft-offscreen] .star-animate {
+		animation-play-state: paused;
+	}
 }

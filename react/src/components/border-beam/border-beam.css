@@ -237,6 +237,11 @@
 	.border-beam[data-direction="reverse"] .bb-ride {
 		animation-direction: reverse;
 	}
+
+	/* Out of view: freeze every rider. */
+	.border-beam[data-ft-offscreen] .bb-ride {
+		animation-play-state: paused;
+	}
 }
 
 @keyframes bb-travel {

@@ -18,7 +18,9 @@ import {
 } from "react";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import { cn } from "../../utils.js";
 import "./compare.css";
 
@@ -135,6 +137,9 @@ export function Compare({
 	const reducedMotionRef = useLiveRef(reducedMotion);
 
 	const sliderRef = useRef<HTMLDivElement>(null);
+	const [sliderNode, setSliderNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(sliderNode);
+	const rootRef = useComposedRefs(sliderRef, setSliderNode);
 	// Each piece of state the markup reads is mirrored in a ref: the rAF loops
 	// (autoplay, glide, beam) are long-lived closures and must see live values,
 	// as the reference's closures read its $state live.
@@ -425,7 +430,7 @@ export function Compare({
 
 	return (
 		<div
-			ref={sliderRef}
+			ref={rootRef}
 			className={cn(
 				"compare h-[400px] w-[400px] touch-pan-y touch-pinch-zoom overflow-hidden",
 				className

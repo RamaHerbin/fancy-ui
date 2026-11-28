@@ -65,6 +65,13 @@
 	animation-name: beam-ring;
 }
 
+/* Out of view: freeze the packet and both bloom shapes. */
+.animated-beam[data-ft-offscreen] .packet-layer,
+.animated-beam[data-ft-offscreen] .bloom-disc,
+.animated-beam[data-ft-offscreen] .bloom-ring {
+	animation-play-state: paused;
+}
+
 /* The head lands at 78%: the halo swells behind the node, then lets go. */
 @keyframes beam-bloom {
 	0%,

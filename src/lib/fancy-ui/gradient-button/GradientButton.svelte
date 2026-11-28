@@ -51,6 +51,7 @@
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { soundFeedback } from "../sound/sound-feedback.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	let {
 		class: className,
@@ -85,6 +86,7 @@
 
 <button
 	use:soundFeedback={hoverFeedback}
+	use:offscreenPause
 	class={cn(
 		"gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white",
 		className
@@ -127,6 +129,11 @@
 	.gradient-button:disabled {
 		cursor: not-allowed;
 		opacity: 0.5;
+		animation-play-state: paused;
+	}
+
+	/* Out of view: freeze the beam. */
+	.gradient-button:global([data-ft-offscreen]) {
 		animation-play-state: paused;
 	}
 

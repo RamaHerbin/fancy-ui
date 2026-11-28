@@ -2,6 +2,7 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { subscribe } from "../_internals/motion/ticker.js";
 	import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 
 	interface Props {
@@ -67,7 +68,7 @@
 
 	onMount(() => {
 		engine = createBgStars(
-			{ host: hostEl, parallax: parallaxEl },
+			{ host: hostEl, parallax: parallaxEl, subscribe },
 			{ factor, stiffness, damping, reducedMotion: reduced.current }
 		);
 

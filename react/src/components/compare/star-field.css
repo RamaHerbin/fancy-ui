@@ -16,6 +16,11 @@
 			twinkle var(--fancy-ui-twinkle-duration) ease-in-out infinite alternate,
 			drift var(--fancy-ui-drift-duration) linear infinite;
 	}
+
+	/* Out of view: freeze twinkle and drift. */
+	.fancy-star-field[data-ft-offscreen] .star {
+		animation-play-state: paused;
+	}
 }
 
 @keyframes twinkle {

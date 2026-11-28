@@ -59,6 +59,12 @@
 		animation: ft-thinking-pulse var(--ft-thinking-pulse-duration) cubic-bezier(0, 0, 0.2, 1)
 			infinite;
 	}
+
+	/* Out of view: freeze the label sweep and the dot pulse. */
+	.ft-thinking[data-ft-offscreen] .ft-thinking-shimmer,
+	.ft-thinking[data-ft-offscreen] .ft-thinking-dot-live::after {
+		animation-play-state: paused;
+	}
 }
 
 @keyframes ft-thinking-sweep {

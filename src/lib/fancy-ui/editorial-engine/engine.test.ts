@@ -11,6 +11,11 @@ vi.mock("@chenglou/pretext", () => ({
 }));
 
 import { createEditorialEngine } from "./engine.js";
+import {
+	resetTickerForTests,
+	subscribe,
+	tickerSubscriberCount,
+} from "../_internals/motion/ticker.js";
 
 const STAGE_W = 1000;
 const STAGE_H = 800;
@@ -40,13 +45,21 @@ describe("createEditorialEngine touchstart", () => {
 			body: "Body",
 			pullquotes: [],
 			fontFamily: "serif",
+			subscribe,
 		});
 	});
 
 	afterEach(() => {
 		destroy();
+		resetTickerForTests();
 		stage.remove();
 		vi.restoreAllMocks();
+	});
+
+	it("renders from the shared ticker and unsubscribes on destroy", () => {
+		expect(tickerSubscriberCount()).toBe(1);
+		destroy();
+		expect(tickerSubscriberCount()).toBe(0);
 	});
 
 	it("claims the gesture from changedTouches[0], the finger that just landed", () => {

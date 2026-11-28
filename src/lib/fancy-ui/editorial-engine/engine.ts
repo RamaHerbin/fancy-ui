@@ -172,11 +172,22 @@ function layoutColumn(
 // Engine
 // ============================================================================
 
+/**
+ * Frame subscription, injected by the wrapper (it is the shared frame ticker).
+ * Injected rather than imported so this file stays byte-identical in every
+ * package tree, whatever the relative path to the ticker is there.
+ */
+export type FrameSubscribe = (opts: { el?: Element; onFrame(dt: number, now: number): void }) => {
+	setPaused(paused: boolean): void;
+	unsubscribe(): void;
+};
+
 export interface EditorialEngineOptions {
 	headline: string;
 	body: string;
 	pullquotes: string[];
 	fontFamily: string;
+	subscribe: FrameSubscribe;
 }
 
 interface OrbDef {
@@ -276,7 +287,7 @@ export function createEditorialEngine(
 	stage: HTMLDivElement,
 	options: EditorialEngineOptions
 ): () => void {
-	const { headline, body, pullquotes, fontFamily } = options;
+	const { headline, body, pullquotes, fontFamily, subscribe } = options;
 	const bodyFont = `${BODY_FONT_SIZE}px ${fontFamily}`;
 	const pullquoteFont = `italic 19px ${fontFamily}`;
 
@@ -428,13 +439,20 @@ export function createEditorialEngine(
 	}
 
 	// --- Render loop ---
-	let scheduledRaf: number | null = null;
+	// The shared ticker supplies the frames (and the viewport and visibility
+	// gates). A frame that has nothing left to animate parks the subscription;
+	// `scheduleRender()` wakes it. It is created before the first
+	// `scheduleRender()` below.
+	const sub = subscribe({
+		el: stage,
+		onFrame: (_dt, now) => {
+			if (destroyed) return;
+			if (!render(now)) sub.setPaused(true);
+		},
+	});
 	function scheduleRender(): void {
-		if (scheduledRaf !== null || destroyed) return;
-		scheduledRaf = requestAnimationFrame((now) => {
-			scheduledRaf = null;
-			if (render(now)) scheduleRender();
-		});
+		if (destroyed) return;
+		sub.setPaused(false);
 	}
 
 	function render(now: number): boolean {
@@ -771,7 +789,7 @@ export function createEditorialEngine(
 
 	return () => {
 		destroyed = true;
-		if (scheduledRaf !== null) cancelAnimationFrame(scheduledRaf);
+		sub.unsubscribe();
 		resizeObserver.disconnect();
 		stage.removeEventListener("pointerdown", onPointerDown);
 		stage.removeEventListener("touchstart", onTouchStart);

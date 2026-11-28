@@ -22,6 +22,7 @@
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { subscribe } from "../_internals/motion/ticker.js";
 	import {
 		DEFAULT_MAX_DPR,
 		STATIC_LAYER_STYLE,
@@ -55,7 +56,7 @@
 
 	onMount(() => {
 		controller = mountDisplacementText(
-			{ container },
+			{ container, subscribe },
 			{
 				...untrack(() => ({ text, fontSize, font, color, lightColor, darkColor, maxDpr })),
 				onChange: (state) => {

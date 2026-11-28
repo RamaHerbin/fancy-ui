@@ -28,6 +28,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 	import { createElapsed, formatElapsed } from "../_internals/elapsed.svelte.js";
 
 	let {
@@ -75,6 +76,7 @@
 	)}
 	role="status"
 	aria-live="polite"
+	use:offscreenPause
 >
 	{#if variant === "pill"}
 		<span class="ft-thinking-dot" class:ft-thinking-dot-live={running} aria-hidden="true"></span>
@@ -163,6 +165,12 @@
 		.ft-thinking-dot-live::after {
 			animation: ft-thinking-pulse var(--ft-thinking-pulse-duration) cubic-bezier(0, 0, 0.2, 1)
 				infinite;
+		}
+
+		/* Out of view: freeze the label sweep and the dot pulse. */
+		:global([data-ft-offscreen]) .ft-thinking-shimmer,
+		:global([data-ft-offscreen]) .ft-thinking-dot-live::after {
+			animation-play-state: paused;
 		}
 	}
 

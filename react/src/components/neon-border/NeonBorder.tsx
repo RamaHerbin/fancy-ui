@@ -1,5 +1,6 @@
-import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+import { useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useOffscreenPause } from "../../internals/motion/offscreen-pause.js";
 import "./neon-border.css";
 
 /**
@@ -84,6 +85,9 @@ export function NeonBorder({
 	style,
 	...rest
 }: NeonBorderProps) {
+	const [node, setNode] = useState<HTMLDivElement | null>(null);
+	useOffscreenPause(node);
+
 	const arc = beamArc(animationType);
 	const animated = animationType !== "none";
 
@@ -101,6 +105,7 @@ export function NeonBorder({
 	return (
 		<div
 			{...rest}
+			ref={setNode}
 			className={cn(
 				"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px",
 				animated && "neon-animated",

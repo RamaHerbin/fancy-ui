@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
-import { observeInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { subscribe, type TickerSubscription } from "../../internals/motion/ticker.js";
 
 /**
  * MatrixRain - Canvas2D "digital rain" background
@@ -125,7 +125,10 @@ export function MatrixRain({
 		let columns: number[] = [];
 		let canvasW = 0;
 		let canvasH = 0;
-		let rafId = 0;
+		// The shared ticker owns the frame request, the viewport gate and the
+		// document-visibility pause. Created lazily so a reduced-motion mount never
+		// requests a frame; parked, not removed, while the still frame is shown.
+		let sub: TickerSubscription | null = null;
 
 		// `charAt` rather than `GLYPHS[i]`: index-identical for every character
 		// in the set, and typed `string` under `noUncheckedIndexedAccess`.
@@ -194,12 +197,8 @@ export function MatrixRain({
 		function draw() {
 			step();
 			// One frame under reduced motion only if the preference flipped while a
-			// frame was queued: paint it, then idle.
-			if (reducedMotion) {
-				rafId = 0;
-				return;
-			}
-			rafId = requestAnimationFrame(draw);
+			// frame was queued: paint it, then park.
+			if (reducedMotion) sub?.setPaused(true);
 		}
 
 		// Pre-rolls the simulation, then leaves the canvas holding one still frame.
@@ -210,23 +209,14 @@ export function MatrixRain({
 			for (let i = 0; i < STILL_PRE_ROLL_STEPS; i++) step(true);
 		}
 
-		// A queued frame is the loop's only "is it running" state, so `0` is the
-		// idle sentinel — a real frame id is never 0. `start()` is therefore
-		// safe to call again while the loop is already running.
 		function start() {
-			if (rafId !== 0) return;
-			rafId = requestAnimationFrame(draw);
-		}
-
-		function stop() {
-			if (rafId === 0) return;
-			cancelAnimationFrame(rafId);
-			rafId = 0;
+			if (sub) sub.setPaused(false);
+			else sub = subscribe({ el: canvas ?? undefined, onFrame: draw });
 		}
 
 		// Set canvas size to container size with HiDPI scaling
 		const resize = () => {
-			const dpr = window.devicePixelRatio || 1;
+			const dpr = Math.min(2, window.devicePixelRatio || 1);
 			canvasW = canvas.clientWidth;
 			canvasH = canvas.clientHeight;
 			canvas.width = Math.floor(canvasW * dpr);
@@ -255,34 +245,18 @@ export function MatrixRain({
 		const observer = new ResizeObserver(resize);
 		observer.observe(canvas);
 
+		// A rain used as a page background is off screen most of the time. The
+		// ticker parks the loop while the canvas is out of view and resumes it on
+		// the way back: the trail is an accumulation of fades over whatever is
+		// already on the canvas, so resuming from the current column state needs
+		// no re-init and shows no seam. The loop starts immediately; the first
+		// observer callback corrects it.
 		if (!reducedMotion) start();
-
-		// A rain used as a page background is off screen most of the time, and
-		// every frame it paints there costs a full-canvas `fillRect` plus two
-		// shadow-blurred `fillText` per column for nothing. Pause the loop while
-		// the canvas is out of view and resume it on the way back: the trail is
-		// an accumulation of fades over whatever is already on the canvas, so
-		// resuming from the current column state needs no re-init and shows no
-		// seam. `threshold: 0` — any sliver on screen counts as visible — and
-		// `once: false`, because this has to keep reporting both ways.
-		//
-		// The loop still starts immediately rather than waiting for the first
-		// observer callback: that callback lands a task later, and a background
-		// that is already on screen should not hold a blank canvas until then.
-		const inViewHandle = observeInView(canvas, {
-			once: false,
-			threshold: 0,
-			onChange: (intersecting) => {
-				if (intersecting) {
-					if (!reducedMotion) start();
-				} else stop();
-			},
-		});
 
 		return () => {
 			repaintStillRef.current = null;
-			stop();
-			inViewHandle.destroy();
+			sub?.unsubscribe();
+			sub = null;
 			observer.disconnect();
 		};
 	}, [canvas, glyphSize, density, seed, reducedMotion, colorRef, speedRef, fadeOpacityRef]);

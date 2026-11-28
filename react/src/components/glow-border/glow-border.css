@@ -89,6 +89,11 @@
 		gb-glint calc(var(--glow-duration) * 0.4) linear infinite;
 }
 
+/* Out of view: freeze all three loops. */
+.glow-border.animate-glow[data-ft-offscreen] {
+	animation-play-state: paused;
+}
+
 @keyframes gb-flow-1 {
 	to {
 		--gb-a1: 360deg;

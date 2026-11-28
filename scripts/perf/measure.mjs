@@ -7,7 +7,7 @@
 // Sections, in the order `all` runs them:
 //   sizes      JS/CSS weight of each consumer app built from the packed tarball
 //   imports    barrel vs deep import cost, 5 components per package
-//   effects    rAF/s, long tasks, CPU ms/s of 5 effects, idle / moving / offscreen / hidden
+//   effects    rAF/s, long tasks, CPU ms/s of 8 effects, idle / moving / offscreen / hidden
 //              (Chromium, CDP metrics + tracing). `--component <slug>` with a slug outside
 //              the 5 measures that component on the parity route instead (no `sizes` needed)
 //   lifecycle  mount/unmount x50 and 10 simultaneous instances (contexts, listeners, heap)
@@ -405,6 +405,9 @@ const COMPONENT_NAMES = [
 	"border-beam",
 	"displacement-text",
 	"mosaic-glow",
+	"matrix-rain",
+	"sparkles",
+	"neon-border",
 	"toast",
 ];
 

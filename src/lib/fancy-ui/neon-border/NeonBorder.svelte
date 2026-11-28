@@ -69,6 +69,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { offscreenPause } from "../_internals/motion/offscreen-pause.js";
 
 	let {
 		color1 = "#0496ff",
@@ -116,6 +117,7 @@
 		className
 	)}
 	style={styleVars}
+	use:offscreenPause
 >
 	{@render children?.()}
 
@@ -225,6 +227,13 @@
 		/* …then hums: a slow breathing of the glow. */
 		.neon-glow {
 			animation: neon-hum 2.8s ease-in-out 0.9s infinite alternate;
+		}
+
+		/* Out of view: freeze every loop (the attribute sits on the root). */
+		.neon-animated:global([data-ft-offscreen]),
+		:global([data-ft-offscreen]) .neon-light,
+		:global([data-ft-offscreen]) .neon-glow {
+			animation-play-state: paused;
 		}
 	}
 

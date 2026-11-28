@@ -1,11 +1,22 @@
 // Framework-free engine for Sparkles: canvas 2D particle drift with a
 // sine-driven opacity phase. No Svelte imports, no module-scope DOM access.
 
+/**
+ * Frame subscription, injected by the wrapper (it is the shared frame ticker).
+ * Injected rather than imported so this file stays byte-identical in every
+ * package tree, whatever the relative path to the ticker is there.
+ */
+export type FrameSubscribe = (opts: { el?: Element; onFrame(dt: number, now: number): void }) => {
+	setPaused(paused: boolean): void;
+	unsubscribe(): void;
+};
+
 export interface SparklesElements {
 	/** The canvas particles are drawn onto. */
 	canvas: HTMLCanvasElement;
 	/** The sized host element the canvas fills; used to read layout size on resize. */
 	container: HTMLElement;
+	subscribe: FrameSubscribe;
 }
 
 export interface SparklesInitOptions {
@@ -20,7 +31,7 @@ export interface SparklesInitOptions {
 }
 
 export interface SparklesLiveOptions {
-	/** Hex color (e.g. "#ffffff") or `currentColor` particles are filled with; re-read every frame. */
+	/** Hex color (e.g. "#ffffff") or `currentColor` particles are filled with; resolved lazily, not per frame. */
 	particleColor?: string;
 	/**
 	 * Reduced-motion preference, owned by the wrapper (the core never reads
@@ -48,6 +59,8 @@ interface Particle {
 }
 
 const DEFAULT_MIN_SIZE = 1;
+/** Seconds between two re-resolutions of an inherited `currentColor` while the loop runs. */
+const COLOR_REFRESH_S = 0.5;
 const DEFAULT_MAX_SIZE = 3;
 const DEFAULT_SPEED = 4;
 const DEFAULT_PARTICLE_DENSITY = 120;
@@ -94,7 +107,7 @@ export function createSparkles(
 	options: SparklesInitOptions & SparklesLiveOptions,
 	random: () => number = Math.random
 ): SparklesEngine | null {
-	const { canvas, container } = elements;
+	const { canvas, container, subscribe } = elements;
 
 	let ctx = canvas.getContext("2d");
 	if (!ctx) return null;
@@ -107,13 +120,20 @@ export function createSparkles(
 
 	let particles: Particle[] = [];
 	let dpr = 1;
-	let rafId = 0;
+	// The ticker subscription. Created lazily so a reduced-motion mount never
+	// requests a frame; parked, not removed, while the still frame is shown.
+	let sub: ReturnType<FrameSubscribe> | null = null;
+	// Resolved fill colour. `getComputedStyle` stays out of the per-frame path:
+	// null means "resolve on the next paint". Invalidated by a colour change, by
+	// the theme observer below and by every resume (a frame with dt 0).
+	let fill: string | null = null;
+	let sinceResolve = 0;
 	let reducedMotion = options.reducedMotion ?? false;
 	let destroyed = false;
 
 	function resize(): void {
 		if (destroyed) return;
-		dpr = window.devicePixelRatio || 1;
+		dpr = Math.min(2, window.devicePixelRatio || 1);
 		const rect = container.getBoundingClientRect();
 		canvas.width = rect.width * dpr;
 		canvas.height = rect.height * dpr;
@@ -121,7 +141,7 @@ export function createSparkles(
 		if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 		// Resizing wiped the bitmap; an idle (reduced-motion) engine has no
 		// scheduled frame to refill it.
-		if (reducedMotion && rafId === 0 && particles.length > 0) updateAndDraw();
+		if (reducedMotion && particles.length > 0) paint(0);
 	}
 
 	function generateParticles(): void {
@@ -142,19 +162,23 @@ export function createSparkles(
 		}
 	}
 
-	function updateAndDraw(): void {
+	// Draws one frame. Velocities and the phase rate are per-60 Hz-frame
+	// constants, so the step scales by `dt * 60`: the same look at 60 Hz, the
+	// same speed at any other refresh rate.
+	function paint(dt: number): void {
 		if (!ctx) return;
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		const fill = resolveCurrentColor(particleColor, canvas);
+		fill ??= resolveCurrentColor(particleColor, canvas);
+		const k = dt * 60;
 
 		for (const p of particles) {
-			p.x += p.vx;
-			p.y += p.vy;
+			p.x += p.vx * k;
+			p.y += p.vy * k;
 			if (p.x < -2) p.x = 102;
 			if (p.x > 102) p.x = -2;
 			if (p.y < -2) p.y = 102;
 			if (p.y > 102) p.y = -2;
-			p.phase = (p.phase + p.phaseSpeed) % (Math.PI * 2);
+			p.phase = (p.phase + p.phaseSpeed * k) % (Math.PI * 2);
 			const opacity = 0.3 + (Math.sin(p.phase) * 0.3 + 0.3);
 
 			ctx.beginPath();
@@ -172,20 +196,36 @@ export function createSparkles(
 				.padStart(2, "0")}`;
 			ctx.fill();
 		}
+	}
 
-		// One still frame under reduced motion: paint, then idle until the
-		// preference flips back (setOptions wakes the loop).
-		if (reducedMotion) {
-			rafId = 0;
-			return;
+	function onFrame(dt: number): void {
+		if (destroyed) return;
+		// dt is 0 on the first frame and on every resume: the page may have
+		// changed theme while the loop was parked. Between those, an inherited
+		// colour can still change under the canvas (an ancestor's class or
+		// style, a media query, a hover state) with no observer to tell us, so
+		// the cache is also dropped every COLOR_REFRESH_S — one computed-style
+		// read per half second instead of one per frame.
+		sinceResolve += dt;
+		if (dt === 0 || sinceResolve >= COLOR_REFRESH_S) {
+			fill = null;
+			sinceResolve = 0;
 		}
-		rafId = requestAnimationFrame(updateAndDraw);
+		paint(dt);
+		// One still frame under reduced motion: paint, then park until the
+		// preference flips back (setOptions wakes the loop).
+		if (reducedMotion) sub?.setPaused(true);
+	}
+
+	function startLoop(): void {
+		if (sub) sub.setPaused(false);
+		else sub = subscribe({ el: canvas, onFrame });
 	}
 
 	resize();
 	generateParticles();
-	if (reducedMotion) updateAndDraw();
-	else rafId = requestAnimationFrame(updateAndDraw);
+	if (reducedMotion) paint(0);
+	else startLoop();
 
 	// Under reduced motion no frame re-reads `currentColor`, so a theme switch
 	// (a class flip on <html>, the way dark mode is usually toggled) would leave
@@ -194,7 +234,9 @@ export function createSparkles(
 	const themeObserver =
 		typeof MutationObserver !== "undefined"
 			? new MutationObserver(() => {
-					if (reducedMotion && rafId === 0 && CURRENT_COLOR.test(particleColor)) updateAndDraw();
+					if (!CURRENT_COLOR.test(particleColor)) return;
+					fill = null;
+					if (reducedMotion) paint(0);
 				})
 			: null;
 	themeObserver?.observe(document.documentElement, {
@@ -209,19 +251,19 @@ export function createSparkles(
 			if (next.reducedMotion !== undefined) reducedMotion = next.reducedMotion;
 			if (next.particleColor !== undefined && next.particleColor !== particleColor) {
 				particleColor = next.particleColor;
+				fill = null;
 				// Idle engine: repaint the still frame in the new colour.
-				if (reducedMotion && rafId === 0) updateAndDraw();
+				if (reducedMotion) paint(0);
 			}
-			if (wasReduced && !reducedMotion && rafId === 0) {
-				rafId = requestAnimationFrame(updateAndDraw);
-			}
+			if (wasReduced && !reducedMotion) startLoop();
 		},
 		resize,
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
 			themeObserver?.disconnect();
-			cancelAnimationFrame(rafId);
+			sub?.unsubscribe();
+			sub = null;
 		},
 	};
 }
