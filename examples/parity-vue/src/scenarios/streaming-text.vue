@@ -45,7 +45,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 </script>
 
 <template>
-	<div class="bg-card w-full max-w-xl rounded-lg border p-5">
+	<div class="bg-card min-h-40 w-full max-w-xl rounded-lg border p-5">
 		<p class="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">Assistant</p>
 		<StreamingText
 			:text="text"

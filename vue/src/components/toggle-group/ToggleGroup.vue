@@ -219,7 +219,7 @@ TOGGLE_GROUP_KEY.provide(context);
 		ref="el"
 		:class="
 			cn(
-				'ft-toggle-group border-border bg-background inline-flex w-fit border',
+				'ft-toggle-group bg-background inline-flex w-fit border border-[color:light-dark(var(--border),color-mix(in_oklab,var(--foreground)_40%,transparent))]',
 				orientation === 'vertical' ? 'flex-col' : 'flex-row',
 				className
 			)

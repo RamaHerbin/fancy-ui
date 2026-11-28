@@ -90,3 +90,20 @@ describe("ConfettiButton contract", () => {
 		expect(second).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe("ConfettiButton nested interactive content", () => {
+	it("warns in development when a button is nested inside it", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		render(ConfettiButton, { slots: { default: () => h("button", { type: "button" }, "inner") } });
+		expect(warn).toHaveBeenCalledTimes(1);
+		expect(warn.mock.calls[0]?.[0]).toContain("[ConfettiButton]");
+		warn.mockRestore();
+	});
+
+	it("does not warn for plain content", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		render(ConfettiButton, { slots: { default: () => h("span", "plain") } });
+		expect(warn).not.toHaveBeenCalled();
+		warn.mockRestore();
+	});
+});

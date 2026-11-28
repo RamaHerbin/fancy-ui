@@ -30,6 +30,8 @@
 	const GLITCH_GLYPHS = "アイウエオ@#$%&!?░▒▓█▄▀■□▪▫";
 
 	let displayedLines = $state<string[]>([]);
+	// The finished transcript, caret row included, drawn invisibly to hold the size.
+	const ghost = $derived((lines ?? []).join("\n") + (cursor ? `\n${cursorChar}` : ""));
 	let done = $state(false);
 	let glitchState = $state<{ lineIdx: number; charIdx: number; original: string } | null>(null);
 
@@ -238,19 +240,33 @@
 	});
 </script>
 
-<div class={cn("font-mono text-sm leading-relaxed", className)}>
-	{#each displayedLines as line, i}
-		<div class="min-h-[1.4em]">
-			<span>{line}</span>{#if cursor && i === displayedLines.length - 1 && !done}<span
-					class="cursor-blink">{cursorChar}</span
-				>{/if}
-		</div>
-	{/each}
-	{#if cursor && done}
-		<div class="min-h-[1.4em]">
-			<span class="cursor-blink">{cursorChar}</span>
-		</div>
-	{/if}
+<!--
+	The block is as big as the finished transcript from the first frame: the full
+	text (and the caret row) is laid out invisibly in the same grid cell as the
+	typed lines, so typing never grows the block or moves it inside a centred
+	parent.
+-->
+<div
+	data-ghost={ghost}
+	class={cn(
+		"grid font-mono text-sm leading-relaxed after:invisible after:col-start-1 after:row-start-1 after:whitespace-pre-wrap after:content-[attr(data-ghost)]",
+		className
+	)}
+>
+	<div class="col-start-1 row-start-1">
+		{#each displayedLines as line, i}
+			<div class="min-h-[1.4em]">
+				<span>{line}</span>{#if cursor && i === displayedLines.length - 1 && !done}<span
+						class="cursor-blink">{cursorChar}</span
+					>{/if}
+			</div>
+		{/each}
+		{#if cursor && done}
+			<div class="min-h-[1.4em]">
+				<span class="cursor-blink">{cursorChar}</span>
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style>

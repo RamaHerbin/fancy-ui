@@ -7,7 +7,7 @@ export default function Scenario() {
 		<div className="relative h-[440px] w-full overflow-hidden rounded-lg border bg-[#fafafa]">
 			<div className="absolute inset-0 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
 				{/* Hero */}
-				<div className="flex min-h-[420px] flex-col items-center justify-center px-8 pt-24 text-center">
+				<div className="flex min-h-[440px] flex-col items-center justify-center px-8 pt-24 text-center">
 					<span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-500">
 						Now available for macOS
 					</span>

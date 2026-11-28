@@ -38,14 +38,14 @@
 		{radius}
 		{maxTranslate}
 		maxRotate={6}
-		class="bg-muted/60 dark:bg-muted/30 w-full rounded-2xl px-3 pt-20 pb-10 sm:px-16"
+		class="bg-muted/60 dark:bg-muted/30 w-full rounded-2xl px-3 pt-14 pb-6 sm:px-16"
 	>
 		<p class="text-muted-foreground absolute top-7 left-20 pr-4 text-xs leading-snug">
 			Drag the magnet toward the card, or bring your pointer close.
 		</p>
 
 		<article
-			class="mx-auto w-full max-w-[400px] rounded-[28px] bg-[#111112] p-6 text-[#f7f7f5] shadow-[0_24px_60px_-28px_rgb(0_0_0/0.6)] ring-1 ring-white/10 sm:p-10 dark:bg-[#19191b] dark:ring-white/15"
+			class="mx-auto w-full max-w-[400px] rounded-[28px] bg-[#111112] p-5 text-[#f7f7f5] shadow-[0_24px_60px_-28px_rgb(0_0_0/0.6)] ring-1 ring-white/10 sm:p-7 dark:bg-[#19191b] dark:ring-white/15"
 		>
 			<header class="flex items-center justify-between">
 				<MagneticItem mass={1}>
@@ -61,7 +61,7 @@
 				</MagneticItem>
 			</header>
 
-			<div class="mt-8 flex flex-wrap gap-2">
+			<div class="mt-5 flex flex-wrap gap-2">
 				{#each chips as chip (chip.label)}
 					<MagneticItem inline mass={chip.mass}>
 						<span
@@ -75,7 +75,7 @@
 				{/each}
 			</div>
 
-			<MagneticItem mass={0.6} class="mt-8 w-fit">
+			<MagneticItem mass={0.6} class="mt-5 w-fit">
 				<span
 					class="flex size-11 items-center justify-center rounded-[12px] bg-[#38363a] text-[#c9c9c4]"
 				>
@@ -97,7 +97,7 @@
 				</p>
 			</MagneticItem>
 
-			<div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+			<div class="mt-5 flex flex-wrap items-center justify-between gap-3">
 				<MagneticItem mass={1}>
 					<button
 						type="button"

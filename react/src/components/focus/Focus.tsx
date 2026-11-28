@@ -33,7 +33,7 @@ export function Focus({
 	sentence = "Fancy Focus",
 	manualMode = false,
 	blurAmount = 5,
-	borderColor = "green",
+	borderColor = "var(--ft-accent, light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75)))",
 	animationDuration = 0.5,
 	pauseBetweenAnimations = 1,
 	className = "",
@@ -43,6 +43,15 @@ export function Focus({
 	const wordElements = useRef<(HTMLSpanElement | null)[]>([]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [focusRect, setFocusRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
+	// The frame is placed on its first word without a transition: it is measured
+	// before the first paint, but the zero-size box it was rendered with would
+	// otherwise still be the start of the move, and the frame would fly in from
+	// the container's corner. Transitions switch on one frame later.
+	const [settled, setSettled] = useState(false);
+	useEffect(() => {
+		const id = requestAnimationFrame(() => setSettled(true));
+		return () => cancelAnimationFrame(id);
+	}, []);
 
 	// The interval callback reads the live word count, as the Svelte closure
 	// does over its derived value, without restarting the interval.
@@ -129,6 +138,7 @@ export function Focus({
 						width: `${focusRect.width}px`,
 						height: `${focusRect.height}px`,
 						opacity: currentIndex >= 0 ? 1 : 0,
+						transition: settled ? undefined : "none",
 						"--focus-duration": `${animationDuration}s`,
 						"--border-color": borderColor,
 					} as CSSProperties

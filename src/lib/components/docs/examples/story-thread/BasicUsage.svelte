@@ -33,15 +33,21 @@
 	];
 </script>
 
-<div class="bg-background text-foreground h-[420px] w-full overflow-y-auto rounded-xl border">
-	<StoryThread layout="horizontal" ariaLabel="A short story">
-		{#each chapters as chapter (chapter.id)}
-			<section class="relative h-full w-[520px] shrink-0 px-10 py-12">
-				<p class="text-muted-foreground font-mono text-xs">( {chapter.n} )</p>
-				<h3 class="mt-2 text-2xl font-semibold tracking-tight">{chapter.title}</h3>
-				<p class="text-muted-foreground mt-2 max-w-[18rem] text-sm">{chapter.text}</p>
-				<StoryNode id={chapter.id} class="absolute right-24" style="top: {chapter.top}" />
-			</section>
-		{/each}
-	</StoryThread>
+<div class="flex w-full flex-col gap-2">
+	<!-- The frame's own vertical scroll drives the sideways pan, so say so. -->
+	<p class="text-muted-foreground text-xs">Scroll inside the frame to pan the story sideways.</p>
+	<div
+		class="bg-background text-foreground h-[420px] w-full max-w-3xl overflow-y-auto rounded-xl border"
+	>
+		<StoryThread layout="horizontal" ariaLabel="A short story">
+			{#each chapters as chapter (chapter.id)}
+				<section class="relative h-full w-[520px] shrink-0 px-10 py-12">
+					<p class="text-muted-foreground font-mono text-xs">( {chapter.n} )</p>
+					<h3 class="mt-2 text-2xl font-semibold tracking-tight">{chapter.title}</h3>
+					<p class="text-muted-foreground mt-2 max-w-[18rem] text-sm">{chapter.text}</p>
+					<StoryNode id={chapter.id} class="absolute right-24" style="top: {chapter.top}" />
+				</section>
+			{/each}
+		</StoryThread>
+	</div>
 </div>

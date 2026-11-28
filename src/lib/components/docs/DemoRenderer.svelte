@@ -22,14 +22,7 @@
 		"container-text-flip": { words: ["better", "faster", "stronger", "beautiful"] },
 		"displacement-text": { text: "Hover Me" },
 		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
-		// currentColor particles follow the text colour, so pair the opaque dark backdrop with text-white:
-		// otherwise they are invisible on a white page.
-		sparkles: {
-			background: "#0b1020",
-			particleColor: "currentColor",
-			particleDensity: 160,
-			class: "text-white",
-		},
+		sparkles: { particleDensity: 160 },
 		"matrix-rain": { color: "#00ff00" },
 		ripple: {},
 		meteors: { count: 15 },
@@ -57,11 +50,22 @@
 	// single child, and a box-less wrapper would measure 0 by 0 and be skipped.
 	export const SIZED_STAGE = "relative flex h-[300px] w-full items-center justify-center";
 
+	const FIELD_STAGE = "flex w-full max-w-sm items-center justify-center px-6";
+
 	// Per-slug override of the stage classes. Add a slug here when its root has no
 	// intrinsic size of its own.
 	export const previewBox: Record<string, string> = {
 		sparkles: SIZED_STAGE,
 		"bg-stars": SIZED_STAGE,
+		// Full-width fields get a readable width and side padding, so the focus ring
+		// and halo are never cut at the edge of the frame. The time picker also
+		// leaves room below for its open list.
+		input: FIELD_STAGE,
+		textarea: FIELD_STAGE,
+		"search-input": FIELD_STAGE,
+		"password-input": FIELD_STAGE,
+		"date-picker": FIELD_STAGE,
+		"time-picker": `${FIELD_STAGE} pb-56`,
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
@@ -216,6 +220,7 @@
 <script lang="ts">
 	import { createSkinState, t } from "$lib/stores";
 	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
+	import { Button } from "$lib/fancy-ui/button";
 	import PreviewBoundary from "./PreviewBoundary.svelte";
 	import PreviewError from "./PreviewError.svelte";
 
@@ -228,6 +233,8 @@
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 	let carouselWrap = $state<HTMLDivElement | null>(null);
+	// BoxReveal plays once on mount; remounting it (via {#key}) replays it.
+	let boxRevealKey = $state(0);
 
 	let ComponentModule = $state<any>(null);
 	let ExampleComponent = $state<any>(null);
@@ -453,15 +460,23 @@
 			{:else if slug === "label"}
 				<Comp {...props}>Email address</Comp>
 			{:else if slug === "confetti"}
-				<Comp {...props}
-					><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
-						>Click for Confetti</button
-					></Comp
+				<Comp
+					{...props}
+					class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
 				>
-			{:else if slug === "box-reveal"}
-				<Comp color="var(--primary)" duration={0.5}>
-					<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
+					Click for Confetti
 				</Comp>
+			{:else if slug === "box-reveal"}
+				<div class="flex flex-col items-center gap-6">
+					{#key boxRevealKey}
+						<Comp color="var(--primary)" duration={0.5}>
+							<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
+						</Comp>
+					{/key}
+					<Button variant="outline" size="sm" onclick={() => boxRevealKey++}
+						>{t("demo.replay")}</Button
+					>
+				</div>
 			{:else if slug === "blur-reveal"}
 				<Comp>
 					<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>

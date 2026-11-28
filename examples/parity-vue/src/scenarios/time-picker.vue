@@ -4,5 +4,7 @@ import { TimePicker } from "fancy-ui-vue";
 </script>
 
 <template>
-	<TimePicker label="Time" placeholder="Pick a time" />
+	<div class="w-full max-w-sm px-6 pb-56">
+		<TimePicker label="Time" placeholder="Pick a time" />
+	</div>
 </template>

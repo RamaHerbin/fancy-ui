@@ -17,7 +17,7 @@ defineOptions({ name: "LineShadowText", inheritAttrs: false });
 
 const {
 	text,
-	shadowColor = "black",
+	shadowColor = "light-dark(black, white)",
 	as = "span",
 	class: className,
 } = defineProps<LineShadowTextProps>();

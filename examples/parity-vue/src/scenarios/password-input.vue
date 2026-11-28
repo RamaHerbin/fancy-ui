@@ -4,5 +4,7 @@ import { PasswordInput } from "fancy-ui-vue";
 </script>
 
 <template>
-	<PasswordInput label="Password" show-strength />
+	<div class="w-full max-w-sm px-6">
+		<PasswordInput label="Password" show-strength />
+	</div>
 </template>

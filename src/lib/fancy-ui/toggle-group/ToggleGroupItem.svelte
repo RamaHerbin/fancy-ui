@@ -71,7 +71,7 @@
 			"disabled:pointer-events-none disabled:opacity-50",
 			SIZE_CLASSES[size],
 			isSelected
-				? "bg-secondary text-secondary-foreground"
+				? "bg-[color:light-dark(var(--secondary),color-mix(in_oklab,var(--foreground)_16%,transparent))] text-secondary-foreground"
 				: "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
 			className
 		)

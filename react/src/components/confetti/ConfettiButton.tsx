@@ -1,10 +1,11 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
 import confetti from "canvas-confetti";
 import type { Options as ConfettiOptions } from "canvas-confetti";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { useSoundFeedback } from "../../sound/sound-feedback.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { isDev } from "./dev.js";
 import { ConfettiReactContext } from "./context.js";
 
 type BaseProps = {
@@ -47,7 +48,18 @@ export const ConfettiButton = forwardRef<HTMLButtonElement, ConfettiButtonProps>
 			on: sound ? { pointerenter: "hover" } : {},
 			disabled: !!restProps.disabled,
 		});
-		const composedRef = useComposedRefs(ref, soundRef);
+		const localRef = useRef<HTMLButtonElement | null>(null);
+		const composedRef = useComposedRefs(ref, soundRef, localRef);
+
+		// Dev-only: the component already renders a <button>, so interactive children
+		// nest invalid markup (and React reports a hydration error for it).
+		useEffect(() => {
+			if (isDev() && localRef.current?.querySelector('button, a[href], input, [role="button"]')) {
+				console.warn(
+					"[ConfettiButton] An interactive element (button, link, input or role=button) is nested inside the ConfettiButton, which already renders a <button>. Nested interactive content is invalid HTML and breaks hydration and keyboard behaviour. Pass plain text or non-interactive markup as children instead."
+				);
+			}
+		}, []);
 
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (restProps.disabled) return;
@@ -76,7 +88,13 @@ export const ConfettiButton = forwardRef<HTMLButtonElement, ConfettiButtonProps>
 		}
 
 		return (
-			<button ref={composedRef} className={className} type={type} {...restProps} onClick={handleClick}>
+			<button
+				ref={composedRef}
+				className={className}
+				type={type}
+				{...restProps}
+				onClick={handleClick}
+			>
 				{children}
 			</button>
 		);

@@ -4,5 +4,7 @@ import { Textarea } from "fancy-ui-vue";
 </script>
 
 <template>
-	<Textarea label="Message" placeholder="Tell us what you think…" />
+	<div class="w-full max-w-sm px-6">
+		<Textarea label="Message" placeholder="Tell us what you think…" />
+	</div>
 </template>

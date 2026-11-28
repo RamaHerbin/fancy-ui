@@ -3,5 +3,12 @@
 import { GlowBorder } from "fancy-ui-react";
 
 export default function Scenario() {
-	return <GlowBorder />;
+	return (
+		<div className="bg-background relative flex h-40 w-64 items-center justify-center rounded-xl p-6">
+			<p data-glow-border-demo className="text-muted-foreground text-center">
+				Glow Border
+			</p>
+			<GlowBorder />
+		</div>
+	);
 }

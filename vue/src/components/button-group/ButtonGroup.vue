@@ -40,7 +40,7 @@ BUTTON_GROUP_CONTEXT.provide(context);
 		ref="el"
 		:class="
 			cn(
-				'ft-button-group border-border inline-flex rounded-lg border',
+				'ft-button-group inline-flex rounded-lg border border-[color:light-dark(var(--border),color-mix(in_oklab,var(--foreground)_40%,transparent))]',
 				orientation === 'vertical' ? 'flex-col' : 'flex-row',
 				className
 			)
@@ -77,12 +77,20 @@ BUTTON_GROUP_CONTEXT.provide(context);
 
 /* Horizontal: a vertical hairline between items, left-to-right. */
 .ft-button-group:not([data-orientation="vertical"]) :deep(> * + *) {
-	border-left: 1px solid var(--color-border, color-mix(in oklab, currentColor 10%, transparent));
+	border-left: 1px solid
+		light-dark(
+			var(--color-border, color-mix(in oklab, currentColor 10%, transparent)),
+			color-mix(in oklab, var(--foreground, currentColor) 28%, transparent)
+		);
 }
 
 /* Vertical: the same hairline, rotated onto the stacking axis. */
 .ft-button-group[data-orientation="vertical"] :deep(> * + *) {
-	border-top: 1px solid var(--color-border, color-mix(in oklab, currentColor 10%, transparent));
+	border-top: 1px solid
+		light-dark(
+			var(--color-border, color-mix(in oklab, currentColor 10%, transparent)),
+			color-mix(in oklab, var(--foreground, currentColor) 28%, transparent)
+		);
 }
 
 /*

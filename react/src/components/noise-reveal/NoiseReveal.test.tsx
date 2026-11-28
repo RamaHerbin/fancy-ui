@@ -4,7 +4,7 @@ import { NoiseReveal } from "./NoiseReveal.js";
 import { FakeIntersectionObserver } from "../../test-setup.js";
 
 // Holds the last renderer instance created by the mock
-const lastMock = { renderer: null as any };
+const lastMock = { renderer: null as any, mesh: null as any, loader: null as any };
 
 // Three.js uses WebGL which is not available in jsdom — mock the module
 vi.mock("three", () => {
@@ -15,7 +15,9 @@ vi.mock("three", () => {
 		return { dispose: vi.fn(), colorSpace: "", image: {} };
 	}
 	function TextureLoader() {
-		return { load: vi.fn(() => Texture()) };
+		const instance = { load: vi.fn((_src: string, _cb: (t: any) => void) => Texture()) };
+		lastMock.loader = instance;
+		return instance;
 	}
 	function ShaderMaterial() {
 		return {
@@ -33,7 +35,9 @@ vi.mock("three", () => {
 		return { dispose: vi.fn() };
 	}
 	function Mesh() {
-		return { scale: { set: vi.fn() } };
+		const instance = { scale: { set: vi.fn() } };
+		lastMock.mesh = instance;
+		return instance;
 	}
 	function Scene() {
 		return { background: null, add: vi.fn() };
@@ -82,6 +86,17 @@ const src = "https://example.com/image.jpg";
 
 describe("NoiseReveal", () => {
 	afterEach(cleanup);
+
+	it("draws nothing until the texture has loaded, then shows the plane", () => {
+		render(<NoiseReveal src={src} trigger="manual" revealed />);
+		// No texture yet: a visible plane would sample black and flash a slab.
+		expect(lastMock.mesh.visible).toBe(false);
+		const [, onLoad] = lastMock.loader.load.mock.calls[0];
+		act(() => {
+			onLoad({ colorSpace: "", image: { naturalWidth: 10, naturalHeight: 10 }, dispose: vi.fn() });
+		});
+		expect(lastMock.mesh.visible).toBe(true);
+	});
 
 	it("renders a div container", () => {
 		const { container } = render(<NoiseReveal src={src} />);

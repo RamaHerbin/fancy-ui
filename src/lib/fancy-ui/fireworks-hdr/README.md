@@ -230,7 +230,7 @@ Tiers set the particle budget and trail emission rate:
 | `low`  | 1280         | 60             |
 
 On top of the tier, a **session-sticky adaptive ladder** watches an EMA of frame
-time (α = 0.1) and drops a notch when the average holds above 24 ms (~<42 fps)
+time (α = 0.1) and drops a notch when the average holds above a 24 ms frame-time budget
 for ~60 consecutive active frames. It only ever downgrades — never hunts back up
 — and sheds GPU cost before CPU cost:
 
@@ -255,10 +255,12 @@ The CPU sim has large headroom; the real budget risk is GPU fill-rate on the HDR
 float path, which is what the adaptive ladder targets first. Measured on Apple
 Silicon at the `high` tier:
 
-- **Intro peak** (four glyph shells + garnish): `step()` + `writeInstances()`
-  ≈ **0.10 ms** mean per frame.
-- **Saturation** (4096 live particles): ≈ **1.03 ms** mean per frame — still well
-  under a 60 fps CPU budget, leaving the frame to the GPU.
+- **Intro peak** (four glyph shells + garnish): `step()` + `writeInstances()` is
+  designed to stay a small fraction of a frame.
+- **Saturation** (4096 live particles): the CPU side is budgeted to stay well
+  under a 60 fps frame, leaving the frame to the GPU. These are design budgets,
+  not tracked measurements; reproduce numbers with the instruments in
+  `scripts/perf/README.md`.
 
 ---
 
@@ -310,8 +312,8 @@ Intro flash **3.4** · ambient flash **2.1** · fresh spark **2.2** · steady
   `L 0.7→1.0` cubic ease-in to 0, shrink ~15%, desaturate warm.
 - Core flash, exponential: 50% @ 60 ms, 10% @ 180 ms, gone by 350 ms; crossfades
   to hue while decaying.
-- Accumulation decay: ascent comet persists 350–500 ms (×0.90–0.93/frame @
-  60 fps); burst streaks 150–220 ms (×0.82–0.86). Smoke expands + fades over
+- Accumulation decay: ascent comet persists 350–500 ms (×0.90–0.93/frame, tuned
+  for a 60 fps cadence); burst streaks 150–220 ms (×0.82–0.86). Smoke expands + fades over
   1.5–3 s.
 - Universal: the last 10% of life is multiplied by `smoothstep(1.0, 0.9, L)`;
   alpha and size ease together; nothing is ever removed at non-zero brightness.

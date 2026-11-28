@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Mirrors src/lib/components/docs/DemoRenderer.svelte, slug "sparkles":
-// <Sparkles background="transparent" particleColor="#ffffff" particleDensity={60} />.
+// <Sparkles particleDensity={160} />.
 import { Sparkles } from "fancy-ui-vue";
 </script>
 
 <template>
-	<Sparkles background="transparent" particle-color="#ffffff" :particle-density="60" />
+	<Sparkles :particle-density="160" />
 </template>

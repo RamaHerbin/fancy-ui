@@ -426,6 +426,7 @@ export default {
 	"error.report": "Segnala un link non funzionante",
 	"comp.previewFailed": "Non è stato possibile caricare questa anteprima.",
 	"demo.noPreview": "Per questo componente non è ancora disponibile un'anteprima.",
+	"demo.replay": "Ripeti",
 	"demo.notFound": "Componente non trovato.",
 	"recipes.steps": "Passaggi",
 	"recipes.pitfalls": "Errori comuni",

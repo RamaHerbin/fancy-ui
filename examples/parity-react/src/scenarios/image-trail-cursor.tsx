@@ -39,12 +39,12 @@ export default function Scenario() {
 	const [selectedVariant, setSelectedVariant] = useState<VariantType>("type1");
 
 	return (
-		<div className="w-full">
-			<div className="mb-4 flex flex-wrap gap-2">
+		<div className="w-full max-w-3xl px-4">
+			<div className="mb-3 flex flex-wrap gap-1.5">
 				{variants.map((v) => (
 					<button
 						key={v.type}
-						className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+						className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
 							selectedVariant === v.type
 								? "border-primary bg-primary text-primary-foreground"
 								: "border-border bg-card hover:bg-accent"
@@ -55,7 +55,7 @@ export default function Scenario() {
 					</button>
 				))}
 			</div>
-			<div className="relative h-[500px] cursor-crosshair overflow-hidden rounded-lg border">
+			<div className="relative h-[320px] cursor-crosshair overflow-hidden rounded-lg border">
 				<ImageTrailCursor images={images} variant={selectedVariant} />
 				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
 					<p className="text-muted-foreground text-lg font-medium select-none">

@@ -14,7 +14,7 @@
 		class: className = "",
 		slotClass = "",
 		gradientSize = 200,
-		gradientColor = "#262626",
+		gradientColor = "color-mix(in oklab, var(--foreground) 14%, transparent)",
 		gradientOpacity = 0.8,
 		children,
 	}: Props = $props();

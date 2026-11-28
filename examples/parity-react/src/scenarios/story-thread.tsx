@@ -34,17 +34,26 @@ const chapters = [
 
 export default function Scenario() {
 	return (
-		<div className="bg-background text-foreground h-[420px] w-full overflow-y-auto rounded-xl border">
-			<StoryThread layout="horizontal" ariaLabel="A short story">
-				{chapters.map((chapter) => (
-					<section key={chapter.id} className="relative h-full w-[520px] shrink-0 px-10 py-12">
-						<p className="text-muted-foreground font-mono text-xs">( {chapter.n} )</p>
-						<h3 className="mt-2 text-2xl font-semibold tracking-tight">{chapter.title}</h3>
-						<p className="text-muted-foreground mt-2 max-w-[18rem] text-sm">{chapter.text}</p>
-						<StoryNode id={chapter.id} className="absolute right-24" style={{ top: chapter.top }} />
-					</section>
-				))}
-			</StoryThread>
+		<div className="flex w-full flex-col gap-2">
+			<p className="text-muted-foreground text-xs">
+				Scroll inside the frame to pan the story sideways.
+			</p>
+			<div className="bg-background text-foreground h-[420px] w-full max-w-3xl overflow-y-auto rounded-xl border">
+				<StoryThread layout="horizontal" ariaLabel="A short story">
+					{chapters.map((chapter) => (
+						<section key={chapter.id} className="relative h-full w-[520px] shrink-0 px-10 py-12">
+							<p className="text-muted-foreground font-mono text-xs">( {chapter.n} )</p>
+							<h3 className="mt-2 text-2xl font-semibold tracking-tight">{chapter.title}</h3>
+							<p className="text-muted-foreground mt-2 max-w-[18rem] text-sm">{chapter.text}</p>
+							<StoryNode
+								id={chapter.id}
+								className="absolute right-24"
+								style={{ top: chapter.top }}
+							/>
+						</section>
+					))}
+				</StoryThread>
+			</div>
 		</div>
 	);
 }

@@ -427,6 +427,7 @@ export default {
 	"error.report": "Relatar um link quebrado",
 	"comp.previewFailed": "Não foi possível carregar esta pré-visualização.",
 	"demo.noPreview": "Ainda não há pré-visualização para este componente.",
+	"demo.replay": "Repetir",
 	"demo.notFound": "Componente não encontrado.",
 	"recipes.steps": "Passos",
 	"recipes.pitfalls": "Erros comuns",

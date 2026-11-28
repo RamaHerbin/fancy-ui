@@ -85,7 +85,7 @@ const well =
 
 export default function Scenario() {
 	return (
-		<BentoGrid>
+		<BentoGrid className="md:auto-rows-[14rem]">
 			<BentoGridItem
 				className="md:col-span-2"
 				header={

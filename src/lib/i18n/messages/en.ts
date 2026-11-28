@@ -509,6 +509,7 @@ export const en = {
 	"comp.previewFailed": "This preview could not be loaded.",
 	/** @context Standalone demo page, component without a preview. */
 	"demo.noPreview": "No preview is available for this component yet.",
+	"demo.replay": "Replay",
 	/** @context Standalone demo page, unknown component slug. */
 	"demo.notFound": "Component not found.",
 	/** @context Heading of the numbered steps section of a recipe. */

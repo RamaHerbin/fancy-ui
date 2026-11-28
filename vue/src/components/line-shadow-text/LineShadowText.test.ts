@@ -40,12 +40,12 @@ describe("LineShadowText", () => {
 		expect(el.style.getPropertyValue("--shadow-color")).toBe("red");
 	});
 
-	it("defaults shadow color to black", () => {
+	it("defaults shadow color to a light-dark pair", () => {
 		const { container } = render(LineShadowText, {
 			props: { text: "Default color" },
 		});
 		const el = container.firstElementChild as HTMLElement;
-		expect(el.style.getPropertyValue("--shadow-color")).toBe("black");
+		expect(el.style.getPropertyValue("--shadow-color")).toBe("light-dark(black, white)");
 	});
 
 	it("applies custom class", () => {

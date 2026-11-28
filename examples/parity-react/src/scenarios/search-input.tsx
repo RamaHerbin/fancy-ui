@@ -3,5 +3,9 @@
 import { SearchInput } from "fancy-ui-react";
 
 export default function Scenario() {
-	return <SearchInput label="Search" placeholder="Search components" />;
+	return (
+		<div className="w-full max-w-sm px-6">
+			<SearchInput label="Search" placeholder="Search components" />
+		</div>
+	);
 }

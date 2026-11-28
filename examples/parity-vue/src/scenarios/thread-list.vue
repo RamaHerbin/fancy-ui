@@ -9,7 +9,13 @@ const DAY = 24 * HOUR;
 
 const now = Date.now();
 
-type Thread = { id: string; title: string; preview?: string; updatedAt: Date | number; unread?: boolean };
+type Thread = {
+	id: string;
+	title: string;
+	preview?: string;
+	updatedAt: Date | number;
+	unread?: boolean;
+};
 
 const threads = ref<Thread[]>([
 	{
@@ -62,33 +68,35 @@ function remove(thread: Thread) {
 </script>
 
 <template>
-	<div class="bg-card grid w-full max-w-2xl gap-4 rounded-lg border p-4 sm:grid-cols-[20rem_1fr]">
-		<ThreadList
-			sound
-			:threads="threads"
-			v-model:active-id="activeId"
-			:on-select="open"
-			:on-delete="remove"
-		>
-			<template #empty>
-				<p class="text-muted-foreground px-2 py-6 text-center text-xs">
-					Every conversation deleted. Refresh to bring them back.
-				</p>
-			</template>
-		</ThreadList>
+	<div class="w-full max-w-2xl px-4">
+		<div class="bg-card grid w-full gap-4 rounded-lg border p-4 sm:grid-cols-[20rem_1fr]">
+			<ThreadList
+				sound
+				:threads="threads"
+				v-model:active-id="activeId"
+				:on-select="open"
+				:on-delete="remove"
+			>
+				<template #empty>
+					<p class="text-muted-foreground px-2 py-6 text-center text-xs">
+						Every conversation deleted. Refresh to bring them back.
+					</p>
+				</template>
+			</ThreadList>
 
-		<div class="bg-muted/40 flex min-h-40 flex-col justify-center rounded-md p-4">
-			<template v-if="selected">
-				<p class="text-foreground/70 text-xs font-medium tracking-wide uppercase">Conversation</p>
-				<p class="mt-1 font-medium">{{ selected.title }}</p>
-				<p class="text-foreground/70 mt-1 text-xs">{{ selected.preview }}</p>
-			</template>
-			<p v-else class="text-foreground/70 text-xs">Pick a conversation on the left.</p>
+			<div class="bg-muted/40 flex min-h-40 flex-col justify-center rounded-md p-4">
+				<template v-if="selected">
+					<p class="text-foreground/70 text-xs font-medium tracking-wide uppercase">Conversation</p>
+					<p class="mt-1 font-medium">{{ selected.title }}</p>
+					<p class="text-foreground/70 mt-1 text-xs">{{ selected.preview }}</p>
+				</template>
+				<p v-else class="text-foreground/70 text-xs">Pick a conversation on the left.</p>
+			</div>
 		</div>
-	</div>
 
-	<p class="text-muted-foreground mt-3 max-w-2xl text-xs">
-		The unread dot clears the moment the thread is opened, and each row reveals its delete button on
-		hover — or on focus, if you tab through instead.
-	</p>
+		<p class="text-muted-foreground mt-3 max-w-2xl text-xs">
+			The unread dot clears the moment the thread is opened, and each row reveals its delete button
+			on hover — or on focus, if you tab through instead.
+		</p>
+	</div>
 </template>
