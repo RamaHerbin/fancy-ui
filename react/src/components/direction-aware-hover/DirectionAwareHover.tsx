@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent, ReactNode, TouchEvent as ReactTouchEvent } from "react";
+import type {
+	FocusEvent as ReactFocusEvent,
+	PointerEvent as ReactPointerEvent,
+	ReactNode,
+	TouchEvent as ReactTouchEvent,
+} from "react";
 
 import { cn } from "../../utils.js";
 import { linear } from "../../internals/motion/easing.js";
@@ -106,7 +111,35 @@ export function DirectionAwareHover({
 		};
 	}, []);
 
-	function handleMouseEnter(event: ReactMouseEvent<HTMLDivElement>) {
+	// Keyboard path: focus shows the fully presented state (overlay in from the top,
+	// image shifted, caption mounted). Nothing is announced: the caption is already in the DOM.
+	const focusPresentedRef = useRef(false);
+
+	function handleFocusIn() {
+		// A click focuses the root too, while the pointer already chose a direction: keep it.
+		// Keyboard focus still arms the flag, so the card stays presented once the pointer leaves.
+		if (direction !== null) {
+			try {
+				if (divRef.current?.matches(":focus-visible")) focusPresentedRef.current = true;
+			} catch {
+				// `:focus-visible` unsupported: treat it as pointer focus
+			}
+			return;
+		}
+		focusPresentedRef.current = true;
+		setDirection("top");
+	}
+
+	function handleFocusOut(event: ReactFocusEvent<HTMLDivElement>) {
+		if (event.relatedTarget instanceof Node && divRef.current?.contains(event.relatedTarget))
+			return;
+		if (!focusPresentedRef.current) return;
+		focusPresentedRef.current = false;
+		setDirection(null);
+	}
+
+	function handlePointerEnter(event: ReactPointerEvent<HTMLDivElement>) {
+		if (event.pointerType === "touch") return;
 		if (isMobileRef.current) return;
 		if (!divRef.current) return;
 
@@ -114,9 +147,10 @@ export function DirectionAwareHover({
 		setDirection(mapDirection(fetchedDirection));
 	}
 
-	function handleMouseLeave() {
+	function handlePointerLeave(event: ReactPointerEvent<HTMLDivElement>) {
+		if (event.pointerType === "touch") return;
 		if (isMobileRef.current) return;
-		setDirection(null);
+		setDirection(focusPresentedRef.current ? "top" : null);
 	}
 
 	function handleTouchEnd() {
@@ -191,16 +225,20 @@ export function DirectionAwareHover({
 		let transformClasses = "";
 		switch (overlayDirection) {
 			case "top":
-				transformClasses = "-translate-y-full group-hover/card:translate-y-0";
+				transformClasses =
+					"-translate-y-full group-hover/card:translate-y-0 group-focus-within/card:translate-y-0";
 				break;
 			case "bottom":
-				transformClasses = "translate-y-full group-hover/card:translate-y-0";
+				transformClasses =
+					"translate-y-full group-hover/card:translate-y-0 group-focus-within/card:translate-y-0";
 				break;
 			case "left":
-				transformClasses = "-translate-x-full group-hover/card:translate-x-0";
+				transformClasses =
+					"-translate-x-full group-hover/card:translate-x-0 group-focus-within/card:translate-x-0";
 				break;
 			case "right":
-				transformClasses = "translate-x-full group-hover/card:translate-x-0";
+				transformClasses =
+					"translate-x-full group-hover/card:translate-x-0 group-focus-within/card:translate-x-0";
 				break;
 			default:
 				transformClasses = "";
@@ -223,8 +261,11 @@ export function DirectionAwareHover({
 		<div
 			ref={divRef}
 			className={containerClass}
-			onMouseEnter={handleMouseEnter}
-			onMouseLeave={handleMouseLeave}
+			tabIndex={0}
+			onPointerEnter={handlePointerEnter}
+			onPointerLeave={handlePointerLeave}
+			onFocus={handleFocusIn}
+			onBlur={handleFocusOut}
 			onTouchStart={handleTouchStart}
 			onTouchEnd={handleTouchEnd}
 			role="figure"

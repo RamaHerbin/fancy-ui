@@ -138,14 +138,25 @@
 		--_frame-line: var(--bento-frame-line-hover, rgba(255, 255, 255, 0.13));
 	}
 
-	.bento-tile:hover .bento-glow,
 	.bento-tile:focus-within .bento-glow {
 		opacity: var(--_glow-peak);
 		transform: translate3d(0, 0, 0);
 	}
-	.bento-tile:hover .bento-edge,
+
+	@media (hover: hover) {
+		.bento-tile:hover .bento-glow {
+			opacity: var(--_glow-peak);
+			transform: translate3d(0, 0, 0);
+		}
+	}
 	.bento-tile:focus-within .bento-edge {
 		opacity: 0.85;
+	}
+
+	@media (hover: hover) {
+		.bento-tile:hover .bento-edge {
+			opacity: 0.85;
+		}
 	}
 
 	/*
@@ -201,30 +212,38 @@
 			0 0 14px -4px color-mix(in oklab, var(--_accent) 55%, transparent);
 	}
 
-	/* The CTA slides in from the left and fades up. */
+	/* The CTA slides in from the left and fades up. It is only parked off to
+	   the side where a pointer can hover, so touch screens keep it visible;
+	   keyboard focus reveals it exactly as hover does. */
 	.bento-tile :global(.bento-cta) {
-		opacity: 0;
-		transform: translate3d(-8px, 0, 0);
 		transition:
 			opacity 400ms cubic-bezier(0.4, 0, 0.2, 1),
 			transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
 			color 300ms cubic-bezier(0.4, 0, 0.2, 1);
 	}
-	.bento-tile:is(:hover, :focus-within) :global(.bento-cta) {
+	@media (hover: hover) {
+		.bento-tile :global(.bento-cta) {
+			opacity: 0;
+			transform: translate3d(-8px, 0, 0);
+		}
+		.bento-tile:hover :global(.bento-cta) {
+			opacity: 1;
+			transform: translate3d(0, 0, 0);
+		}
+	}
+	.bento-tile:focus-within :global(.bento-cta) {
 		opacity: 1;
 		transform: translate3d(0, 0, 0);
 	}
-	/* No hover on touch screens: keep the CTA visible. */
-	@media (hover: none) {
-		.bento-tile :global(.bento-cta) {
-			opacity: 1;
-			transform: none;
-		}
-	}
 
 	@media (prefers-reduced-motion: no-preference) {
-		.bento-tile:is(:hover, :focus-within) :global(.bento-lift) {
+		.bento-tile:focus-within :global(.bento-lift) {
 			transform: translate3d(0, -6px, 0);
+		}
+		@media (hover: hover) {
+			.bento-tile:hover :global(.bento-lift) {
+				transform: translate3d(0, -6px, 0);
+			}
 		}
 	}
 

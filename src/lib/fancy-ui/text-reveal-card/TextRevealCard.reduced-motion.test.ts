@@ -7,9 +7,24 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { render, cleanup } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import TextRevealCard from "./TextRevealCard.svelte";
+
+/** jsdom ships no PointerEvent: a mouse event of the pointer type carries `pointerType`. */
+function firePointer(
+	el: Element,
+	type: string,
+	init: { clientX?: number; pointerType?: string } = {}
+) {
+	const event = new MouseEvent(type, {
+		bubbles: !/enter|leave/.test(type),
+		clientX: init.clientX,
+	});
+	Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
+	el.dispatchEvent(event);
+}
 
 const SRC = resolve(__dirname, "./TextRevealCard.svelte");
 
@@ -80,12 +95,14 @@ describe("TextRevealCard reduced motion", () => {
 			expect(el.style.transition).toBe("");
 			expect(el.classList.contains("text-reveal-settle")).toBe(true);
 		}
-		await fireEvent.mouseEnter(card);
+		firePointer(card, "pointerenter");
+		await tick();
 		for (const el of layers(container)) {
 			expect(el.style.transition).toBe("");
 			expect(el.classList.contains("text-reveal-settle")).toBe(false);
 		}
-		await fireEvent.mouseLeave(card);
+		firePointer(card, "pointerleave");
+		await tick();
 		for (const el of layers(container)) {
 			expect(el.style.transition).toBe("");
 			expect(el.classList.contains("text-reveal-settle")).toBe(true);

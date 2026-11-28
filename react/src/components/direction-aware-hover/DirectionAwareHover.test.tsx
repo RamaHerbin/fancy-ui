@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { DirectionAwareHover } from "./DirectionAwareHover.js";
 
@@ -78,5 +78,59 @@ describe("DirectionAwareHover", () => {
 		const { container } = render(<DirectionAwareHover imageUrl="/test.jpg" />);
 		const img = container.querySelector("img");
 		expect(img?.className).toContain("object-cover");
+	});
+
+	describe("keyboard path", () => {
+		const overlay = (c: HTMLElement) => c.querySelector(".bg-black\\/40");
+
+		function pointer(type: string, el: Element, pointerType: string) {
+			fireEvent(el, Object.assign(new Event(type, { bubbles: true }), { pointerType }));
+		}
+
+		it("makes the root focusable", () => {
+			const { container } = render(<DirectionAwareHover imageUrl="/t.jpg" />);
+			expect(container.querySelector('[role="figure"]')).toHaveAttribute("tabindex", "0");
+		});
+
+		it("focus presents the overlay, blur returns to rest", () => {
+			const { container } = render(<DirectionAwareHover imageUrl="/t.jpg" />);
+			const figure = container.querySelector('[role="figure"]') as HTMLElement;
+			expect(overlay(container)).toBeNull();
+			act(() => figure.focus());
+			const el = overlay(container);
+			expect(el).not.toBeNull();
+			expect(el!.className).toContain("-translate-y-full");
+			expect(el!.className).toContain("group-focus-within/card:translate-y-0");
+			const img = figure.querySelector("img")!.parentElement as HTMLElement;
+			expect(img.className).toContain("translate-y-2");
+			act(() => figure.blur());
+			expect(img.className).not.toContain("translate-y-2");
+		});
+
+		it("stays presented after the pointer leaves when keyboard focus arrived under it", () => {
+			delete (window as unknown as Record<string, unknown>).ontouchstart;
+			const { container } = render(<DirectionAwareHover imageUrl="/t.jpg" />);
+			const figure = container.querySelector('[role="figure"]') as HTMLElement;
+			figure.matches = ((selector: string) =>
+				selector === ":focus-visible") as typeof figure.matches;
+			pointer("pointerover", figure, "mouse");
+			act(() => figure.focus());
+			pointer("pointerout", figure, "mouse");
+			const img = figure.querySelector("img")!.parentElement as HTMLElement;
+			expect(img.className).toContain("translate-y-2");
+			act(() => figure.blur());
+			expect(img.className).not.toContain("translate-y-2");
+		});
+
+		it("ignores touch pointers on the hover path", () => {
+			// jsdom reports touch support, which would switch the hover path off for every pointer.
+			delete (window as unknown as Record<string, unknown>).ontouchstart;
+			const { container } = render(<DirectionAwareHover imageUrl="/t.jpg" />);
+			const figure = container.querySelector('[role="figure"]') as HTMLElement;
+			pointer("pointerover", figure, "touch");
+			expect(overlay(container)).toBeNull();
+			pointer("pointerover", figure, "mouse");
+			expect(overlay(container)).not.toBeNull();
+		});
 	});
 });

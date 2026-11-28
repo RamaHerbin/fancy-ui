@@ -43,10 +43,28 @@ describe("CardContainer", () => {
 
 		// jsdom's getBoundingClientRect() is all zeros, so rotateY = clientX / 25
 		// and rotateX = clientY / 25 for this component's handler.
-		await fireEvent.mouseMove(inner, { clientX: 50, clientY: 25 });
+		await fireEvent.pointerMove(inner, { clientX: 50, clientY: 25, pointerType: "mouse" });
 		expect(inner.style.transform).toBe("rotateY(2deg) rotateX(1deg)");
 
-		await fireEvent.mouseLeave(inner);
+		await fireEvent.pointerLeave(inner, { pointerType: "mouse" });
+		expect(inner.style.transform).toBe("rotateY(0deg) rotateX(0deg)");
+	});
+
+	it("ignores touch pointers", async () => {
+		const { container } = render(CardContainer);
+		const inner = (container.firstElementChild as HTMLElement).firstElementChild as HTMLElement;
+		await fireEvent.pointerMove(inner, { clientX: 50, clientY: 25, pointerType: "touch" });
+		expect(inner.style.transform).toBe("");
+	});
+
+	it("presents the card with a neutral tilt when focus moves inside", async () => {
+		const { container } = render(CardContainer, {
+			props: { children: textSnippet("<button data-testid='inside'>go</button>") },
+		});
+		const inner = (container.firstElementChild as HTMLElement).firstElementChild as HTMLElement;
+		await fireEvent.pointerMove(inner, { clientX: 50, clientY: 25, pointerType: "mouse" });
+		expect(inner.style.transform).toBe("rotateY(2deg) rotateX(1deg)");
+		(container.querySelector("[data-testid='inside']") as HTMLElement).focus();
 		expect(inner.style.transform).toBe("rotateY(0deg) rotateX(0deg)");
 	});
 });

@@ -163,22 +163,30 @@
 	   so a looser reset here would silently lose the cascade and never
 	   actually apply. */
 	@media (forced-colors: active), (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
-		.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):not(
-				:has(:global(:focus-visible))
-			):has(> :global(:hover))
-			> :global(:not(:hover)),
 		.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):has(:global(:focus-visible))
 			> :global(:not(:focus-visible):not(:has(:focus-visible))) {
 			opacity: 1;
 		}
+		@media (hover: hover) {
+			.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):not(
+					:has(:global(:focus-visible))
+				):has(> :global(:hover))
+				> :global(:not(:hover)) {
+				opacity: 1;
+			}
+		}
 		/* Same (0,1,0) bump as the blur rules above, so this reset ties them. */
-		.ft-dimsiblings:is([data-effect="blur"], [data-effect="both"]):not(
-				:has(:global(:focus-visible))
-			):has(> :global(:hover))
-			> :global(:not(:hover)),
 		.ft-dimsiblings:is([data-effect="blur"], [data-effect="both"]):has(:global(:focus-visible))
 			> :global(:not(:focus-visible):not(:has(:focus-visible))) {
 			filter: none;
+		}
+		@media (hover: hover) {
+			.ft-dimsiblings:is([data-effect="blur"], [data-effect="both"]):not(
+					:has(:global(:focus-visible))
+				):has(> :global(:hover))
+				> :global(:not(:hover)) {
+				filter: none;
+			}
 		}
 	}
 </style>
